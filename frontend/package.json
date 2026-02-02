@@ -1,0 +1,41 @@
+{
+  "name": "livetrip-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write src/**/*.{ts,tsx,json,css,md}"
+  },
+  "dependencies": {
+    "@amap/amap-jsapi-loader": "1.0.1",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "antd": "5.22.5",
+    "axios": "1.7.9",
+    "dayjs": "1.11.13",
+    "echarts": "^6.0.0",
+    "echarts-for-react": "^3.0.6",
+    "mapbox-gl": "^3.18.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "7.1.1",
+    "zustand": "5.0.2"
+  },
+  "devDependencies": {
+    "@types/mapbox-gl": "^3.4.1",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@vitejs/plugin-react": "4.3.4",
+    "eslint": "9.17.0",
+    "eslint-plugin-react": "7.37.2",
+    "eslint-plugin-react-hooks": "5.0.0",
+    "prettier": "3.4.2",
+    "typescript": "5.7.3",
+    "vite": "6.0.7"
+  }
+}

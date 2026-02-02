@@ -1,0 +1,77 @@
+// TypeScript类型定义 - 定义后端使用的类型
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Itinerary {
+  id: number;
+  user_id: number;
+  destination: string;
+  start_date: Date;
+  end_date: Date;
+  travelers: number;
+  budget?: number;
+  preferences?: Record<string, any>;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Attraction {
+  id: number;
+  name: string;
+  city: string;
+  category?: string;
+  latitude?: number;
+  longitude?: number;
+  avg_duration_min?: number;
+  description?: string;
+  tags?: string[];
+}
+
+export interface IoTData {
+  id: number;
+  attraction_id: number;
+  crowd_level: number;
+  wait_time_min?: number;
+  weather?: Record<string, any>;
+  is_open: boolean;
+  updated_at: Date;
+}
+
+export interface Recommendation {
+  id: number;
+  itinerary_id: number;
+  attraction_id: number;
+  day_number: number;
+  order_in_day: number;
+  reason?: Record<string, any>;
+  is_alternative: boolean;
+  created_at: Date;
+}
+
+export interface CreatePlanRequest {
+  destination: string;
+  start_date: string;
+  end_date: string;
+  travelers: number;
+  budget?: number;
+  preferences?: {
+    interests?: string[];
+    pace?: string;
+    energy_level?: string;
+  };
+}
+
+export interface AdjustItineraryRequest {
+  itinerary_id: number;
+  reason: string;
+  adjustments: {
+    attraction_id: number;
+    action: 'remove' | 'add' | 'reorder';
+    new_order?: number;
+  }[];
+}
