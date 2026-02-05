@@ -1,9 +1,25 @@
 // 首页 - 显示"智能旅行规划"
-import { Button } from 'antd';
+import { Button, Space } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // 检查用户是否已登录
+    const user = localStorage.getItem('user');
+    setIsLoggedIn(!!user);
+  }, []);
+
+  const handleStart = () => {
+    if (isLoggedIn) {
+      navigate('/plan');
+    } else {
+      navigate('/auth');
+    }
+  };
 
   return (
     <div style={{
@@ -33,20 +49,44 @@ export default function Home() {
       }}>
         基于人工智能和物联网技术的智能行程规划系统
       </p>
-      <Button
-        type="primary"
-        size="large"
-        onClick={() => navigate('/plan')}
-        style={{
-          fontSize: '18px',
-          height: '50px',
-          padding: '0 40px',
-          borderRadius: '25px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.3)'
-        }}
-      >
-        开始规划
-      </Button>
+      <Space size="middle">
+        <Button
+          type="primary"
+          size="large"
+          onClick={handleStart}
+          style={{
+            fontSize: '18px',
+            height: '50px',
+            padding: '0 40px',
+            borderRadius: '25px',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.3)'
+          }}
+        >
+          {isLoggedIn ? '开始规划' : '登录/注册'}
+        </Button>
+        {isLoggedIn && (
+          <Button
+            size="large"
+            onClick={() => {
+              localStorage.removeItem('user');
+              localStorage.removeItem('token');
+              setIsLoggedIn(false);
+              window.location.reload();
+            }}
+            style={{
+              fontSize: '18px',
+              height: '50px',
+              padding: '0 40px',
+              borderRadius: '25px',
+              background: 'rgba(255,255,255,0.2)',
+              borderColor: 'rgba(255,255,255,0.4)',
+              color: '#fff'
+            }}
+          >
+            退出登录
+          </Button>
+        )}
+      </Space>
     </div>
   );
 }

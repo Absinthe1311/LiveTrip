@@ -1,5 +1,6 @@
 // 高德地图 API 服务封装
 import axios, { AxiosInstance } from 'axios';
+import { amapPOICacheService } from './amapPOICacheService';
 
 // 景点接口定义
 export interface AmapAttraction {
@@ -103,8 +104,8 @@ class AmapService {
         address: poi.address,
         type: poi.type,
         typecode: poi.typecode,
-        tel: poi.tel,
-        distance: poi.distance,
+        tel: poi.tel && typeof poi.tel === 'string' ? poi.tel : undefined,
+        distance: poi.distance && typeof poi.distance === 'string' ? poi.distance : undefined,
         rating: poi.biz_ext?.rating ? parseFloat(poi.biz_ext.rating) : undefined,
         cost: poi.biz_ext?.cost,
       }));
@@ -154,12 +155,23 @@ class AmapService {
   }
 
   /**
-   * 获取多种类型的景点（综合搜索）
+   * 获取多种类型的景点（综合搜索）- 带缓存
    * @param city 城市名称
    * @returns 景点列表（包含风景名胜、旅游景点、餐厅）
    */
   async getAllAttractions(city: string): Promise<AmapAttraction[]> {
     try {
+      // 首先尝试从缓存获取
+      console.log(`📦 尝试从缓存获取 ${city} 的景点数据...`);
+      const cachedAttractions = await amapPOICacheService.getFromCache(city);
+
+      if (cachedAttractions && cachedAttractions.length > 0) {
+        console.log(`✅ 从缓存获取成功，共 ${cachedAttractions.length} 个景点`);
+        return cachedAttractions;
+      }
+
+      console.log(`📭 缓存中没有数据，调用高德地图 API...`);
+
       // 并发获取多种类型的景点
       const [scenicSpots, touristAttractions, restaurants] = await Promise.all([
         this.getScenicSpots(city).catch((e) => {
@@ -181,6 +193,12 @@ class AmapService {
       const uniqueAttractions = this.deduplicateAttractions(allAttractions);
 
       console.log(`✅ 综合搜索完成，共 ${uniqueAttractions.length} 个不重复的景点`);
+
+      // 保存到缓存
+      if (uniqueAttractions.length > 0) {
+        await amapPOICacheService.saveToCache(uniqueAttractions, city);
+      }
+
       return uniqueAttractions;
     } catch (error) {
       console.error('❌ 综合搜索失败:', error);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Button, Modal, message, Row, Col } from 'antd';
+import { Typography, Button, Modal, message, Row, Col, Dropdown, Avatar } from 'antd';
 import {
   DndContext,
   closestCenter,
@@ -17,7 +17,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { EnvironmentOutlined } from '@ant-design/icons';
+import { EnvironmentOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import AttractionCard from '../components/AttractionCard';
 import BudgetChart from '../components/BudgetChart';
 import { useAppStore } from '../store';
@@ -48,7 +48,7 @@ function DayMap({ day }: { day: any }) {
     AMapLoader.load({
       key: amapKey,
       version: '2.0',
-      plugins: ['AMap.ToolBar', 'AMap.Scale', 'AMap.ControlBar', 'AMap.PlaceSearch']
+      plugins: ['AMap.ToolBar', 'AMap.Scale']
     }).then((AMap) => {
       // 计算中心点
       const coordinates = day.attractions.map((item: any) =>
@@ -59,14 +59,18 @@ function DayMap({ day }: { day: any }) {
       const centerLat = coordinates.reduce((sum: number, coords: number[]) => sum + coords[1], 0) / coordinates.length;
 
       const map = new AMap.Map(mapContainer.current, {
-        zoom: 13,
+        zoom: 14,
         center: [centerLng, centerLat],
         viewMode: '2D',
         mapStyle: 'amap://styles/normal',
         features: ['bg', 'road', 'building', 'point'], // 显示背景、道路、建筑、兴趣点
+        showLabel: true, // 显示文字标注
+        showIndoorMap: false, // 不显示室内地图
       });
 
-      // 添加工具条
+      mapRef.current = map;
+
+      // 添加工具栏
       map.addControl(new AMap.ToolBar({
         position: {
           top: '10px',
@@ -76,8 +80,6 @@ function DayMap({ day }: { day: any }) {
 
       // 添加比例尺
       map.addControl(new AMap.Scale());
-
-      mapRef.current = map;
 
       // 添加景点标记
       day.attractions.forEach((item: any, index: number) => {
@@ -200,7 +202,17 @@ function DayMap({ day }: { day: any }) {
 }
 
 // 可拖拽的景点卡片包装组件
-function SortableAttractionCard({ item, index, onShowAlternatives }: { item: AttractionItem; index: number; onShowAlternatives: (item: AttractionItem) => void }) {
+function SortableAttractionCard({ 
+  item, 
+  index, 
+  onShowAlternatives,
+  onTimeChange 
+}: { 
+  item: AttractionItem; 
+  index: number; 
+  onShowAlternatives: (item: AttractionItem) => void;
+  onTimeChange?: (index: number, newTime: string) => void;
+}) {
   const {
     attributes,
     listeners,
@@ -217,6 +229,12 @@ function SortableAttractionCard({ item, index, onShowAlternatives }: { item: Att
     boxShadow: isDragging ? '0 8px 24px rgba(0,0,0,0.2)' : undefined,
   };
 
+  // 计算推荐游玩时长（从时间段中提取）
+  const recommendedDuration = (() => {
+    const { duration } = parseTimeRange(item.time);
+    return duration;
+  })();
+
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <AttractionCard
@@ -224,6 +242,8 @@ function SortableAttractionCard({ item, index, onShowAlternatives }: { item: Att
         name={item.name}
         desc={item.description}
         onShowAlternatives={() => onShowAlternatives(item)}
+        onTimeChange={(newTime) => onTimeChange?.(index, newTime)}
+        recommendedDuration={recommendedDuration}
       />
     </div>
   );
@@ -238,31 +258,45 @@ function parseTimeRange(timeRange: string): { start: number; end: number; durati
   return { start, end, duration: end - start };
 }
 
-// 将分钟数转换为时间字符串
+// 将分钟数转换为时间字符串，处理跨天情况
 function minutesToTime(minutes: number): string {
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+  return `${String(hours % 24).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+}
+
+// 检查时间是否在合理范围内（00:00 - 23:59）
+function isValidTime(minutes: number): boolean {
+  return minutes >= 0 && minutes < 24 * 60;
 }
 
 // 根据新顺序重新分配时间段
+// 修复：使用固定的起始时间（早上 9:00），而不是第一个景点的时间
 function recalculateTimeSlots(items: AttractionItem[]): AttractionItem[] {
   if (items.length === 0) return items;
 
   const newItems = [...items];
 
-  // 获取第一个景点的开始时间作为起始时间
-  const firstItemOriginal = parseTimeRange(items[0].time);
-  const startTime = firstItemOriginal.start;
+  // 使用固定的起始时间（早上 9:00）
+  const START_TIME = 9 * 60; // 9:00 = 540 分钟
 
   // 定义景点之间的间隔时间(分钟)
   const TRAVEL_TIME = 30; // 景点之间移动时间 30 分钟
   const LUNCH_TIME = 60; // 午餐时间 60 分钟
 
-  let currentTime = startTime;
+  let currentTime = START_TIME;
 
-  return newItems.map((item) => {
+  return newItems.map((item, index) => {
     const { duration } = parseTimeRange(item.time);
+    
+    // 如果时间超过一天限制，停止计算
+    if (!isValidTime(currentTime)) {
+      return {
+        ...item,
+        time: '时间超出范围',
+      };
+    }
+
     const start = currentTime;
     const end = start + duration;
 
@@ -276,6 +310,14 @@ function recalculateTimeSlots(items: AttractionItem[]): AttractionItem[] {
       currentTime = end + LUNCH_TIME;
     } else {
       currentTime = nextStart;
+    }
+
+    // 如果结束时间超过 23:59，显示警告
+    if (end >= 24 * 60) {
+      return {
+        ...item,
+        time: `${minutesToTime(start)}-${minutesToTime(end)} (跨天)`,
+      };
     }
 
     return {
@@ -293,6 +335,7 @@ export default function Itinerary() {
   const [adjustResult, setAdjustResult] = useState<any>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // 从 store 加载行程数据
   useEffect(() => {
@@ -305,7 +348,21 @@ export default function Itinerary() {
     } else {
       console.warn('⚠️  Store 中没有行程数据');
     }
+
+    // 加载当前用户信息
+    const user = localStorage.getItem('user');
+    if (user) {
+      setCurrentUser(JSON.parse(user));
+    }
   }, [currentItinerary]);
+
+  // 处理退出登录
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    setCurrentUser(null);
+    window.location.href = '/';
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -343,6 +400,26 @@ export default function Itinerary() {
         return newItems;
       });
     }
+  };
+
+  // 处理时间修改
+  const handleTimeChange = (dayIndex: number, attractionIndex: number, newTime: string) => {
+    if (!itineraryData) return;
+
+    setItineraryData((items) => {
+      if (!items) return items;
+
+      const newItems = { ...items };
+      if (!newItems.itinerary) return newItems;
+
+      // 更新指定景点的时间
+      newItems.itinerary[dayIndex].attractions[attractionIndex] = {
+        ...newItems.itinerary[dayIndex].attractions[attractionIndex],
+        time: newTime,
+      };
+
+      return newItems;
+    });
   };
 
   // 显示备选景点
@@ -419,13 +496,50 @@ export default function Itinerary() {
       background: '#f5f5f5',
       minHeight: '100vh'
     }}>
-      <Title level={2} style={{
-        textAlign: 'center',
-        marginBottom: '32px',
-        color: '#333'
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '32px'
       }}>
-        我的行程
-      </Title>
+        <Title level={2} style={{
+          margin: 0,
+          color: '#333'
+        }}>
+          我的行程
+        </Title>
+        {currentUser && (
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: 'logout',
+                  label: '退出登录',
+                  icon: <LogoutOutlined />,
+                  onClick: handleLogout,
+                },
+              ],
+            }}
+            placement="bottomRight"
+          >
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              cursor: 'pointer',
+              padding: '8px 16px',
+              background: '#fff',
+              borderRadius: '8px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
+              <Avatar size="small" icon={<UserOutlined />} />
+              <span style={{ fontSize: '14px', color: '#333' }}>
+                {currentUser.username}
+              </span>
+            </div>
+            </Dropdown>
+          )}
+        </div>
 
       <Row gutter={24}>
         <Col span={showMap ? 14 : 24}>
@@ -519,6 +633,7 @@ export default function Itinerary() {
                         item={item} 
                         index={index} 
                         onShowAlternatives={handleShowAlternatives}
+                        onTimeChange={(attrIndex, newTime) => handleTimeChange(dayIndex, attrIndex, newTime)}
                       />
                     </div>
                   ))}

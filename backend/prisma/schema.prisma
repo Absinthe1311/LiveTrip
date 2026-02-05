@@ -297,3 +297,35 @@ model IoTLocation {
   speed           Float?
   altitude        Float?
 }
+
+// Amap POI Cache Table - 用于缓存高德地图的景点数据
+model AmapPOICache {
+  id              String   @id @default(cuid())
+  
+  // POI info from Amap
+  poiId           String   @unique
+  name            String
+  type            String
+  typecode        String
+  address         String?
+  location        String   // 经纬度 "116.397428,39.90923"
+  tel             String?
+  distance        String?
+  
+  // Extended info
+  rating          Float?
+  cost            String?
+  
+  // City info (for grouping and caching)
+  city            String
+  
+  // Cache info
+  cacheTime       DateTime @default(now())
+  expireTime      DateTime
+  
+  // Usage statistics
+  hitCount        Int      @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
