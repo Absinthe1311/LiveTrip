@@ -1,12 +1,16 @@
 // 问答页面 - 渐进式问答收集用户偏好
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Steps, message, Input } from 'antd';
+import { Button, Card, Steps, message, Input, DatePicker } from 'antd';
+import dayjs from 'dayjs';
+import { createPlan } from '../api/client';
+import { useAppStore } from '../store';
 
 export default function Plan() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const setCurrentItinerary = useAppStore((state) => state.setCurrentItinerary);
 
   // 用户输入的状态
   const [formData, setFormData] = useState<Record<string, any>>({
@@ -79,53 +83,109 @@ export default function Plan() {
     setCurrentStep(prev => prev - 1);
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setLoading(true);
-    // 模拟API调用
-    setTimeout(() => {
+
+    try {
+      // 构建请求参数
+      const request = {
+        destination: formData.destination,
+        start_date: formData.startDate,
+        end_date: formData.endDate,
+        travelers: parseInt(formData.travelers) || 1,
+        budget: formData.budget ? parseInt(formData.budget.replace(/[^0-9]/g, '')) : undefined,
+        preferences: {
+          interests: formData.preferences.interests,
+          pace: formData.preferences.pace,
+          energy_level: formData.preferences.energyLevel,
+        },
+      };
+
+      console.log('📝 发送行程规划请求:', request);
+
+      // 调用后端 API
+      const response = await createPlan(request);
+
+      if (response.success) {
+        console.log('✅ 行程规划成功:', response.data);
+
+        // 保存到 Zustand store
+        console.log('💾 正在保存行程数据到 Store...');
+        setCurrentItinerary(response.data);
+        console.log('✅ 行程数据已保存到 Store');
+
+        // 验证保存是否成功
+        setTimeout(() => {
+          const savedItinerary = useAppStore.getState().currentItinerary;
+          console.log('🔍 验证 Store 中的数据:', savedItinerary);
+        }, 100);
+
+        message.success('行程生成成功！');
+
+        // 跳转到行程页面
+        console.log('🚀 准备跳转到行程页面...');
+        navigate('/itinerary');
+      } else {
+        message.error('行程规划失败，请稍后重试');
+      }
+    } catch (error: any) {
+      console.error('❌ 行程规划失败:', error);
+      message.error(error.response?.data?.error || '行程规划失败，请稍后重试');
+    } finally {
       setLoading(false);
-      message.success('行程生成成功！');
-      // 保存到Zustand store
-      navigate('/itinerary');
-    }, 2000);
+    }
   };
 
   const renderStepContent = () => {
     const question = questions[currentStep];
-    const { key, title, placeholder } = question;
+    const { key, title, placeholder, type } = question;
 
     return (
       <Card>
         <h2>{title}</h2>
-        <Input
-          placeholder={placeholder}
-          value={
-            key === 'startDate' || key === 'endDate'
-              ? formData[key as string]
-              : formData[
-                  key === 'interests' || key === 'pace' || key === 'energyLevel'
-                    ? 'preferences'
-                    : key
-                ][key === 'startDate' || key === 'endDate' ? '' : '.']
-          }
-          onChange={(e) => {
-            const value = e.target.value;
-            if (key === 'startDate' || key === 'endDate') {
-              setFormData({ ...formData, [key]: value });
-            } else if (key === 'interests' || key === 'pace' || key === 'energyLevel') {
+        {type === 'date' ? (
+          <DatePicker
+            placeholder={placeholder}
+            value={formData[key] ? dayjs(formData[key]) : null}
+            onChange={(date) => {
               setFormData({
                 ...formData,
-                preferences: {
-                  ...formData.preferences,
-                  [key]: value,
-                },
+                [key]: date ? date.format('YYYY-MM-DD') : '',
               });
-            } else {
-              setFormData({ ...formData, [key]: value });
+            }}
+            style={{ marginBottom: '24px', width: '100%' }}
+          />
+        ) : (
+          <Input
+            placeholder={placeholder}
+            value={
+              key === 'startDate' || key === 'endDate'
+                ? formData[key as string]
+                : formData[
+                    key === 'interests' || key === 'pace' || key === 'energyLevel'
+                      ? 'preferences'
+                      : key
+                  ][key === 'startDate' || key === 'endDate' ? '' : '.']
             }
-          }}
-          style={{ marginBottom: '24px' }}
-        />
+            onChange={(e) => {
+              const value = e.target.value;
+              if (key === 'startDate' || key === 'endDate') {
+                setFormData({ ...formData, [key]: value });
+              } else if (key === 'interests' || key === 'pace' || key === 'energyLevel') {
+                setFormData({
+                  ...formData,
+                  preferences: {
+                    ...formData.preferences,
+                    [key]: value,
+                  },
+                });
+              } else {
+                setFormData({ ...formData, [key]: value });
+              }
+            }}
+            style={{ marginBottom: '24px' }}
+          />
+        )}
         <div>
           <Button disabled={currentStep === 0} onClick={handlePrev}>
             上一步

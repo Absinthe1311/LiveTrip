@@ -60,9 +60,40 @@ export interface CreatePlanRequest {
   travelers: number;
   budget?: number;
   preferences?: {
-    interests?: string[];
+    interests?: string;
     pace?: string;
     energy_level?: string;
+  };
+}
+
+// 推荐的景点项
+export interface RecommendedAttraction {
+  name: string;
+  time: string;
+  location: string;
+  estimated_cost: number;
+  description: string;
+  type?: string;
+  address?: string;
+}
+
+// 每日行程
+export interface DailyItinerary {
+  day: number;
+  date: string;
+  attractions: RecommendedAttraction[];
+  daily_cost: number;
+}
+
+// 完整行程
+export interface FullItinerary {
+  itinerary: DailyItinerary[];
+  total_cost: number;
+  budget_breakdown: {
+    transportation: number;
+    accommodation: number;
+    dining: number;
+    tickets: number;
   };
 }
 

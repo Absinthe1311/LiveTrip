@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Typography } from 'antd';
+import { useState, useEffect } from 'react';
+import { Typography, Button, Modal, message } from 'antd';
 import {
   DndContext,
   closestCenter,
@@ -19,12 +19,14 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import AttractionCard from '../components/AttractionCard';
 import BudgetChart from '../components/BudgetChart';
-import { mockItineraryData, mockBudgetData, DayItinerary, ItineraryItem } from '../data/mockItinerary';
+import { useAppStore } from '../store';
+import { FullItinerary, AttractionItem } from '../api/client';
+import { adjustItinerary, getIoTData } from '../api/client';
 
 const { Title } = Typography;
 
 // 可拖拽的景点卡片包装组件
-function SortableAttractionCard({ item, index }: { item: ItineraryItem; index: number }) {
+function SortableAttractionCard({ item, index, onShowAlternatives }: { item: AttractionItem; index: number; onShowAlternatives: (item: AttractionItem) => void }) {
   const {
     attributes,
     listeners,
@@ -46,7 +48,8 @@ function SortableAttractionCard({ item, index }: { item: ItineraryItem; index: n
       <AttractionCard
         time={item.time}
         name={item.name}
-        desc={item.desc}
+        desc={item.description}
+        onShowAlternatives={() => onShowAlternatives(item)}
       />
     </div>
   );
@@ -102,7 +105,24 @@ function recalculateTimeSlots(items: ItineraryItem[]): ItineraryItem[] {
 }
 
 export default function Itinerary() {
-  const [itineraryData, setItineraryData] = useState<DayItinerary[]>(mockItineraryData);
+  const currentItinerary = useAppStore((state) => state.currentItinerary);
+  const [itineraryData, setItineraryData] = useState<FullItinerary | null>(null);
+  const [adjustModalVisible, setAdjustModalVisible] = useState(false);
+  const [selectedAttraction, setSelectedAttraction] = useState<AttractionItem | null>(null);
+  const [adjustResult, setAdjustResult] = useState<any>(null);
+
+  // 从 store 加载行程数据
+  useEffect(() => {
+    console.log('📍 Itinerary 页面加载');
+    console.log('📦 Store 中的行程数据:', currentItinerary);
+    
+    if (currentItinerary) {
+      console.log('✅ 找到行程数据，设置到页面状态');
+      setItineraryData(currentItinerary);
+    } else {
+      console.warn('⚠️  Store 中没有行程数据');
+    }
+  }, [currentItinerary]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -118,25 +138,92 @@ export default function Itinerary() {
   const handleDragEnd = (event: DragEndEvent, dayIndex: number) => {
     const { active, over } = event;
 
-    if (over && active.id !== over.id) {
+    if (over && active.id !== over.id && itineraryData) {
       setItineraryData((items) => {
         const oldIndex = active.id as number;
         const newIndex = over.id as number;
 
-        const newItems = [...items];
-        const dayItems = [...newItems[dayIndex].items];
+        const newItems = { ...items };
+        const dayItems = [...newItems.itinerary[dayIndex].attractions];
         const reorderedItems = arrayMove(dayItems, oldIndex, newIndex);
 
         // 重新分配时间段
-        newItems[dayIndex] = {
-          ...newItems[dayIndex],
-          items: recalculateTimeSlots(reorderedItems),
+        newItems.itinerary[dayIndex] = {
+          ...newItems.itinerary[dayIndex],
+          attractions: recalculateTimeSlots(reorderedItems),
         };
 
         return newItems;
       });
     }
   };
+
+  // 显示备选景点
+  const handleShowAlternatives = async (item: AttractionItem) => {
+    setSelectedAttraction(item);
+    setAdjustResult(null);
+
+    try {
+      // 获取 IoT 数据
+      const iotResponse = await getIoTData();
+      const spot = iotResponse.data.spots.find((s: any) => s.name === item.name);
+
+      if (!spot) {
+        message.warning('未找到该景点的 IoT 数据');
+        return;
+      }
+
+      // 判断调整原因
+      let reason: 'crowd' | 'weather' | 'closed' = 'crowd';
+      if (spot.rainProbability > 70) {
+        reason = 'weather';
+      } else if (!spot.isOpen) {
+        reason = 'closed';
+      }
+
+      // 调用调整接口
+      if (itineraryData) {
+        const response = await adjustItinerary({
+          itinerary: itineraryData,
+          reason,
+          targetAttractionId: spot.id,
+        });
+
+        if (response.success) {
+          setAdjustResult(response.data);
+          setAdjustModalVisible(true);
+        } else {
+          message.info(response.data.message || '无需调整');
+        }
+      }
+    } catch (error: any) {
+      console.error('❌ 调整行程失败:', error);
+      message.error(error.response?.data?.error || '调整行程失败，请稍后重试');
+    }
+  };
+
+  // 应用调整
+  const handleApplyAdjustment = () => {
+    if (adjustResult && adjustResult.adjustedItinerary) {
+      setItineraryData(adjustResult.adjustedItinerary);
+      setCurrentItinerary(adjustResult.adjustedItinerary);
+      setAdjustModalVisible(false);
+      message.success('行程调整成功！');
+    }
+  };
+
+  if (!itineraryData) {
+    return (
+      <div style={{
+        padding: '100px 24px',
+        textAlign: 'center',
+        color: '#999'
+      }}>
+        <h2>暂无行程数据</h2>
+        <p>请先在规划页面生成行程</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -155,7 +242,7 @@ export default function Itinerary() {
       </Title>
 
       <div style={{ marginBottom: '40px' }}>
-        {itineraryData.map((day, dayIndex) => (
+        {itineraryData.itinerary.map((day, dayIndex) => (
           <div key={day.day} style={{ marginBottom: '32px' }}>
             <div style={{
               display: 'flex',
@@ -188,7 +275,7 @@ export default function Itinerary() {
               onDragEnd={(event) => handleDragEnd(event, dayIndex)}
             >
               <SortableContext
-                items={day.items.map((_, index) => index)}
+                items={day.attractions.map((_, index) => index)}
                 strategy={verticalListSortingStrategy}
               >
                 <div style={{
@@ -205,7 +292,7 @@ export default function Itinerary() {
                     background: 'linear-gradient(to bottom, #667eea 0%, #764ba2 100%)'
                   }} />
 
-                  {day.items.map((item, index) => (
+                  {day.attractions.map((item, index) => (
                     <div key={index} style={{
                       position: 'relative',
                       marginBottom: '24px'
@@ -222,7 +309,11 @@ export default function Itinerary() {
                         border: '3px solid #fff',
                         boxShadow: '0 0 0 3px #667eea'
                       }} />
-                      <SortableAttractionCard item={item} index={index} />
+                      <SortableAttractionCard 
+                        item={item} 
+                        index={index} 
+                        onShowAlternatives={handleShowAlternatives}
+                      />
                     </div>
                   ))}
                 </div>
@@ -232,7 +323,37 @@ export default function Itinerary() {
         ))}
       </div>
 
-      <BudgetChart data={mockBudgetData} />
+      {/* 预算图表 */}
+      <BudgetChart data={[
+        { category: '交通', amount: itineraryData.budget_breakdown.transportation },
+        { category: '住宿', amount: itineraryData.budget_breakdown.accommodation },
+        { category: '餐饮', amount: itineraryData.budget_breakdown.dining },
+        { category: '门票', amount: itineraryData.budget_breakdown.tickets },
+      ]} />
+
+      {/* 调整建议弹窗 */}
+      <Modal
+        title="行程调整建议"
+        open={adjustModalVisible}
+        onCancel={() => setAdjustModalVisible(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setAdjustModalVisible(false)}>
+            取消
+          </Button>,
+          <Button key="apply" type="primary" onClick={handleApplyAdjustment}>
+            应用调整
+          </Button>,
+        ]}
+      >
+        {adjustResult && adjustResult.adjustments.length > 0 && (
+          <div>
+            <p><strong>调整原因：</strong>{adjustResult.message}</p>
+            <p><strong>原景点：</strong>{adjustResult.adjustments[0].originalAttraction.name}</p>
+            <p><strong>新景点：</strong>{adjustResult.adjustments[0].newAttraction.name}</p>
+            <p><strong>景点描述：</strong>{adjustResult.adjustments[0].newAttraction.description}</p>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

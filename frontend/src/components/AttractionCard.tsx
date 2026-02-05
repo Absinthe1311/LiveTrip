@@ -4,13 +4,10 @@ interface AttractionCardProps {
   time: string;
   name: string;
   desc: string;
+  onShowAlternatives?: () => void;
 }
 
-export default function AttractionCard({ time, name, desc }: AttractionCardProps) {
-  const handleViewAlternatives = () => {
-    alert('后续功能：查看备选景点');
-  };
-
+export default function AttractionCard({ time, name, desc, onShowAlternatives }: AttractionCardProps) {
   return (
     <Card
       hoverable
@@ -42,19 +39,21 @@ export default function AttractionCard({ time, name, desc }: AttractionCardProps
             {desc}
           </p>
         </div>
-        <Button
-          type="link"
-          style={{
-            padding: '4px 8px',
-            fontSize: '13px',
-            color: '#1890ff',
-            whiteSpace: 'nowrap',
-            marginLeft: 16
-          }}
-          onClick={handleViewAlternatives}
-        >
-          查看备选
-        </Button>
+        {onShowAlternatives && (
+          <Button
+            type="link"
+            style={{
+              padding: '4px 8px',
+              fontSize: '13px',
+              color: '#1890ff',
+              whiteSpace: 'nowrap',
+              marginLeft: 16
+            }}
+            onClick={onShowAlternatives}
+          >
+            查看备选
+          </Button>
+        )}
       </div>
     </Card>
   );

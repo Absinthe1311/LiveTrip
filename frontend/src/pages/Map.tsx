@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import AMapLoader from '@amap/amap-jsapi-loader';
 import { List, Card, Typography } from 'antd';
-import { mockItineraryData } from '../data/mockItinerary';
+import { useAppStore } from '../store';
 
 const { Text, Title } = Typography;
 
@@ -29,6 +29,7 @@ export default function Map() {
   const markersRef = useRef<any[]>([]);
   const polylinesRef = useRef<any[]>([]);
   const amapKey = import.meta.env.VITE_AMAP_KEY;
+  const currentItinerary = useAppStore((state) => state.currentItinerary);
 
   const [selectedAttraction, setSelectedAttraction] = useState<{
     name: string;
@@ -83,11 +84,11 @@ export default function Map() {
         mapRef.current.destroy();
       }
     };
-  }, []);
+  }, [currentItinerary]); // 当行程数据变化时重新初始化地图
 
   // 添加标记和路线
   const addMarkersAndRoutes = () => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !currentItinerary || !currentItinerary.itinerary) return;
 
     // 清除旧的标记和路线
     markersRef.current.forEach(marker => mapRef.current?.remove(marker));
@@ -98,13 +99,15 @@ export default function Map() {
     const AMap = window.AMap;
 
     // 为每一天添加标记和路线
-    mockItineraryData.forEach(day => {
+    currentItinerary.itinerary.forEach(day => {
       const dayColor = day.day === 1 ? '#667eea' : day.day === 2 ? '#764ba2' : '#f093fb';
 
       // 添加景点标记
-      day.items.forEach(item => {
+      day.attractions.forEach(item => {
+        const coords = item.location.split(',').map(Number) as [number, number];
+
         const marker = new AMap.Marker({
-          position: item.coordinates,
+          position: coords,
           title: item.name,
           content: `
             <div style="
@@ -139,8 +142,8 @@ export default function Map() {
       });
 
       // 添加景点之间的路线
-      if (day.items.length > 1) {
-        const path = day.items.map(item => item.coordinates);
+      if (day.attractions.length > 1) {
+        const path = day.attractions.map(item => item.location.split(',').map(Number) as [number, number]);
 
         const polyline = new AMap.Polyline({
           path: path,
@@ -166,6 +169,7 @@ export default function Map() {
     if (!mapRef.current) return;
 
     const AMap = window.AMap;
+    const coords = item.location.split(',').map(Number) as [number, number];
 
     const infoWindow = new AMap.InfoWindow({
       content: `
@@ -177,25 +181,7 @@ export default function Map() {
       offset: new AMap.Pixel(0, -30)
     });
 
-    infoWindow.open(mapRef.current, item.coordinates);
-  };
-
-  // 点击列表项，地图定位到景点
-  const handleAttractionClick = (item: any) => {
-    setSelectedAttraction({
-      name: item.name,
-      time: item.time,
-      coordinates: item.coordinates
-    });
-
-    if (mapRef.current) {
-      mapRef.current.setCenter(item.coordinates);
-      mapRef.current.setZoom(14);
-
-      setTimeout(() => {
-        showInfoWindow(item);
-      }, 500);
-    }
+    infoWindow.open(mapRef.current, coords);
   };
 
   return (
@@ -228,59 +214,76 @@ export default function Map() {
         </div>
 
         <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
-          {mockItineraryData.map(day => (
-            <Card
-              key={day.day}
-              title={`第 ${day.day} 天 - ${day.date}`}
-              style={{
-                marginBottom: '16px',
-                borderRadius: '8px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-              }}
-              bodyStyle={{ padding: '12px' }}
-            >
-              <List
-                dataSource={day.items}
-                renderItem={(item, index) => (
-                  <List.Item
-                    key={index}
-                    style={{
-                      padding: '12px',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      transition: 'background 0.2s',
-                      background: selectedAttraction?.name === item.name ? '#f0f5ff' : 'transparent'
-                    }}
-                    onClick={() => handleAttractionClick(item)}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#f5f5f5';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = selectedAttraction?.name === item.name ? '#f0f5ff' : 'transparent';
-                    }}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <div style={{
-                        color: '#667eea',
-                        fontWeight: 600,
-                        marginBottom: '4px',
-                        fontSize: '13px'
-                      }}>
-                        {item.time}
+          {currentItinerary && currentItinerary.itinerary ? (
+            currentItinerary.itinerary.map((day) => (
+              <Card
+                key={day.day}
+                title={`第 ${day.day} 天 - ${day.date}`}
+                style={{
+                  marginBottom: '16px',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                }}
+                bodyStyle={{ padding: '12px' }}
+              >
+                <List
+                  dataSource={day.attractions}
+                  renderItem={(item, index) => (
+                    <List.Item
+                      key={index}
+                      style={{
+                        padding: '12px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s',
+                        background: selectedAttraction?.name === item.name ? '#f0f5ff' : 'transparent'
+                      }}
+                      onClick={() => {
+                        const coords = item.location.split(',').map(Number) as [number, number];
+                        setSelectedAttraction({
+                          name: item.name,
+                          time: item.time,
+                          coordinates: coords,
+                        });
+                        if (mapRef.current) {
+                          mapRef.current.setCenter(coords);
+                          mapRef.current.setZoom(14);
+                        }
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#f5f5f5';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = selectedAttraction?.name === item.name ? '#f0f5ff' : 'transparent';
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          color: '#667eea',
+                          fontWeight: 600,
+                          marginBottom: '4px',
+                          fontSize: '13px'
+                        }}>
+                          {item.time}
+                        </div>
+                        <div style={{
+                          fontWeight: 500,
+                          marginBottom: '4px',
+                          fontSize: '15px'
+                        }}>
+                          {item.name}
+                        </div>
                       </div>
-                      <div style={{
-                        fontWeight: 500,
-                        marginBottom: '4px',
-                        fontSize: '15px'
-                      }}>
-                        {item.name}
-                      </div>
-                    </div>
-                  </List.Item>
-                )}
-              />
-            </Card>
-          ))}
+                    </List.Item>
+                  )}
+                />
+              </Card>
+            ))
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+              暂无行程数据
+            </div>
+          )}
         </div>
       </div>
 

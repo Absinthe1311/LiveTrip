@@ -5,6 +5,6 @@ import { getIoTData } from '../controllers/iotController';
 const router = Router();
 
 // GET /api/iot/data - 获取IoT数据
-router.get('/data', getIoTData);
+router.get('/iot/data', getIoTData);
 
 export default router;

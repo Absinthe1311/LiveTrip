@@ -1,11 +1,299 @@
-﻿// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
+// LiveTrip Database Schema - Phase 2.2
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
+}
+
+// User Table
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  email         String?   @unique
+  passwordHash  String
+  avatar        String?   @default("")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  trips         Trip[]
+  preferences   UserPreferences?
+  iotDevices    IoTDevice[]
+}
+
+// User Preferences Table
+model UserPreferences {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Travel preferences
+  travelStyle     String   @default("balanced")
+  budgetRange     String   @default("medium")
+  accommodation   String   @default("hotel")
+  transportation  String   @default("mixed")
+  
+  // Dietary preferences
+  dietaryPrefs    String   @default("")
+  
+  // IoT settings
+  iotEnabled      Boolean  @default(false)
+  locationSharing Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Trip Table
+model Trip {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Basic info
+  title           String
+  description     String?   @default("")
+  destination     String
+  startDate       DateTime
+  endDate         DateTime
+  status          String    @default("planning")
+  
+  // Budget info
+  totalBudget     Float     @default(0)
+  actualCost      Float     @default(0)
+  
+  // AI generation info
+  aiGenerated     Boolean   @default(false)
+  aiPrompt        String?   @default("")
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  days            Day[]
+  budget          Budget?
+  notifications   Notification[]
+}
+
+// Day Table
+model Day {
+  id              String    @id @default(cuid())
+  tripId          String
+  trip            Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  
+  dayNumber       Int
+  date            DateTime
+  notes           String?   @default("")
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  itineraryItems  ItineraryItem[]
+}
+
+// Itinerary Item Table
+model ItineraryItem {
+  id              String    @id @default(cuid())
+  dayId           String
+  day             Day       @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  
+  // Basic info
+  name            String
+  type            String
+  category        String?   @default("")
+  description     String?   @default("")
+  
+  // Time info
+  startTime       DateTime
+  endTime         DateTime
+  
+  // Location info
+  address         String?   @default("")
+  latitude        Float?
+  longitude       Float?
+  
+  // Cost info
+  cost            Float     @default(0)
+  
+  // AI recommendation info
+  aiRecommended   Boolean   @default(false)
+  confidenceScore Float?    @default(0)
+  
+  // Alternative option
+  isAlternative   Boolean   @default(false)
+  originalItemId  String?   @default("")
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Budget Table
+model Budget {
+  id              String   @id @default(cuid())
+  tripId          String   @unique
+  trip            Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  
+  // Budget items
+  transportation  Float    @default(0)
+  accommodation   Float    @default(0)
+  food            Float    @default(0)
+  tickets         Float    @default(0)
+  shopping        Float    @default(0)
+  other           Float    @default(0)
+  
+  // Actual costs
+  actualTransport Float    @default(0)
+  actualAccommod Float    @default(0)
+  actualFood      Float    @default(0)
+  actualTickets   Float    @default(0)
+  actualShopping  Float    @default(0)
+  actualOther     Float    @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Attraction Table
+model Attraction {
+  id              String   @id @default(cuid())
+  
+  // Basic info
+  name            String
+  type            String
+  category        String?  @default("")
+  description     String?  @default("")
+  
+  // Location info
+  city            String
+  address         String?  @default("")
+  latitude        Float
+  longitude       Float
+  
+  // Rating info
+  rating          Float?   @default(0)
+  reviewCount     Int?     @default(0)
+  
+  // Cost info
+  ticketPrice     Float?   @default(0)
+  
+  // Time info
+  openingHours    String?  @default("")
+  recommendedDuration Int?  @default(60)
+  
+  // Tags
+  tags            String   @default("")
+  
+  // Seasonal recommendation
+  bestSeason      String?  @default("all")
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Restaurant Table
+model Restaurant {
+  id              String   @id @default(cuid())
+  
+  // Basic info
+  name            String
+  cuisine         String
+  type            String
+  description     String?  @default("")
+  
+  // Location info
+  city            String
+  address         String?  @default("")
+  latitude        Float
+  longitude       Float
+  
+  // Rating info
+  rating          Float?   @default(0)
+  reviewCount     Int?     @default(0)
+  
+  // Price info
+  priceRange      String   @default("medium")
+  avgPrice        Float?   @default(0)
+  
+  // Time info
+  openingHours    String?  @default("")
+  
+  // Tags
+  tags            String   @default("")
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Notification Table
+model Notification {
+  id              String   @id @default(cuid())
+  tripId          String
+  trip            Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  
+  // Notification info
+  type            String
+  title           String
+  message         String
+  
+  // Status
+  isRead          Boolean  @default(false)
+  
+  // Time
+  scheduledTime   DateTime?
+  sentAt          DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// IoT Device Table
+model IoTDevice {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Device info
+  deviceId        String   @unique
+  deviceType      String
+  deviceName      String?  @default("")
+  
+  // Device status
+  status          String   @default("active")
+  
+  // Location info
+  lastLatitude    Float?
+  lastLongitude   Float?
+  lastLocationAt  DateTime?
+  
+  // Battery info
+  batteryLevel    Int?     @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  locationHistory IoTLocation[]
+}
+
+// IoT Location History Table
+model IoTLocation {
+  id              String    @id @default(cuid())
+  deviceId        String
+  device          IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  
+  // Location info
+  latitude        Float
+  longitude       Float
+  accuracy        Float?
+  
+  // Time
+  timestamp       DateTime  @default(now())
+  
+  // Other data
+  speed           Float?
+  altitude        Float?
 }
