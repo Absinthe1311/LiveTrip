@@ -30,7 +30,7 @@ apiClient.interceptors.response.use(
   (response) => {
     console.log('✅ API Response:', response.config.url);
     console.log('📦 Response Data:', response.data);
-    return response.data;
+    return response;
   },
   (error) => {
     console.error('❌ Response Error:', error);
@@ -72,10 +72,10 @@ export interface FullItinerary {
   };
   total_distance?: number;
   summary?: {
+    origin?: string;
     destination: string;
     days: number;
-    travelers: number;
-    budget: number;
+    budget?: number;
     start_date: string;
     end_date: string;
   };
@@ -83,15 +83,13 @@ export interface FullItinerary {
 
 // 行程规划请求
 export interface PlanRequest {
+  origin?: string;
   destination: string;
   start_date: string;
   end_date: string;
-  travelers: number;
   budget?: number;
   preferences?: {
     interests?: string;
-    pace?: string;
-    energy_level?: string;
   };
 }
 
@@ -149,7 +147,7 @@ export interface AdjustResponse {
  */
 export const createPlan = async (request: PlanRequest): Promise<PlanResponse> => {
   const response = await apiClient.post<PlanResponse>('/plan', request);
-  return response;
+  return response.data;
 };
 
 /**
@@ -157,7 +155,7 @@ export const createPlan = async (request: PlanRequest): Promise<PlanResponse> =>
  */
 export const getIoTData = async (): Promise<IoTDataResponse> => {
   const response = await apiClient.get<IoTDataResponse>('/iot/data');
-  return response;
+  return response.data;
 };
 
 /**
@@ -165,7 +163,7 @@ export const getIoTData = async (): Promise<IoTDataResponse> => {
  */
 export const adjustItinerary = async (request: AdjustRequest): Promise<AdjustResponse> => {
   const response = await apiClient.post<AdjustResponse>('/adjust', request);
-  return response;
+  return response.data;
 };
 
 // ==================== 导出 ====================

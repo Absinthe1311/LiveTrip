@@ -99,11 +99,11 @@ export default function Map() {
     const AMap = window.AMap;
 
     // 为每一天添加标记和路线
-    currentItinerary.itinerary.forEach(day => {
+    currentItinerary.itinerary.forEach((day: any) => {
       const dayColor = day.day === 1 ? '#667eea' : day.day === 2 ? '#764ba2' : '#f093fb';
 
       // 添加景点标记
-      day.attractions.forEach(item => {
+      day.attractions.forEach((item: any) => {
         const coords = item.location.split(',').map(Number) as [number, number];
 
         const marker = new AMap.Marker({
@@ -143,7 +143,7 @@ export default function Map() {
 
       // 添加景点之间的路线
       if (day.attractions.length > 1) {
-        const path = day.attractions.map(item => item.location.split(',').map(Number) as [number, number]);
+        const path = day.attractions.map((item: any) => item.location.split(',').map(Number) as [number, number]);
 
         const polyline = new AMap.Polyline({
           path: path,
@@ -215,7 +215,7 @@ export default function Map() {
 
         <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
           {currentItinerary && currentItinerary.itinerary ? (
-            currentItinerary.itinerary.map((day) => (
+            currentItinerary.itinerary.map((day: any) => (
               <Card
                 key={day.day}
                 title={`第 ${day.day} 天 - ${day.date}`}
@@ -228,7 +228,7 @@ export default function Map() {
               >
                 <List
                   dataSource={day.attractions}
-                  renderItem={(item, index) => (
+                  renderItem={(item: any, index: number) => (
                     <List.Item
                       key={index}
                       style={{

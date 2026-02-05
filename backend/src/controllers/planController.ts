@@ -19,6 +19,14 @@ export const createPlan = async (req: Request, res: Response) => {
     // 解析请求参数
     const planData: CreatePlanRequest = req.body;
 
+    // 调试输出
+    console.log('📍 planData.origin:', planData.origin);
+    console.log('🎯 planData.destination:', planData.destination);
+    console.log('📅 planData.start_date:', planData.start_date);
+    console.log('📅 planData.end_date:', planData.end_date);
+    console.log('💰 planData.budget:', planData.budget);
+    console.log('❤️ planData.preferences:', planData.preferences);
+
     // 验证必填字段
     if (!planData.destination || !planData.start_date || !planData.end_date) {
       return res.status(400).json({
@@ -30,7 +38,7 @@ export const createPlan = async (req: Request, res: Response) => {
     // 计算天数
     const startDate = new Date(planData.start_date);
     const endDate = new Date(planData.end_date);
-    const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
     if (days <= 0) {
       return res.status(400).json({
@@ -40,6 +48,7 @@ export const createPlan = async (req: Request, res: Response) => {
     }
 
     console.log(`📅 行程天数: ${days} 天`);
+    console.log(`📍 出发地: ${planData.origin || '未指定'}`);
 
     // 步骤 1: 调用高德 API 获取景点
     console.log('\n步骤 1: 获取景点数据...');
@@ -60,7 +69,7 @@ export const createPlan = async (req: Request, res: Response) => {
       preferences: planData.preferences || {},
       budget: planData.budget || 5000,
       days,
-      groupSize: planData.travelers || 1,
+      groupSize: 1, // 默认为1人
       startDate: planData.start_date,
       endDate: planData.end_date,
     });
@@ -83,22 +92,29 @@ export const createPlan = async (req: Request, res: Response) => {
     console.log('\n✅ 行程规划完成！');
     console.log(`总费用: ${itinerary.total_cost} 元`);
     console.log(`总距离: ${totalDistance} 公里`);
+    console.log(`📍 出发地: ${planData.origin}`);
+    console.log(`🎯 目的地: ${planData.destination}`);
+
+    // 构建返回数据
+    const responseData = {
+      ...itinerary,
+      total_distance: totalDistance,
+      summary: {
+        origin: planData.origin,
+        destination: planData.destination,
+        days,
+        budget: planData.budget,
+        start_date: planData.start_date,
+        end_date: planData.end_date,
+      },
+    };
+
+    console.log('📦 返回数据:', JSON.stringify(responseData.summary, null, 2));
 
     // 返回结果
     res.json({
       success: true,
-      data: {
-        ...itinerary,
-        total_distance: totalDistance,
-        summary: {
-          destination: planData.destination,
-          days,
-          travelers: planData.travelers,
-          budget: planData.budget,
-          start_date: planData.start_date,
-          end_date: planData.end_date,
-        },
-      },
+      data: responseData,
     });
   } catch (error: any) {
     console.error('❌ 行程规划失败:', error);

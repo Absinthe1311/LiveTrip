@@ -1,10 +1,31 @@
 // 问答页面 - 渐进式问答收集用户偏好
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Steps, message, Input, DatePicker } from 'antd';
+import { Button, Card, Steps, message, Input, DatePicker, Select, Radio } from 'antd';
 import dayjs from 'dayjs';
 import { createPlan } from '../api/client';
 import { useAppStore } from '../store';
+
+// 预设的旅行偏好
+const TRAVEL_PREFERENCES = [
+  { label: '历史文化', value: '历史文化' },
+  { label: '自然风光', value: '自然风光' },
+  { label: '美食探索', value: '美食探索' },
+  { label: '城市体验', value: '城市体验' },
+  { label: '休闲度假', value: '休闲度假' },
+  { label: '户外探险', value: '户外探险' },
+  { label: '购物娱乐', value: '购物娱乐' },
+  { label: '艺术文化', value: '艺术文化' },
+];
+
+// 预算区间选项
+const BUDGET_RANGES = [
+  { label: '5000-10000元', value: '5000-10000' },
+  { label: '10000-20000元', value: '10000-20000' },
+  { label: '20000-30000元', value: '20000-30000' },
+  { label: '30000-50000元', value: '30000-50000' },
+  { label: '50000元以上', value: '50000+' },
+];
 
 export default function Plan() {
   const navigate = useNavigate();
@@ -14,20 +35,20 @@ export default function Plan() {
 
   // 用户输入的状态
   const [formData, setFormData] = useState<Record<string, any>>({
+    origin: '',
     destination: '',
     startDate: '',
     endDate: '',
-    duration: '',
-    travelers: '',
-    budget: '',
-    preferences: {
-      interests: '',
-      pace: '',
-      energyLevel: '',
-    },
+    preferences: '',
+    budgetRange: '',
   });
 
   const questions = [
+    {
+      key: 'origin',
+      title: '出发地',
+      placeholder: '例如：上海、广州、深圳',
+    },
     {
       key: 'destination',
       title: '目的地',
@@ -44,34 +65,16 @@ export default function Plan() {
       type: 'date',
     },
     {
-      key: 'duration',
-      title: '旅行天数',
-      placeholder: '例如：7天6晚',
+      key: 'preferences',
+      title: '旅行偏好',
+      type: 'select',
+      options: TRAVEL_PREFERENCES,
     },
     {
-      key: 'travelers',
-      title: '出行人数',
-      placeholder: '例如：2人',
-    },
-    {
-      key: 'budget',
+      key: 'budgetRange',
       title: '预算范围',
-      placeholder: '例如：5000-8000元',
-    },
-    {
-      key: 'interests',
-      title: '兴趣偏好',
-      placeholder: '例如：历史文化、美食、自然风光',
-    },
-    {
-      key: 'pace',
-      title: '出行节奏',
-      placeholder: '例如：慢游、适中、紧凑',
-    },
-    {
-      key: 'energyLevel',
-      title: '体力值',
-      placeholder: '例如：轻松、中等、充沛',
+      type: 'radio',
+      options: BUDGET_RANGES,
     },
   ];
 
@@ -87,17 +90,28 @@ export default function Plan() {
     setLoading(true);
 
     try {
+      // 解析预算区间
+      let budget: number | undefined;
+      if (formData.budgetRange) {
+        if (formData.budgetRange === '50000+') {
+          budget = 50000;
+        } else {
+          const parts = formData.budgetRange.split('-');
+          if (parts.length === 2) {
+            budget = parseInt(parts[1]);
+          }
+        }
+      }
+
       // 构建请求参数
       const request = {
+        origin: formData.origin,
         destination: formData.destination,
         start_date: formData.startDate,
         end_date: formData.endDate,
-        travelers: parseInt(formData.travelers) || 1,
-        budget: formData.budget ? parseInt(formData.budget.replace(/[^0-9]/g, '')) : undefined,
+        budget,
         preferences: {
-          interests: formData.preferences.interests,
-          pace: formData.preferences.pace,
-          energy_level: formData.preferences.energyLevel,
+          interests: formData.preferences,
         },
       };
 
@@ -138,7 +152,7 @@ export default function Plan() {
 
   const renderStepContent = () => {
     const question = questions[currentStep];
-    const { key, title, placeholder, type } = question;
+    const { key, title, placeholder, type, options } = question;
 
     return (
       <Card>
@@ -155,33 +169,45 @@ export default function Plan() {
             }}
             style={{ marginBottom: '24px', width: '100%' }}
           />
+        ) : type === 'select' ? (
+          <Select
+            placeholder={placeholder}
+            value={formData[key] || undefined}
+            onChange={(value) => {
+              setFormData({
+                ...formData,
+                [key]: value,
+              });
+            }}
+            options={options || []}
+            style={{ marginBottom: '24px', width: '100%' }}
+          />
+        ) : type === 'radio' ? (
+          <Radio.Group
+            value={formData[key] || undefined}
+            onChange={(e) => {
+              setFormData({
+                ...formData,
+                [key]: e.target.value,
+              });
+            }}
+            style={{ marginBottom: '24px', width: '100%' }}
+          >
+            {(options || []).map((option: any) => (
+              <Radio key={option.value} value={option.value} style={{ display: 'block', marginBottom: '8px' }}>
+                {option.label}
+              </Radio>
+            ))}
+          </Radio.Group>
         ) : (
           <Input
             placeholder={placeholder}
-            value={
-              key === 'startDate' || key === 'endDate'
-                ? formData[key as string]
-                : formData[
-                    key === 'interests' || key === 'pace' || key === 'energyLevel'
-                      ? 'preferences'
-                      : key
-                  ][key === 'startDate' || key === 'endDate' ? '' : '.']
-            }
+            value={formData[key]}
             onChange={(e) => {
-              const value = e.target.value;
-              if (key === 'startDate' || key === 'endDate') {
-                setFormData({ ...formData, [key]: value });
-              } else if (key === 'interests' || key === 'pace' || key === 'energyLevel') {
-                setFormData({
-                  ...formData,
-                  preferences: {
-                    ...formData.preferences,
-                    [key]: value,
-                  },
-                });
-              } else {
-                setFormData({ ...formData, [key]: value });
-              }
+              setFormData({
+                ...formData,
+                [key]: e.target.value,
+              });
             }}
             style={{ marginBottom: '24px' }}
           />

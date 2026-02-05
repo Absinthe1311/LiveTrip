@@ -1,5 +1,4 @@
 // 首页 - 显示"智能旅行规划"
-import { Link } from 'react-router-dom';
 import { Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 

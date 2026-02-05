@@ -54,15 +54,13 @@ export interface Recommendation {
 }
 
 export interface CreatePlanRequest {
+  origin?: string;
   destination: string;
   start_date: string;
   end_date: string;
-  travelers: number;
   budget?: number;
   preferences?: {
     interests?: string;
-    pace?: string;
-    energy_level?: string;
   };
 }
 
