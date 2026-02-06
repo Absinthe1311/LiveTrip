@@ -1,31 +1,15 @@
-// 问答页面 - 渐进式问答收集用户偏好
+// 规划页面 - 优化后的行程规划界面
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Steps, message, Input, DatePicker, Select, Radio } from 'antd';
-import dayjs from 'dayjs';
+import { Button, message } from 'antd';
 import { createPlan } from '../api/client';
 import { useAppStore } from '../store';
-
-// 预设的旅行偏好
-const TRAVEL_PREFERENCES = [
-  { label: '历史文化', value: '历史文化' },
-  { label: '自然风光', value: '自然风光' },
-  { label: '美食探索', value: '美食探索' },
-  { label: '城市体验', value: '城市体验' },
-  { label: '休闲度假', value: '休闲度假' },
-  { label: '户外探险', value: '户外探险' },
-  { label: '购物娱乐', value: '购物娱乐' },
-  { label: '艺术文化', value: '艺术文化' },
-];
-
-// 预算区间选项
-const BUDGET_RANGES = [
-  { label: '5000-10000元', value: '5000-10000' },
-  { label: '10000-20000元', value: '10000-20000' },
-  { label: '20000-30000元', value: '20000-30000' },
-  { label: '30000-50000元', value: '30000-50000' },
-  { label: '50000元以上', value: '50000+' },
-];
+import PageHeader from '../components/PageHeader';
+import CompactProgressBar from '../components/CompactProgressBar';
+import LocationSearch from '../components/LocationSearch';
+import DateRangePicker from '../components/DateRangePicker';
+import BudgetRangeSlider from '../components/BudgetRangeSlider';
+import PreferenceCards from '../components/PreferenceCards';
 
 export default function Plan() {
   const navigate = useNavigate();
@@ -39,46 +23,34 @@ export default function Plan() {
     destination: '',
     startDate: '',
     endDate: '',
-    preferences: '',
-    budgetRange: '',
+    preferences: [],
+    minBudget: 5000,
+    maxBudget: 20000,
   });
 
-  const questions = [
-    {
-      key: 'origin',
-      title: '出发地',
-      placeholder: '例如：上海、广州、深圳',
-    },
-    {
-      key: 'destination',
-      title: '目的地',
-      placeholder: '例如：北京、云南、日本东京',
-    },
-    {
-      key: 'startDate',
-      title: '出发日期',
-      type: 'date',
-    },
-    {
-      key: 'endDate',
-      title: '返程日期',
-      type: 'date',
-    },
-    {
-      key: 'preferences',
-      title: '旅行偏好',
-      type: 'select',
-      options: TRAVEL_PREFERENCES,
-    },
-    {
-      key: 'budgetRange',
-      title: '预算范围',
-      type: 'radio',
-      options: BUDGET_RANGES,
-    },
+  const steps = [
+    { title: '出发地', icon: '📍' },
+    { title: '目的地', icon: '🎯' },
+    { title: '行程日期', icon: '📅' },
+    { title: '预算范围', icon: '💰' },
+    { title: '兴趣偏好', icon: '🎨' },
   ];
 
   const handleNext = () => {
+    // 验证当前步骤
+    if (currentStep === 0 && !formData.origin) {
+      message.warning('请选择出发地');
+      return;
+    }
+    if (currentStep === 1 && !formData.destination) {
+      message.warning('请选择目的地');
+      return;
+    }
+    if (currentStep === 2 && (!formData.startDate || !formData.endDate)) {
+      message.warning('请选择行程日期');
+      return;
+    }
+
     setCurrentStep(prev => prev + 1);
   };
 
@@ -87,21 +59,33 @@ export default function Plan() {
   };
 
   const handleGenerate = async () => {
+    // 验证所有必填项
+    if (!formData.origin) {
+      message.warning('请选择出发地');
+      setCurrentStep(0);
+      return;
+    }
+    if (!formData.destination) {
+      message.warning('请选择目的地');
+      setCurrentStep(1);
+      return;
+    }
+    if (!formData.startDate || !formData.endDate) {
+      message.warning('请选择行程日期');
+      setCurrentStep(2);
+      return;
+    }
+    if (formData.preferences.length === 0) {
+      message.warning('请选择至少一个兴趣偏好');
+      setCurrentStep(4);
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // 解析预算区间
-      let budget: number | undefined;
-      if (formData.budgetRange) {
-        if (formData.budgetRange === '50000+') {
-          budget = 50000;
-        } else {
-          const parts = formData.budgetRange.split('-');
-          if (parts.length === 2) {
-            budget = parseInt(parts[1]);
-          }
-        }
-      }
+      // 计算平均预算
+      const avgBudget = Math.round((formData.minBudget + formData.maxBudget) / 2);
 
       // 构建请求参数
       const request = {
@@ -109,9 +93,9 @@ export default function Plan() {
         destination: formData.destination,
         start_date: formData.startDate,
         end_date: formData.endDate,
-        budget,
+        budget: avgBudget,
         preferences: {
-          interests: formData.preferences,
+          interests: formData.preferences.join(','),
         },
       };
 
@@ -127,12 +111,6 @@ export default function Plan() {
         console.log('💾 正在保存行程数据到 Store...');
         setCurrentItinerary(response.data);
         console.log('✅ 行程数据已保存到 Store');
-
-        // 验证保存是否成功
-        setTimeout(() => {
-          const savedItinerary = useAppStore.getState().currentItinerary;
-          console.log('🔍 验证 Store 中的数据:', savedItinerary);
-        }, 100);
 
         message.success('行程生成成功！');
 
@@ -151,91 +129,130 @@ export default function Plan() {
   };
 
   const renderStepContent = () => {
-    const question = questions[currentStep];
-    const { key, title, placeholder, type, options } = question;
+    switch (currentStep) {
+      case 0:
+        return (
+          <LocationSearch
+            title="出发地"
+            placeholder=""
+            value={formData.origin}
+            onChange={(value) => setFormData({ ...formData, origin: value })}
+            showLocationButton={true}
+          />
+        );
+      case 1:
+        return (
+          <LocationSearch
+            title="目的地"
+            placeholder=""
+            value={formData.destination}
+            onChange={(value) => setFormData({ ...formData, destination: value })}
+            showPopularDestinations={true}
+          />
+        );
+      case 2:
+        return (
+          <DateRangePicker
+            startDate={formData.startDate}
+            endDate={formData.endDate}
+            onChange={(startDate, endDate) =>
+              setFormData({ ...formData, startDate, endDate })
+            }
+          />
+        );
+      case 3:
+        return (
+          <BudgetRangeSlider
+            minBudget={formData.minBudget}
+            maxBudget={formData.maxBudget}
+            onChange={(minBudget, maxBudget) =>
+              setFormData({ ...formData, minBudget, maxBudget })
+            }
+          />
+        );
+      case 4:
+        return (
+          <PreferenceCards
+            value={formData.preferences}
+            onChange={(preferences) =>
+              setFormData({ ...formData, preferences })
+            }
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
-    return (
-      <Card>
-        <h2>{title}</h2>
-        {type === 'date' ? (
-          <DatePicker
-            placeholder={placeholder}
-            value={formData[key] ? dayjs(formData[key]) : null}
-            onChange={(date) => {
-              setFormData({
-                ...formData,
-                [key]: date ? date.format('YYYY-MM-DD') : '',
-              });
+  return (
+    <div style={{ minHeight: '100vh', background: '#f5f7fa' }}>
+      <PageHeader
+        title="开始规划您的完美旅程"
+        subtitle="只需几步，AI 为您定制专属行程"
+      />
+
+      <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px 48px' }}>
+        <CompactProgressBar current={currentStep} steps={steps} />
+        
+        <div style={{ marginBottom: '24px' }}>
+          {renderStepContent()}
+        </div>
+
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: '16px'
+        }}>
+          <Button
+            size="large"
+            disabled={currentStep === 0}
+            onClick={handlePrev}
+            style={{
+              flex: 1,
+              height: '48px',
+              borderRadius: '8px',
+              fontSize: '16px'
             }}
-            style={{ marginBottom: '24px', width: '100%' }}
-          />
-        ) : type === 'select' ? (
-          <Select
-            placeholder={placeholder}
-            value={formData[key] || undefined}
-            onChange={(value) => {
-              setFormData({
-                ...formData,
-                [key]: value,
-              });
-            }}
-            options={options || []}
-            style={{ marginBottom: '24px', width: '100%' }}
-          />
-        ) : type === 'radio' ? (
-          <Radio.Group
-            value={formData[key] || undefined}
-            onChange={(e) => {
-              setFormData({
-                ...formData,
-                [key]: e.target.value,
-              });
-            }}
-            style={{ marginBottom: '24px', width: '100%' }}
           >
-            {(options || []).map((option: any) => (
-              <Radio key={option.value} value={option.value} style={{ display: 'block', marginBottom: '8px' }}>
-                {option.label}
-              </Radio>
-            ))}
-          </Radio.Group>
-        ) : (
-          <Input
-            placeholder={placeholder}
-            value={formData[key]}
-            onChange={(e) => {
-              setFormData({
-                ...formData,
-                [key]: e.target.value,
-              });
-            }}
-            style={{ marginBottom: '24px' }}
-          />
-        )}
-        <div>
-          <Button disabled={currentStep === 0} onClick={handlePrev}>
             上一步
           </Button>
-          {currentStep < questions.length - 1 && (
-            <Button type="primary" onClick={handleNext} style={{ marginLeft: 8 }}>
+          {currentStep < steps.length - 1 ? (
+            <Button
+              type="primary"
+              size="large"
+              onClick={handleNext}
+              style={{
+                flex: 1,
+                height: '48px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none'
+              }}
+            >
               下一步
             </Button>
-          )}
-          {currentStep === questions.length - 1 && (
-            <Button type="primary" loading={loading} onClick={handleGenerate} style={{ marginLeft: 8 }}>
+          ) : (
+            <Button
+              type="primary"
+              size="large"
+              loading={loading}
+              onClick={handleGenerate}
+              style={{
+                flex: 1,
+                height: '48px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none',
+                fontWeight: 600
+              }}
+            >
               生成行程
             </Button>
           )}
         </div>
-      </Card>
-    );
-  };
-
-  return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px' }}>
-      <h1 style={{ marginBottom: '24px' }}>开始规划</h1>
-      <Steps current={currentStep} items={questions.map((q) => ({ title: q.title }))} />
-      <div style={{ marginTop: '24px' }}>{renderStepContent()}</div>
+      </div>
     </div>
   );
 }

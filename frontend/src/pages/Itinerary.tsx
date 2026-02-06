@@ -40,10 +40,16 @@ function DayMap({ day }: { day: any }) {
   const mapRef = React.useRef<any>(null);
   const markersRef = React.useRef<any[]>([]);
   const polylinesRef = React.useRef<any[]>([]);
-  const amapKey = import.meta.env.VITE_AMAP_KEY;
+  const amapKey = import.meta.env.VITE_AMAP_JS_KEY;
+  const amapSecret = import.meta.env.VITE_AMAP_JS_SECRET;
 
   useEffect(() => {
     if (!mapContainer.current || !amapKey || !day || !day.attractions) return;
+
+    // 设置安全密钥
+    window._AMapSecurityConfig = {
+      securityJsCode: amapSecret,
+    };
 
     AMapLoader.load({
       key: amapKey,
