@@ -118,6 +118,35 @@ export interface IoTDataResponse {
   };
 }
 
+// 备选景点数据
+export interface AlternativeSpot {
+  id: string;
+  amapId: string;
+  name: string;
+  location: string;
+  address: string | null;
+  city: string;
+  category: string | null;
+  ticketPrice: number | null;
+  openTime: string | null;
+  rating: number | null;
+  description: string | null;
+  isOutdoor: boolean | null;
+  iotData?: {
+    crowdLevel: number;
+    temperature: number;
+    rainProbability: number;
+    isOpen: boolean;
+  };
+}
+
+// 备选景点响应
+export interface AlternativeSpotsResponse {
+  success: boolean;
+  data: AlternativeSpot[];
+  count: number;
+}
+
 // 行程调整请求
 export interface AdjustRequest {
   itinerary: FullItinerary;
@@ -155,6 +184,41 @@ export const createPlan = async (request: PlanRequest): Promise<PlanResponse> =>
  */
 export const getIoTData = async (): Promise<IoTDataResponse> => {
   const response = await apiClient.get<IoTDataResponse>('/iot/data');
+  return response.data;
+};
+
+/**
+ * 获取备选景点
+ * @param spotId 原景点ID
+ * @param city 城市名称
+ * @param excludeSpotIds 需要排除的景点ID列表（如行程中的景点）
+ */
+export const getAlternativeSpots = async (
+  spotId: string,
+  city: string,
+  excludeSpotIds: string[] = []
+): Promise<AlternativeSpotsResponse> => {
+  const response = await apiClient.get<AlternativeSpotsResponse>(`/spots/alternatives/${spotId}`, {
+    params: { 
+      city,
+      excludeSpotIds: JSON.stringify(excludeSpotIds)
+    }
+  });
+  return response.data;
+};
+
+/**
+ * 更新备选关系（替换景点时调用）
+ * @param oldSpotId 被替换的景点ID
+ * @param newSpotId 新景点ID
+ * @param city 城市名称
+ */
+export const updateAlternativeRelations = async (oldSpotId: string, newSpotId: string, city: string): Promise<{ success: boolean; message: string }> => {
+  const response = await apiClient.post<{ success: boolean; message: string }>('/spots/alternatives/update', {
+    oldSpotId,
+    newSpotId,
+    city
+  });
   return response.data;
 };
 

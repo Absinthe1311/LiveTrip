@@ -195,3 +195,71 @@ model LocationCache {
   @@index([keywords])
   @@index([name])
 }
+
+// Spot Table - 景点表（从高德API获取并存储）
+model Spot {
+  id              String   @id @default(cuid())
+  
+  // POI info from Amap
+  amapId          String   @unique
+  name            String
+  location        String   // 经纬度 "116.397428,39.90923"
+  address         String?
+  city            String
+  category        String?  // 景点分类
+  
+  // Extended info
+  ticketPrice     Float?   @default(0)
+  openTime        String?
+  rating          Float?
+  description     String?
+  isOutdoor       Boolean? @default(true)
+  
+  // Metadata
+  source          String   @default("amap") // 'amap', 'user_contributed'
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  iotData         SpotIoTData?
+  
+  @@index([city])
+  @@index([category])
+  @@index([amapId])
+}
+
+// Spot IoT Data Table - IoT数据表
+model SpotIoTData {
+  id              String   @id @default(cuid())
+  spotId          String   @unique
+  spot            Spot     @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  
+  // IoT data
+  crowdLevel      Float
+  temperature     Float
+  rainProbability Float
+  isOpen          Boolean
+  
+  // Metadata
+  generatedAt     DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([spotId])
+  @@index([generatedAt])
+}
+
+// Spot Alternatives Table - 备选景点关系表
+model SpotAlternative {
+  id               String   @id @default(cuid())
+  originalSpotId   String   // 原景点ID
+  alternativeSpotId String  // 备选景点ID
+  city             String   // 城市
+  priority         Int      @default(0) // 优先级（用于排序）
+  
+  createdAt        DateTime @default(now())
+  
+  @@unique([originalSpotId, alternativeSpotId])
+  @@index([originalSpotId])
+  @@index([alternativeSpotId])
+  @@index([city])
+}

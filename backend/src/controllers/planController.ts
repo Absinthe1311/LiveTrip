@@ -7,6 +7,7 @@ import { routeOptimizer } from '../services/routeOptimizer';
 import { itineraryAdjustService } from '../services/itineraryAdjustService';
 import { AdjustItineraryRequest } from '../services/itineraryAdjustService';
 import { PrismaClient } from '@prisma/client';
+import { spotService } from '../services/spotService';
 
 const prisma = new PrismaClient();
 
@@ -53,16 +54,29 @@ export const createPlan = async (req: Request, res: Response) => {
     console.log(`📅 行程天数: ${days} 天`);
     console.log(`📍 出发地: ${planData.origin || '未指定'}`);
 
-    // 步骤 1: 调用高德 API 获取景点
-    console.log('\n步骤 1: 获取景点数据...');
-    const attractions = await amapService().getAllAttractions(planData.destination);
-
-    if (attractions.length === 0) {
+    // 步骤 1: 调用 spotService 获取景点（同时存储到数据库）
+    console.log('\n步骤 1: 获取景点数据并存储到数据库...');
+    const spots = await spotService.getCitySpots(planData.destination, 50);
+    
+    if (spots.length === 0) {
       return res.status(404).json({
         success: false,
         error: `未找到 ${planData.destination} 的景点数据，请检查城市名称是否正确`,
       });
     }
+
+    // 转换为AI推荐服务需要的格式
+    const attractions = spots.map(spot => ({
+      name: spot.name,
+      location: spot.location,
+      address: spot.address || '',
+      type: spot.category || '景点',
+      typecode: spot.category || '110000',
+      rating: spot.rating || 3.5,
+      cost: spot.ticketPrice ? `${spot.ticketPrice}元` : '免费',
+    }));
+
+    console.log(`✅ 获取并存储了 ${spots.length} 个景点到数据库`);
 
     // 步骤 2: 调用 AI 推荐行程
     console.log('\n步骤 2: AI 推荐行程...');

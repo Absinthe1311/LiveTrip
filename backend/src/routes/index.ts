@@ -5,6 +5,7 @@ import iotRoutes from './iotRoutes';
 import authRoutes from './authRoutes';
 import tripRoutes from './tripRoutes';
 import locationCacheRoutes from './locationCacheRoutes';
+import spotRoutes from './spotRoutes';
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.use(iotRoutes);
 router.use('/auth', authRoutes);
 router.use('/trips', tripRoutes);
 router.use('/location', locationCacheRoutes);
+router.use('/spots', spotRoutes);
 
 export default router;

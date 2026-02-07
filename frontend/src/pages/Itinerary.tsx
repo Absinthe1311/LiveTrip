@@ -20,11 +20,13 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { EnvironmentOutlined } from '@ant-design/icons';
 import AttractionCard from '../components/AttractionCard';
+import AlternativeAttractions from '../components/AlternativeAttractions';
 import BudgetChart from '../components/BudgetChart';
 import { useAppStore } from '../store';
 import { FullItinerary, AttractionItem } from '../api/client';
-import { adjustItinerary, getIoTData, saveTrip } from '../api/client';
+import { adjustItinerary, getIoTData, saveTrip, updateAlternativeRelations } from '../api/client';
 import AMapLoader from '@amap/amap-jsapi-loader';
+import { alternativeRecommender } from '../services/alternativeRecommender';
 
 const { Title } = Typography;
 
@@ -212,13 +214,19 @@ function DayMap({ day }: { day: any }) {
 function SortableAttractionCard({ 
   item, 
   index, 
+  dayIndex,
+  attractionIndex,
   onShowAlternatives,
-  onTimeChange 
+  onTimeChange,
+  city
 }: { 
   item: AttractionItem; 
   index: number; 
-  onShowAlternatives: (item: AttractionItem) => void;
+  dayIndex: number;
+  attractionIndex: number;
+  onShowAlternatives: (item: AttractionItem, city?: string) => void;
   onTimeChange?: (index: number, newTime: string) => void;
+  city?: string;
 }) {
   const {
     attributes,
@@ -248,7 +256,7 @@ function SortableAttractionCard({
         time={item.time}
         name={item.name}
         desc={item.description}
-        onShowAlternatives={() => onShowAlternatives(item)}
+        onShowAlternatives={() => onShowAlternatives(item, city)}
         onTimeChange={(newTime) => onTimeChange?.(index, newTime)}
         recommendedDuration={recommendedDuration}
       />
@@ -345,6 +353,11 @@ export default function Itinerary() {
   const [showMap, setShowMap] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
+  // 备选景点相关状态
+  const [expandedAlternatives, setExpandedAlternatives] = useState<Record<string, any>>({});
+  const [iotData, setIotData] = useState<any[]>([]);
+  const [loadingAlternatives, setLoadingAlternatives] = useState<Record<string, boolean>>({});
+
   // 从 store 加载行程数据
   useEffect(() => {
     console.log('📍 Itinerary 页面加载');
@@ -353,10 +366,27 @@ export default function Itinerary() {
     if (currentItinerary) {
       console.log('✅ 找到行程数据，设置到页面状态');
       setItineraryData(currentItinerary);
+      
+      // 加载IoT数据
+      loadIoTData();
     } else {
       console.warn('⚠️  Store 中没有行程数据，显示空状态');
     }
   }, [currentItinerary]);
+
+  // 加载IoT数据
+  const loadIoTData = async () => {
+    try {
+      console.log('📡 加载IoT数据...');
+      const response = await getIoTData();
+      if (response.success && response.data) {
+        setIotData(response.data.spots);
+        console.log('✅ IoT数据加载成功，景点数量:', response.data.spots.length);
+      }
+    } catch (error) {
+      console.error('❌ 加载IoT数据失败:', error);
+    }
+  };
 
   // 确认行程并返回主页
   const handleConfirmItinerary = async () => {
@@ -455,50 +485,135 @@ export default function Itinerary() {
     });
   };
 
-  // 显示备选景点
-  const handleShowAlternatives = async (item: AttractionItem) => {
-    setAdjustResult(null);
+  // 显示备选景点列表
+  const handleShowAlternatives = async (item: AttractionItem, city?: string) => {
+    const attractionKey = `${item.name}-${item.time}`;
+    
+    // 如果已经展开，则收起
+    if (expandedAlternatives[attractionKey]) {
+      setExpandedAlternatives(prev => {
+        const newExpanded = { ...prev };
+        delete newExpanded[attractionKey];
+        return newExpanded;
+      });
+      return;
+    }
 
+    // 展开备选列表
+    setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: true }));
+    
     try {
-      // 获取 IoT 数据
-      const iotResponse = await getIoTData();
-      const spot = iotResponse.data.spots.find((s: any) => s.name === item.name);
-
-      if (!spot) {
-        message.warning('未找到该景点的 IoT 数据');
-        return;
-      }
-
-      // 判断调整原因
-      let reason: 'crowd' | 'weather' | 'closed' = 'crowd';
-      if (spot.rainProbability > 70) {
-        reason = 'weather';
-      } else if (!spot.isOpen) {
-        reason = 'closed';
-      }
-
-      // 调用调整接口
-      if (itineraryData) {
-        const response = await adjustItinerary({
-          itinerary: itineraryData,
-          reason,
-          targetAttractionId: spot.id,
-        });
-
-        if (response.success) {
-          setAdjustResult(response.data);
-          setAdjustModalVisible(true);
-        } else {
-          message.info(response.data.message || '无需调整');
-        }
-      }
+      console.log('🔍 查看备选景点:', item.name);
+      console.log('   城市:', city || '未指定');
+      
+      // 获取行程中所有景点的名称（用于排除）
+      const allSpotNames = itineraryData.itinerary.flatMap(day => 
+        day.attractions.map(attr => attr.name)
+      );
+      
+      console.log('   行程中的景点:', allSpotNames.join(', '));
+      
+      // 使用推荐服务获取备选景点
+      const recommendations = await alternativeRecommender.getRecommendations(
+        item, 
+        iotData, 
+        city,
+        allSpotNames // 传递行程中的景点名称列表
+      );
+      
+      console.log('✅ 获取到备选景点:', recommendations.length);
+      
+      setExpandedAlternatives(prev => ({
+        ...prev,
+        [attractionKey]: recommendations
+      }));
     } catch (error: any) {
-      console.error('❌ 调整行程失败:', error);
-      message.error(error.response?.data?.error || '调整行程失败，请稍后重试');
+      console.error('❌ 获取备选景点失败:', error);
+      message.error('获取备选景点失败，请稍后重试');
+    } finally {
+      setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: false }));
     }
   };
 
-  // 应用调整
+  // 关闭备选列表
+  const handleCloseAlternatives = (item: AttractionItem) => {
+    const attractionKey = `${item.name}-${item.time}`;
+    setExpandedAlternatives(prev => {
+      const newExpanded = { ...prev };
+      delete newExpanded[attractionKey];
+      return newExpanded;
+    });
+  };
+
+  // 替换景点
+  const handleReplaceAttraction = async (dayIndex: number, attractionIndex: number, originalItem: AttractionItem, newAttraction: any) => {
+    console.log('🔄 替换景点:', originalItem.name, '->', newAttraction.name);
+    console.log('   新景点ID:', newAttraction.id);
+    
+    Modal.confirm({
+      title: '确认替换景点',
+      content: (
+        <div>
+          <p>确认将 <strong>{originalItem.name}</strong> 替换为 <strong>{newAttraction.name}</strong> 吗？</p>
+          <p style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
+            替换后，系统会自动调整该景点的建议游玩时间
+          </p>
+        </div>
+      ),
+      okText: '确认替换',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          if (!itineraryData) return;
+
+          // 更新行程数据
+          const newItineraryData = { ...itineraryData };
+          const day = newItineraryData.itinerary[dayIndex];
+          
+          // 替换景点
+          day.attractions[attractionIndex] = {
+            ...day.attractions[attractionIndex],
+            name: newAttraction.name,
+            description: newAttraction.description,
+            estimated_cost: newAttraction.estimated_cost,
+            location: newAttraction.location,
+          };
+
+          // 重新计算时间段
+          day.attractions = recalculateTimeSlots(day.attractions);
+
+          setItineraryData(newItineraryData);
+          setCurrentItinerary(newItineraryData);
+
+          // 更新备选关系
+          if (newAttraction.id && itineraryData.summary?.destination) {
+            try {
+              console.log('🔄 更新备选关系...');
+              await updateAlternativeRelations(
+                originalItem.name, // 这里使用名称作为oldSpotId（因为AttractionItem没有id）
+                newAttraction.id,
+                itineraryData.summary.destination
+              );
+              console.log('✅ 备选关系更新成功');
+            } catch (error) {
+              console.error('⚠️  更新备选关系失败:', error);
+              // 不影响主流程，继续执行
+            }
+          }
+
+          // 收起备选列表
+          handleCloseAlternatives(originalItem);
+
+          message.success('景点替换成功！');
+        } catch (error: any) {
+          console.error('❌ 替换景点失败:', error);
+          message.error('替换景点失败，请稍后重试');
+        }
+      },
+    });
+  };
+
+  // 应用调整（保留原有功能）
   const handleApplyAdjustment = () => {
     if (adjustResult && adjustResult.adjustedItinerary) {
       setItineraryData(adjustResult.adjustedItinerary);
@@ -634,9 +749,43 @@ export default function Itinerary() {
                       <SortableAttractionCard 
                         item={item} 
                         index={index} 
+                        dayIndex={dayIndex}
+                        attractionIndex={index}
+                        city={itineraryData.summary?.destination}
                         onShowAlternatives={handleShowAlternatives}
                         onTimeChange={(attrIndex, newTime) => handleTimeChange(dayIndex, attrIndex, newTime)}
                       />
+                      
+                      {/* 备选景点展示区域 */}
+                      {(() => {
+                        const attractionKey = `${item.name}-${item.time}`;
+                        const alternatives = expandedAlternatives[attractionKey];
+                        const isLoading = loadingAlternatives[attractionKey];
+
+                        if (!alternatives && !isLoading) return null;
+
+                        return (
+                          <div style={{ marginTop: '16px' }}>
+                            {isLoading ? (
+                              <div style={{
+                                padding: '40px',
+                                textAlign: 'center',
+                                background: '#f9f9f9',
+                                borderRadius: '8px'
+                              }}>
+                                <Spin tip="加载备选景点..." />
+                              </div>
+                            ) : (
+                              <AlternativeAttractions
+                                originalAttraction={item}
+                                alternatives={alternatives}
+                                onClose={() => handleCloseAlternatives(item)}
+                                onReplace={(newAttraction) => handleReplaceAttraction(dayIndex, index, item, newAttraction)}
+                              />
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>
