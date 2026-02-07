@@ -166,6 +166,62 @@ export const adjustItinerary = async (request: AdjustRequest): Promise<AdjustRes
   return response.data;
 };
 
+// ==================== 行程管理 API ====================
+
+/**
+ * 获取用户的所有行程
+ */
+export const getUserTrips = async () => {
+  const response = await apiClient.get('/trips');
+  return response.data;
+};
+
+/**
+ * 获取单个行程详情
+ */
+export const getTripById = async (id: string) => {
+  const response = await apiClient.get(`/trips/${id}`);
+  return response.data;
+};
+
+/**
+ * 删除行程
+ */
+export const deleteTrip = async (id: string) => {
+  const response = await apiClient.delete(`/trips/${id}`);
+  return response.data;
+};
+
+/**
+ * 保存行程
+ */
+export const saveTrip = async (tripData: any) => {
+  const response = await apiClient.post('/trips', tripData);
+  return response.data;
+};
+
+// ==================== 地点缓存 API ====================
+
+/**
+ * 搜索地点（带缓存）
+ */
+export const searchLocation = async (keywords: string) => {
+  const response = await apiClient.get('/location/search', {
+    params: { keywords },
+  });
+  return response.data;
+};
+
+/**
+ * 获取热门搜索地点
+ */
+export const getPopularLocations = async (limit: number = 10) => {
+  const response = await apiClient.get('/location/popular', {
+    params: { limit },
+  });
+  return response.data;
+};
+
 // ==================== 导出 ====================
 
 export default apiClient;

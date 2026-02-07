@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Card, Row, Col, Badge } from 'antd';
+import { Card, Row, Col, Badge, Spin } from 'antd';
 import { FileTextOutlined, UnorderedListOutlined, StarOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { getUserTrips } from '../api/client';
 
 interface ActionCardProps {
   icon: React.ReactNode;
@@ -91,19 +92,33 @@ export default function QuickActions() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [tripCount, setTripCount] = useState(0);
   const [favoriteCount, setFavoriteCount] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // 检查用户是否已登录
     const user = localStorage.getItem('user');
     setIsLoggedIn(!!user);
 
-    // 这里可以添加获取行程数量和收藏数量的逻辑
-    // 暂时使用模拟数据
+    // 如果已登录，获取行程数量
     if (user) {
-      setTripCount(3); // 模拟数据
-      setFavoriteCount(12); // 模拟数据
+      loadTripCount();
     }
   }, []);
+
+  // 从数据库加载行程数量
+  const loadTripCount = async () => {
+    setLoading(true);
+    try {
+      const response = await getUserTrips();
+      if (response.success && response.data) {
+        setTripCount(response.data.length);
+      }
+    } catch (error) {
+      console.error('❌ 获取行程数量失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const actions = [
     {
@@ -116,10 +131,11 @@ export default function QuickActions() {
     {
       icon: <UnorderedListOutlined />,
       title: '我的行程',
-      subtitle: isLoggedIn ? `${tripCount} 个行程` : '查看历史行程',
-      onClick: () => isLoggedIn ? navigate('/itinerary') : navigate('/auth'),
+      subtitle: loading ? '加载中...' : isLoggedIn ? `${tripCount} 个行程` : '查看历史行程',
+      onClick: () => isLoggedIn ? navigate('/my-trips') : navigate('/auth'),
       delay: 200,
-      badge: isLoggedIn ? tripCount : undefined
+      badge: isLoggedIn && !loading ? tripCount : undefined,
+      disabled: loading
     },
     {
       icon: <StarOutlined />,

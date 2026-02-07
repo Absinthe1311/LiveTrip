@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Plan from './pages/Plan';
 import Itinerary from './pages/Itinerary';
+import MyTrips from './pages/MyTrips';
 import Auth from './pages/Auth';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
         <Route path="/auth" element={<Auth />} />
         <Route path="/plan" element={<Plan />} />
         <Route path="/itinerary" element={<Itinerary />} />
+        <Route path="/my-trips" element={<MyTrips />} />
       </Routes>
     </Router>
   );

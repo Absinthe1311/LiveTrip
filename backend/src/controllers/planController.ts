@@ -6,6 +6,9 @@ import { aiRecommender } from '../services/aiRecommender';
 import { routeOptimizer } from '../services/routeOptimizer';
 import { itineraryAdjustService } from '../services/itineraryAdjustService';
 import { AdjustItineraryRequest } from '../services/itineraryAdjustService';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 /**
  * 创建行程计划
@@ -111,7 +114,7 @@ export const createPlan = async (req: Request, res: Response) => {
 
     console.log('📦 返回数据:', JSON.stringify(responseData.summary, null, 2));
 
-    // 返回结果
+    // 返回结果（不自动保存到数据库）
     res.json({
       success: true,
       data: responseData,

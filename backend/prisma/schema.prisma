@@ -1,4 +1,4 @@
-// LiveTrip Database Schema - Phase 2.2
+// LiveTrip Database Schema - Optimized Version
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,7 +21,6 @@ model User {
   // Relations
   trips         Trip[]
   preferences   UserPreferences?
-  iotDevices    IoTDevice[]
 }
 
 // User Preferences Table
@@ -38,10 +37,6 @@ model UserPreferences {
   
   // Dietary preferences
   dietaryPrefs    String   @default("")
-  
-  // IoT settings
-  iotEnabled      Boolean  @default(false)
-  locationSharing Boolean  @default(false)
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -63,19 +58,16 @@ model Trip {
   
   // Budget info
   totalBudget     Float     @default(0)
-  actualCost      Float     @default(0)
   
   // AI generation info
-  aiGenerated     Boolean   @default(false)
-  aiPrompt        String?   @default("")
+  aiGenerated     Boolean   @default(true)
   
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   
   // Relations
   days            Day[]
   budget          Budget?
-  notifications   Notification[]
 }
 
 // Day Table
@@ -88,8 +80,8 @@ model Day {
   date            DateTime
   notes           String?   @default("")
   
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   
   // Relations
   itineraryItems  ItineraryItem[]
@@ -119,16 +111,8 @@ model ItineraryItem {
   // Cost info
   cost            Float     @default(0)
   
-  // AI recommendation info
-  aiRecommended   Boolean   @default(false)
-  confidenceScore Float?    @default(0)
-  
-  // Alternative option
-  isAlternative   Boolean   @default(false)
-  originalItemId  String?   @default("")
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 // Budget Table
@@ -145,157 +129,8 @@ model Budget {
   shopping        Float    @default(0)
   other           Float    @default(0)
   
-  // Actual costs
-  actualTransport Float    @default(0)
-  actualAccommod Float    @default(0)
-  actualFood      Float    @default(0)
-  actualTickets   Float    @default(0)
-  actualShopping  Float    @default(0)
-  actualOther     Float    @default(0)
-  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-}
-
-// Attraction Table
-model Attraction {
-  id              String   @id @default(cuid())
-  
-  // Basic info
-  name            String
-  type            String
-  category        String?  @default("")
-  description     String?  @default("")
-  
-  // Location info
-  city            String
-  address         String?  @default("")
-  latitude        Float
-  longitude       Float
-  
-  // Rating info
-  rating          Float?   @default(0)
-  reviewCount     Int?     @default(0)
-  
-  // Cost info
-  ticketPrice     Float?   @default(0)
-  
-  // Time info
-  openingHours    String?  @default("")
-  recommendedDuration Int?  @default(60)
-  
-  // Tags
-  tags            String   @default("")
-  
-  // Seasonal recommendation
-  bestSeason      String?  @default("all")
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-// Restaurant Table
-model Restaurant {
-  id              String   @id @default(cuid())
-  
-  // Basic info
-  name            String
-  cuisine         String
-  type            String
-  description     String?  @default("")
-  
-  // Location info
-  city            String
-  address         String?  @default("")
-  latitude        Float
-  longitude       Float
-  
-  // Rating info
-  rating          Float?   @default(0)
-  reviewCount     Int?     @default(0)
-  
-  // Price info
-  priceRange      String   @default("medium")
-  avgPrice        Float?   @default(0)
-  
-  // Time info
-  openingHours    String?  @default("")
-  
-  // Tags
-  tags            String   @default("")
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-// Notification Table
-model Notification {
-  id              String   @id @default(cuid())
-  tripId          String
-  trip            Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  
-  // Notification info
-  type            String
-  title           String
-  message         String
-  
-  // Status
-  isRead          Boolean  @default(false)
-  
-  // Time
-  scheduledTime   DateTime?
-  sentAt          DateTime?
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-// IoT Device Table
-model IoTDevice {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Device info
-  deviceId        String   @unique
-  deviceType      String
-  deviceName      String?  @default("")
-  
-  // Device status
-  status          String   @default("active")
-  
-  // Location info
-  lastLatitude    Float?
-  lastLongitude   Float?
-  lastLocationAt  DateTime?
-  
-  // Battery info
-  batteryLevel    Int?     @default(0)
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Relations
-  locationHistory IoTLocation[]
-}
-
-// IoT Location History Table
-model IoTLocation {
-  id              String    @id @default(cuid())
-  deviceId        String
-  device          IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
-  
-  // Location info
-  latitude        Float
-  longitude       Float
-  accuracy        Float?
-  
-  // Time
-  timestamp       DateTime  @default(now())
-  
-  // Other data
-  speed           Float?
-  altitude        Float?
 }
 
 // Amap POI Cache Table - 用于缓存高德地图的景点数据
@@ -328,4 +163,35 @@ model AmapPOICache {
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+// Location Cache Table - 用于缓存用户搜索过的地点
+model LocationCache {
+  id              String   @id @default(cuid())
+  
+  // Location info
+  name            String
+  type            String   @default("location")
+  category        String?
+  address         String?
+  city            String?
+  province        String?
+  
+  // Location coordinates
+  latitude        Float?
+  longitude       Float?
+  
+  // Search info
+  keywords        String   // 用户搜索的关键词
+  searchCount     Int      @default(1) // 搜索次数
+  
+  // Cache info
+  cacheTime       DateTime @default(now())
+  expireTime      DateTime @default(now()) // 默认7天后过期
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([keywords])
+  @@index([name])
 }

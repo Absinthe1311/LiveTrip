@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Button, Modal, message, Row, Col, Dropdown, Avatar } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { Typography, Button, Modal, message, Row, Col, Dropdown, Avatar, Spin } from 'antd';
 import {
   DndContext,
   closestCenter,
@@ -17,12 +18,12 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { EnvironmentOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
+import { EnvironmentOutlined } from '@ant-design/icons';
 import AttractionCard from '../components/AttractionCard';
 import BudgetChart from '../components/BudgetChart';
 import { useAppStore } from '../store';
 import { FullItinerary, AttractionItem } from '../api/client';
-import { adjustItinerary, getIoTData } from '../api/client';
+import { adjustItinerary, getIoTData, saveTrip } from '../api/client';
 import AMapLoader from '@amap/amap-jsapi-loader';
 
 const { Title } = Typography;
@@ -334,6 +335,7 @@ function recalculateTimeSlots(items: AttractionItem[]): AttractionItem[] {
 }
 
 export default function Itinerary() {
+  const navigate = useNavigate();
   const currentItinerary = useAppStore((state) => state.currentItinerary);
   const setCurrentItinerary = useAppStore((state) => state.setCurrentItinerary);
   const [itineraryData, setItineraryData] = useState<FullItinerary | null>(null);
@@ -341,7 +343,7 @@ export default function Itinerary() {
   const [adjustResult, setAdjustResult] = useState<any>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [confirming, setConfirming] = useState(false);
 
   // 从 store 加载行程数据
   useEffect(() => {
@@ -352,15 +354,59 @@ export default function Itinerary() {
       console.log('✅ 找到行程数据，设置到页面状态');
       setItineraryData(currentItinerary);
     } else {
-      console.warn('⚠️  Store 中没有行程数据');
-    }
-
-    // 加载当前用户信息
-    const user = localStorage.getItem('user');
-    if (user) {
-      setCurrentUser(JSON.parse(user));
+      console.warn('⚠️  Store 中没有行程数据，显示空状态');
     }
   }, [currentItinerary]);
+
+  // 确认行程并返回主页
+  const handleConfirmItinerary = async () => {
+    setConfirming(true);
+    
+    // 显示确认提示
+    Modal.confirm({
+      title: '确认保存行程',
+      content: (
+        <div>
+          <p>您即将保存当前行程并返回主页。</p>
+          <p>行程保存后将显示在"我的行程"列表中。</p>
+          <p>确定要保存并返回主页吗？</p>
+        </div>
+      ),
+      okText: '确认',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          console.log('💾 保存行程到数据库...');
+          
+          // 保存行程到数据库
+          const response = await saveTrip({
+            summary: itineraryData.summary,
+            itinerary: itineraryData,
+            total_cost: itineraryData.total_cost,
+            budget_breakdown: itineraryData.budget_breakdown,
+          });
+          
+          if (response.success) {
+            console.log('✅ 行程保存成功:', response.data);
+            message.success('行程已保存');
+            navigate('/');
+          } else {
+            console.error('❌ 行程保存失败:', response.error);
+            message.error('行程保存失败');
+            setConfirming(false);
+          }
+        } catch (error: any) {
+          console.error('❌ 保存行程失败:', error);
+          message.error('保存行程失败，请稍后重试');
+          setConfirming(false);
+        }
+      },
+      onCancel: () => {
+        console.log('❌ 用户取消确认');
+        setConfirming(false);
+      },
+    });
+  };
 
   // 处理退出登录
   const handleLogout = () => {
@@ -514,38 +560,7 @@ export default function Itinerary() {
         }}>
           我的行程
         </Title>
-        {currentUser && (
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: 'logout',
-                  label: '退出登录',
-                  icon: <LogoutOutlined />,
-                  onClick: handleLogout,
-                },
-              ],
-            }}
-            placement="bottomRight"
-          >
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              cursor: 'pointer',
-              padding: '8px 16px',
-              background: '#fff',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}>
-              <Avatar size="small" icon={<UserOutlined />} />
-              <span style={{ fontSize: '14px', color: '#333' }}>
-                {currentUser.username}
-              </span>
-            </div>
-            </Dropdown>
-          )}
-        </div>
+      </div>
 
       <Row gutter={24}>
         <Col span={showMap ? 14 : 24}>
@@ -683,6 +698,41 @@ export default function Itinerary() {
         { category: '餐饮', amount: itineraryData.budget_breakdown.dining },
         { category: '门票', amount: itineraryData.budget_breakdown.tickets },
       ]} />
+
+      {/* 确认按钮 */}
+      <div style={{
+        marginTop: '32px',
+        padding: '24px',
+        background: 'linear-gradient(135deg, #667eea10 0%, #764ba210 100%)',
+        borderRadius: '12px',
+        border: '1px solid #667eea30',
+        textAlign: 'center'
+      }}>
+        <p style={{
+          fontSize: '16px',
+          color: '#333',
+          marginBottom: '16px',
+          margin: 0
+        }}>
+          💡 确认后行程将保存到数据库
+        </p>
+        <Button
+          type="primary"
+          size="large"
+          loading={confirming}
+          onClick={handleConfirmItinerary}
+          style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '16px',
+            fontWeight: 600,
+            minWidth: '200px'
+          }}
+        >
+          确认并返回主页
+        </Button>
+      </div>
 
       {/* 调整建议弹窗 */}
       <Modal

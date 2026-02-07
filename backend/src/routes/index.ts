@@ -3,6 +3,8 @@ import { Router } from 'express';
 import planRoutes from './planRoutes';
 import iotRoutes from './iotRoutes';
 import authRoutes from './authRoutes';
+import tripRoutes from './tripRoutes';
+import locationCacheRoutes from './locationCacheRoutes';
 
 const router = Router();
 
@@ -10,5 +12,7 @@ const router = Router();
 router.use(planRoutes);
 router.use(iotRoutes);
 router.use('/auth', authRoutes);
+router.use('/trips', tripRoutes);
+router.use('/location', locationCacheRoutes);
 
 export default router;
