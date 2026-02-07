@@ -1,0 +1,569 @@
+// 目的地及景点数据
+import type { DestinationDetail } from '../types/destination';
+
+export const destinationsData: Record<string, DestinationDetail> = {
+  '1': {
+    id: '1',
+    name: '北京',
+    icon: '🏛️',
+    days: 3,
+    budget: 2000,
+    bestSeason: '春秋',
+    rating: 4.8,
+    description: '探索千年古都，感受历史文化的魅力。故宫、长城、天坛，每一个景点都承载着厚重的历史。',
+    tags: ['历史文化', '古都风情', '世界遗产'],
+    heroImage: '',
+    attractions: [
+      {
+        id: 'bj-1',
+        name: '故宫博物院',
+        image: '',
+        rating: 4.9,
+        description: '明清两代皇宫，世界文化遗产',
+        openTime: '08:30-17:00',
+        ticketPrice: 60,
+        category: '历史文化'
+      },
+      {
+        id: 'bj-2',
+        name: '天安门广场',
+        image: '',
+        rating: 4.8,
+        description: '世界最大的城市广场',
+        openTime: '全天开放',
+        ticketPrice: 0,
+        category: '历史文化'
+      },
+      {
+        id: 'bj-3',
+        name: '国家博物馆',
+        image: '',
+        rating: 4.7,
+        description: '收藏中华文明历史文物',
+        openTime: '09:00-17:00',
+        ticketPrice: 0,
+        category: '博物馆'
+      },
+      {
+        id: 'bj-4',
+        name: '颐和园',
+        image: '',
+        rating: 4.8,
+        description: '皇家园林，世界文化遗产',
+        openTime: '06:30-18:00',
+        ticketPrice: 30,
+        category: '自然风光'
+      },
+      {
+        id: 'bj-5',
+        name: '天坛公园',
+        image: '',
+        rating: 4.7,
+        description: '明清两代皇帝祭天的场所',
+        openTime: '06:00-22:00',
+        ticketPrice: 15,
+        category: '历史文化'
+      },
+      {
+        id: 'bj-6',
+        name: '圆明园',
+        image: '',
+        rating: 4.6,
+        description: '万园之园，历史遗迹',
+        openTime: '07:00-19:30',
+        ticketPrice: 25,
+        category: '历史文化'
+      },
+      {
+        id: 'bj-7',
+        name: '北海公园',
+        image: '',
+        rating: 4.5,
+        description: '中国现存最古老的皇家园林',
+        openTime: '06:00-22:00',
+        ticketPrice: 10,
+        category: '自然风光'
+      },
+      {
+        id: 'bj-8',
+        name: '景山公园',
+        image: '',
+        rating: 4.4,
+        description: '俯瞰故宫全景的最佳地点',
+        openTime: '06:00-21:00',
+        ticketPrice: 2,
+        category: '自然风光'
+      }
+    ]
+  },
+  '2': {
+    id: '2',
+    name: '上海',
+    icon: '🌃',
+    days: 2,
+    budget: 1800,
+    bestSeason: '全年',
+    rating: 4.7,
+    description: '现代化国际大都市，外滩夜景令人陶醉。迪士尼乐园、豫园、南京路，体验都市繁华。',
+    tags: ['都市风光', '现代建筑', '购物天堂'],
+    heroImage: '',
+    attractions: [
+      {
+        id: 'sh-1',
+        name: '外滩',
+        image: '',
+        rating: 4.9,
+        description: '万国建筑博览群，上海标志性景点',
+        openTime: '全天开放',
+        ticketPrice: 0,
+        category: '都市风光'
+      },
+      {
+        id: 'sh-2',
+        name: '东方明珠',
+        image: '',
+        rating: 4.7,
+        description: '上海地标建筑，登塔俯瞰全城',
+        openTime: '09:00-21:30',
+        ticketPrice: 220,
+        category: '现代建筑'
+      },
+      {
+        id: 'sh-3',
+        name: '豫园',
+        image: '',
+        rating: 4.6,
+        description: '明代古典园林，江南园林代表',
+        openTime: '08:30-17:30',
+        ticketPrice: 40,
+        category: '历史文化'
+      },
+      {
+        id: 'sh-4',
+        name: '南京路步行街',
+        image: '',
+        rating: 4.5,
+        description: '中华商业第一街',
+        openTime: '全天开放',
+        ticketPrice: 0,
+        category: '购物娱乐'
+      },
+      {
+        id: 'sh-5',
+        name: '上海迪士尼乐园',
+        image: '',
+        rating: 4.8,
+        description: '中国大陆首座迪士尼主题乐园',
+        openTime: '08:30-22:00',
+        ticketPrice: 499,
+        category: '主题乐园'
+      },
+      {
+        id: 'sh-6',
+        name: '上海博物馆',
+        image: '',
+        rating: 4.6,
+        description: '中国古代艺术博物馆',
+        openTime: '09:00-17:00',
+        ticketPrice: 0,
+        category: '博物馆'
+      },
+      {
+        id: 'sh-7',
+        name: '田子坊',
+        image: '',
+        rating: 4.4,
+        description: '文艺创意园区',
+        openTime: '全天开放',
+        ticketPrice: 0,
+        category: '文艺街区'
+      },
+      {
+        id: 'sh-8',
+        name: '新天地',
+        image: '',
+        rating: 4.5,
+        description: '时尚购物餐饮区',
+        openTime: '10:00-22:00',
+        ticketPrice: 0,
+        category: '购物娱乐'
+      }
+    ]
+  },
+  '3': {
+    id: '3',
+    name: '成都',
+    icon: '🐼',
+    days: 4,
+    budget: 2200,
+    bestSeason: '春秋',
+    rating: 4.9,
+    description: '天府之国，美食之都。看大熊猫、品川菜、逛宽窄巷子，享受悠闲慢生活。',
+    tags: ['美食天堂', '大熊猫', '慢生活'],
+    heroImage: '',
+    attractions: [
+      {
+        id: 'cd-1',
+        name: '成都大熊猫繁育研究基地',
+        image: '',
+        rating: 4.9,
+        description: '观赏可爱的大熊猫',
+        openTime: '07:30-18:00',
+        ticketPrice: 58,
+        category: '自然风光'
+      },
+      {
+        id: 'cd-2',
+        name: '宽窄巷子',
+        image: '',
+        rating: 4.7,
+        description: '成都历史文化街区',
+        openTime: '全天开放',
+        ticketPrice: 0,
+        category: '历史文化'
+      },
+      {
+        id: 'cd-3',
+        name: '锦里古街',
+        image: '',
+        rating: 4.6,
+        description: '西蜀历史上最古老的街道',
+        openTime: '全天开放',
+        ticketPrice: 0,
+        category: '历史文化'
+      },
+      {
+        id: 'cd-4',
+        name: '武侯祠',
+        image: '',
+        rating: 4.7,
+        description: '纪念诸葛亮的祠庙',
+        openTime: '09:00-18:00',
+        ticketPrice: 50,
+        category: '历史文化'
+      },
+      {
+        id: 'cd-5',
+        name: '杜甫草堂',
+        image: '',
+        rating: 4.6,
+        description: '唐代诗人杜甫的故居',
+        openTime: '08:00-18:30',
+        ticketPrice: 50,
+        category: '历史文化'
+      },
+      {
+        id: 'cd-6',
+        name: '春熙路',
+        image: '',
+        rating: 4.5,
+        description: '成都最繁华的商业街',
+        openTime: '全天开放',
+        ticketPrice: 0,
+        category: '购物娱乐'
+      },
+      {
+        id: 'cd-7',
+        name: '青城山',
+        image: '',
+        rating: 4.7,
+        description: '道教名山，青城天下幽',
+        openTime: '08:00-17:00',
+        ticketPrice: 80,
+        category: '自然风光'
+      },
+      {
+        id: 'cd-8',
+        name: '都江堰',
+        image: '',
+        rating: 4.8,
+        description: '世界文化遗产，古代水利工程',
+        openTime: '08:00-18:00',
+        ticketPrice: 80,
+        category: '历史文化'
+      }
+    ]
+  },
+  '4': {
+    id: '4',
+    name: '杭州',
+    icon: '🏞️',
+    days: 3,
+    budget: 1900,
+    bestSeason: '春秋',
+    rating: 4.8,
+    description: '人间天堂，西湖美景。断桥残雪、雷峰夕照，诗情画意的美景让人流连忘返。',
+    tags: ['西湖美景', '诗情画意', '江南水乡'],
+    heroImage: '',
+    attractions: [
+      {
+        id: 'hz-1',
+        name: '西湖',
+        image: '',
+        rating: 4.9,
+        description: '世界文化遗产，人间天堂',
+        openTime: '全天开放',
+        ticketPrice: 0,
+        category: '自然风光'
+      },
+      {
+        id: 'hz-2',
+        name: '雷峰塔',
+        image: '',
+        rating: 4.6,
+        description: '西湖十景之一，雷峰夕照',
+        openTime: '08:00-20:00',
+        ticketPrice: 40,
+        category: '历史文化'
+      },
+      {
+        id: 'hz-3',
+        name: '灵隐寺',
+        image: '',
+        rating: 4.7,
+        description: '江南著名古刹',
+        openTime: '07:00-18:15',
+        ticketPrice: 75,
+        category: '历史文化'
+      },
+      {
+        id: 'hz-4',
+        name: '断桥',
+        image: '',
+        rating: 4.8,
+        description: '西湖十景之一，断桥残雪',
+        openTime: '全天开放',
+        ticketPrice: 0,
+        category: '自然风光'
+      },
+      {
+        id: 'hz-5',
+        name: '三潭印月',
+        image: '',
+        rating: 4.7,
+        description: '西湖十景之一，湖中三岛',
+        openTime: '08:00-17:00',
+        ticketPrice: 55,
+        category: '自然风光'
+      },
+      {
+        id: 'hz-6',
+        name: '宋城',
+        image: '',
+        rating: 4.5,
+        description: '大型主题公园，宋城千古情',
+        openTime: '10:00-22:00',
+        ticketPrice: 310,
+        category: '主题乐园'
+      },
+      {
+        id: 'hz-7',
+        name: '河坊街',
+        image: '',
+        rating: 4.4,
+        description: '历史文化街区',
+        openTime: '全天开放',
+        ticketPrice: 0,
+        category: '历史文化'
+      },
+      {
+        id: 'hz-8',
+        name: '西溪国家湿地公园',
+        image: '',
+        rating: 4.6,
+        description: '城市湿地公园',
+        openTime: '07:30-18:30',
+        ticketPrice: 80,
+        category: '自然风光'
+      }
+    ]
+  },
+  '5': {
+    id: '5',
+    name: '厦门',
+    icon: '🌊',
+    days: 2,
+    budget: 1700,
+    bestSeason: '春秋',
+    rating: 4.7,
+    description: '海上花园，浪漫之都。鼓浪屿、曾厝垵、环岛路，感受海风拂面的惬意。',
+    tags: ['海滨城市', '浪漫之都', '文艺小资'],
+    heroImage: '',
+    attractions: [
+      {
+        id: 'xm-1',
+        name: '鼓浪屿',
+        image: '',
+        rating: 4.9,
+        description: '世界文化遗产，海上花园',
+        openTime: '全天开放',
+        ticketPrice: 35,
+        category: '历史文化'
+      },
+      {
+        id: 'xm-2',
+        name: '南普陀寺',
+        image: '',
+        rating: 4.7,
+        description: '千年古刹，闽南佛教圣地',
+        openTime: '08:00-17:30',
+        ticketPrice: 0,
+        category: '历史文化'
+      },
+      {
+        id: 'xm-3',
+        name: '曾厝垵',
+        image: '',
+        rating: 4.5,
+        description: '文艺小渔村',
+        openTime: '全天开放',
+        ticketPrice: 0,
+        category: '文艺街区'
+      },
+      {
+        id: 'xm-4',
+        name: '环岛路',
+        image: '',
+        rating: 4.6,
+        description: '最美海岸线',
+        openTime: '全天开放',
+        ticketPrice: 0,
+        category: '自然风光'
+      },
+      {
+        id: 'xm-5',
+        name: '厦门大学',
+        image: '',
+        rating: 4.7,
+        description: '中国最美大学',
+        openTime: '08:00-18:00',
+        ticketPrice: 0,
+        category: '历史文化'
+      },
+      {
+        id: 'xm-6',
+        name: '日光岩',
+        image: '',
+        rating: 4.6,
+        description: '鼓浪屿最高点',
+        openTime: '07:00-20:00',
+        ticketPrice: 60,
+        category: '自然风光'
+      },
+      {
+        id: 'xm-7',
+        name: '菽庄花园',
+        image: '',
+        rating: 4.5,
+        description: '海上花园',
+        openTime: '07:30-18:00',
+        ticketPrice: 30,
+        category: '历史文化'
+      },
+      {
+        id: 'xm-8',
+        name: '中山路步行街',
+        image: '',
+        rating: 4.4,
+        description: '厦门商业街',
+        openTime: '全天开放',
+        ticketPrice: 0,
+        category: '购物娱乐'
+      }
+    ]
+  },
+  '6': {
+    id: '6',
+    name: '西安',
+    icon: '🏔️',
+    days: 4,
+    budget: 2100,
+    bestSeason: '春秋',
+    rating: 4.8,
+    description: '十三朝古都，丝绸之路起点。兵马俑、大雁塔、回民街，穿越千年历史。',
+    tags: ['古都风情', '丝绸之路', '美食天堂'],
+    heroImage: '',
+    attractions: [
+      {
+        id: 'xa-1',
+        name: '秦始皇兵马俑',
+        image: '',
+        rating: 4.9,
+        description: '世界第八大奇迹',
+        openTime: '08:30-18:00',
+        ticketPrice: 120,
+        category: '历史文化'
+      },
+      {
+        id: 'xa-2',
+        name: '大雁塔',
+        image: '',
+        rating: 4.7,
+        description: '唐代古塔，丝绸之路象征',
+        openTime: '08:00-21:30',
+        ticketPrice: 40,
+        category: '历史文化'
+      },
+      {
+        id: 'xa-3',
+        name: '回民街',
+        image: '',
+        rating: 4.6,
+        description: '美食天堂',
+        openTime: '全天开放',
+        ticketPrice: 0,
+        category: '美食街区'
+      },
+      {
+        id: 'xa-4',
+        name: '西安城墙',
+        image: '',
+        rating: 4.7,
+        description: '中国现存最完整的古城墙',
+        openTime: '08:00-22:00',
+        ticketPrice: 54,
+        category: '历史文化'
+      },
+      {
+        id: 'xa-5',
+        name: '华清宫',
+        image: '',
+        rating: 4.6,
+        description: '唐代皇家温泉宫殿',
+        openTime: '08:00-18:00',
+        ticketPrice: 120,
+        category: '历史文化'
+      },
+      {
+        id: 'xa-6',
+        name: '陕西历史博物馆',
+        image: '',
+        rating: 4.8,
+        description: '中国第一座大型现代化博物馆',
+        openTime: '08:30-18:00',
+        ticketPrice: 0,
+        category: '博物馆'
+      },
+      {
+        id: 'xa-7',
+        name: '大唐芙蓉园',
+        image: '',
+        rating: 4.5,
+        description: '中国第一个全方位展示盛唐风貌',
+        openTime: '09:00-22:00',
+        ticketPrice: 120,
+        category: '历史文化'
+      },
+      {
+        id: 'xa-8',
+        name: '钟鼓楼',
+        image: '',
+        rating: 4.6,
+        description: '西安地标建筑',
+        openTime: '08:30-21:00',
+        ticketPrice: 50,
+        category: '历史文化'
+      }
+    ]
+  }
+};

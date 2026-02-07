@@ -361,51 +361,32 @@ export default function Itinerary() {
   // 确认行程并返回主页
   const handleConfirmItinerary = async () => {
     setConfirming(true);
-    
-    // 显示确认提示
-    Modal.confirm({
-      title: '确认保存行程',
-      content: (
-        <div>
-          <p>您即将保存当前行程并返回主页。</p>
-          <p>行程保存后将显示在"我的行程"列表中。</p>
-          <p>确定要保存并返回主页吗？</p>
-        </div>
-      ),
-      okText: '确认',
-      cancelText: '取消',
-      onOk: async () => {
-        try {
-          console.log('💾 保存行程到数据库...');
-          
-          // 保存行程到数据库
-          const response = await saveTrip({
-            summary: itineraryData.summary,
-            itinerary: itineraryData,
-            total_cost: itineraryData.total_cost,
-            budget_breakdown: itineraryData.budget_breakdown,
-          });
-          
-          if (response.success) {
-            console.log('✅ 行程保存成功:', response.data);
-            message.success('行程已保存');
-            navigate('/');
-          } else {
-            console.error('❌ 行程保存失败:', response.error);
-            message.error('行程保存失败');
-            setConfirming(false);
-          }
-        } catch (error: any) {
-          console.error('❌ 保存行程失败:', error);
-          message.error('保存行程失败，请稍后重试');
-          setConfirming(false);
-        }
-      },
-      onCancel: () => {
-        console.log('❌ 用户取消确认');
+
+    try {
+      console.log('💾 保存行程到数据库...');
+
+      // 保存行程到数据库
+      const response = await saveTrip({
+        summary: itineraryData.summary,
+        itinerary: itineraryData,
+        total_cost: itineraryData.total_cost,
+        budget_breakdown: itineraryData.budget_breakdown,
+      });
+
+      if (response.success) {
+        console.log('✅ 行程保存成功:', response.data);
+        message.success('行程已保存');
+        navigate('/');
+      } else {
+        console.error('❌ 行程保存失败:', response.error);
+        message.error('行程保存失败');
         setConfirming(false);
-      },
-    });
+      }
+    } catch (error: any) {
+      console.error('❌ 保存行程失败:', error);
+      message.error('保存行程失败，请稍后重试');
+      setConfirming(false);
+    }
   };
 
   // 处理退出登录

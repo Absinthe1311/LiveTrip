@@ -246,8 +246,8 @@ export default function PopularDestinations() {
   ];
 
   const handleDestinationClick = (destination: Destination) => {
-    // 跳转到规划页面，并传递目的地信息
-    navigate('/plan', { state: { destination: destination.name, days: destination.days } });
+    // 跳转到目的地详情页
+    navigate(`/destination/${destination.id}`);
   };
 
   return (

@@ -3,6 +3,7 @@ import { Card, Row, Col, Badge, Spin } from 'antd';
 import { FileTextOutlined, UnorderedListOutlined, StarOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getUserTrips } from '../api/client';
+import { destinationsData } from '../data/destinationsData';
 
 interface ActionCardProps {
   icon: React.ReactNode;
@@ -99,9 +100,10 @@ export default function QuickActions() {
     const user = localStorage.getItem('user');
     setIsLoggedIn(!!user);
 
-    // 如果已登录，获取行程数量
+    // 如果已登录，获取行程数量和收藏数量
     if (user) {
       loadTripCount();
+      loadFavoriteCount();
     }
   }, []);
 
@@ -117,6 +119,34 @@ export default function QuickActions() {
       console.error('❌ 获取行程数量失败:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 从localStorage加载收藏数量
+  const loadFavoriteCount = () => {
+    try {
+      const savedFavorites = localStorage.getItem('favoriteAttractions');
+      if (savedFavorites) {
+        const favoriteIds = new Set(JSON.parse(savedFavorites));
+
+        // 根据收藏的ID获取景点详情
+        let count = 0;
+        Object.values(destinationsData).forEach(destination => {
+          destination.attractions.forEach(attraction => {
+            if (favoriteIds.has(attraction.id)) {
+              count++;
+            }
+          });
+        });
+
+        setFavoriteCount(count);
+        console.log('📊 收藏数量:', count);
+      } else {
+        setFavoriteCount(0);
+      }
+    } catch (error) {
+      console.error('❌ 获取收藏数量失败:', error);
+      setFavoriteCount(0);
     }
   };
 

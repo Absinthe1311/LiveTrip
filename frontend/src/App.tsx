@@ -5,6 +5,8 @@ import Plan from './pages/Plan';
 import Itinerary from './pages/Itinerary';
 import MyTrips from './pages/MyTrips';
 import Auth from './pages/Auth';
+import DestinationDetail from './pages/DestinationDetail';
+import Favorites from './pages/Favorites';
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
         <Route path="/plan" element={<Plan />} />
         <Route path="/itinerary" element={<Itinerary />} />
         <Route path="/my-trips" element={<MyTrips />} />
+        <Route path="/destination/:id" element={<DestinationDetail />} />
+        <Route path="/favorites" element={<Favorites />} />
       </Routes>
     </Router>
   );

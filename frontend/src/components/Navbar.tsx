@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Layout, Menu, Dropdown, Avatar, Button } from 'antd';
-import { UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
+import { UserOutlined, LogoutOutlined, SettingOutlined, HeartOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const { Header } = Layout;
@@ -65,6 +65,11 @@ export default function Navbar() {
       key: 'itinerary',
       label: '我的行程',
       onClick: () => navigate('/itinerary'),
+    },
+    {
+      key: 'favorites',
+      label: '我的收藏',
+      onClick: () => navigate('/favorites'),
     },
     {
       key: 'destinations',

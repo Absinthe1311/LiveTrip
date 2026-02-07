@@ -1,6 +1,6 @@
 // 规划页面 - 优化后的行程规划界面
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, message } from 'antd';
 import { createPlan } from '../api/client';
 import { useAppStore } from '../store';
@@ -13,6 +13,7 @@ import PreferenceCards from '../components/PreferenceCards';
 
 export default function Plan() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const setCurrentItinerary = useAppStore((state) => state.setCurrentItinerary);
@@ -27,6 +28,20 @@ export default function Plan() {
     minBudget: 5000,
     maxBudget: 20000,
   });
+
+  // 从路由状态中获取预填充的数据
+  useEffect(() => {
+    if (location.state) {
+      const { destination } = location.state as { destination?: string };
+      if (destination) {
+        setFormData(prev => ({
+          ...prev,
+          destination: destination
+        }));
+        console.log('📍 预填充目的地:', destination);
+      }
+    }
+  }, [location.state]);
 
   const steps = [
     { title: '出发地', icon: '📍' },
