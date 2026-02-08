@@ -218,7 +218,8 @@ function SortableAttractionCard({
   attractionIndex,
   onShowAlternatives,
   onTimeChange,
-  city
+  city,
+  iotData
 }: { 
   item: AttractionItem; 
   index: number; 
@@ -227,6 +228,7 @@ function SortableAttractionCard({
   onShowAlternatives: (item: AttractionItem, city?: string) => void;
   onTimeChange?: (index: number, newTime: string) => void;
   city?: string;
+  iotData?: any[];
 }) {
   const {
     attributes,
@@ -259,9 +261,31 @@ function SortableAttractionCard({
         onShowAlternatives={() => onShowAlternatives(item, city)}
         onTimeChange={(newTime) => onTimeChange?.(index, newTime)}
         recommendedDuration={recommendedDuration}
+        iotData={getAttractionIoTData(item, iotData)}
       />
     </div>
   );
+}
+
+// 获取景点的IoT数据
+function getAttractionIoTData(attraction: AttractionItem, iotDataList: any[]): any {
+  if (!iotDataList || iotDataList.length === 0) {
+    return null;
+  }
+  
+  // 通过景点名称匹配IoT数据
+  const iotData = iotDataList.find((data: any) => data.name === attraction.name);
+  
+  if (!iotData) {
+    return null;
+  }
+  
+  return {
+    crowdLevel: iotData.crowdLevel,
+    temperature: iotData.temperature,
+    rainProbability: iotData.rainProbability,
+    isOpen: iotData.isOpen,
+  };
 }
 
 // 解析时间段并计算分钟数
@@ -754,6 +778,7 @@ export default function Itinerary() {
                         city={itineraryData.summary?.destination}
                         onShowAlternatives={handleShowAlternatives}
                         onTimeChange={(attrIndex, newTime) => handleTimeChange(dayIndex, attrIndex, newTime)}
+                        iotData={iotData}
                       />
                       
                       {/* 备选景点展示区域 */}

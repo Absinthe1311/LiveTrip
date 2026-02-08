@@ -24,12 +24,10 @@ export async function searchLocationWithCache(
   try {
     console.log(`🔍 搜索地点: ${keywords}`);
 
-    // 步骤1: 检查数据库缓存
+    // 步骤1: 检查数据库缓存（精确匹配keywords）
     const cachedResults = await prisma.locationCache.findMany({
       where: {
-        keywords: {
-          contains: keywords,
-        },
+        keywords: keywords,
         expireTime: {
           gt: new Date(),
         },
@@ -45,6 +43,7 @@ export async function searchLocationWithCache(
 
     if (cachedResults.length > 0) {
       console.log(`✅ 缓存命中，找到 ${cachedResults.length} 个结果`);
+      console.log(`   缓存关键词: "${keywords}"`);
 
       // 更新搜索次数
       for (const cache of cachedResults) {

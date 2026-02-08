@@ -1,5 +1,8 @@
 // IoT 数据生成器 - 模拟真实的 IoT 实时数据
 // 数据在服务器内存中持续存在，每次调用只做小幅更新
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 // 景点 IoT 数据接口
 export interface SpotIoTData {
@@ -25,51 +28,109 @@ interface SpotData {
   baseTemperature: number; // 基础温度
   currentCrowdLevel: number; // 当前人流水平（用于平滑变化）
   currentTemperature: number; // 当前温度（用于平滑变化）
-  currentRainProbability: number; // 当前降雨概率（用于平滑变化）
+  currentRainProbability: number; // 当前降雨概率（每个景点独立）
   isOutdoor: boolean; // 是否为户外景点
 }
-
-// 预定义的著名景点列表
-const PREDEFINED_SPOTS: Array<{
-  id: string;
-  name: string;
-  baseCrowdLevel: number;
-  baseTemperature: number;
-  isOutdoor: boolean;
-}> = [
-  { id: '1', name: '故宫博物院', baseCrowdLevel: 70, baseTemperature: 22, isOutdoor: true },
-  { id: '2', name: '天安门广场', baseCrowdLevel: 80, baseTemperature: 21, isOutdoor: true },
-  { id: '3', name: '国家博物馆', baseCrowdLevel: 60, baseTemperature: 23, isOutdoor: false },
-  { id: '4', name: '颐和园', baseCrowdLevel: 55, baseTemperature: 20, isOutdoor: true },
-  { id: '5', name: '天坛公园', baseCrowdLevel: 65, baseTemperature: 21, isOutdoor: true },
-  { id: '6', name: '圆明园', baseCrowdLevel: 45, baseTemperature: 20, isOutdoor: true },
-  { id: '7', name: '北海公园', baseCrowdLevel: 50, baseTemperature: 21, isOutdoor: true },
-  { id: '8', name: '景山公园', baseCrowdLevel: 40, baseTemperature: 21, isOutdoor: true },
-  { id: '9', name: '雍和宫', baseCrowdLevel: 55, baseTemperature: 22, isOutdoor: false },
-  { id: '10', name: '孔庙和国子监', baseCrowdLevel: 35, baseTemperature: 22, isOutdoor: true },
-];
 
 // IoT 数据生成器类
 class IoTDataGenerator {
   private spots: SpotData[] = [];
   private lastUpdateTime: number = 0;
-  private currentRainProbability: number = 30; // 全局降雨概率
+  private initialized: boolean = false;
 
   constructor() {
-    // 初始化景点数据
-    this.initializeSpots();
+    // 延迟初始化，等待数据库连接
   }
 
   /**
-   * 初始化景点数据
+   * 初始化景点数据（从数据库读取）
    */
-  private initializeSpots(): void {
-    this.spots = PREDEFINED_SPOTS.map((spot) => ({
-      ...spot,
-      currentCrowdLevel: spot.baseCrowdLevel,
-      currentTemperature: spot.baseTemperature,
-      currentRainProbability: this.currentRainProbability,
-    }));
+  private async initializeSpots(): Promise<void> {
+    try {
+      // 从数据库读取景点数据
+      const spots = await prisma.spot.findMany({
+        select: {
+          id: true,
+          name: true,
+          city: true,
+          isOutdoor: true,
+        },
+      });
+
+      if (spots.length === 0) {
+        console.warn('⚠️  数据库中没有景点数据');
+        return;
+      }
+
+      console.log(`📍 从数据库加载了 ${spots.length} 个景点`);
+
+      this.spots = spots.map((spot, index) => {
+        // 根据城市和类型计算基础人流和温度
+        const baseCrowdLevel = this.calculateBaseCrowdLevel(spot.city, spot.isOutdoor);
+        const baseTemperature = this.calculateBaseTemperature(spot.city);
+        
+        // 为每个景点设置独立的初始降雨概率（10-70%之间随机）
+        const initialRainProbability = 10 + Math.random() * 60;
+        
+        // 为每个景点添加随机的人流偏移（-15%到+15%）
+        const crowdOffset = (Math.random() - 0.5) * 30;
+        const adjustedBaseCrowdLevel = Math.max(10, Math.min(90, baseCrowdLevel + crowdOffset));
+
+        return {
+          id: spot.id,
+          name: spot.name,
+          baseCrowdLevel: adjustedBaseCrowdLevel,
+          baseTemperature,
+          currentCrowdLevel: adjustedBaseCrowdLevel,
+          currentTemperature: baseTemperature,
+          currentRainProbability: initialRainProbability,
+          isOutdoor: spot.isOutdoor || false,
+        };
+      });
+
+      this.initialized = true;
+      console.log('✅ IoT数据生成器初始化完成');
+    } catch (error) {
+      console.error('❌ 初始化景点数据失败:', error);
+    }
+  }
+
+  /**
+   * 根据城市和类型计算基础人流水平
+   */
+  private calculateBaseCrowdLevel(city: string, isOutdoor?: boolean | null): number {
+    const cityCrowdMap: Record<string, number> = {
+      '北京': 60,
+      '上海': 70,
+      '广州': 65,
+      '深圳': 68,
+      '成都': 55,
+      '杭州': 62,
+      '西安': 50,
+      '重庆': 58,
+    };
+
+    const base = cityCrowdMap[city] || 50;
+    // 户外景点人流稍高
+    return isOutdoor ? base + 10 : base;
+  }
+
+  /**
+   * 根据城市计算基础温度
+   */
+  private calculateBaseTemperature(city: string): number {
+    const cityTempMap: Record<string, number> = {
+      '北京': 15,
+      '上海': 18,
+      '广州': 25,
+      '深圳': 26,
+      '成都': 17,
+      '杭州': 19,
+      '西安': 16,
+      '重庆': 20,
+    };
+
+    return cityTempMap[city] || 18;
   }
 
   /**
@@ -170,21 +231,21 @@ class IoTDataGenerator {
   /**
    * 平滑更新降雨概率（随机游走）
    */
-  private smoothUpdateRainProbability(): void {
+  private smoothUpdateRainProbability(spot: SpotData): void {
     // 降雨概率每次最多变化 5%
     const maxChange = 5;
     const target = Math.random() * 100; // 随机目标值
-    const current = this.currentRainProbability;
+    const current = spot.currentRainProbability;
 
     const change = target - current;
     if (Math.abs(change) <= maxChange) {
-      this.currentRainProbability = target;
+      spot.currentRainProbability = target;
     } else {
-      this.currentRainProbability = current + (change > 0 ? maxChange : -maxChange);
+      spot.currentRainProbability = current + (change > 0 ? maxChange : -maxChange);
     }
 
     // 限制在 0-100 范围内
-    this.currentRainProbability = Math.max(0, Math.min(100, this.currentRainProbability));
+    spot.currentRainProbability = Math.max(0, Math.min(100, spot.currentRainProbability));
   }
 
   /**
@@ -199,7 +260,7 @@ class IoTDataGenerator {
     }
 
     // 下雨概率 > 80% 时，户外景点有 30% 概率关闭
-    if (this.currentRainProbability > 80 && spot.isOutdoor) {
+    if (spot.currentRainProbability > 80 && spot.isOutdoor) {
       return Math.random() > 0.3;
     }
 
@@ -211,21 +272,23 @@ class IoTDataGenerator {
    * 更新所有景点的 IoT 数据
    */
   private updateAllSpots(): void {
-    // 更新全局降雨概率
-    this.smoothUpdateRainProbability();
-
     // 更新每个景点的数据
     for (const spot of this.spots) {
       this.smoothUpdateCrowdLevel(spot);
       this.smoothUpdateTemperature(spot);
-      spot.currentRainProbability = this.currentRainProbability;
+      this.smoothUpdateRainProbability(spot); // 每个景点独立更新降雨概率
     }
   }
 
   /**
    * 获取所有景点的 IoT 数据
    */
-  public getIoTData(): IoTDataResponse {
+  public async getIoTData(): Promise<IoTDataResponse> {
+    // 如果未初始化，先初始化
+    if (!this.initialized) {
+      await this.initializeSpots();
+    }
+
     // 更新数据
     this.updateAllSpots();
 
@@ -251,8 +314,8 @@ class IoTDataGenerator {
   /**
    * 获取指定景点的 IoT 数据
    */
-  public getSpotIoTData(spotId: string): SpotIoTData | null {
-    const data = this.getIoTData();
+  public async getSpotIoTData(spotId: string): Promise<SpotIoTData | null> {
+    const data = await this.getIoTData();
     return data.spots.find((spot) => spot.id === spotId) || null;
   }
 
@@ -261,8 +324,6 @@ class IoTDataGenerator {
    */
   public reset(): void {
     this.initializeSpots();
-    this.currentRainProbability = 30;
-    this.lastUpdateTime = 0;
   }
 }
 

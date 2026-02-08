@@ -45,11 +45,11 @@ class ItineraryAdjustService {
     console.log(`   目标景点ID: ${targetAttractionId}`);
 
     // 获取 IoT 数据
-    const iotData = iotDataGenerator.getIoTData();
+    const iotData = await iotDataGenerator.getIoTData();
     const spotsData = iotData.spots;
 
     // 查找目标景点在行程中的位置
-    const targetDayIndex = this.findAttractionInItinerary(itinerary, targetAttractionId);
+    const targetDayIndex = await this.findAttractionInItinerary(itinerary, targetAttractionId);
     
     if (targetDayIndex === null) {
       throw new Error(`未找到景点ID: ${targetAttractionId}`);
@@ -151,19 +151,19 @@ class ItineraryAdjustService {
   /**
    * 查找景点在行程中的位置
    */
-  private findAttractionInItinerary(
+  private async findAttractionInItinerary(
     itinerary: FullItinerary,
     attractionId: string
-  ): { dayIndex: number; attractionIndex: number } | null {
+  ): Promise<{ dayIndex: number; attractionIndex: number } | null> {
     console.log(`   查找景点 ID: ${attractionId}`);
 
     // 首先通过 attractionId 获取 IoT 数据中的景点名称
-    const iotData = iotDataGenerator.getIoTData();
-    const targetSpot = iotData.spots.find((s) => s.id === attractionId);
+    const iotData = await iotDataGenerator.getIoTData();
+    const targetSpot = iotData.spots.find((s: any) => s.id === attractionId);
 
     if (!targetSpot) {
       console.warn(`⚠️  未找到 IoT 数据中的景点 ID: ${attractionId}`);
-      console.warn(`   可用的景点 ID: ${iotData.spots.map((s) => s.id).join(', ')}`);
+      console.warn(`   可用的景点 ID: ${iotData.spots.map((s: any) => s.id).join(', ')}`);
       return null;
     }
 

@@ -11,7 +11,7 @@ export const getIoTData = async (req: Request, res: Response) => {
     console.log('📡 获取 IoT 实时数据...');
 
     // 从 IoT 数据生成器获取数据
-    const data = iotDataGenerator.getIoTData();
+    const data = await iotDataGenerator.getIoTData();
 
     console.log(`✅ IoT 数据获取成功，时间戳: ${data.timestamp}`);
     console.log(`   景点数量: ${data.spots.length}`);
