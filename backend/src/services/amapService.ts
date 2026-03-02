@@ -207,6 +207,70 @@ class AmapService {
   }
 
   /**
+   * 周边搜索 - 根据中心点坐标搜索周边POI
+   * @param location 中心点坐标 "116.397428,39.90923"
+   * @param keywords 搜索关键词（如"酒店"、"餐厅"）
+   * @param types POI类型代码（可选）
+   * @param radius 搜索半径，单位：米，默认3000
+   * @param pageSize 每页数量，默认20
+   * @returns POI列表
+   */
+  async searchAround(
+    location: string,
+    keywords: string,
+    types?: string,
+    radius: number = 3000,
+    pageSize: number = 20
+  ): Promise<AmapAttraction[]> {
+    try {
+      console.log(`🔍 周边搜索: 中心点=${location}, 关键词=${keywords}, 半径=${radius}m`);
+
+      const params: Record<string, any> = {
+        location: location,
+        keywords: keywords,
+        radius: radius,
+        offset: pageSize,
+        page: 1,
+        extensions: 'all', // 获取详细信息
+      };
+
+      // 只有当types有值时才添加（酒店搜索不使用types，因为高德的typecode可能不匹配）
+      if (types && types !== '100101') {
+        params.types = types;
+      }
+
+      const response = await this.client.get<AmapPOIResponse>('/place/around', {
+        params,
+      });
+
+      if (response.data.status !== '1') {
+        throw new Error(`高德 API 错误: ${response.data.info} (${response.data.infocode})`);
+      }
+
+      const pois = response.data.pois || [];
+      console.log(`✅ 周边搜索获取到 ${pois.length} 个结果`);
+
+      // 转换为统一格式
+      const attractions: AmapAttraction[] = pois.map((poi) => ({
+        name: poi.name,
+        location: poi.location,
+        address: poi.address,
+        type: poi.type,
+        typecode: poi.typecode,
+        tel: poi.tel && typeof poi.tel === 'string' ? poi.tel : undefined,
+        distance: poi.distance && typeof poi.distance === 'string' ? poi.distance : undefined,
+        rating: poi.biz_ext?.rating ? parseFloat(poi.biz_ext.rating) : undefined,
+        cost: poi.biz_ext?.cost,
+      }));
+
+      return attractions;
+    } catch (error) {
+      console.error('❌ 周边搜索失败:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 去重景点（根据名称和位置）
    * @param attractions 景点列表
    * @returns 去重后的景点列表

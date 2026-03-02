@@ -264,6 +264,16 @@ export const saveTrip = async (tripData: any) => {
   return response.data;
 };
 
+/**
+ * 更新行程的酒店信息
+ * @param tripId 行程ID
+ * @param hotel 酒店信息
+ */
+export const updateTripHotel = async (tripId: string, hotel: any) => {
+  const response = await apiClient.put(`/trips/${tripId}/hotel`, hotel);
+  return response.data;
+};
+
 // ==================== 地点缓存 API ====================
 
 /**

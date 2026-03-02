@@ -98,6 +98,16 @@ export default function MyTrips() {
       });
     }
 
+    // 转换酒店信息
+    const hotel = trip.hotelName ? {
+      name: trip.hotelName,
+      address: trip.hotelAddress,
+      location: trip.hotelLocation,
+      tel: trip.hotelTel,
+      type: trip.hotelType,
+      rating: trip.hotelRating,
+    } : null;
+
     return {
       id: trip.id,
       itinerary,
@@ -108,6 +118,14 @@ export default function MyTrips() {
         dining: trip.budget?.food || 0,
         tickets: trip.budget?.tickets || 0,
       },
+      summary: {
+        destination: trip.destination,
+        start_date: trip.startDate ? new Date(trip.startDate).toISOString().split('T')[0] : '',
+        end_date: trip.endDate ? new Date(trip.endDate).toISOString().split('T')[0] : '',
+        budget: trip.totalBudget || 0,
+        days: itinerary.length,
+      },
+      hotel, // 添加酒店信息
     };
   };
 

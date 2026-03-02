@@ -22,9 +22,11 @@ import { EnvironmentOutlined } from '@ant-design/icons';
 import AttractionCard from '../components/AttractionCard';
 import AlternativeAttractions from '../components/AlternativeAttractions';
 import BudgetChart from '../components/BudgetChart';
+import HotelRecommendations from '../components/HotelRecommendations';
 import { useAppStore } from '../store';
 import { FullItinerary, AttractionItem } from '../api/client';
 import { adjustItinerary, getIoTData, saveTrip, updateAlternativeRelations } from '../api/client';
+import { Hotel } from '../api/recommendationApi';
 import AMapLoader from '@amap/amap-jsapi-loader';
 import { alternativeRecommender } from '../services/alternativeRecommender';
 
@@ -38,7 +40,7 @@ declare global {
 }
 
 // 地图组件
-function DayMap({ day }: { day: any }) {
+function DayMap({ day, hotel }: { day: any; hotel?: Hotel | null }) {
   const mapContainer = React.useRef<HTMLDivElement>(null);
   const mapRef = React.useRef<any>(null);
   const markersRef = React.useRef<any[]>([]);
@@ -59,10 +61,15 @@ function DayMap({ day }: { day: any }) {
       version: '2.0',
       plugins: ['AMap.ToolBar', 'AMap.Scale']
     }).then((AMap) => {
-      // 计算中心点
+      // 计算中心点（包含酒店位置）
       const coordinates = day.attractions.map((item: any) =>
         item.location.split(',').map(Number)
       );
+      
+      // 如果有酒店，也加入中心点计算
+      if (hotel?.location) {
+        coordinates.push(hotel.location.split(',').map(Number));
+      }
 
       const centerLng = coordinates.reduce((sum: number, coords: number[]) => sum + coords[0], 0) / coordinates.length;
       const centerLat = coordinates.reduce((sum: number, coords: number[]) => sum + coords[1], 0) / coordinates.length;
@@ -89,6 +96,56 @@ function DayMap({ day }: { day: any }) {
 
       // 添加比例尺
       map.addControl(new AMap.Scale());
+
+      // 添加酒店标记（如果有）
+      if (hotel?.location) {
+        const hotelCoords = hotel.location.split(',').map(Number);
+        
+        const hotelMarker = new AMap.Marker({
+          position: hotelCoords,
+          title: hotel.name,
+          content: `
+            <div style="
+              width: 40px;
+              height: 40px;
+              background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+              border-radius: 50%;
+              border: 3px solid #fff;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #fff;
+              font-weight: bold;
+              font-size: 16px;
+            ">
+              🏨
+            </div>
+          `,
+          offset: new AMap.Pixel(-20, -20),
+          zIndex: 150
+        });
+
+        // 点击酒店标记显示信息窗口
+        hotelMarker.on('click', () => {
+          const infoWindow = new AMap.InfoWindow({
+            content: `
+              <div style="padding: 12px; min-width: 200px;">
+                <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">🏨 ${hotel.name}</h3>
+                <p style="margin: 4px 0; color: #ff6b6b; font-weight: 500;">${hotel.type || '酒店'}</p>
+                <p style="margin: 4px 0; color: #666; font-size: 13px;">${hotel.address || ''}</p>
+                ${hotel.rating ? `<p style="margin: 4px 0; color: #faad14; font-size: 13px;">⭐ ${hotel.rating}分</p>` : ''}
+              </div>
+            `,
+            offset: new AMap.Pixel(0, -30)
+          });
+          infoWindow.open(map, hotelCoords);
+        });
+
+        map.add(hotelMarker);
+        markersRef.current.push(hotelMarker);
+      }
 
       // 添加景点标记
       day.attractions.forEach((item: any, index: number) => {
@@ -172,7 +229,7 @@ function DayMap({ day }: { day: any }) {
         mapRef.current.destroy();
       }
     };
-  }, [day, amapKey]);
+  }, [day, amapKey, hotel]);
 
   return (
     <div style={{
@@ -383,6 +440,9 @@ export default function Itinerary() {
   const [iotData, setIotData] = useState<any[]>([]);
   const [loadingAlternatives, setLoadingAlternatives] = useState<Record<string, boolean>>({});
 
+  // 酒店推荐相关状态
+  const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
+
   // 从 store 加载行程数据
   useEffect(() => {
     console.log('📍 Itinerary 页面加载');
@@ -391,6 +451,12 @@ export default function Itinerary() {
     if (currentItinerary) {
       console.log('✅ 找到行程数据，设置到页面状态');
       setItineraryData(currentItinerary);
+      
+      // 从行程数据中恢复酒店信息
+      if (currentItinerary.hotel) {
+        console.log('🏨 恢复酒店信息:', currentItinerary.hotel);
+        setSelectedHotel(currentItinerary.hotel);
+      }
       
       // 加载IoT数据
       loadIoTData();
@@ -419,13 +485,15 @@ export default function Itinerary() {
 
     try {
       console.log('💾 保存行程到数据库...');
+      console.log('🏨 选中的酒店:', selectedHotel);
 
-      // 保存行程到数据库
+      // 保存行程到数据库（包含酒店信息）
       const response = await saveTrip({
         summary: itineraryData.summary,
         itinerary: itineraryData,
         total_cost: itineraryData.total_cost,
         budget_breakdown: itineraryData.budget_breakdown,
+        hotel: selectedHotel, // 添加酒店信息
       });
 
       if (response.success) {
@@ -905,11 +973,31 @@ export default function Itinerary() {
               }}>
                 第{itineraryData.itinerary[selectedDayIndex].day}天行程地图
               </h3>
-              <DayMap day={itineraryData.itinerary[selectedDayIndex]} />
+              <DayMap day={itineraryData.itinerary[selectedDayIndex]} hotel={selectedHotel} />
             </div>
           </Col>
         )}
       </Row>
+
+      {/* 酒店推荐 */}
+      {itineraryData.itinerary && itineraryData.summary?.budget && (
+        <HotelRecommendations
+          spots={itineraryData.itinerary.flatMap(day => 
+            day.attractions.map(attr => ({
+              name: attr.name,
+              location: attr.location,
+            }))
+          )}
+          budget={itineraryData.summary.budget}
+          selectedHotel={selectedHotel}
+          onSelect={(hotel) => setSelectedHotel(hotel)}
+          onSkip={() => {
+            setSelectedHotel(null);
+            message.info('已跳过酒店选择');
+          }}
+          showSkip={true}
+        />
+      )}
 
       {/* 预算图表 */}
       <BudgetChart data={[

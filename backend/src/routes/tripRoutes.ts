@@ -1,6 +1,6 @@
 // 行程管理路由 - 定义行程的增删改查API端点
 import { Router } from 'express';
-import { getUserTrips, getTripById, deleteTrip, saveTrip } from '../controllers/tripController';
+import { getUserTrips, getTripById, deleteTrip, saveTrip, updateTripHotel } from '../controllers/tripController';
 
 const router = Router();
 
@@ -12,6 +12,9 @@ router.post('/', saveTrip);
 
 // GET /api/trips/:id - 获取单个行程详情
 router.get('/:id', getTripById);
+
+// PUT /api/trips/:id/hotel - 更新行程的酒店信息
+router.put('/:id/hotel', updateTripHotel);
 
 // DELETE /api/trips/:id - 删除行程
 router.delete('/:id', deleteTrip);

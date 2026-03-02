@@ -9,6 +9,7 @@ import spotRoutes from './spotRoutes';
 import favoriteRoutes from './favoriteRoutes';
 import spotSyncRoutes from './spotSyncRoutes';
 import destinationRoutes from './destinationRoutes';
+import recommendationRoutes from './recommendationRoutes';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/spots', spotRoutes);
 router.use('/favorites', favoriteRoutes);
 router.use('/spots', spotSyncRoutes);
 router.use('/destinations', destinationRoutes);
+router.use('/recommendations', recommendationRoutes);
 
 export default router;

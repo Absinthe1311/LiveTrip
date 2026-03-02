@@ -177,10 +177,10 @@ export const saveTrip = async (req: Request, res: Response) => {
       console.log(`✅ 用户创建成功，ID: ${user.id}`);
     }
 
-    const { summary, itinerary, total_cost, budget_breakdown } = tripData;
+    const { summary, itinerary, total_cost, budget_breakdown, hotel } = tripData;
     const days = itinerary.itinerary.length;
 
-    // 创建行程记录
+    // 创建行程记录（包含酒店信息）
     const trip = await prisma.trip.create({
       data: {
         userId,
@@ -192,6 +192,13 @@ export const saveTrip = async (req: Request, res: Response) => {
         totalBudget: summary.budget || total_cost || 0,
         status: 'planning',
         aiGenerated: true,
+        // 保存酒店信息
+        hotelName: hotel?.name || null,
+        hotelAddress: hotel?.address || null,
+        hotelLocation: hotel?.location || null,
+        hotelTel: hotel?.tel || null,
+        hotelType: hotel?.type || null,
+        hotelRating: hotel?.rating || null,
       },
     });
 
@@ -282,6 +289,61 @@ export const saveTrip = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: error.message || '保存行程失败',
+    });
+  }
+};
+
+/**
+ * 更新行程的酒店信息
+ * PUT /api/trips/:id/hotel
+ */
+export const updateTripHotel = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const tripId = Array.isArray(id) ? id[0] : id;
+    const hotel = req.body;
+
+    console.log(`🏨 收到更新酒店请求，行程ID: ${tripId}`);
+    console.log('酒店信息:', JSON.stringify(hotel, null, 2));
+
+    // 检查行程是否存在
+    const trip = await prisma.trip.findUnique({
+      where: { id: tripId },
+    });
+
+    if (!trip) {
+      return res.status(404).json({
+        success: false,
+        error: '行程不存在',
+      });
+    }
+
+    // 更新酒店信息
+    const updatedTrip = await prisma.trip.update({
+      where: { id: tripId },
+      data: {
+        hotelName: hotel?.name || null,
+        hotelAddress: hotel?.address || null,
+        hotelLocation: hotel?.location || null,
+        hotelTel: hotel?.tel || null,
+        hotelType: hotel?.type || null,
+        hotelRating: hotel?.rating || null,
+        updatedAt: new Date(),
+      },
+    });
+
+    console.log('✅ 酒店信息更新成功');
+
+    res.json({
+      success: true,
+      message: '酒店信息更新成功',
+      data: updatedTrip,
+    });
+  } catch (error: any) {
+    console.error('❌ 更新酒店信息失败:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || '更新酒店信息失败',
     });
   }
 };
