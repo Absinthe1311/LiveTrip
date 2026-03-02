@@ -262,6 +262,7 @@ function SortableAttractionCard({
         onTimeChange={(newTime) => onTimeChange?.(index, newTime)}
         recommendedDuration={recommendedDuration}
         iotData={getAttractionIoTData(item, iotData)}
+        item={item}
       />
     </div>
   );
@@ -511,7 +512,12 @@ export default function Itinerary() {
 
   // 显示备选景点列表
   const handleShowAlternatives = async (item: AttractionItem, city?: string) => {
+    console.log('🔍 handleShowAlternatives 接收到 item:', item);
+    console.log('🔍 item.name:', item.name);
+    
     const attractionKey = `${item.name}-${item.time}`;
+    
+    console.log('🔍 attractionKey:', attractionKey);
     
     // 如果已经展开，则收起
     if (expandedAlternatives[attractionKey]) {
@@ -570,71 +576,113 @@ export default function Itinerary() {
   };
 
   // 替换景点
-  const handleReplaceAttraction = async (dayIndex: number, attractionIndex: number, originalItem: AttractionItem, newAttraction: any) => {
-    console.log('🔄 替换景点:', originalItem.name, '->', newAttraction.name);
-    console.log('   新景点ID:', newAttraction.id);
-    
-    Modal.confirm({
-      title: '确认替换景点',
-      content: (
-        <div>
-          <p>确认将 <strong>{originalItem.name}</strong> 替换为 <strong>{newAttraction.name}</strong> 吗？</p>
-          <p style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
-            替换后，系统会自动调整该景点的建议游玩时间
-          </p>
-        </div>
-      ),
-      okText: '确认替换',
-      cancelText: '取消',
-      onOk: async () => {
-        try {
-          if (!itineraryData) return;
+  const handleReplaceAttraction = async (params: any, originalItemParam?: any, newItemParam?: any) => {
+    let dayIndex: number, attractionIndex: number, originalItem: AttractionItem, newItem: any, skipConfirm: boolean;
 
-          // 更新行程数据
-          const newItineraryData = { ...itineraryData };
-          const day = newItineraryData.itinerary[dayIndex];
-          
-          // 替换景点
-          day.attractions[attractionIndex] = {
-            ...day.attractions[attractionIndex],
-            name: newAttraction.name,
-            description: newAttraction.description,
-            estimated_cost: newAttraction.estimated_cost,
-            location: newAttraction.location,
-          };
+    console.log('🔍 handleReplaceAttraction 接收到的参数:', params);
 
-          // 重新计算时间段
-          day.attractions = recalculateTimeSlots(day.attractions);
+    // 判断调用方式
+    if (typeof params === 'object' && params.dayIndex !== undefined) {
+      // 新方式：handleReplaceAttraction({ dayIndex, attractionIndex, originalItem, newItem, skipConfirm })
+      dayIndex = params.dayIndex;
+      attractionIndex = params.attractionIndex;
+      originalItem = params.originalItem;
+      newItem = params.newItem;
+      skipConfirm = params.skipConfirm;
+      console.log('🔍 解构后的参数:');
+      console.log('   dayIndex:', dayIndex);
+      console.log('   attractionIndex:', attractionIndex);
+      console.log('   originalItem:', originalItem);
+      console.log('   newItem:', newItem);
+      console.log('   skipConfirm:', skipConfirm);
+    } else {
+      // 旧方式：handleReplaceAttraction(dayIndex, attractionIndex, originalItem, newAttraction)
+      dayIndex = params;
+      attractionIndex = originalItemParam;
+      originalItem = originalItemParam;
+      newItem = newItemParam;
+      skipConfirm = false;
+    }
 
-          setItineraryData(newItineraryData);
-          setCurrentItinerary(newItineraryData);
+    console.log('🔄 替换景点:', originalItem.name, '->', newItem.name);
+    console.log('   新景点ID:', newItem.id);
+    console.log('   新景点完整对象:', newItem);
+    console.log('   跳过确认弹窗:', skipConfirm);
 
-          // 更新备选关系
-          if (newAttraction.id && itineraryData.summary?.destination) {
-            try {
-              console.log('🔄 更新备选关系...');
-              await updateAlternativeRelations(
-                originalItem.name, // 这里使用名称作为oldSpotId（因为AttractionItem没有id）
-                newAttraction.id,
-                itineraryData.summary.destination
-              );
-              console.log('✅ 备选关系更新成功');
-            } catch (error) {
-              console.error('⚠️  更新备选关系失败:', error);
-              // 不影响主流程，继续执行
-            }
+    const executeReplacement = async () => {
+      try {
+        if (!itineraryData) return;
+
+        // 更新行程数据
+        const newItineraryData = { ...itineraryData };
+        const day = newItineraryData.itinerary[dayIndex];
+
+        // 替换景点
+        day.attractions[attractionIndex] = {
+          ...day.attractions[attractionIndex], // 保留原始数据
+          name: newItem.name,
+          description: newItem.description,
+          estimated_cost: newItem.estimated_cost,
+          location: newItem.location,
+        };
+
+        console.log('🔄 替换后的景点对象:', day.attractions[attractionIndex]);
+
+        // 重新计算时间段
+        day.attractions = recalculateTimeSlots(day.attractions);
+
+        console.log('🔄 重新计算时间段后的 attractions:', day.attractions);
+
+        setItineraryData(newItineraryData);
+        setCurrentItinerary(newItineraryData);
+
+        // 更新备选关系
+        if (newItem.id && itineraryData.summary?.destination) {
+          try {
+            console.log('🔄 更新备选关系...');
+            await updateAlternativeRelations(
+              originalItem.name, // 这里使用名称作为oldSpotId（因为AttractionItem没有id）
+              newItem.id,
+              itineraryData.summary.destination
+            );
+            console.log('✅ 备选关系更新成功');
+          } catch (error) {
+            console.error('⚠️  更新备选关系失败:', error);
+            // 不影响主流程，继续执行
           }
-
-          // 收起备选列表
-          handleCloseAlternatives(originalItem);
-
-          message.success('景点替换成功！');
-        } catch (error: any) {
-          console.error('❌ 替换景点失败:', error);
-          message.error('替换景点失败，请稍后重试');
         }
-      },
-    });
+
+        // 收起备选列表
+        handleCloseAlternatives(originalItem);
+
+        message.success('景点替换成功！');
+      } catch (error: any) {
+        console.error('❌ 替换景点失败:', error);
+        message.error('替换景点失败，请稍后重试');
+      }
+    };
+
+    // 根据 skipConfirm 决定是否显示确认弹窗
+    if (skipConfirm) {
+      // 直接执行替换，不显示弹窗
+      executeReplacement();
+    } else {
+      // 显示确认弹窗
+      Modal.confirm({
+        title: '确认替换景点',
+        content: (
+          <div>
+            <p>确认将 <strong>{originalItem.name}</strong> 替换为 <strong>{newItem.name}</strong> 吗？</p>
+            <p style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
+              替换后，系统会自动调整该景点的建议游玩时间
+            </p>
+          </div>
+        ),
+        okText: '确认替换',
+        cancelText: '取消',
+        onOk: executeReplacement,
+      });
+    }
   };
 
   // 应用调整（保留原有功能）
@@ -805,7 +853,24 @@ export default function Itinerary() {
                                 originalAttraction={item}
                                 alternatives={alternatives}
                                 onClose={() => handleCloseAlternatives(item)}
-                                onReplace={(newAttraction) => handleReplaceAttraction(dayIndex, index, item, newAttraction)}
+                                onReplace={(params) => {
+                                  // 判断参数类型
+                                  if (params && typeof params === 'object' && params.newItem) {
+                                    // 从收藏列表调用：params = {originalItem, newItem, dayIndex, attractionIndex, skipConfirm}
+                                    handleReplaceAttraction(params);
+                                  } else {
+                                    // 从备选列表调用：params = 景点对象
+                                    handleReplaceAttraction({
+                                      dayIndex,
+                                      attractionIndex: index,
+                                      originalItem: item,
+                                      newItem: params
+                                    });
+                                  }
+                                }}
+                                city={itineraryData.summary?.destination}
+                                dayIndex={dayIndex}
+                                attractionIndex={index}
                               />
                             )}
                           </div>

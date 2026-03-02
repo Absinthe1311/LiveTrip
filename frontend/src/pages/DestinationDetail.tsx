@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Typography, Button, Rate, Tag, Spin, Row, Col, Select, Space } from 'antd';
+import { Typography, Button, Rate, Tag, Spin, Row, Col, Select, Space, message } from 'antd';
 import { ArrowLeftOutlined, FireOutlined, CalendarOutlined, DollarOutlined, StarOutlined } from '@ant-design/icons';
 import DestinationAttractionCard from '../components/DestinationAttractionCard';
 import type { DestinationDetail, Attraction } from '../types/destination';
 import { destinationsData } from '../data/destinationsData';
+import { getFavorites, addFavorite, removeFavorite, checkFavorite, syncSpot } from '../api/client';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -13,48 +14,156 @@ export default function DestinationDetail() {
   const navigate = useNavigate();
   const [destination, setDestination] = useState<DestinationDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [favorites, setFavorites] = useState<any[]>([]);
   const [filter, setFilter] = useState<string>('all');
 
   useEffect(() => {
     // 加载目的地数据
-    const loadData = () => {
+    const loadData = async () => {
       setLoading(true);
-      // 模拟网络延迟
-      setTimeout(() => {
+      try {
+        if (id && destinationsData[id]) {
+          // 使用硬编码的数据作为基础
+          const baseDestination = destinationsData[id];
+
+          // 从后端API获取热门景点列表
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/destinations/${baseDestination.name}`);
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data) {
+              console.log(`✅ 从后端API获取到 ${data.data.length} 个热门景点`);
+
+              // 将API返回的景点数据转换为前端格式
+              const attractions: Attraction[] = data.data.map((item: any) => ({
+                id: item.id || `api-${Date.now()}-${Math.random()}`,
+                name: item.name,
+                image: '',
+                rating: item.rating || 4.5,
+                description: item.type || '热门景点',
+                openTime: '全天开放',
+                ticketPrice: item.cost ? parseInt(item.cost) : 0,
+                category: item.type || '景点',
+                location: item.location, // 保留真实坐标
+              }));
+
+              // 更新目的地数据
+              setDestination({
+                ...baseDestination,
+                attractions,
+              });
+            } else {
+              // API调用失败，使用硬编码数据
+              console.warn('⚠️  API调用失败，使用硬编码数据');
+              setDestination(baseDestination);
+            }
+          } else {
+            // API调用失败，使用硬编码数据
+            console.warn('⚠️  API调用失败，使用硬编码数据');
+            setDestination(baseDestination);
+          }
+        } else {
+          setDestination(null);
+        }
+      } catch (error) {
+        console.error('❌ 加载目的地数据失败:', error);
+        // 出错时使用硬编码数据
         if (id && destinationsData[id]) {
           setDestination(destinationsData[id]);
         }
+      } finally {
         setLoading(false);
-      }, 500);
+      }
     };
 
     loadData();
+
+    // 加载收藏数据（从后端数据库）
+    loadFavoritesFromBackend();
   }, [id]);
 
-  // 从localStorage加载收藏数据
-  useEffect(() => {
-    const savedFavorites = localStorage.getItem('favoriteAttractions');
-    if (savedFavorites) {
-      setFavorites(new Set(JSON.parse(savedFavorites)));
+  // 从后端数据库加载收藏数据
+  const loadFavoritesFromBackend = async () => {
+    try {
+      const response = await getFavorites(true);
+      if (response.success && response.data) {
+        console.log('✅ 收藏数据加载成功:', response.data);
+        setFavorites(response.data);
+      }
+    } catch (error) {
+      console.error('❌ 加载收藏失败:', error);
+      // 不显示错误提示，避免干扰用户
     }
-  }, []);
-
-  // 保存收藏到localStorage
-  const saveFavorites = (newFavorites: Set<string>) => {
-    localStorage.setItem('favoriteAttractions', JSON.stringify(Array.from(newFavorites)));
   };
 
-  // 切换收藏状态
-  const handleToggleFavorite = (attractionId: string) => {
-    const newFavorites = new Set(favorites);
-    if (newFavorites.has(attractionId)) {
-      newFavorites.delete(attractionId);
-    } else {
-      newFavorites.add(attractionId);
+  // 切换收藏状态（使用后端数据库）
+  const handleToggleFavorite = async (attraction: Attraction) => {
+    try {
+      // 检查是否已收藏
+      const isFavorited = favorites.some((fav: any) =>
+        fav.spot.name === attraction.name && fav.spot.city === destination?.name
+      );
+
+      if (isFavorited) {
+        // 取消收藏
+        const fav = favorites.find((f: any) =>
+          f.spot.name === attraction.name && f.spot.city === destination?.name
+        );
+        if (fav) {
+          await removeFavorite(fav.spotId);
+          message.success('已取消收藏');
+        }
+      } else {
+        // 添加收藏
+        const spotId = await syncAttractionToBackend(attraction);
+        await addFavorite(spotId, attraction.description);
+        message.success('收藏成功');
+      }
+
+      // 重新加载收藏数据
+      await loadFavoritesFromBackend();
+
+      // 触发收藏更新事件，通知Navbar更新收藏数量
+      window.dispatchEvent(new Event('favoritesUpdated'));
+    } catch (error: any) {
+      console.error('❌ 切换收藏失败:', error);
+      message.error(error.message || '收藏操作失败，请检查后端服务是否启动');
     }
-    setFavorites(newFavorites);
-    saveFavorites(newFavorites);
+  };
+
+  // 将景点信息同步到后端数据库
+  const syncAttractionToBackend = async (attraction: Attraction): Promise<string> => {
+    try {
+      const cityName = destination?.name || '未知';
+
+      console.log(`🔄 同步景点到后端: ${attraction.name}, ${cityName}`);
+
+      // 使用景点数据中的真实坐标（如果有）
+      const location = (attraction as any).location || '0,0';
+
+      // 调用后端API同步景点
+      const response = await syncSpot({
+        name: attraction.name,
+        city: cityName,
+        category: attraction.category,
+        ticketPrice: attraction.ticketPrice,
+        openTime: attraction.openTime,
+        rating: attraction.rating,
+        description: attraction.description,
+        isOutdoor: true, // 默认为户外景点
+        location: location, // 使用真实坐标
+      });
+
+      if (response.success && response.data) {
+        console.log(`✅ 景点同步成功: ${response.data.id}`);
+        return response.data.id;
+      } else {
+        throw new Error(response.error || '同步失败');
+      }
+    } catch (error: any) {
+      console.error('❌ 同步景点到后端失败:', error);
+      throw new Error(error.message || '同步失败，请检查后端服务是否启动');
+    }
   };
 
   // 智能规划行程
@@ -329,15 +438,22 @@ export default function DestinationDetail() {
 
         {/* 景点列表 */}
         <Row gutter={[24, 24]}>
-          {filteredAttractions.map((attraction) => (
-            <Col xs={24} sm={12} lg={8} xl={6} key={attraction.id}>
-              <DestinationAttractionCard
-                attraction={attraction}
-                isFavorite={favorites.has(attraction.id)}
-                onToggleFavorite={handleToggleFavorite}
-              />
-            </Col>
-          ))}
+          {filteredAttractions.map((attraction) => {
+            // 检查是否已收藏（通过景点名称匹配）
+            const isFavorited = favorites.some((fav: any) =>
+              fav.spot && fav.spot.name === attraction.name && fav.spot.city === destination?.name
+            );
+
+            return (
+              <Col xs={24} sm={12} lg={8} xl={6} key={attraction.id}>
+                <DestinationAttractionCard
+                  attraction={attraction}
+                  isFavorite={isFavorited}
+                  onToggleFavorite={handleToggleFavorite}
+                />
+              </Col>
+            );
+          })}
         </Row>
       </div>
 

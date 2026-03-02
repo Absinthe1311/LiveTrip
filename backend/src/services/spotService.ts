@@ -708,7 +708,20 @@ class SpotService {
     try {
       console.log(`🔄 更新备选关系: ${oldSpotId} -> ${newSpotId}`);
 
-      // 1. 获取oldSpotId的备选关系
+      // 1. 检查是否已经存在这个备选关系
+      const existingRelation = await prisma.spotAlternative.findFirst({
+        where: {
+          originalSpotId: oldSpotId,
+          alternativeSpotId: newSpotId,
+        },
+      });
+
+      if (existingRelation) {
+        console.log('ℹ️  备选关系已存在，无需更新');
+        return;
+      }
+
+      // 2. 获取oldSpotId的备选关系
       const oldAlternatives = await prisma.spotAlternative.findMany({
         where: {
           originalSpotId: oldSpotId,
@@ -716,18 +729,30 @@ class SpotService {
       });
 
       if (oldAlternatives.length === 0) {
-        console.log('ℹ️  旧景点没有备选关系，无需更新');
+        console.log('ℹ️  旧景点没有备选关系，创建新的备选关系');
+
+        // 创建新的备选关系
+        await prisma.spotAlternative.create({
+          data: {
+            originalSpotId: oldSpotId,
+            alternativeSpotId: newSpotId,
+            city: city,
+            priority: 1,
+          },
+        });
+
+        console.log(`✅ 备选关系创建完成`);
         return;
       }
 
-      // 2. 删除oldSpotId的备选关系
+      // 3. 删除oldSpotId的备选关系
       await prisma.spotAlternative.deleteMany({
         where: {
           originalSpotId: oldSpotId,
         },
       });
 
-      // 3. 为newSpotId创建备选关系（包含oldSpotId）
+      // 4. 为newSpotId创建备选关系（包含oldSpotId）
       // 首先获取oldSpotId的备选景点
       const oldAlternativeIds = oldAlternatives.map(a => a.alternativeSpotId);
 
@@ -754,7 +779,7 @@ class SpotService {
         });
       }
 
-      // 4. 更新其他景点中的备选关系
+      // 5. 更新其他景点中的备选关系
       // 找到所有将oldSpotId作为备选的关系
       const references = await prisma.spotAlternative.findMany({
         where: {
@@ -768,7 +793,7 @@ class SpotService {
         await prisma.spotAlternative.delete({
           where: { id: ref.id },
         });
-        
+
         // 创建新的关系
         await prisma.spotAlternative.create({
           data: {
@@ -942,6 +967,76 @@ class SpotService {
       generatedAt: iotData.generatedAt,
       updatedAt: iotData.updatedAt,
     };
+  }
+
+  /**
+   * 为景点生成IoT数据（如果不存在）
+   * @param spotId 景点ID
+   * @returns IoT数据
+   */
+  async generateIoTDataForSpot(spotId: string): Promise<SpotIoTData | null> {
+    try {
+      // 检查是否已存在IoT数据
+      const existingIoTData = await prisma.spotIoTData.findUnique({
+        where: { spotId },
+      });
+
+      if (existingIoTData) {
+        console.log(`✅ 景点 ${spotId} 已有IoT数据`);
+        return {
+          id: existingIoTData.id,
+          spotId: existingIoTData.spotId,
+          crowdLevel: existingIoTData.crowdLevel,
+          temperature: existingIoTData.temperature,
+          rainProbability: existingIoTData.rainProbability,
+          isOpen: existingIoTData.isOpen,
+          generatedAt: existingIoTData.generatedAt,
+          updatedAt: existingIoTData.updatedAt,
+        };
+      }
+
+      // 获取景点信息
+      const spot = await prisma.spot.findUnique({
+        where: { id: spotId },
+      });
+
+      if (!spot) {
+        console.error(`❌ 景点 ${spotId} 不存在`);
+        return null;
+      }
+
+      console.log(`🔄 为景点 ${spot.name} 生成IoT数据...`);
+
+      // 动态生成IoT数据
+      const iotData = this.generateDynamicIoTData(spot);
+
+      // 保存到数据库
+      const createdIoTData = await prisma.spotIoTData.create({
+        data: {
+          spotId,
+          crowdLevel: iotData.crowdLevel,
+          temperature: iotData.temperature,
+          rainProbability: iotData.rainProbability,
+          isOpen: iotData.isOpen,
+        },
+      });
+
+      console.log(`✅ 景点 ${spot.name} IoT数据生成成功`);
+
+      return {
+        id: createdIoTData.id,
+        spotId: createdIoTData.spotId,
+        crowdLevel: createdIoTData.crowdLevel,
+        temperature: createdIoTData.temperature,
+        rainProbability: createdIoTData.rainProbability,
+        isOpen: createdIoTData.isOpen,
+        generatedAt: createdIoTData.generatedAt,
+        updatedAt: createdIoTData.updatedAt,
+      };
+    } catch (error) {
+      console.error(`❌ 为景点 ${spotId} 生成IoT数据失败:`, error);
+      return null;
+    }
   }
 
   /**

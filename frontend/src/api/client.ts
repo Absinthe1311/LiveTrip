@@ -286,6 +286,91 @@ export const getPopularLocations = async (limit: number = 10) => {
   return response.data;
 };
 
+// ==================== 收藏功能 API ====================
+
+/**
+ * 获取收藏列表
+ */
+export const getFavorites = async (includeIoT: boolean = true) => {
+  const response = await apiClient.get('/favorites', {
+    params: { includeIoT },
+  });
+  return response.data;
+};
+
+/**
+ * 添加收藏
+ */
+export const addFavorite = async (spotId: string, notes?: string) => {
+  const response = await apiClient.post('/favorites', {
+    spotId,
+    notes,
+  });
+  return response.data;
+};
+
+/**
+ * 取消收藏
+ */
+export const removeFavorite = async (spotId: string) => {
+  const response = await apiClient.delete(`/favorites/${spotId}`);
+  return response.data;
+};
+
+/**
+ * 检查是否已收藏
+ */
+export const checkFavorite = async (spotId: string) => {
+  const response = await apiClient.get(`/favorites/check/${spotId}`);
+  return response.data;
+};
+
+/**
+ * 获取收藏数量
+ */
+export const getFavoriteCount = async () => {
+  const response = await apiClient.get('/favorites/count');
+  return response.data;
+};
+
+// ==================== 景点同步 API ====================
+
+/**
+ * 同步景点到数据库
+ */
+export const syncSpot = async (spotData: {
+  name: string;
+  city: string;
+  category?: string;
+  ticketPrice?: number;
+  openTime?: string;
+  rating?: number;
+  description?: string;
+  isOutdoor?: boolean;
+  location?: string;
+}) => {
+  const response = await apiClient.post('/spots/sync', spotData);
+  return response.data;
+};
+
+// ==================== 目的地 API ====================
+
+/**
+ * 获取城市的热门景点列表
+ */
+export const getCityAttractions = async (city: string) => {
+  const response = await apiClient.get(`/destinations/${city}`);
+  return response.data;
+};
+
+/**
+ * 获取所有支持的城市列表
+ */
+export const getSupportedCities = async () => {
+  const response = await apiClient.get('/destinations');
+  return response.data;
+};
+
 // ==================== 导出 ====================
 
 export default apiClient;

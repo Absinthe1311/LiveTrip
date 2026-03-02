@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Rate, Button, Tag, Spin, Alert, Modal } from 'antd';
-import { CloseOutlined, SwapOutlined, ThunderboltOutlined, TeamOutlined, ClockCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Card, Rate, Button, Tag, Spin, Alert, Modal, Tabs } from 'antd';
+import { CloseOutlined, SwapOutlined, ThunderboltOutlined, TeamOutlined, ClockCircleOutlined, CheckCircleOutlined, HeartOutlined } from '@ant-design/icons';
 import type { AttractionItem } from '../api/client';
+import FavoritesList from './FavoritesList';
+import { addFavorite, updateAlternativeRelations } from '../api/client';
 
 interface AlternativeAttractionsProps {
   originalAttraction: AttractionItem;
@@ -21,7 +23,10 @@ interface AlternativeAttractionsProps {
     };
   }>;
   onClose: () => void;
-  onReplace: (originalId: string, newAttraction: any) => void;
+  onReplace: (newAttraction: any) => void;
+  city?: string;
+  dayIndex?: number;
+  attractionIndex?: number;
 }
 
 // IoT数据评估组件
@@ -184,22 +189,27 @@ function AlternativeCard({ attraction, originalAttraction, onReplace }: {
           </div>
         </div>
 
-        {/* 替换按钮 */}
-        <Button
-          type="primary"
-          icon={<SwapOutlined />}
-          onClick={handleReplace}
-          loading={loading}
-          style={{
-            width: '100%',
-            marginTop: '12px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            border: 'none',
-            borderRadius: '8px'
-          }}
-        >
-          替换此景点
-        </Button>
+        {/* 操作按钮 */}
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          marginTop: '12px'
+        }}>
+          <Button
+            type="primary"
+            icon={<SwapOutlined />}
+            onClick={handleReplace}
+            loading={loading}
+            style={{
+              flex: 1,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              borderRadius: '8px'
+            }}
+          >
+            替换
+          </Button>
+        </div>
       </div>
     </Card>
   );
@@ -210,13 +220,169 @@ export default function AlternativeAttractions({
   originalAttraction,
   alternatives,
   onClose,
-  onReplace
+  onReplace,
+  city,
+  dayIndex,
+  attractionIndex
 }: AlternativeAttractionsProps) {
-  if (alternatives.length === 0) {
+  const [activeTab, setActiveTab] = useState('alternatives');
+  const [addingToFavorites, setAddingToFavorites] = useState<string | null>(null);
+
+  const handleAddFavorite = async (spotId: string) => {
+    setAddingToFavorites(spotId);
+    try {
+      const response = await addFavorite(spotId);
+      if (response.success) {
+        Modal.success({
+          title: '收藏成功',
+          content: '景点已添加到收藏列表',
+        });
+
+        // 触发收藏更新事件，通知Navbar更新收藏数量
+        window.dispatchEvent(new Event('favoritesUpdated'));
+      }
+    } catch (error) {
+      console.error('❌ 添加收藏失败:', error);
+      Modal.error({
+        title: '收藏失败',
+        content: '添加收藏失败，请重试',
+      });
+    } finally {
+      setAddingToFavorites(null);
+    }
+  };
+
+  const handleAddToAlternativesFromFavorites = async (favorite: any) => {
+    console.log('🔍 handleAddToAlternativesFromFavorites 接收到 favorite:', favorite);
+    console.log('🔍 favorite.spot:', favorite.spot);
+    console.log('🔍 favorite.spot.id:', favorite.spot?.id);
+
+    // 确保 favorite.spot 存在
+    if (!favorite.spot || !favorite.spot.id) {
+      console.error('❌ favorite.spot 不存在或无效');
+      Modal.error({
+        title: '添加失败',
+        content: '收藏景点数据无效',
+      });
+      return;
+    }
+
+    try {
+      // 步骤1：将收藏景点添加到备选关系数据库中
+      console.log('🔄 步骤1: 将收藏景点添加到备选关系数据库...');
+      console.log('   原景点名称:', originalAttraction.name);
+      console.log('   收藏景点ID:', favorite.spot.id);
+      console.log('   城市:', city || '');
+
+      // 需要先获取原景点的ID
+      let originalSpotId = originalAttraction.name; // 临时使用名称
+      try {
+        // 尝试通过名称获取景点ID
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/spots/search`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: originalAttraction.name,
+            city: city || '',
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data && data.data.id) {
+            originalSpotId = data.data.id;
+            console.log('✅ 找到原景点ID:', originalSpotId);
+          }
+        }
+      } catch (error) {
+        console.error('❌ 获取原景点ID失败:', error);
+      }
+
+      // 尝试更新备选关系，如果失败则继续（可能关系已存在）
+      try {
+        await updateAlternativeRelations(
+          originalSpotId, // 原景点ID
+          favorite.spot.id, // 收藏景点ID
+          city || ''
+        );
+        console.log('✅ 步骤1完成: 备选关系已更新');
+      } catch (error: any) {
+        console.warn('⚠️  备选关系更新失败（可能关系已存在）:', error.message);
+        console.log('✅ 步骤1完成: 跳过备选关系更新，继续执行');
+      }
+
+      // 步骤2：生成IoT数据（如果不存在）
+      let iotData = favorite.spot.iotData;
+      if (!iotData) {
+        console.log('🔄 步骤2: 生成IoT数据...');
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/spots/${favorite.spotId}/iot/generate`, {
+            method: 'POST',
+          });
+
+          if (response.ok) {
+            const iotDataResponse = await response.json();
+            iotData = iotDataResponse.data;
+          }
+        } catch (error) {
+          console.error('❌ 生成IoT数据失败:', error);
+          iotData = null;
+        }
+      }
+      console.log('✅ 步骤2完成: IoT数据已准备');
+
+      // 步骤3：创建替换对象
+      console.log('🔄 步骤3: 创建替换对象...');
+      const newAlternative = {
+        id: favorite.spot.id,
+        name: favorite.spot.name,
+        description: favorite.spot.description || '',
+        location: favorite.spot.location,
+        estimated_cost: favorite.spot.ticketPrice || 0,
+        type: favorite.spot.category || '',
+        address: favorite.spot.address || '',
+        iotData: iotData,
+      };
+      console.log('✅ 步骤3完成: 替换对象已创建');
+
+      // 步骤4：执行替换（同其他备选景点）
+      console.log('🔄 步骤4: 执行替换...');
+      if (dayIndex !== undefined && attractionIndex !== undefined) {
+        onReplace({
+          originalItem: originalAttraction,
+          newItem: newAlternative,
+          dayIndex,
+          attractionIndex,
+          skipConfirm: true
+        });
+      } else {
+        onReplace({
+          ...newAlternative,
+          skipConfirm: true
+        });
+      }
+      console.log('✅ 步骤4完成: 替换已执行');
+
+      Modal.success({
+        title: '添加成功',
+        content: '已将收藏景点添加到行程',
+      });
+    } catch (error) {
+      console.error('❌ 添加到备选失败:', error);
+      Modal.error({
+        title: '添加失败',
+        content: '添加到备选失败，请重试',
+      });
+    }
+  };
+
+  if (alternatives.length === 0 && activeTab === 'alternatives') {
     return (
       <Alert
         message="暂无备选景点"
-        description="当前没有可替换的景点，请稍后再试"
+        description="当前没有可替换的景点，请尝试从收藏列表添加"
         type="info"
         showIcon
         style={{ marginTop: '16px' }}
@@ -262,23 +428,45 @@ export default function AlternativeAttractions({
         </Button>
       </div>
 
-      {/* 备选景点列表 - 横向滚动 */}
-      <div style={{
-        display: 'flex',
-        gap: '16px',
-        overflowX: 'auto',
-        paddingBottom: '8px',
-        WebkitOverflowScrolling: 'touch' // iOS平滑滚动
-      }}>
-        {alternatives.map((attraction, index) => (
-          <AlternativeCard
-            key={index}
-            attraction={attraction}
-            originalAttraction={originalAttraction}
-            onReplace={onReplace}
-          />
-        ))}
-      </div>
+      {/* Tabs */}
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={[
+          {
+            key: 'alternatives',
+            label: `系统推荐 (${alternatives.length})`,
+            children: (
+              <div style={{
+                display: 'flex',
+                gap: '16px',
+                overflowX: 'auto',
+                paddingBottom: '8px',
+                WebkitOverflowScrolling: 'touch'
+              }}>
+                {alternatives.map((attraction, index) => (
+                  <AlternativeCard
+                    key={index}
+                    attraction={attraction}
+                    originalAttraction={originalAttraction}
+                    onReplace={onReplace}
+                  />
+                ))}
+              </div>
+            ),
+          },
+          {
+            key: 'favorites',
+            label: '我的收藏',
+            children: (
+              <FavoritesList
+                onAddToAlternatives={handleAddToAlternativesFromFavorites}
+                targetCity={city || ''}
+              />
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }

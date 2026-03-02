@@ -5,7 +5,7 @@ import { Attraction } from '../types/destination';
 interface DestinationAttractionCardProps {
   attraction: Attraction;
   isFavorite: boolean;
-  onToggleFavorite: (attractionId: string) => void;
+  onToggleFavorite: (attraction: Attraction) => void;
 }
 
 export default function DestinationAttractionCard({ attraction, isFavorite, onToggleFavorite }: DestinationAttractionCardProps) {
@@ -71,7 +71,7 @@ export default function DestinationAttractionCard({ attraction, isFavorite, onTo
           icon={isFavorite ? <HeartFilled /> : <HeartOutlined />}
           onClick={(e) => {
             e.stopPropagation();
-            onToggleFavorite(attraction.id);
+            onToggleFavorite(attraction);
           }}
           style={{
             position: 'absolute',
@@ -95,13 +95,17 @@ export default function DestinationAttractionCard({ attraction, isFavorite, onTo
         padding: '20px',
         flex: 1,
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        background: '#fff',
+        position: 'relative',
+        zIndex: 1
       }}>
         <h3 style={{
           fontSize: '18px',
           fontWeight: 600,
           marginBottom: '8px',
-          color: '#333'
+          color: '#333',
+          wordBreak: 'break-word'
         }}>
           {attraction.name}
         </h3>
@@ -123,7 +127,10 @@ export default function DestinationAttractionCard({ attraction, isFavorite, onTo
           color: '#666',
           marginBottom: '12px',
           lineHeight: '1.5',
-          flex: 1
+          flex: 1,
+          wordBreak: 'break-word',
+          whiteSpace: 'pre-wrap',
+          background: '#fff'
         }}>
           {attraction.description}
         </p>
@@ -133,7 +140,8 @@ export default function DestinationAttractionCard({ attraction, isFavorite, onTo
           justifyContent: 'space-between',
           alignItems: 'center',
           paddingTop: '12px',
-          borderTop: '1px solid #f0f0f0'
+          borderTop: '1px solid #f0f0f0',
+          background: '#fff'
         }}>
           <div style={{ fontSize: '12px', color: '#999' }}>
             <div>开放时间: {attraction.openTime}</div>

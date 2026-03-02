@@ -4,8 +4,8 @@ import { AmapAttraction } from './amapService';
 
 const prisma = new PrismaClient();
 
-// 缓存过期时间(24小时)
-const CACHE_EXPIRE_HOURS = 24;
+// 缓存过期时间(30天)
+const CACHE_EXPIRE_DAYS = 30;
 
 export class AmapPOICacheService {
   /**
@@ -84,7 +84,7 @@ export class AmapPOICacheService {
       console.log(`💾 保存 ${attractions.length} 个景点到缓存`);
 
       const expireTime = new Date();
-      expireTime.setHours(expireTime.getHours() + CACHE_EXPIRE_HOURS);
+      expireTime.setDate(expireTime.getDate() + CACHE_EXPIRE_DAYS);
 
       // 批量创建或更新缓存
       await Promise.all(

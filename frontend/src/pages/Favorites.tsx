@@ -2,83 +2,61 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Empty, Spin, message, Typography, Tag, Rate, Button } from 'antd';
 import { HeartFilled, ArrowLeftOutlined, ReloadOutlined } from '@ant-design/icons';
-import { destinationsData } from '../data/destinationsData';
-import type { Attraction } from '../types/destination';
+import { getFavorites, removeFavorite } from '../api/client';
 
 const { Title } = Typography;
 
 export default function Favorites() {
   const navigate = useNavigate();
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [favoriteAttractions, setFavoriteAttractions] = useState<Attraction[]>([]);
+  const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadFavorites();
   }, []);
 
-  // 从localStorage加载收藏数据
-  const loadFavorites = () => {
+  // 从后端API加载收藏数据
+  const loadFavorites = async () => {
     setLoading(true);
     try {
-      const savedFavorites = localStorage.getItem('favoriteAttractions');
-      console.log('📦 localStorage中的收藏数据:', savedFavorites);
-      console.log('📦 数据类型:', typeof savedFavorites);
+      console.log('📦 从后端API加载收藏数据...');
+      const response = await getFavorites(true); // 包含IoT数据
 
-      if (savedFavorites) {
-        const favoriteIds = new Set(JSON.parse(savedFavorites));
-        console.log('🔍 收藏的景点ID:', Array.from(favoriteIds));
-        console.log('🔍 收藏的景点ID数量:', favoriteIds.size);
-        setFavorites(favoriteIds);
-
-        // 根据收藏的ID获取景点详情
-        const attractions: Attraction[] = [];
-        let totalDestinations = 0;
-        let totalAttractions = 0;
-
-        Object.values(destinationsData).forEach(destination => {
-          totalDestinations++;
-          destination.attractions.forEach(attraction => {
-            totalAttractions++;
-            if (favoriteIds.has(attraction.id)) {
-              attractions.push({
-                ...attraction,
-                cityName: destination.name // 添加城市名称
-              });
-            }
-          });
-        });
-
-        console.log('🗺️ 总目的地数量:', totalDestinations);
-        console.log('🏛️ 总景点数量:', totalAttractions);
-        console.log('✅ 找到的收藏景点:', attractions);
-        console.log('📊 收藏景点数量:', attractions.length);
-        setFavoriteAttractions(attractions);
+      if (response.success && response.data) {
+        console.log('✅ 收藏数据加载成功:', response.data);
+        console.log('📊 收藏数量:', response.data.length);
+        setFavorites(response.data);
       } else {
-        console.log('⚠️ localStorage中没有收藏数据');
-        setFavoriteAttractions([]);
+        console.log('⚠️ 后端返回失败:', response);
+        setFavorites([]);
       }
     } catch (error) {
       console.error('❌ 加载收藏失败:', error);
-      message.error('加载收藏失败');
+      message.error('加载收藏失败，请检查后端服务是否启动');
+      setFavorites([]);
     } finally {
       setLoading(false);
     }
   };
 
   // 取消收藏
-  const handleRemoveFavorite = (attractionId: string) => {
-    const newFavorites = new Set(favorites);
-    newFavorites.delete(attractionId);
-    setFavorites(newFavorites);
+  const handleRemoveFavorite = async (spotId: string) => {
+    try {
+      const response = await removeFavorite(spotId);
+      if (response.success) {
+        message.success('已取消收藏');
+        // 重新加载收藏列表
+        await loadFavorites();
 
-    // 更新localStorage
-    localStorage.setItem('favoriteAttractions', JSON.stringify(Array.from(newFavorites)));
-
-    // 更新显示的景点列表
-    setFavoriteAttractions(prev => prev.filter(attr => attr.id !== attractionId));
-
-    message.success('已取消收藏');
+        // 触发收藏更新事件，通知Navbar更新收藏数量
+        window.dispatchEvent(new Event('favoritesUpdated'));
+      } else {
+        message.error(response.error || '取消收藏失败');
+      }
+    } catch (error) {
+      console.error('❌ 取消收藏失败:', error);
+      message.error('取消收藏失败');
+    }
   };
 
   // 查看目的地详情
@@ -124,7 +102,7 @@ export default function Favorites() {
               我的收藏
             </Title>
             <p style={{ color: '#666', marginTop: '8px', margin: 0 }}>
-              共 {favoriteAttractions.length} 个收藏景点
+              共 {favorites.length} 个收藏景点
             </p>
           </div>
           <Button
@@ -137,7 +115,7 @@ export default function Favorites() {
         </div>
 
         {/* 收藏列表 */}
-        {favoriteAttractions.length === 0 ? (
+        {favorites.length === 0 ? (
           <Card>
             <Empty
               description="暂无收藏景点"
@@ -158,8 +136,8 @@ export default function Favorites() {
           </Card>
         ) : (
           <Row gutter={[24, 24]}>
-            {favoriteAttractions.map((attraction) => (
-              <Col xs={24} sm={12} lg={8} xl={6} key={attraction.id}>
+            {favorites.map((favorite) => (
+              <Col xs={24} sm={12} lg={8} xl={6} key={favorite.id}>
                 <Card
                   hoverable
                   style={{
@@ -200,14 +178,14 @@ export default function Favorites() {
                       top: '12px',
                       left: '12px'
                     }}>
-                      <Tag color="blue">{(attraction as any).cityName}</Tag>
+                      <Tag color="blue">{favorite.spot.city}</Tag>
                     </div>
 
                     {/* 取消收藏按钮 */}
                     <Button
                       type="text"
                       icon={<HeartFilled />}
-                      onClick={() => handleRemoveFavorite(attraction.id)}
+                      onClick={() => handleRemoveFavorite(favorite.spotId)}
                       style={{
                         position: 'absolute',
                         top: '12px',
@@ -239,7 +217,7 @@ export default function Favorites() {
                       marginBottom: '8px',
                       color: '#333'
                     }}>
-                      {attraction.name}
+                      {favorite.spot.name}
                     </h3>
 
                     <div style={{
@@ -248,9 +226,9 @@ export default function Favorites() {
                       gap: '8px',
                       marginBottom: '8px'
                     }}>
-                      <Rate disabled value={attraction.rating} style={{ fontSize: '14px' }} />
+                      <Rate disabled value={favorite.spot.rating || 4.5} style={{ fontSize: '14px' }} />
                       <span style={{ fontSize: '14px', color: '#666' }}>
-                        {attraction.rating.toFixed(1)}
+                        {(favorite.spot.rating || 4.5).toFixed(1)}
                       </span>
                     </div>
 
@@ -261,8 +239,28 @@ export default function Favorites() {
                       lineHeight: '1.5',
                       flex: 1
                     }}>
-                      {attraction.description}
+                      {favorite.spot.description || '暂无描述'}
                     </p>
+
+                    {/* IoT数据显示 */}
+                    {favorite.spot.iotData && (
+                      <div style={{
+                        display: 'flex',
+                        gap: '8px',
+                        flexWrap: 'wrap',
+                        marginBottom: '12px'
+                      }}>
+                        <Tag color={favorite.spot.iotData.rainProbability > 50 ? 'orange' : 'green'}>
+                          🌡️ {favorite.spot.iotData.temperature}°C
+                        </Tag>
+                        <Tag color={favorite.spot.iotData.crowdLevel > 60 ? 'orange' : 'green'}>
+                          👥 人流{favorite.spot.iotData.crowdLevel > 60 ? '较多' : '较少'}
+                        </Tag>
+                        <Tag color={favorite.spot.iotData.isOpen ? 'green' : 'red'}>
+                          {favorite.spot.iotData.isOpen ? '🔓 开放' : '🔒 关闭'}
+                        </Tag>
+                      </div>
+                    )}
 
                     <div style={{
                       display: 'flex',
@@ -272,14 +270,14 @@ export default function Favorites() {
                       borderTop: '1px solid #f0f0f0'
                     }}>
                       <div style={{ fontSize: '12px', color: '#999' }}>
-                        <div>开放时间: {attraction.openTime}</div>
+                        <div>开放时间: {favorite.spot.openTime || '全天'}</div>
                       </div>
                       <div style={{
                         fontSize: '16px',
                         fontWeight: 600,
                         color: '#ff4d4f'
                       }}>
-                        {attraction.ticketPrice === 0 ? '免费' : `¥${attraction.ticketPrice}`}
+                        {favorite.spot.ticketPrice === 0 ? '免费' : `¥${favorite.spot.ticketPrice}`}
                       </div>
                     </div>
                   </div>

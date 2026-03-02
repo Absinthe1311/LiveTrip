@@ -222,6 +222,7 @@ model Spot {
   
   // Relations
   iotData         SpotIoTData?
+  favorites       Favorite[]
   
   @@index([city])
   @@index([category])
@@ -262,4 +263,38 @@ model SpotAlternative {
   @@index([originalSpotId])
   @@index([alternativeSpotId])
   @@index([city])
+}
+
+// Favorites Table - 收藏表
+model Favorite {
+  id              String   @id @default(cuid())
+  spotId          String   // 景点ID
+  spot            Spot     @relation(fields: [spotId], references: [id], onDelete: Cascade)
+
+  // 用户标识（暂时使用固定ID，后续可以改为真实用户系统）
+  userId          String   @default("default-user")
+
+  // 收藏备注
+  notes           String?  @default("")
+
+  // 收藏时间
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([spotId, userId])
+  @@index([userId])
+  @@index([spotId])
+}
+
+// Destination Cache Table - 目的地热门景点缓存表
+model DestinationCache {
+  id          String   @id @default(cuid())
+  city        String   @unique // 城市名称
+  attractions String   // 景点列表JSON字符串
+  expiresAt   DateTime // 过期时间
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([city])
+  @@index([expiresAt])
 }

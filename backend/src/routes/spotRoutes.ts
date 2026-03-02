@@ -185,6 +185,38 @@ router.get('/:id/iot', async (req, res) => {
 });
 
 /**
+ * 为景点生成IoT数据
+ * POST /api/spots/:id/iot/generate
+ */
+router.post('/:id/iot/generate', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    console.log(`🔄 接收生成景点IoT数据请求: ${id}`);
+
+    const iotData = await spotService.generateIoTDataForSpot(id);
+
+    if (!iotData) {
+      return res.status(404).json({
+        success: false,
+        error: '生成IoT数据失败',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: iotData,
+    });
+  } catch (error: any) {
+    console.error('❌ 生成景点IoT数据失败:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || '生成景点IoT数据失败',
+    });
+  }
+});
+
+/**
  * 批量获取IoT数据
  * POST /api/spots/iot/batch
  */
@@ -257,6 +289,50 @@ router.post('/alternatives/update', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message || '更新备选关系失败',
+    });
+  }
+});
+
+/**
+ * 搜索景点（通过名称和城市）
+ * POST /api/spots/search
+ */
+router.post('/search', async (req, res) => {
+  try {
+    const { name, city } = req.body;
+
+    if (!name || !city) {
+      return res.status(400).json({
+        success: false,
+        error: '缺少必要参数: name, city',
+      });
+    }
+
+    console.log(`🔍 接收搜索景点请求: ${name}, 城市: ${city}`);
+
+    const spot = await prisma.spot.findFirst({
+      where: {
+        name: name,
+        city: city,
+      },
+    });
+
+    if (!spot) {
+      return res.status(404).json({
+        success: false,
+        error: '未找到景点',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: spot,
+    });
+  } catch (error: any) {
+    console.error('❌ 搜索景点失败:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || '搜索景点失败',
     });
   }
 });

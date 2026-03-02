@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Dropdown, Avatar, Button } from 'antd';
+import { Layout, Menu, Dropdown, Avatar, Button, Badge } from 'antd';
 import { UserOutlined, LogoutOutlined, SettingOutlined, HeartOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { getFavorites } from '../api/client';
 
 const { Header } = Layout;
 
@@ -10,6 +11,7 @@ export default function Navbar() {
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [favoritesCount, setFavoritesCount] = useState(0);
 
   useEffect(() => {
     // 检查用户是否已登录
@@ -22,6 +24,44 @@ export default function Navbar() {
       setCurrentUser(null);
     }
   }, [location]);
+
+  // 加载收藏数量
+  const loadFavoritesCount = async () => {
+    try {
+      const response = await getFavorites();
+      console.log('🔍 Navbar 收藏响应:', response);
+      console.log('🔍 Navbar 收藏数据:', response.data);
+      console.log('🔍 Navbar 收藏数量:', response.count);
+      console.log('🔍 Navbar 收藏数据长度:', response.data?.length);
+
+      if (response.success) {
+        // 优先使用 count 字段，如果没有则使用 data 数组长度
+        const count = response.count !== undefined ? response.count : (response.data?.length || 0);
+        setFavoritesCount(count);
+      }
+    } catch (error) {
+      console.error('❌ 加载收藏数量失败:', error);
+    }
+  };
+
+  useEffect(() => {
+    // 加载收藏数量
+    loadFavoritesCount();
+  }, [location]);
+
+  // 监听收藏数量更新事件
+  useEffect(() => {
+    const handleFavoritesUpdate = () => {
+      console.log('🔍 收到收藏更新事件，重新加载收藏数量');
+      loadFavoritesCount();
+    };
+
+    window.addEventListener('favoritesUpdated', handleFavoritesUpdate);
+
+    return () => {
+      window.removeEventListener('favoritesUpdated', handleFavoritesUpdate);
+    };
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -68,7 +108,11 @@ export default function Navbar() {
     },
     {
       key: 'favorites',
-      label: '我的收藏',
+      label: (
+        <Badge count={favoritesCount} size="small" offset={[10, 0]}>
+          <span>我的收藏</span>
+        </Badge>
+      ),
       onClick: () => navigate('/favorites'),
     },
     {

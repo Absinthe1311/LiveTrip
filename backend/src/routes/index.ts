@@ -6,6 +6,9 @@ import authRoutes from './authRoutes';
 import tripRoutes from './tripRoutes';
 import locationCacheRoutes from './locationCacheRoutes';
 import spotRoutes from './spotRoutes';
+import favoriteRoutes from './favoriteRoutes';
+import spotSyncRoutes from './spotSyncRoutes';
+import destinationRoutes from './destinationRoutes';
 
 const router = Router();
 
@@ -16,5 +19,8 @@ router.use('/auth', authRoutes);
 router.use('/trips', tripRoutes);
 router.use('/location', locationCacheRoutes);
 router.use('/spots', spotRoutes);
+router.use('/favorites', favoriteRoutes);
+router.use('/spots', spotSyncRoutes);
+router.use('/destinations', destinationRoutes);
 
 export default router;

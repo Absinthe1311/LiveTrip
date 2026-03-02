@@ -5,7 +5,7 @@ interface AttractionCardProps {
   time: string;
   name: string;
   desc: string;
-  onShowAlternatives?: () => void;
+  onShowAlternatives?: (item: any) => void;
   onTimeChange?: (newTime: string) => void;
   recommendedDuration?: number;
   iotData?: {
@@ -14,9 +14,10 @@ interface AttractionCardProps {
     rainProbability: number;
     isOpen: boolean;
   };
+  item?: any; // 添加item参数
 }
 
-export default function AttractionCard({ time, name, desc, onShowAlternatives, iotData }: AttractionCardProps) {
+export default function AttractionCard({ time, name, desc, onShowAlternatives, iotData, item }: AttractionCardProps) {
   // IoT数据评估
   const getWeatherStatus = () => {
     if (!iotData) return null;
@@ -112,7 +113,12 @@ export default function AttractionCard({ time, name, desc, onShowAlternatives, i
               whiteSpace: 'nowrap',
               marginLeft: 16
             }}
-            onClick={onShowAlternatives}
+            onClick={() => {
+              console.log('🔍 AttractionCard 点击查看备选:', item);
+              if (onShowAlternatives) {
+                onShowAlternatives(item);
+              }
+            }}
           >
             查看备选
           </Button>
