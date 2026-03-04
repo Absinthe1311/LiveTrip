@@ -15,6 +15,7 @@ interface HotelRecommendationsProps {
   onSkip?: () => void;
   showSkip?: boolean;
   onLoadComplete?: () => void; // 新增：加载完成回调
+  days?: number; // 新增：天数
 }
 
 export default function HotelRecommendations({
@@ -25,6 +26,7 @@ export default function HotelRecommendations({
   onSkip,
   showSkip = true,
   onLoadComplete,
+  days = 3, // 默认3天
 }: HotelRecommendationsProps) {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(false);
@@ -82,6 +84,27 @@ export default function HotelRecommendations({
     if (onSkip) {
       onSkip();
     }
+  };
+
+  // 估算酒店价格
+  const estimateHotelPrice = (hotel: Hotel): number => {
+    const type = hotel.type.toLowerCase();
+    
+    if (type.includes('经济') || type.includes('快捷')) {
+      return 200;
+    } else if (type.includes('舒适') || type.includes('商务') || type.includes('三星')) {
+      return 400;
+    } else if (type.includes('高档') || type.includes('标准') || type.includes('四星')) {
+      return 600;
+    } else if (type.includes('豪华') || type.includes('五星')) {
+      return 1000;
+    } else {
+      return 350;
+    }
+  };
+
+  const getDays = (): number => {
+    return days;
   };
 
   // 获取档次对应的颜色
@@ -298,6 +321,32 @@ export default function HotelRecommendations({
                   </span>
                 </div>
               </div>
+
+              {/* 预估费用 */}
+              {onSelect && (
+                <div style={{
+                  marginTop: '8px',
+                  padding: '8px 12px',
+                  background: '#fff7e6',
+                  borderRadius: '6px',
+                  border: '1px solid #ffd591',
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}>
+                    <span style={{ color: '#fa8c16', fontSize: '13px' }}>预估费用</span>
+                    <span style={{
+                      color: '#fa8c16',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                    }}>
+                      约 ¥{estimateHotelPrice(hotel)} × {getDays()}天 = ¥{estimateHotelPrice(hotel) * getDays()}元
+                    </span>
+                  </div>
+                </div>
+              )}
             </Card>
           );
         })}

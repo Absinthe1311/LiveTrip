@@ -18,6 +18,7 @@ interface RestaurantRecommendationsProps {
   onSkip?: (day: number) => void;
   showSkip?: boolean;
   disabled?: boolean; // 新增：是否禁用（等待酒店推荐完成）
+  groupSize?: number; // 新增：人数，用于计算预估费用
 }
 
 export default function RestaurantRecommendations({
@@ -27,6 +28,7 @@ export default function RestaurantRecommendations({
   onSkip,
   showSkip = true,
   disabled = false,
+  groupSize = 1, // 默认1人
 }: RestaurantRecommendationsProps) {
   const [recommendations, setRecommendations] = useState<DayRestaurantRecommendation[]>([]);
   const [loading, setLoading] = useState(false);
@@ -185,8 +187,53 @@ export default function RestaurantRecommendations({
             距中心点 {restaurant.distance}m
           </span>
         </div>
+
+        {/* 预估费用 */}
+        {onSelect && (
+          <div style={{
+            marginTop: '8px',
+            padding: '8px 12px',
+            background: '#fff7e6',
+            borderRadius: '6px',
+            border: '1px solid #ffd591',
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+              <span style={{ color: '#fa8c16', fontSize: '13px' }}>预估费用</span>
+              <span style={{
+                color: '#fa8c16',
+                fontWeight: 600,
+                fontSize: '14px',
+              }}>
+                ¥{estimateRestaurantPrice(restaurant)}/人 × {groupSize}人 = ¥{estimateRestaurantPrice(restaurant) * groupSize}元
+              </span>
+            </div>
+          </div>
+        )}
       </Card>
     );
+  };
+
+  // 估算餐厅价格
+  const estimateRestaurantPrice = (restaurant: Restaurant): number => {
+    const type = restaurant.type.toLowerCase();
+
+    if (type.includes('小吃') || type.includes('快餐') || type.includes('面食')) {
+      return 30; // 小吃/快餐：30元/人
+    } else if (type.includes('中餐') || type.includes('家常菜')) {
+      return 80; // 中餐/家常菜：80元/人
+    } else if (type.includes('火锅') || type.includes('烧烤')) {
+      return 120; // 火锅/烧烤：120元/人
+    } else if (type.includes('海鲜')) {
+      return 150; // 海鲜：150元/人
+    } else if (type.includes('日料') || type.includes('西餐')) {
+      return 200; // 日料/西餐：200元/人
+    } else {
+      return 60; // 其他类型：默认60元/人
+    }
   };
 
   // 渲染某一天的餐厅推荐

@@ -1,6 +1,7 @@
 // 行程管理控制器 - 处理行程的增删改查
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { budgetCalculator } from '../services/budgetCalculator';
 
 const prisma = new PrismaClient();
 
@@ -287,11 +288,70 @@ export const saveTrip = async (req: Request, res: Response) => {
 
     console.log('✅ 行程数据已保存到数据库');
 
+    // 计算实际预算
+    console.log('💰 开始计算实际预算...');
+    
+    // 收集所有景点的费用
+    const allSpots = itinerary.itinerary.flatMap((day: any) =>
+      day.attractions.map((attr: any) => ({
+        estimated_cost: attr.estimated_cost || 0,
+      }))
+    );
+
+    // 计算实际预算
+    const budgetInfo = budgetCalculator.calculateActualBudget({
+      totalBudget: summary.budget || total_cost || 0,
+      days: days,
+      groupSize: 1, // 默认为1人
+      selectedHotel: hotel || null,
+      selectedRestaurants: tripData.restaurants?.reduce((acc: any, r: any) => {
+        if (r.selectedRestaurant) {
+          acc[r.day] = r.selectedRestaurant;
+        }
+        return acc;
+      }, {}) || {},
+      itinerarySpots: allSpots,
+    });
+
+    console.log(`✅ 实际预算计算完成: ¥${budgetInfo.total}`);
+
+    // 更新行程记录，添加实际预算和状态
+    await prisma.trip.update({
+      where: { id: trip.id },
+      data: {
+        actualBudget: budgetInfo.total,
+        budgetStatus: budgetInfo.status,
+      },
+    });
+
+    // 更新预算记录
+    await prisma.budget.update({
+      where: { tripId: trip.id },
+      data: {
+        transportation: budgetInfo.transportation,
+        accommodation: budgetInfo.accommodation,
+        food: budgetInfo.dining,
+        tickets: budgetInfo.tickets,
+      },
+    });
+
+    console.log('✅ 预算信息已更新');
+
     res.json({
       success: true,
       message: '行程保存成功',
       data: {
         tripId: trip.id,
+        budgetInfo: {
+          actualBudget: budgetInfo.total,
+          budgetStatus: budgetInfo.status,
+          breakdown: {
+            accommodation: budgetInfo.accommodation,
+            dining: budgetInfo.dining,
+            transportation: budgetInfo.transportation,
+            tickets: budgetInfo.tickets,
+          },
+        },
       },
     });
   } catch (error: any) {
@@ -354,6 +414,65 @@ export const updateTripHotel = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: error.message || '更新酒店信息失败',
+    });
+  }
+};
+
+/**
+ * 计算实时预算（基于当前选择）
+ * POST /api/trips/calculate-budget
+ */
+export const calculateRealTimeBudget = async (req: Request, res: Response) => {
+  try {
+    console.log('💰 收到实时预算计算请求');
+    console.log('请求体:', JSON.stringify(req.body, null, 2));
+
+    const { totalBudget, days, groupSize, hotel, restaurants, spots } = req.body;
+
+    // 验证必填字段
+    if (!totalBudget || typeof totalBudget !== 'number') {
+      return res.status(400).json({
+        success: false,
+        error: '缺少必填字段：totalBudget（数字）',
+      });
+    }
+
+    if (!days || typeof days !== 'number') {
+      return res.status(400).json({
+        success: false,
+        error: '缺少必填字段：days（数字）',
+      });
+    }
+
+    // 计算实际预算
+    const budgetInfo = budgetCalculator.calculateActualBudget({
+      totalBudget,
+      days,
+      groupSize: groupSize || 1,
+      selectedHotel: hotel || null,
+      selectedRestaurants: restaurants || {},
+      itinerarySpots: spots || [],
+    });
+
+    // 获取预警信息
+    const warningLevel = budgetCalculator.getWarningLevel(budgetInfo);
+    const warningMessage = budgetCalculator.getWarningMessage(budgetInfo);
+
+    console.log('✅ 实时预算计算完成');
+
+    res.json({
+      success: true,
+      data: {
+        ...budgetInfo,
+        warningLevel,
+        warningMessage,
+      },
+    });
+  } catch (error: any) {
+    console.error('❌ 计算实时预算失败:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || '计算实时预算失败',
     });
   }
 };

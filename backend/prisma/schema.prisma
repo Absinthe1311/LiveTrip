@@ -70,6 +70,10 @@ model Trip {
   hotelType       String?
   hotelRating     Float?
   
+  // Budget tracking
+  actualBudget    Float     @default(0)      // 实际总开销
+  budgetStatus    String    @default("under_budget") // under_budget, on_budget, over_budget
+  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   

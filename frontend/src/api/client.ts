@@ -285,6 +285,21 @@ export const updateDayRestaurant = async (tripId: string, dayNumber: number, res
   return response.data;
 };
 
+/**
+ * 计算实时预算
+ * @param options 预算计算选项
+ */
+export const calculateRealTimeBudget = async (options: {
+  totalBudget: number;
+  days: number;
+  hotel?: any;
+  restaurants?: Record<number, any>;
+  spots?: Array<{ estimated_cost: number }>;
+}) => {
+  const response = await apiClient.post('/trips/calculate-budget', options);
+  return response.data;
+};
+
 // ==================== 地点缓存 API ====================
 
 /**

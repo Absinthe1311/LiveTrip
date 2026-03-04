@@ -25,7 +25,7 @@ import BudgetChart from '../components/BudgetChart';
 import HotelRecommendations from '../components/HotelRecommendations';
 import RestaurantRecommendations from '../components/RestaurantRecommendations';
 import { useAppStore } from '../store';
-import { FullItinerary, AttractionItem } from '../api/client';
+import { FullItinerary, AttractionItem, calculateRealTimeBudget } from '../api/client';
 import { adjustItinerary, getIoTData, saveTrip, updateAlternativeRelations } from '../api/client';
 import { Hotel, Restaurant } from '../api/recommendationApi';
 import AMapLoader from '@amap/amap-jsapi-loader';
@@ -503,6 +503,9 @@ export default function Itinerary() {
   const [selectedRestaurants, setSelectedRestaurants] = useState<Record<number, Restaurant | null>>({});
   const [hotelRecommendationLoaded, setHotelRecommendationLoaded] = useState(false); // 酒店推荐是否已加载完成
 
+  // 预算相关状态
+  const [budgetInfo, setBudgetInfo] = useState<any>(null);
+
   // 从 store 加载行程数据
   useEffect(() => {
     console.log('📍 Itinerary 页面加载');
@@ -532,6 +535,9 @@ export default function Itinerary() {
       
       // 加载IoT数据
       loadIoTData();
+      
+      // 计算实时预算
+      calculateBudget();
     } else {
       console.warn('⚠️  Store 中没有行程数据，显示空状态');
     }
@@ -550,6 +556,47 @@ export default function Itinerary() {
       console.error('❌ 加载IoT数据失败:', error);
     }
   };
+
+  // 计算实时预算
+  const calculateBudget = async () => {
+    if (!itineraryData) return;
+
+    try {
+      console.log('💰 计算实时预算...');
+
+      const days = itineraryData.itinerary.length;
+      const totalBudget = itineraryData.summary?.budget || itineraryData.total_cost || 10000;
+      const groupSize = itineraryData.summary?.group_size || 1;
+
+      // 收集所有景点费用
+      const spots = itineraryData.itinerary.flatMap(day =>
+        day.attractions.map(attr => ({
+          estimated_cost: attr.estimated_cost || 0,
+        }))
+      );
+
+      const response = await calculateRealTimeBudget({
+        totalBudget,
+        days,
+        groupSize,
+        hotel: selectedHotel,
+        restaurants: selectedRestaurants,
+        spots,
+      });
+
+      if (response.success && response.data) {
+        setBudgetInfo(response.data);
+        console.log('✅ 实时预算计算完成:', response.data);
+      }
+    } catch (error: any) {
+      console.error('❌ 计算实时预算失败:', error);
+    }
+  };
+
+  // 当酒店或餐厅选择变化时，重新计算预算
+  useEffect(() => {
+    calculateBudget();
+  }, [selectedHotel, selectedRestaurants]);
 
   // 确认行程并返回主页
   const handleConfirmItinerary = async () => {
@@ -1081,6 +1128,7 @@ export default function Itinerary() {
           }}
           showSkip={true}
           onLoadComplete={() => setHotelRecommendationLoaded(true)}
+          days={itineraryData.itinerary.length}
         />
       )}
 
@@ -1111,16 +1159,23 @@ export default function Itinerary() {
           }}
           showSkip={true}
           disabled={!hotelRecommendationLoaded}
+          groupSize={itineraryData.summary?.group_size || 1}
         />
       )}
 
       {/* 预算图表 */}
-      <BudgetChart data={[
-        { category: '交通', amount: itineraryData.budget_breakdown.transportation },
-        { category: '住宿', amount: itineraryData.budget_breakdown.accommodation },
-        { category: '餐饮', amount: itineraryData.budget_breakdown.dining },
-        { category: '门票', amount: itineraryData.budget_breakdown.tickets },
-      ]} />
+      <BudgetChart 
+        data={[
+          { category: '交通', amount: itineraryData.budget_breakdown.transportation },
+          { category: '住宿', amount: itineraryData.budget_breakdown.accommodation },
+          { category: '餐饮', amount: itineraryData.budget_breakdown.dining },
+          { category: '门票', amount: itineraryData.budget_breakdown.tickets },
+        ]}
+        totalBudget={itineraryData.summary?.budget || itineraryData.total_cost || 10000}
+        actualBudget={budgetInfo}
+        warningMessage={budgetInfo?.warningMessage}
+        warningLevel={budgetInfo?.warningLevel || 0}
+      />
 
       {/* 确认按钮 */}
       <div style={{
