@@ -221,12 +221,22 @@ export const saveTrip = async (req: Request, res: Response) => {
 
     // 创建每天的行程记录
     for (const day of itinerary.itinerary) {
+      // 获取该天的餐厅信息
+      const dayRestaurant = tripData.restaurants?.find((r: any) => r.day === day.day)?.selectedRestaurant;
+
       const dayRecord = await prisma.day.create({
         data: {
           tripId: trip.id,
           dayNumber: day.day,
           date: new Date(day.date),
           notes: '',
+          // 保存餐厅信息
+          restaurantName: dayRestaurant?.name || null,
+          restaurantAddress: dayRestaurant?.address || null,
+          restaurantLocation: dayRestaurant?.location || null,
+          restaurantTel: dayRestaurant?.tel || null,
+          restaurantType: dayRestaurant?.type || null,
+          restaurantRating: dayRestaurant?.rating || null,
         },
       });
 
@@ -344,6 +354,67 @@ export const updateTripHotel = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: error.message || '更新酒店信息失败',
+    });
+  }
+};
+
+/**
+ * 更新某一天的餐厅信息
+ * PUT /api/trips/:tripId/days/:dayNumber/restaurant
+ */
+export const updateDayRestaurant = async (req: Request, res: Response) => {
+  try {
+    const { tripId, dayNumber } = req.params;
+    const restaurant = req.body;
+
+    // 确保参数是字符串类型
+    const tripIdStr = Array.isArray(tripId) ? tripId[0] : tripId;
+    const dayNumberStr = Array.isArray(dayNumber) ? dayNumber[0] : dayNumber;
+
+    console.log(`🍽️ 收到更新餐厅请求，行程ID: ${tripIdStr}, 天数: ${dayNumberStr}`);
+    console.log('餐厅信息:', JSON.stringify(restaurant, null, 2));
+
+    // 查找对应的Day记录
+    const day = await prisma.day.findFirst({
+      where: {
+        tripId: tripIdStr,
+        dayNumber: parseInt(dayNumberStr),
+      },
+    });
+
+    if (!day) {
+      return res.status(404).json({
+        success: false,
+        error: '未找到对应的行程天数记录',
+      });
+    }
+
+    // 更新餐厅信息
+    const updatedDay = await prisma.day.update({
+      where: { id: day.id },
+      data: {
+        restaurantName: restaurant?.name || null,
+        restaurantAddress: restaurant?.address || null,
+        restaurantLocation: restaurant?.location || null,
+        restaurantTel: restaurant?.tel || null,
+        restaurantType: restaurant?.type || null,
+        restaurantRating: restaurant?.rating || null,
+        updatedAt: new Date(),
+      },
+    });
+
+    console.log('✅ 餐厅信息更新成功');
+
+    res.json({
+      success: true,
+      message: '餐厅信息更新成功',
+      data: updatedDay,
+    });
+  } catch (error: any) {
+    console.error('❌ 更新餐厅信息失败:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || '更新餐厅信息失败',
     });
   }
 };

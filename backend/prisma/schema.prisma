@@ -88,6 +88,14 @@ model Day {
   date            DateTime
   notes           String?   @default("")
   
+  // Restaurant info (选中的餐厅 - 午餐)
+  restaurantName       String?
+  restaurantAddress    String?
+  restaurantLocation   String?
+  restaurantTel        String?
+  restaurantType       String?
+  restaurantRating     Float?
+  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   

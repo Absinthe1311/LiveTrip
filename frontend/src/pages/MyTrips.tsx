@@ -64,6 +64,7 @@ export default function MyTrips() {
   // 将数据库行程格式转换为前端格式
   const convertTripToItinerary = (trip: any): any => {
     const itinerary: any[] = [];
+    const restaurants: any[] = [];
     
     if (trip.days) {
       trip.days.forEach((day: any) => {
@@ -95,6 +96,26 @@ export default function MyTrips() {
           attractions,
           daily_cost: attractions.reduce((sum: number, attr: any) => sum + attr.estimated_cost, 0),
         });
+
+        // 转换餐厅信息
+        if (day.restaurantName) {
+          restaurants.push({
+            day: day.dayNumber,
+            selectedRestaurant: {
+              name: day.restaurantName,
+              address: day.restaurantAddress,
+              location: day.restaurantLocation,
+              tel: day.restaurantTel,
+              type: day.restaurantType,
+              rating: day.restaurantRating,
+            },
+          });
+        } else {
+          restaurants.push({
+            day: day.dayNumber,
+            selectedRestaurant: null,
+          });
+        }
       });
     }
 
@@ -126,6 +147,7 @@ export default function MyTrips() {
         days: itinerary.length,
       },
       hotel, // 添加酒店信息
+      restaurants, // 添加餐厅信息
     };
   };
 

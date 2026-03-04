@@ -14,6 +14,7 @@ interface HotelRecommendationsProps {
   selectedHotel?: Hotel | null;
   onSkip?: () => void;
   showSkip?: boolean;
+  onLoadComplete?: () => void; // 新增：加载完成回调
 }
 
 export default function HotelRecommendations({
@@ -23,6 +24,7 @@ export default function HotelRecommendations({
   selectedHotel,
   onSkip,
   showSkip = true,
+  onLoadComplete,
 }: HotelRecommendationsProps) {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,9 +50,17 @@ export default function HotelRecommendations({
       if (response.success && response.data) {
         setHotels(response.data);
         console.log(`✅ 获取到 ${response.data.length} 个酒店推荐`);
+        // 通知父组件加载完成
+        if (onLoadComplete) {
+          onLoadComplete();
+        }
       } else {
         setError(response.error || '获取酒店推荐失败');
         message.error(response.error || '获取酒店推荐失败');
+        // 即使失败也通知父组件
+        if (onLoadComplete) {
+          onLoadComplete();
+        }
       }
     } catch (err: any) {
       console.error('❌ 获取酒店推荐失败:', err);

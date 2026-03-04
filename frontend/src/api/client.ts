@@ -274,6 +274,17 @@ export const updateTripHotel = async (tripId: string, hotel: any) => {
   return response.data;
 };
 
+/**
+ * 更新某一天的餐厅信息
+ * @param tripId 行程ID
+ * @param dayNumber 天数
+ * @param restaurant 餐厅信息
+ */
+export const updateDayRestaurant = async (tripId: string, dayNumber: number, restaurant: any) => {
+  const response = await apiClient.put(`/trips/${tripId}/days/${dayNumber}/restaurant`, restaurant);
+  return response.data;
+};
+
 // ==================== 地点缓存 API ====================
 
 /**

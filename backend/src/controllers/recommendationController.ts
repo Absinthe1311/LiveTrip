@@ -1,6 +1,7 @@
 // 推荐控制器 - 处理酒店和餐厅推荐请求
 import { Request, Response } from 'express';
 import { hotelRecommender, HotelRecommendRequest } from '../services/hotelRecommender';
+import { restaurantRecommender, RestaurantRecommendRequest } from '../services/restaurantRecommender';
 
 /**
  * 获取酒店推荐
@@ -67,19 +68,74 @@ export const getHotelRecommendations = async (req: Request, res: Response) => {
 };
 
 /**
- * 获取餐厅推荐（预留接口，后续实现）
+ * 获取餐厅推荐（按天）
  * POST /api/recommendations/restaurants
+ * 
+ * 请求体:
+ * {
+ *   days: [{
+ *     day: number,
+ *     date: string,
+ *     spots: [{ name: string, location: string }]
+ *   }]
+ * }
  */
 export const getRestaurantRecommendations = async (req: Request, res: Response) => {
   try {
     console.log('🍽️ 收到餐厅推荐请求');
     console.log('请求体:', JSON.stringify(req.body, null, 2));
 
-    // TODO: 实现餐厅推荐逻辑
+    const { days } = req.body as RestaurantRecommendRequest;
+
+    // 验证必填字段
+    if (!days || !Array.isArray(days) || days.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: '缺少必填字段：days（非空数组）',
+      });
+    }
+
+    // 验证每天的数据格式
+    for (const dayData of days) {
+      if (typeof dayData.day !== 'number') {
+        return res.status(400).json({
+          success: false,
+          error: '每天数据必须包含 day 字段（数字）',
+        });
+      }
+      // date 字段改为可选，如果为空则使用默认值
+      if (!dayData.date || typeof dayData.date !== 'string') {
+        dayData.date = ''; // 使用空字符串作为默认值
+      }
+      if (!dayData.spots || !Array.isArray(dayData.spots)) {
+        return res.status(400).json({
+          success: false,
+          error: '每天数据必须包含 spots 字段（数组）',
+        });
+      }
+      // 验证景点数据格式
+      for (const spot of dayData.spots) {
+        if (!spot.name || !spot.location) {
+          return res.status(400).json({
+            success: false,
+            error: '每个景点必须包含 name 和 location 字段',
+          });
+        }
+      }
+    }
+
+    console.log(`📍 天数: ${days.length}`);
+    console.log('📦 请求数据详情:', JSON.stringify(days, null, 2));
+
+    // 调用餐厅推荐服务
+    const recommendations = await restaurantRecommender.getRestaurantRecommendations(days);
+
+    console.log(`✅ 返回 ${recommendations.length} 天的餐厅推荐`);
+
     res.json({
       success: true,
-      data: [],
-      message: '餐厅推荐功能待实现',
+      data: recommendations,
+      count: recommendations.length,
     });
   } catch (error: any) {
     console.error('❌ 餐厅推荐失败:', error);

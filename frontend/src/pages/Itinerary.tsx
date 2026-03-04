@@ -23,10 +23,11 @@ import AttractionCard from '../components/AttractionCard';
 import AlternativeAttractions from '../components/AlternativeAttractions';
 import BudgetChart from '../components/BudgetChart';
 import HotelRecommendations from '../components/HotelRecommendations';
+import RestaurantRecommendations from '../components/RestaurantRecommendations';
 import { useAppStore } from '../store';
 import { FullItinerary, AttractionItem } from '../api/client';
 import { adjustItinerary, getIoTData, saveTrip, updateAlternativeRelations } from '../api/client';
-import { Hotel } from '../api/recommendationApi';
+import { Hotel, Restaurant } from '../api/recommendationApi';
 import AMapLoader from '@amap/amap-jsapi-loader';
 import { alternativeRecommender } from '../services/alternativeRecommender';
 
@@ -40,7 +41,7 @@ declare global {
 }
 
 // 地图组件
-function DayMap({ day, hotel }: { day: any; hotel?: Hotel | null }) {
+function DayMap({ day, hotel, restaurant }: { day: any; hotel?: Hotel | null; restaurant?: Restaurant | null }) {
   const mapContainer = React.useRef<HTMLDivElement>(null);
   const mapRef = React.useRef<any>(null);
   const markersRef = React.useRef<any[]>([]);
@@ -61,7 +62,7 @@ function DayMap({ day, hotel }: { day: any; hotel?: Hotel | null }) {
       version: '2.0',
       plugins: ['AMap.ToolBar', 'AMap.Scale']
     }).then((AMap) => {
-      // 计算中心点（包含酒店位置）
+      // 计算中心点（包含酒店和餐厅位置）
       const coordinates = day.attractions.map((item: any) =>
         item.location.split(',').map(Number)
       );
@@ -69,6 +70,11 @@ function DayMap({ day, hotel }: { day: any; hotel?: Hotel | null }) {
       // 如果有酒店，也加入中心点计算
       if (hotel?.location) {
         coordinates.push(hotel.location.split(',').map(Number));
+      }
+      
+      // 如果有餐厅，也加入中心点计算
+      if (restaurant?.location) {
+        coordinates.push(restaurant.location.split(',').map(Number));
       }
 
       const centerLng = coordinates.reduce((sum: number, coords: number[]) => sum + coords[0], 0) / coordinates.length;
@@ -96,6 +102,56 @@ function DayMap({ day, hotel }: { day: any; hotel?: Hotel | null }) {
 
       // 添加比例尺
       map.addControl(new AMap.Scale());
+
+      // 添加餐厅标记（如果有）
+      if (restaurant?.location) {
+        const restaurantCoords = restaurant.location.split(',').map(Number);
+        
+        const restaurantMarker = new AMap.Marker({
+          position: restaurantCoords,
+          title: restaurant.name,
+          content: `
+            <div style="
+              width: 40px;
+              height: 40px;
+              background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+              border-radius: 50%;
+              border: 3px solid #fff;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #fff;
+              font-weight: bold;
+              font-size: 16px;
+            ">
+              🍽️
+            </div>
+          `,
+          offset: new AMap.Pixel(-20, -20),
+          zIndex: 140
+        });
+
+        // 点击餐厅标记显示信息窗口
+        restaurantMarker.on('click', () => {
+          const infoWindow = new AMap.InfoWindow({
+            content: `
+              <div style="padding: 12px; min-width: 200px;">
+                <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">🍽️ ${restaurant.name}</h3>
+                <p style="margin: 4px 0; color: #52c41a; font-weight: 500;">${restaurant.type || '餐厅'}</p>
+                <p style="margin: 4px 0; color: #666; font-size: 13px;">${restaurant.address || ''}</p>
+                ${restaurant.rating ? `<p style="margin: 4px 0; color: #faad14; font-size: 13px;">⭐ ${restaurant.rating}分</p>` : ''}
+              </div>
+            `,
+            offset: new AMap.Pixel(0, -30)
+          });
+          infoWindow.open(map, restaurantCoords);
+        });
+
+        map.add(restaurantMarker);
+        markersRef.current.push(restaurantMarker);
+      }
 
       // 添加酒店标记（如果有）
       if (hotel?.location) {
@@ -229,7 +285,7 @@ function DayMap({ day, hotel }: { day: any; hotel?: Hotel | null }) {
         mapRef.current.destroy();
       }
     };
-  }, [day, amapKey, hotel]);
+  }, [day, amapKey, hotel, restaurant]);
 
   return (
     <div style={{
@@ -443,6 +499,10 @@ export default function Itinerary() {
   // 酒店推荐相关状态
   const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
 
+  // 餐厅推荐相关状态
+  const [selectedRestaurants, setSelectedRestaurants] = useState<Record<number, Restaurant | null>>({});
+  const [hotelRecommendationLoaded, setHotelRecommendationLoaded] = useState(false); // 酒店推荐是否已加载完成
+
   // 从 store 加载行程数据
   useEffect(() => {
     console.log('📍 Itinerary 页面加载');
@@ -456,6 +516,18 @@ export default function Itinerary() {
       if (currentItinerary.hotel) {
         console.log('🏨 恢复酒店信息:', currentItinerary.hotel);
         setSelectedHotel(currentItinerary.hotel);
+      }
+      
+      // 从行程数据中恢复餐厅信息
+      if (currentItinerary.restaurants) {
+        console.log('🍽️ 恢复餐厅信息:', currentItinerary.restaurants);
+        const restaurantsMap: Record<number, Restaurant | null> = {};
+        currentItinerary.restaurants.forEach((r: any) => {
+          if (r.selectedRestaurant) {
+            restaurantsMap[r.day] = r.selectedRestaurant;
+          }
+        });
+        setSelectedRestaurants(restaurantsMap);
       }
       
       // 加载IoT数据
@@ -486,14 +558,22 @@ export default function Itinerary() {
     try {
       console.log('💾 保存行程到数据库...');
       console.log('🏨 选中的酒店:', selectedHotel);
+      console.log('🍽️ 选中的餐厅:', selectedRestaurants);
 
-      // 保存行程到数据库（包含酒店信息）
+      // 构建餐厅数据
+      const restaurantsData = itineraryData.itinerary.map((day) => ({
+        day: day.day,
+        selectedRestaurant: selectedRestaurants[day.day] || null,
+      }));
+
+      // 保存行程到数据库（包含酒店和餐厅信息）
       const response = await saveTrip({
         summary: itineraryData.summary,
         itinerary: itineraryData,
         total_cost: itineraryData.total_cost,
         budget_breakdown: itineraryData.budget_breakdown,
         hotel: selectedHotel, // 添加酒店信息
+        restaurants: restaurantsData, // 添加餐厅信息
       });
 
       if (response.success) {
@@ -973,7 +1053,11 @@ export default function Itinerary() {
               }}>
                 第{itineraryData.itinerary[selectedDayIndex].day}天行程地图
               </h3>
-              <DayMap day={itineraryData.itinerary[selectedDayIndex]} hotel={selectedHotel} />
+              <DayMap 
+                day={itineraryData.itinerary[selectedDayIndex]} 
+                hotel={selectedHotel} 
+                restaurant={selectedRestaurants[itineraryData.itinerary[selectedDayIndex].day]} 
+              />
             </div>
           </Col>
         )}
@@ -996,6 +1080,37 @@ export default function Itinerary() {
             message.info('已跳过酒店选择');
           }}
           showSkip={true}
+          onLoadComplete={() => setHotelRecommendationLoaded(true)}
+        />
+      )}
+
+      {/* 餐厅推荐 */}
+      {itineraryData.itinerary && (
+        <RestaurantRecommendations
+          days={itineraryData.itinerary.map(day => ({
+            day: day.day,
+            date: day.date,
+            spots: day.attractions.map(attr => ({
+              name: attr.name,
+              location: attr.location,
+            })),
+          }))}
+          selectedRestaurants={selectedRestaurants}
+          onSelect={(day, restaurant) => {
+            setSelectedRestaurants(prev => ({
+              ...prev,
+              [day]: restaurant,
+            }));
+          }}
+          onSkip={(day) => {
+            setSelectedRestaurants(prev => ({
+              ...prev,
+              [day]: null,
+            }));
+            message.info(`第${day}天: 已跳过餐厅选择`);
+          }}
+          showSkip={true}
+          disabled={!hotelRecommendationLoaded}
         />
       )}
 

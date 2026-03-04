@@ -1,5 +1,6 @@
 // 酒店推荐服务 - 基于行程景点位置和用户预算推荐酒店
 import { amapService, AmapAttraction } from './amapService';
+import { amapRateLimiter } from '../utils/apiRateLimiter';
 
 // 酒店信息接口
 export interface Hotel {
@@ -54,15 +55,17 @@ class HotelRecommender {
       const hotelTier = this.getHotelTierByBudget(budget);
       console.log(`💰 酒店档次: ${hotelTier}`);
 
-      // 步骤3: 调用高德API搜索周边酒店
-      const amapServiceInstance = amapService();
-      const hotels = await amapServiceInstance.searchAround(
-        centerPoint,
-        '酒店',
-        '100101', // 住宿服务 - 酒店
-        5000,     // 5公里半径
-        30        // 获取30个候选
-      );
+      // 步骤3: 使用速率限制器调用高德API搜索周边酒店
+      const hotels = await amapRateLimiter.execute(async () => {
+        const amapServiceInstance = amapService();
+        return await amapServiceInstance.searchAround(
+          centerPoint,
+          '酒店',
+          '100101', // 住宿服务 - 酒店
+          5000,     // 5公里半径
+          30        // 获取30个候选
+        );
+      });
 
       if (hotels.length === 0) {
         console.warn('⚠️  未搜索到周边酒店');

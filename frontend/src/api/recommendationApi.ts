@@ -32,29 +32,43 @@ export interface HotelRecommendResponse {
   error?: string;
 }
 
-// 餐厅信息（预留）
+// 餐厅信息
 export interface Restaurant {
   name: string;
   address: string;
   location: string;
   tel?: string;
-  type: string;
-  rating?: number;
-  distance: number;
+  type: string;           // 菜系/类型
+  rating?: number;        // 高德评分
+  distance: number;       // 距中心点距离（m）
 }
 
-// 餐厅推荐请求（预留）
+// 每天餐厅推荐结果
+export interface DayRestaurantRecommendation {
+  day: number;
+  date: string;
+  centerSpot: string;     // 中心点景点名称
+  centerLocation: string; // 中心点坐标
+  restaurants: Restaurant[];
+}
+
+// 餐厅推荐请求
 export interface RestaurantRecommendRequest {
-  daySpots: Array<Array<{
-    name: string;
-    location: string;
-  }>>;
+  days: Array<{
+    day: number;
+    date: string;
+    spots: Array<{
+      name: string;
+      location: string;
+    }>;
+  }>;
 }
 
-// 餐厅推荐响应（预留）
+// 餐厅推荐响应
 export interface RestaurantRecommendResponse {
   success: boolean;
-  data: Array<Restaurant[]>;
+  data: DayRestaurantRecommendation[];
+  count: number;
   error?: string;
 }
 
@@ -78,15 +92,19 @@ export const getHotelRecommendations = async (
 };
 
 /**
- * 获取餐厅推荐（预留接口）
- * @param daySpots 按天分组的景点数据
+ * 获取餐厅推荐（按天）
+ * @param days 每天的行程数据
  * @returns 每天的餐厅推荐列表
  */
 export const getRestaurantRecommendations = async (
-  daySpots: Array<Array<{ name: string; location: string }>>
+  days: Array<{
+    day: number;
+    date: string;
+    spots: Array<{ name: string; location: string }>;
+  }>
 ): Promise<RestaurantRecommendResponse> => {
   const response = await apiClient.post<RestaurantRecommendResponse>('/recommendations/restaurants', {
-    daySpots,
+    days,
   });
   return response.data;
 };
