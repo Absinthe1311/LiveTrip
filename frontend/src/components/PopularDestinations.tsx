@@ -252,7 +252,7 @@ export default function PopularDestinations() {
 
   return (
     <div style={{
-      padding: '80px 48px',
+      padding: '100px 48px',
       background: '#f5f7fa'
     }}>
       <div style={{

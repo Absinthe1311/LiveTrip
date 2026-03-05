@@ -49,26 +49,26 @@ export default function FooterComponent() {
               flexDirection: 'column',
               gap: '12px'
             }}>
-              <Link 
-                href="/plan" 
+              <Link
+                href="/plan"
                 style={{ color: '#bdc3c7', fontSize: '14px' }}
               >
                 创建行程
               </Link>
-              <Link 
-                href="/itinerary" 
+              <Link
+                href="/my-trips"
                 style={{ color: '#bdc3c7', fontSize: '14px' }}
               >
                 我的行程
               </Link>
-              <Link 
-                href="/destinations" 
+              <Link
+                href="/destinations"
                 style={{ color: '#bdc3c7', fontSize: '14px' }}
               >
                 热门目的地
               </Link>
-              <Link 
-                href="/help" 
+              <Link
+                href="/"
                 style={{ color: '#bdc3c7', fontSize: '14px' }}
               >
                 帮助中心

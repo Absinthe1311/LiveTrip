@@ -176,16 +176,7 @@ export default function LocationSearch({
 
     setSearching(true);
     try {
-      // 首先搜索本地热门城市
-      const localFiltered = popularCities.filter(city =>
-        city.value.includes(searchValue) ||
-        city.province.includes(searchValue) ||
-        city.label.includes(searchValue)
-      );
-
-      console.log('🔍 本地搜索结果:', localFiltered);
-
-      // 调用后端缓存API搜索
+      // 调用后端缓存API搜索（只使用高德地图API或后端缓存）
       console.log('🔍 调用后端缓存API搜索:', searchValue);
       const response = await searchLocation(searchValue);
 
@@ -204,10 +195,8 @@ export default function LocationSearch({
         console.warn('⚠️  搜索失败:', response.error);
       }
 
-      // 合并结果，优先显示本地匹配的结果
-      const combinedOptions = [...localFiltered, ...apiResults];
       // 去重
-      const uniqueOptions = combinedOptions.filter((item, index, self) =>
+      const uniqueOptions = apiResults.filter((item, index, self) =>
         index === self.findIndex((t) => t.value === item.value)
       );
 
@@ -218,13 +207,8 @@ export default function LocationSearch({
       if (error.response) {
         console.error('❌ API错误响应:', error.response.data);
       }
-      // 如果API调用失败，使用本地搜索结果
-      const filtered = popularCities.filter(city =>
-        city.value.includes(searchValue) ||
-        city.province.includes(searchValue) ||
-        city.label.includes(searchValue)
-      );
-      setOptions(filtered);
+      // API调用失败时，不显示本地数据，只显示空结果
+      setOptions([]);
     } finally {
       setSearching(false);
     }

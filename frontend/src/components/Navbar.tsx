@@ -102,9 +102,9 @@ export default function Navbar() {
       onClick: () => navigate('/'),
     },
     {
-      key: 'itinerary',
+      key: 'my-trips',
       label: '我的行程',
-      onClick: () => navigate('/itinerary'),
+      onClick: () => navigate('/my-trips'),
     },
     {
       key: 'favorites',
@@ -123,7 +123,7 @@ export default function Navbar() {
     {
       key: 'help',
       label: '帮助',
-      onClick: () => navigate('/help'),
+      onClick: () => navigate('/'),
     },
   ];
 

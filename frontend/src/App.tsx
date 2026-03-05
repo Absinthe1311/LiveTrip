@@ -7,6 +7,7 @@ import MyTrips from './pages/MyTrips';
 import Auth from './pages/Auth';
 import DestinationDetail from './pages/DestinationDetail';
 import Favorites from './pages/Favorites';
+import Destinations from './pages/Destinations';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/my-trips" element={<MyTrips />} />
         <Route path="/destination/:id" element={<DestinationDetail />} />
         <Route path="/favorites" element={<Favorites />} />
+        <Route path="/destinations" element={<Destinations />} />
       </Routes>
     </Router>
   );
