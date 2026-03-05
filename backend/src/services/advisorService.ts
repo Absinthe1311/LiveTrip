@@ -1,0 +1,387 @@
+// 旅行顾问服务 - 使用智谱AI（ChatGLM）提供旅行规划建议
+import https from 'https';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+// 顾问请求参数
+export interface AdvisorRequest {
+  question: string;
+  planContext?: {
+    origin?: string;
+    destination?: string;
+    startDate?: string;
+    endDate?: string;
+    budget?: number;
+    groupSize?: number;
+    preferences?: string[];
+  };
+}
+
+// 顾问响应
+export interface AdvisorResponse {
+  answer: string;
+}
+
+class AdvisorService {
+  private apiKey: string;
+  private apiUrl: string = 'open.bigmodel.cn';
+  private apiPath: string = '/api/paas/v4/chat/completions';
+  private model: string = 'glm-4';
+
+  constructor() {
+    this.apiKey = process.env.ZHIPUAI_API_KEY || '';
+    if (!this.apiKey) {
+      console.warn('⚠️  未配置 ZHIPUAI_API_KEY');
+    } else {
+      console.log('✅ 智谱AI（ChatGLM）API Key 已配置');
+    }
+  }
+
+  /**
+   * 调用智谱AI API
+   */
+  private async callZhipuAI(messages: any[]): Promise<any> {
+    return new Promise((resolve, reject) => {
+      if (!this.apiKey) {
+        reject(new Error('AI服务未配置'));
+        return;
+      }
+
+      const data = JSON.stringify({
+        model: this.model,
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 1000,
+      });
+
+      const options = {
+        hostname: this.apiUrl,
+        port: 443,
+        path: this.apiPath,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Length': Buffer.byteLength(data),
+        },
+        timeout: 15000,
+      };
+
+      const req = https.request(options, (res) => {
+        let responseData = '';
+
+        res.on('data', (chunk) => {
+          responseData += chunk;
+        });
+
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(responseData);
+            if (res.statusCode === 200) {
+              resolve(json);
+            } else {
+              reject(new Error(`HTTP ${res.statusCode}: ${JSON.stringify(json)}`));
+            }
+          } catch (e) {
+            reject(new Error(`解析响应失败: ${responseData}`));
+          }
+        });
+      });
+
+      req.on('error', (error) => {
+        reject(error);
+      });
+
+      req.on('timeout', () => {
+        req.destroy();
+        reject(new Error('请求超时'));
+      });
+
+      req.write(data);
+      req.end();
+    });
+  }
+
+  /**
+   * 判断是否需要获取景点数据
+   */
+  private needsSpotData(question: string): boolean {
+    const keywords = ['景点', '推荐', '必去', '玩', '看', '参观', '游览'];
+    return keywords.some(keyword => question.includes(keyword));
+  }
+
+  /**
+   * 从数据库获取景点数据
+   */
+  private async getSpotsFromDatabase(city: string, preferences?: string[], limit: number = 20): Promise<any[]> {
+    try {
+      console.log(`🔍 从数据库获取 ${city} 的景点数据...`);
+
+      // 构建查询条件
+      const where: any = {
+        city: city,
+      };
+
+      // 如果有偏好，优先匹配偏好的分类
+      if (preferences && preferences.length > 0) {
+        // 尝试匹配偏好分类
+        const preferenceSpots = await prisma.spot.findMany({
+          where: {
+            city: city,
+            category: {
+              in: preferences,
+            },
+          },
+          take: limit,
+          orderBy: [
+            { rating: 'desc' },
+            { ticketPrice: 'asc' },
+          ],
+          select: {
+            name: true,
+            category: true,
+            rating: true,
+            ticketPrice: true,
+            address: true,
+            description: true,
+          },
+        });
+
+        console.log(`   找到 ${preferenceSpots.length} 个匹配偏好的景点`);
+
+        // 如果匹配偏好的景点数量足够，直接返回
+        if (preferenceSpots.length >= limit) {
+          return preferenceSpots;
+        }
+
+        // 如果匹配偏好的景点不足，获取其他景点补充
+        const remainingCount = limit - preferenceSpots.length;
+        const otherSpots = await prisma.spot.findMany({
+          where: {
+            city: city,
+            category: {
+              notIn: preferences,
+            },
+          },
+          take: remainingCount,
+          orderBy: [
+            { rating: 'desc' },
+            { ticketPrice: 'asc' },
+          ],
+          select: {
+            name: true,
+            category: true,
+            rating: true,
+            ticketPrice: true,
+            address: true,
+            description: true,
+          },
+        });
+
+        console.log(`   补充获取 ${otherSpots.length} 个其他景点`);
+        return [...preferenceSpots, ...otherSpots];
+      }
+
+      // 没有偏好，直接获取评分最高的景点
+      const spots = await prisma.spot.findMany({
+        where,
+        take: limit,
+        orderBy: [
+          { rating: 'desc' },
+          { ticketPrice: 'asc' },
+        ],
+        select: {
+          name: true,
+          category: true,
+          rating: true,
+          ticketPrice: true,
+          address: true,
+          description: true,
+        },
+      });
+
+      console.log(`   获取到 ${spots.length} 个景点`);
+      return spots;
+    } catch (error) {
+      console.error('❌ 从数据库获取景点失败:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 格式化景点数据为提示词
+   */
+  private formatSpotsForPrompt(spots: any[]): string {
+    if (spots.length === 0) {
+      return '';
+    }
+
+    let formatted = '\n\n以下是该城市的主要景点信息：\n\n';
+
+    spots.forEach((spot, index) => {
+      formatted += `${index + 1}. ${spot.name}`;
+      if (spot.category) {
+        formatted += `（${spot.category}）`;
+      }
+      if (spot.rating) {
+        formatted += ` - 评分: ${spot.rating}`;
+      }
+      if (spot.ticketPrice !== null && spot.ticketPrice !== undefined) {
+        formatted += ` - 票价: ${spot.ticketPrice}元`;
+      } else {
+        formatted += ` - 票价: 免费`;
+      }
+      if (spot.description) {
+        formatted += `\n   简介: ${spot.description}`;
+      }
+      formatted += '\n';
+    });
+
+    return formatted;
+  }
+
+  /**
+   * 回答用户问题
+   */
+  async answerQuestion(request: AdvisorRequest): Promise<AdvisorResponse> {
+    const { question, planContext } = request;
+
+    console.log('🤖 收到顾问请求');
+    console.log('   问题:', question);
+    console.log('   规划信息:', JSON.stringify(planContext, null, 2));
+
+    try {
+      const systemPrompt = this.buildSystemPrompt();
+      let userPrompt = this.buildUserPrompt(question, planContext);
+
+      // 判断是否需要获取景点数据
+      if (this.needsSpotData(question) && planContext?.destination) {
+        console.log('📝 检测到景点相关问题，从数据库获取景点数据...');
+
+        // 从数据库获取景点数据
+        const spots = await this.getSpotsFromDatabase(
+          planContext.destination,
+          planContext.preferences,
+          20
+        );
+
+        if (spots.length > 0) {
+          // 将景点数据添加到提示词中
+          const spotsInfo = this.formatSpotsForPrompt(spots);
+          userPrompt += spotsInfo;
+          console.log(`✅ 已添加 ${spots.length} 个景点信息到提示词`);
+        } else {
+          console.log('⚠️ 数据库中没有找到该城市的景点数据');
+        }
+      }
+
+      const result = await this.callZhipuAI([
+        {
+          role: 'system',
+          content: systemPrompt,
+        },
+        {
+          role: 'user',
+          content: userPrompt,
+        },
+      ]);
+
+      const answer = result.choices[0]?.message?.content || '抱歉，我暂时无法回答这个问题。';
+
+      console.log('✅ AI顾问回答完成');
+      console.log('   回答:', answer);
+
+      return { answer };
+    } catch (error: any) {
+      console.error('❌ AI顾问回答失败:', error);
+      throw new Error(error.message || 'AI顾问服务暂时不可用');
+    }
+  }
+
+  /**
+   * 构建系统提示词
+   */
+  private buildSystemPrompt(): string {
+    return `你是一位专业的旅行规划顾问，服务于一款智能旅行规划平台。你的职责是帮助用户在规划旅行时解答疑问、提供建议，辅助他们做出更好的决策。
+
+## 你的能力范围
+
+- 目的地介绍：景点特色、最佳游览季节、当地文化习俗、注意事项
+- 行程建议：景点组合、游览顺序、每天行程安排的合理性
+- 预算参考：各类目的地的大致花费区间、省钱技巧、预算分配建议
+- 出行建议：交通方式、住宿选择、餐饮推荐方向
+- 偏好匹配：根据用户描述的兴趣推荐合适的目的地或景点类型
+
+## 回答规范
+
+- 语气：亲切自然，像朋友之间的对话，避免过于正式或说教
+- 长度：简洁为主，核心建议控制在200字以内，用户追问时再展开细节
+- 格式：优先用自然语言表达，必要时使用简短的列表，避免大段堆砌
+- 立场：给出明确的建议和倾向，不要模棱两可，用户需要的是决策支持而不是"各有优劣，看个人喜好"这类无效回答
+
+## 景点推荐要求（重要）
+
+当用户询问景点推荐时：
+1. **必须给出具体的景点名称**，不要只说"有很多历史博物馆"
+2. **基于提供的景点信息进行推荐**，不要编造不存在的景点
+3. **推荐3-5个最合适的景点**，而不是列出所有景点
+4. **说明推荐理由**，如"评分高"、"免费"、"符合您的兴趣"等
+5. **如果用户有特定偏好**（如历史文化），优先推荐符合偏好的景点
+6. **如果用户询问预算相关**，考虑景点的票价因素
+
+## 边界约束
+
+- 只回答与旅行规划直接相关的问题
+- 对于无关话题，友好地说明你只能提供旅行相关的帮助
+- 不要主动询问用户是否需要帮忙修改表单，你的职责是建议而非操作
+- 对于需要实时数据的问题（如今日天气、实时票价），说明你无法获取实时信息，并给出参考区间或建议用户查询官方渠道`;
+  }
+
+  /**
+   * 构建用户提示词
+   */
+  private buildUserPrompt(question: string, planContext?: AdvisorRequest['planContext']): string {
+    let prompt = `用户的问题：${question}`;
+
+    if (planContext) {
+      const contextInfo: string[] = [];
+
+      if (planContext.origin) {
+        contextInfo.push(`出发地：${planContext.origin}`);
+      }
+      if (planContext.destination) {
+        contextInfo.push(`目的地：${planContext.destination}`);
+      }
+      if (planContext.startDate && planContext.endDate) {
+        contextInfo.push(`出行日期：${planContext.startDate} 至 ${planContext.endDate}`);
+      }
+      if (planContext.budget) {
+        contextInfo.push(`预算：${planContext.budget}元`);
+      }
+      if (planContext.groupSize) {
+        contextInfo.push(`出行人数：${planContext.groupSize}人`);
+      }
+      if (planContext.preferences && planContext.preferences.length > 0) {
+        contextInfo.push(`兴趣偏好：${planContext.preferences.join('、')}`);
+      }
+
+      if (contextInfo.length > 0) {
+        prompt += `\n\n用户当前的规划信息：\n${contextInfo.join('\n')}`;
+      }
+
+      // 计算天数
+      if (planContext.startDate && planContext.endDate) {
+        const startDate = new Date(planContext.startDate);
+        const endDate = new Date(planContext.endDate);
+        const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        prompt += `\n出行天数：${days}天`;
+      }
+    }
+
+    return prompt;
+  }
+}
+
+// 导出单例
+export const advisorService = new AdvisorService();

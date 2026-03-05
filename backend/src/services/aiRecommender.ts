@@ -1,7 +1,6 @@
-// AI 推荐服务 - 使用 Claude 或 OpenAI API 进行智能行程推荐
-import Anthropic from '@anthropic-ai/sdk';
-import OpenAI from 'openai';
+// AI 推荐服务 - 使用智谱AI（ChatGLM）进行智能行程推荐
 import { AmapAttraction, amapService } from './amapService';
+import { ZhipuAI } from 'zhipuai';
 
 // 推荐的景点项
 export interface RecommendedAttraction {
@@ -51,9 +50,9 @@ interface AIRecommendRequest {
 }
 
 class AIRecommender {
-  private anthropicClient: Anthropic | null = null;
-  private openaiClient: OpenAI | null = null;
-  private useProvider: 'anthropic' | 'openai' | 'fallback' = 'fallback';
+  private zhipuClient: ZhipuAI | null = null;
+  private useProvider: 'zhipu' | 'fallback' = 'fallback';
+  private model: string = 'glm-4';
   private initialized: boolean = false;
 
   constructor() {
@@ -63,22 +62,20 @@ class AIRecommender {
   private initialize() {
     if (this.initialized) return;
 
-    // 优先使用 Anthropic Claude
-    const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
-    if (anthropicApiKey) {
-      this.anthropicClient = new Anthropic({ apiKey: anthropicApiKey });
-      this.useProvider = 'anthropic';
-      console.log('✅ 使用 Anthropic Claude AI 服务');
-    } else {
-      const openaiApiKey = process.env.OPENAI_API_KEY;
-      if (openaiApiKey) {
-        this.openaiClient = new OpenAI({ apiKey: openaiApiKey });
-        this.useProvider = 'openai';
-        console.log('✅ 使用 OpenAI GPT AI 服务');
-      } else {
-        console.warn('⚠️  未配置 AI API Key，将使用 fallback 规则引擎');
+    // 使用智谱AI
+    const zhipuApiKey = process.env.ZHIPUAI_API_KEY;
+    if (zhipuApiKey) {
+      try {
+        this.zhipuClient = new ZhipuAI({ apiKey: zhipuApiKey });
+        this.useProvider = 'zhipu';
+        console.log('✅ 使用智谱AI（ChatGLM）服务');
+      } catch (error) {
+        console.warn('⚠️  智谱AI 初始化失败，将使用 fallback 规则引擎');
         this.useProvider = 'fallback';
       }
+    } else {
+      console.warn('⚠️  未配置 ZHIPUAI_API_KEY，将使用 fallback 规则引擎');
+      this.useProvider = 'fallback';
     }
 
     this.initialized = true;
@@ -112,10 +109,8 @@ class AIRecommender {
 
     // 根据 provider 选择不同的推荐策略
     switch (this.useProvider) {
-      case 'anthropic':
-        return this.recommendWithAnthropic(request);
-      case 'openai':
-        return this.recommendWithOpenAI(request);
+      case 'zhipu':
+        return this.recommendWithZhipu(request);
       case 'fallback':
       default:
         return this.recommendWithFallback(request);
@@ -123,82 +118,37 @@ class AIRecommender {
   }
 
   /**
-   * 使用 Anthropic Claude 推荐行程
+   * 使用智谱AI（ChatGLM）推荐行程
    */
-  private async recommendWithAnthropic(request: AIRecommendRequest): Promise<FullItinerary> {
+  private async recommendWithZhipu(request: AIRecommendRequest): Promise<FullItinerary> {
     try {
       const prompt = this.buildPrompt(request);
 
-      const message = await this.anthropicClient!.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 4096,
+      const result = await this.zhipuClient!.chat.completions.create({
+        model: this.model,
         messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-      });
-
-      const content = message.content[0];
-      if (content.type !== 'text') {
-        throw new Error('Claude 返回的不是文本内容');
-      }
-
-      // 提取 JSON（可能被包裹在代码块中）
-      const jsonText = this.extractJSON(content.text);
-      const itinerary = JSON.parse(jsonText) as FullItinerary;
-
-      // 验证返回的数据格式
-      this.validateItinerary(itinerary, request.days);
-
-      console.log('✅ Claude 推荐完成');
-      return itinerary;
-    } catch (error) {
-      console.error('❌ Claude 推荐失败:', error);
-      console.log('🔄 降级使用 fallback 规则引擎');
-      return this.recommendWithFallback(request);
-    }
-  }
-
-  /**
-   * 使用 OpenAI GPT 推荐行程
-   */
-  private async recommendWithOpenAI(request: AIRecommendRequest): Promise<FullItinerary> {
-    try {
-      const prompt = this.buildPrompt(request);
-
-      const completion = await this.openaiClient!.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: '你是一个专业的旅行规划师。请严格按照用户要求的 JSON 格式返回行程规划结果，不要输出任何解释文字。',
-          },
           {
             role: 'user',
             content: prompt,
           },
         ],
         temperature: 0.7,
-        max_tokens: 4096,
-        response_format: { type: 'json_object' },
+        max_tokens: 2000,
       });
 
-      const content = completion.choices[0].message.content;
-      if (!content) {
-        throw new Error('OpenAI 返回空内容');
-      }
+      const text = result.choices[0]?.message?.content || '';
 
-      const itinerary = JSON.parse(content) as FullItinerary;
+      // 提取 JSON（可能被包裹在代码块中）
+      const jsonText = this.extractJSON(text);
+      const itinerary = JSON.parse(jsonText) as FullItinerary;
 
       // 验证返回的数据格式
       this.validateItinerary(itinerary, request.days);
 
-      console.log('✅ OpenAI 推荐完成');
+      console.log('✅ 智谱AI推荐完成');
       return itinerary;
     } catch (error) {
-      console.error('❌ OpenAI 推荐失败:', error);
+      console.error('❌ 智谱AI推荐失败:', error);
       console.log('🔄 降级使用 fallback 规则引擎');
       return this.recommendWithFallback(request);
     }

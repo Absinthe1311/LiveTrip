@@ -10,6 +10,7 @@ import LocationSearch from '../components/LocationSearch';
 import DateRangePicker from '../components/DateRangePicker';
 import BudgetRangeSlider from '../components/BudgetRangeSlider';
 import PreferenceCards from '../components/PreferenceCards';
+import TravelAdvisor from '../components/TravelAdvisor';
 
 export default function Plan() {
   const navigate = useNavigate();
@@ -206,66 +207,86 @@ export default function Plan() {
         subtitle="只需几步，AI 为您定制专属行程"
       />
 
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px 48px' }}>
-        <CompactProgressBar current={currentStep} steps={steps} />
-        
-        <div style={{ marginBottom: '24px' }}>
-          {renderStepContent()}
-        </div>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 48px' }}>
+        <div style={{ display: 'flex', gap: '24px' }}>
+          {/* 左侧：规划表单 */}
+          <div style={{ flex: 1 }}>
+            <CompactProgressBar current={currentStep} steps={steps} />
 
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          gap: '16px'
-        }}>
-          <Button
-            size="large"
-            disabled={currentStep === 0}
-            onClick={handlePrev}
-            style={{
-              flex: 1,
-              height: '48px',
-              borderRadius: '8px',
-              fontSize: '16px'
-            }}
-          >
-            上一步
-          </Button>
-          {currentStep < steps.length - 1 ? (
-            <Button
-              type="primary"
-              size="large"
-              onClick={handleNext}
-              style={{
-                flex: 1,
-                height: '48px',
-                borderRadius: '8px',
-                fontSize: '16px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                border: 'none'
+            <div style={{ marginBottom: '24px' }}>
+              {renderStepContent()}
+            </div>
+
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: '16px'
+            }}>
+              <Button
+                size="large"
+                disabled={currentStep === 0}
+                onClick={handlePrev}
+                style={{
+                  flex: 1,
+                  height: '48px',
+                  borderRadius: '8px',
+                  fontSize: '16px'
+                }}
+              >
+                上一步
+              </Button>
+              {currentStep < steps.length - 1 ? (
+                <Button
+                  type="primary"
+                  size="large"
+                  onClick={handleNext}
+                  style={{
+                    flex: 1,
+                    height: '48px',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    border: 'none'
+                  }}
+                >
+                  下一步
+                </Button>
+              ) : (
+                <Button
+                  type="primary"
+                  size="large"
+                  loading={loading}
+                  onClick={handleGenerate}
+                  style={{
+                    flex: 1,
+                    height: '48px',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    border: 'none',
+                    fontWeight: 600
+                  }}
+                >
+                  生成行程
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* 右侧：AI顾问 */}
+          <div style={{ width: '400px' }}>
+            <TravelAdvisor
+              planContext={{
+                origin: formData.origin,
+                destination: formData.destination,
+                startDate: formData.startDate,
+                endDate: formData.endDate,
+                budget: Math.round((formData.minBudget + formData.maxBudget) / 2),
+                groupSize: 1, // 默认1人，后续可以从表单获取
+                preferences: formData.preferences,
               }}
-            >
-              下一步
-            </Button>
-          ) : (
-            <Button
-              type="primary"
-              size="large"
-              loading={loading}
-              onClick={handleGenerate}
-              style={{
-                flex: 1,
-                height: '48px',
-                borderRadius: '8px',
-                fontSize: '16px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                border: 'none',
-                fontWeight: 600
-              }}
-            >
-              生成行程
-            </Button>
-          )}
+            />
+          </div>
         </div>
       </div>
     </div>
