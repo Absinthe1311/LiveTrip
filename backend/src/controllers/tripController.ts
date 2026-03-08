@@ -178,10 +178,10 @@ export const saveTrip = async (req: Request, res: Response) => {
       console.log(`✅ 用户创建成功，ID: ${user.id}`);
     }
 
-    const { summary, itinerary, total_cost, budget_breakdown, hotel } = tripData;
+    const { summary, itinerary, total_cost, budget_breakdown, hotel, hotelRecommendations, restaurantRecommendations } = tripData;
     const days = itinerary.itinerary.length;
 
-    // 创建行程记录（包含酒店信息）
+    // 创建行程记录（包含酒店信息和推荐缓存）
     const trip = await prisma.trip.create({
       data: {
         userId,
@@ -200,6 +200,8 @@ export const saveTrip = async (req: Request, res: Response) => {
         hotelTel: hotel?.tel || null,
         hotelType: hotel?.type || null,
         hotelRating: hotel?.rating || null,
+        // 保存酒店推荐缓存
+        hotelRecommendationsCache: hotelRecommendations ? JSON.stringify(hotelRecommendations) : '',
       },
     });
 
@@ -224,6 +226,8 @@ export const saveTrip = async (req: Request, res: Response) => {
     for (const day of itinerary.itinerary) {
       // 获取该天的餐厅信息
       const dayRestaurant = tripData.restaurants?.find((r: any) => r.day === day.day)?.selectedRestaurant;
+      // 获取该天的餐厅推荐缓存
+      const dayRestaurantRecommendations = restaurantRecommendations?.find((r: any) => r.day === day.day)?.restaurants;
 
       const dayRecord = await prisma.day.create({
         data: {
@@ -238,6 +242,8 @@ export const saveTrip = async (req: Request, res: Response) => {
           restaurantTel: dayRestaurant?.tel || null,
           restaurantType: dayRestaurant?.type || null,
           restaurantRating: dayRestaurant?.rating || null,
+          // 保存餐厅推荐缓存
+          restaurantRecommendationsCache: dayRestaurantRecommendations ? JSON.stringify(dayRestaurantRecommendations) : '',
         },
       });
 

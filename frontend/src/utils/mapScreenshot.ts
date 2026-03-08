@@ -278,36 +278,58 @@ export async function generateDayMapScreenshot(
         // 自适应显示所有标记
         map.setFitView(null, false, [50, 50, 50, 50]);
 
-        // 等待地图渲染完成
-        setTimeout(async () => {
-          try {
-            console.log(`📸 开始截取第${dayData.dayNumber}天地图...`);
+        // 等待地图瓦片加载完成
+        let tilesLoaded = false;
+        const checkTilesLoaded = () => {
+          if (tilesLoaded) return;
+          tilesLoaded = true;
+          
+          // 额外等待时间,确保周围环境完全渲染
+          setTimeout(async () => {
+            try {
+              console.log(`📸 开始截取第${dayData.dayNumber}天地图...`);
 
-            const canvas = await html2canvas(container, {
-              useCORS: true,
-              allowTaint: true,
-              scale: 2,
-              backgroundColor: '#ffffff',
-              logging: false,
-              width: width,
-              height: height,
-            });
+              const canvas = await html2canvas(container, {
+                useCORS: true,
+                allowTaint: true,
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false,
+                width: width,
+                height: height,
+              });
 
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
 
-            // 清理
-            map.destroy();
-            document.body.removeChild(container);
+              // 清理
+              map.destroy();
+              document.body.removeChild(container);
 
-            console.log(`🗺️ 第${dayData.dayNumber}天地图截图生成成功`);
-            resolve(dataUrl);
-          } catch (error) {
-            console.error('地图截图失败:', error);
-            map.destroy();
-            document.body.removeChild(container);
-            reject(error);
+              console.log(`🗺️ 第${dayData.dayNumber}天地图截图生成成功`);
+              resolve(dataUrl);
+            } catch (error) {
+              console.error('地图截图失败:', error);
+              map.destroy();
+              document.body.removeChild(container);
+              reject(error);
+            }
+          }, 3000); // 增加到3秒,确保周围环境完全加载
+        };
+
+        // 监听地图瓦片加载完成事件
+        map.on('complete', () => {
+          console.log(`🗺️ 第${dayData.dayNumber}天地图加载完成,等待周围环境渲染...`);
+          // 地图complete后,再等待一段时间确保瓦片加载
+          setTimeout(checkTilesLoaded, 2000);
+        });
+
+        // 备用方案:如果5秒后还没有触发complete,强制截图
+        setTimeout(() => {
+          if (!tilesLoaded) {
+            console.log(`⚠️ 第${dayData.dayNumber}天地图加载超时,强制截图`);
+            checkTilesLoaded();
           }
-        }, 2000);
+        }, 5000);
       });
 
       map.on('error', (error: any) => {
@@ -563,37 +585,59 @@ export async function generateMapScreenshot(
         // 自适应显示所有标记,并设置合适的缩放级别
         map.setFitView(null, false, [50, 50, 50, 50]);
 
-        // 等待地图渲染完成
-        setTimeout(async () => {
-          try {
-            console.log('📸 开始截取地图...');
+        // 等待地图瓦片加载完成
+        let tilesLoaded = false;
+        const checkTilesLoaded = () => {
+          if (tilesLoaded) return;
+          tilesLoaded = true;
+          
+          // 额外等待时间,确保周围环境完全渲染
+          setTimeout(async () => {
+            try {
+              console.log('📸 开始截取地图...');
 
-            // 使用html2canvas截取整个容器(包括地图和标记)
-            const canvas = await html2canvas(container, {
-              useCORS: true,
-              allowTaint: true,
-              scale: 2,
-              backgroundColor: '#ffffff',
-              logging: false,
-              width: width,
-              height: height,
-            });
+              // 使用html2canvas截取整个容器(包括地图和标记)
+              const canvas = await html2canvas(container, {
+                useCORS: true,
+                allowTaint: true,
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false,
+                width: width,
+                height: height,
+              });
 
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
 
-            // 清理
-            map.destroy();
-            document.body.removeChild(container);
+              // 清理
+              map.destroy();
+              document.body.removeChild(container);
 
-            console.log('🗺️ 地图截图生成成功');
-            resolve(dataUrl);
-          } catch (error) {
-            console.error('地图截图失败:', error);
-            map.destroy();
-            document.body.removeChild(container);
-            reject(error);
+              console.log('🗺️ 地图截图生成成功');
+              resolve(dataUrl);
+            } catch (error) {
+              console.error('地图截图失败:', error);
+              map.destroy();
+              document.body.removeChild(container);
+              reject(error);
+            }
+          }, 3000); // 增加到3秒,确保周围环境完全加载
+        };
+
+        // 监听地图瓦片加载完成事件
+        map.on('complete', () => {
+          console.log('🗺️ 地图加载完成,等待周围环境渲染...');
+          // 地图complete后,再等待一段时间确保瓦片加载
+          setTimeout(checkTilesLoaded, 2000);
+        });
+
+        // 备用方案:如果5秒后还没有触发complete,强制截图
+        setTimeout(() => {
+          if (!tilesLoaded) {
+            console.log('⚠️ 地图加载超时,强制截图');
+            checkTilesLoaded();
           }
-        }, 2000); // 增加等待时间确保地图完全渲染
+        }, 5000);
       });
 
       map.on('error', (error: any) => {

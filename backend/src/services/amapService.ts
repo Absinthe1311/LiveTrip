@@ -77,7 +77,7 @@ class AmapService {
     pageSize: number = 20
   ): Promise<AmapAttraction[]> {
     try {
-      console.log(`🔍 正在搜索 ${city} 的景点...`);
+      console.log(`📡 [高德API] 关键字搜索 - 城市: ${city}, 关键词: ${keywords}, 用途: 获取景点数据`);
 
       const response = await this.client.get<AmapPOIResponse>('/place/text', {
         params: {
@@ -95,7 +95,7 @@ class AmapService {
       }
 
       const pois = response.data.pois || [];
-      console.log(`✅ 获取到 ${pois.length} 个景点`);
+      console.log(`✅ [高德API] 关键字搜索成功 - 返回 ${pois.length} 个结果`);
 
       // 转换为统一格式
       const attractions: AmapAttraction[] = pois.map((poi) => ({
@@ -112,7 +112,7 @@ class AmapService {
 
       return attractions;
     } catch (error) {
-      console.error('❌ 高德 API 调用失败:', error);
+      console.error('❌ [高德API] 关键字搜索失败:', error);
       throw error;
     }
   }
@@ -223,7 +223,7 @@ class AmapService {
     pageSize: number = 20
   ): Promise<AmapAttraction[]> {
     try {
-      console.log(`🔍 周边搜索: 中心点=${location}, 关键词=${keywords}, 半径=${radius}m`);
+      console.log(`📡 [高德API] 周边搜索 - 关键词: ${keywords}, 中心点: ${location}, 半径: ${radius}m, 用途: ${keywords === '酒店' ? '酒店推荐' : keywords === '餐厅' ? '餐厅推荐' : '周边搜索'}`);
 
       const params: Record<string, any> = {
         location: location,
@@ -248,7 +248,7 @@ class AmapService {
       }
 
       const pois = response.data.pois || [];
-      console.log(`✅ 周边搜索获取到 ${pois.length} 个结果`);
+      console.log(`✅ [高德API] 周边搜索成功 - 返回 ${pois.length} 个结果`);
 
       // 转换为统一格式
       const attractions: AmapAttraction[] = pois.map((poi) => ({
@@ -265,7 +265,7 @@ class AmapService {
 
       return attractions;
     } catch (error) {
-      console.error('❌ 周边搜索失败:', error);
+      console.error('❌ [高德API] 周边搜索失败:', error);
       throw error;
     }
   }

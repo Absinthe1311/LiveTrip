@@ -1,7 +1,10 @@
 // 推荐控制器 - 处理酒店和餐厅推荐请求
 import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
 import { hotelRecommender, HotelRecommendRequest } from '../services/hotelRecommender';
 import { restaurantRecommender, RestaurantRecommendRequest } from '../services/restaurantRecommender';
+
+const prisma = new PrismaClient();
 
 /**
  * 获取酒店推荐
@@ -10,15 +13,14 @@ import { restaurantRecommender, RestaurantRecommendRequest } from '../services/r
  * 请求体:
  * {
  *   spots: [{ name: string, location: string }],
- *   budget: number
+ *   budget: number,
+ *   tripId?: string (可选,如果提供则优先使用缓存)
  * }
  */
 export const getHotelRecommendations = async (req: Request, res: Response) => {
   try {
     console.log('🏨 收到酒店推荐请求');
-    console.log('请求体:', JSON.stringify(req.body, null, 2));
-
-    const { spots, budget } = req.body as HotelRecommendRequest;
+    const { spots, budget, tripId } = req.body as HotelRecommendRequest & { tripId?: string };
 
     // 验证必填字段
     if (!spots || !Array.isArray(spots) || spots.length === 0) {
@@ -45,8 +47,33 @@ export const getHotelRecommendations = async (req: Request, res: Response) => {
       }
     }
 
-    console.log(`📍 景点数量: ${spots.length}`);
-    console.log(`💰 用户预算: ${budget}元`);
+    // 如果提供了tripId,优先使用缓存
+    if (tripId) {
+      const trip = await prisma.trip.findUnique({
+        where: { id: tripId },
+        select: { hotelRecommendationsCache: true },
+      });
+
+      if (trip && trip.hotelRecommendationsCache) {
+        try {
+          const cachedHotels = JSON.parse(trip.hotelRecommendationsCache);
+          if (cachedHotels && cachedHotels.length > 0) {
+            console.log('✅ 使用缓存的酒店推荐');
+            return res.json({
+              success: true,
+              data: cachedHotels,
+              count: cachedHotels.length,
+              fromCache: true,
+            });
+          }
+        } catch (e) {
+          console.warn('⚠️  缓存解析失败,将重新获取');
+        }
+      }
+    }
+
+    console.log('📡 调用高德API获取酒店推荐');
+    console.log(`📍 景点数量: ${spots.length}, 预算: ${budget}元`);
 
     // 调用酒店推荐服务
     const hotels = await hotelRecommender.getHotelRecommendations(spots, budget);
@@ -57,6 +84,7 @@ export const getHotelRecommendations = async (req: Request, res: Response) => {
       success: true,
       data: hotels,
       count: hotels.length,
+      fromCache: false,
     });
   } catch (error: any) {
     console.error('❌ 酒店推荐失败:', error);
@@ -77,15 +105,14 @@ export const getHotelRecommendations = async (req: Request, res: Response) => {
  *     day: number,
  *     date: string,
  *     spots: [{ name: string, location: string }]
- *   }]
+ *   }],
+ *   tripId?: string (可选,如果提供则优先使用缓存)
  * }
  */
 export const getRestaurantRecommendations = async (req: Request, res: Response) => {
   try {
     console.log('🍽️ 收到餐厅推荐请求');
-    console.log('请求体:', JSON.stringify(req.body, null, 2));
-
-    const { days } = req.body as RestaurantRecommendRequest;
+    const { days, tripId } = req.body as RestaurantRecommendRequest & { tripId?: string };
 
     // 验证必填字段
     if (!days || !Array.isArray(days) || days.length === 0) {
@@ -124,8 +151,59 @@ export const getRestaurantRecommendations = async (req: Request, res: Response) 
       }
     }
 
+    // 如果提供了tripId,优先使用缓存
+    if (tripId) {
+      const trip = await prisma.trip.findUnique({
+        where: { id: tripId },
+        include: {
+          days: {
+            select: {
+              dayNumber: true,
+              restaurantRecommendationsCache: true,
+            },
+          },
+        },
+      });
+
+      if (trip && trip.days) {
+        const cachedRecommendations = [];
+        let hasValidCache = false;
+
+        for (const day of days) {
+          const dayRecord = trip.days.find(d => d.dayNumber === day.day);
+          if (dayRecord && dayRecord.restaurantRecommendationsCache) {
+            try {
+              const cachedRestaurants = JSON.parse(dayRecord.restaurantRecommendationsCache);
+              if (cachedRestaurants && cachedRestaurants.length > 0) {
+                cachedRecommendations.push({
+                  day: day.day,
+                  date: day.date,
+                  centerSpot: '',
+                  centerLocation: '',
+                  restaurants: cachedRestaurants,
+                });
+                hasValidCache = true;
+              }
+            } catch (e) {
+              console.warn(`⚠️  第${day.day}天缓存解析失败`);
+            }
+          }
+        }
+
+        if (hasValidCache && cachedRecommendations.length === days.length) {
+          console.log('✅ 使用缓存的餐厅推荐');
+          return res.json({
+            success: true,
+            data: cachedRecommendations,
+            count: cachedRecommendations.length,
+            fromCache: true,
+          });
+        }
+      }
+    }
+
+    console.log('📡 调用高德API获取餐厅推荐');
     console.log(`📍 天数: ${days.length}`);
-    console.log('📦 请求数据详情:', JSON.stringify(days, null, 2));
 
     // 调用餐厅推荐服务
     const recommendations = await restaurantRecommender.getRestaurantRecommendations(days);
@@ -136,6 +214,7 @@ export const getRestaurantRecommendations = async (req: Request, res: Response) 
       success: true,
       data: recommendations,
       count: recommendations.length,
+      fromCache: false,
     });
   } catch (error: any) {
     console.error('❌ 餐厅推荐失败:', error);

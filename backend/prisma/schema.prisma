@@ -78,6 +78,9 @@ model Trip {
   isPublic   Boolean @default(false) // 是否公开分享
   shareToken String? @unique // 分享token(8-12位随机字符串)
 
+  // Hotel recommendations cache (酒店推荐缓存)
+  hotelRecommendationsCache String? @default("") // JSON字符串,存储推荐的酒店列表
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -103,6 +106,9 @@ model Day {
   restaurantTel      String?
   restaurantType     String?
   restaurantRating   Float?
+
+  // Restaurant recommendations cache (餐厅推荐缓存)
+  restaurantRecommendationsCache String? @default("") // JSON字符串,存储推荐的餐厅列表
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
