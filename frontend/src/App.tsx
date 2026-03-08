@@ -8,6 +8,7 @@ import Auth from './pages/Auth';
 import DestinationDetail from './pages/DestinationDetail';
 import Favorites from './pages/Favorites';
 import Destinations from './pages/Destinations';
+import SharedTrip from './pages/SharedTrip';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/destination/:id" element={<DestinationDetail />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/destinations" element={<Destinations />} />
+        <Route path="/shared/:token" element={<SharedTrip />} />
       </Routes>
     </Router>
   );

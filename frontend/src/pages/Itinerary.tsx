@@ -24,6 +24,8 @@ import AlternativeAttractions from '../components/AlternativeAttractions';
 import BudgetChart from '../components/BudgetChart';
 import HotelRecommendations from '../components/HotelRecommendations';
 import RestaurantRecommendations from '../components/RestaurantRecommendations';
+import ShareButton from '../components/ShareButton';
+import PDFExportButton from '../components/PDFExportButton';
 import { useAppStore } from '../store';
 import { FullItinerary, AttractionItem, calculateRealTimeBudget } from '../api/client';
 import { adjustItinerary, getIoTData, saveTrip, updateAlternativeRelations } from '../api/client';
@@ -490,6 +492,8 @@ export default function Itinerary() {
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [tripId, setTripId] = useState<string>(''); // 行程ID(保存后才有)
+  const [isSavedTrip, setIsSavedTrip] = useState(false); // 是否是已保存的行程
 
   // 备选景点相关状态
   const [expandedAlternatives, setExpandedAlternatives] = useState<Record<string, any>>({});
@@ -514,7 +518,15 @@ export default function Itinerary() {
     if (currentItinerary) {
       console.log('✅ 找到行程数据，设置到页面状态');
       setItineraryData(currentItinerary);
-      
+
+      // 检查是否是已保存的行程
+      if (currentItinerary.isSavedTrip) {
+        setIsSavedTrip(true);
+        if (currentItinerary.tripId) {
+          setTripId(currentItinerary.tripId);
+        }
+      }
+
       // 从行程数据中恢复酒店信息
       if (currentItinerary.hotel) {
         console.log('🏨 恢复酒店信息:', currentItinerary.hotel);
@@ -626,6 +638,10 @@ export default function Itinerary() {
       if (response.success) {
         console.log('✅ 行程保存成功:', response.data);
         message.success('行程已保存');
+        // 设置tripId(用于分享功能)
+        if (response.data.tripId) {
+          setTripId(response.data.tripId);
+        }
         navigate('/');
       } else {
         console.error('❌ 行程保存失败:', response.error);
@@ -923,6 +939,55 @@ export default function Itinerary() {
         }}>
           我的行程
         </Title>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          {tripId && <ShareButton tripId={tripId} />}
+          {itineraryData && (
+            <PDFExportButton tripData={{
+              id: tripId,
+              title: itineraryData.summary?.destination ? `${itineraryData.summary.destination}之旅` : '我的行程',
+              destination: itineraryData.summary?.destination || '',
+              startDate: itineraryData.summary?.start_date || '',
+              endDate: itineraryData.summary?.end_date || '',
+              totalBudget: itineraryData.summary?.budget || itineraryData.total_cost || 0,
+              days: itineraryData.itinerary.map(day => ({
+                dayNumber: day.day,
+                date: day.date,
+                itineraryItems: day.attractions.map(attr => ({
+                  name: attr.name,
+                  type: attr.type || 'attraction',
+                  category: attr.category,
+                  description: attr.description,
+                  startTime: `${day.date} ${attr.time.split('-')[0]}`,
+                  endTime: `${day.date} ${attr.time.split('-')[1]}`,
+                  address: attr.address,
+                  cost: attr.estimated_cost || 0,
+                  longitude: attr.location ? parseFloat(attr.location.split(',')[0]) : undefined,
+                  latitude: attr.location ? parseFloat(attr.location.split(',')[1]) : undefined,
+                })),
+                restaurantName: selectedRestaurants[day.day]?.name,
+                restaurantAddress: selectedRestaurants[day.day]?.address,
+                restaurantLocation: selectedRestaurants[day.day]?.location, // 餐厅位置坐标(用于地图显示)
+                restaurantType: selectedRestaurants[day.day]?.type,
+                restaurantRating: selectedRestaurants[day.day]?.rating,
+              })),
+              budget: itineraryData.budget_breakdown ? {
+                transportation: itineraryData.budget_breakdown.transportation || 0,
+                accommodation: itineraryData.budget_breakdown.accommodation || 0,
+                food: itineraryData.budget_breakdown.dining || 0,
+                tickets: itineraryData.budget_breakdown.tickets || 0,
+                shopping: 0,
+                other: 0,
+              } : undefined,
+              hotel: selectedHotel ? {
+                name: selectedHotel.name,
+                address: selectedHotel.address,
+                location: selectedHotel.location, // 酒店位置坐标(用于地图显示)
+                type: selectedHotel.type,
+                rating: selectedHotel.rating,
+              } : undefined,
+            }} />
+          )}
+        </div>
       </div>
 
       <Row gutter={24}>
@@ -1192,24 +1257,42 @@ export default function Itinerary() {
           marginBottom: '16px',
           margin: 0
         }}>
-          💡 确认后行程将保存到数据库
+          {isSavedTrip ? '查看行程详情' : '💡 确认后行程将保存到数据库'}
         </p>
-        <Button
-          type="primary"
-          size="large"
-          loading={confirming}
-          onClick={handleConfirmItinerary}
-          style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            fontWeight: 600,
-            minWidth: '200px'
-          }}
-        >
-          确认并返回主页
-        </Button>
+        {isSavedTrip ? (
+          <Button
+            type="primary"
+            size="large"
+            onClick={() => navigate('/')}
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: 600,
+              minWidth: '200px'
+            }}
+          >
+            返回首页
+          </Button>
+        ) : (
+          <Button
+            type="primary"
+            size="large"
+            loading={confirming}
+            onClick={handleConfirmItinerary}
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: 600,
+              minWidth: '200px'
+            }}
+          >
+            确认并返回主页
+          </Button>
+        )}
       </div>
 
       {/* 调整建议弹窗 */}

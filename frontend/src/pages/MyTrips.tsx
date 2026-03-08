@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, List, Button, Empty, Spin, message, Typography, Tag, Space } from 'antd';
-import { PlusOutlined, CalendarOutlined, EnvironmentOutlined, DollarOutlined } from '@ant-design/icons';
+import { PlusOutlined, CalendarOutlined, EnvironmentOutlined, DollarOutlined, HomeOutlined } from '@ant-design/icons';
 import { getUserTrips, deleteTrip } from '../api/client';
 import { useAppStore } from '../store';
 
@@ -36,11 +36,16 @@ export default function MyTrips() {
 
   const handleViewTrip = (trip: any) => {
     console.log('📍 查看行程:', trip);
-    
+
     // 将行程转换为前端格式
     const itinerary = convertTripToItinerary(trip);
+
+    // 标记这是已保存的行程,避免重复保存
+    itinerary.isSavedTrip = true;
+    itinerary.tripId = trip.id;
+
     setCurrentItinerary(itinerary);
-    
+
     // 跳转到行程详情页面
     navigate('/itinerary');
   };
@@ -82,6 +87,8 @@ export default function MyTrips() {
               name: item.name,
               time: `${startTime}-${endTime}`,
               location: item.longitude && item.latitude ? `${item.longitude},${item.latitude}` : '',
+              longitude: item.longitude, // 保留原始经度(用于PDF地图显示)
+              latitude: item.latitude,   // 保留原始纬度(用于PDF地图显示)
               estimated_cost: item.cost || 0,
               description: item.description || item.type || '',
               type: item.type || '景点',
@@ -190,20 +197,33 @@ export default function MyTrips() {
               共 {trips.length} 个行程
             </Text>
           </div>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => navigate('/plan')}
-            style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '16px',
-              fontWeight: 500
-            }}
-          >
-            创建新行程
-          </Button>
+          <Space>
+            <Button
+              icon={<HomeOutlined />}
+              onClick={() => navigate('/')}
+              style={{
+                borderRadius: '6px',
+                fontSize: '16px',
+                fontWeight: 500
+              }}
+            >
+              返回首页
+            </Button>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => navigate('/plan')}
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '16px',
+                fontWeight: 500
+              }}
+            >
+              创建新行程
+            </Button>
+          </Space>
         </div>
 
         {trips.length === 0 ? (

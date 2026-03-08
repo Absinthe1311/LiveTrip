@@ -1,5 +1,6 @@
 // 酒店和餐厅推荐 API - 封装推荐相关的后端调用
 import apiClient from './client';
+import { getCache, setCache } from '../utils/amapCache';
 
 // ==================== 类型定义 ====================
 
@@ -84,10 +85,26 @@ export const getHotelRecommendations = async (
   spots: Array<{ name: string; location: string }>,
   budget: number
 ): Promise<HotelRecommendResponse> => {
+  // 生成缓存键
+  const cacheKey = spots.map(s => s.location).sort().join(',');
+
+  // 尝试从缓存获取
+  const cached = getCache('hotels', cacheKey, budget);
+  if (cached) {
+    return cached;
+  }
+
+  // 调用API
   const response = await apiClient.post<HotelRecommendResponse>('/recommendations/hotels', {
     spots,
     budget,
   });
+
+  // 保存到缓存
+  if (response.data.success) {
+    setCache('hotels', [cacheKey, budget], response.data);
+  }
+
   return response.data;
 };
 
@@ -103,8 +120,26 @@ export const getRestaurantRecommendations = async (
     spots: Array<{ name: string; location: string }>;
   }>
 ): Promise<RestaurantRecommendResponse> => {
+  // 生成缓存键
+  const cacheKey = days.map(d =>
+    `${d.day}_${d.spots.map(s => s.location).sort().join(',')}`
+  ).join('|');
+
+  // 尝试从缓存获取
+  const cached = getCache('restaurants', cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  // 调用API
   const response = await apiClient.post<RestaurantRecommendResponse>('/recommendations/restaurants', {
     days,
   });
+
+  // 保存到缓存
+  if (response.data.success) {
+    setCache('restaurants', [cacheKey], response.data);
+  }
+
   return response.data;
 };

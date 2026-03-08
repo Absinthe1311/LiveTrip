@@ -407,6 +407,38 @@ export const getSupportedCities = async () => {
   return response.data;
 };
 
+// ==================== 分享相关 API ====================
+
+/**
+ * 分享行程
+ * @param tripId 行程ID
+ * @returns 分享链接信息
+ */
+export const shareTrip = async (tripId: string) => {
+  const response = await apiClient.post(`/trips/${tripId}/share`);
+  return response.data;
+};
+
+/**
+ * 获取公开行程
+ * @param token 分享token
+ * @returns 行程只读数据
+ */
+export const getSharedTrip = async (token: string) => {
+  const response = await apiClient.get(`/trips/shared/${token}`);
+  return response.data;
+};
+
+/**
+ * 复刻公开行程
+ * @param token 分享token
+ * @returns 新行程ID
+ */
+export const cloneSharedTrip = async (token: string) => {
+  const response = await apiClient.post(`/trips/shared/${token}/clone`);
+  return response.data;
+};
+
 // ==================== 导出 ====================
 
 export default apiClient;

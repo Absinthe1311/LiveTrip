@@ -11,6 +11,7 @@ import spotSyncRoutes from './spotSyncRoutes';
 import destinationRoutes from './destinationRoutes';
 import recommendationRoutes from './recommendationRoutes';
 import advisorRoutes from './advisorRoutes';
+import shareRoutes from './shareRoutes';
 
 const router = Router();
 
@@ -26,5 +27,6 @@ router.use('/spots', spotSyncRoutes);
 router.use('/destinations', destinationRoutes);
 router.use('/recommendations', recommendationRoutes);
 router.use('/advisor', advisorRoutes);
+router.use(shareRoutes);
 
 export default router;
