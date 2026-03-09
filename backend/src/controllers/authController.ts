@@ -39,9 +39,6 @@ interface LoginRequest {
  */
 export const register = async (req: Request, res: Response) => {
   try {
-    console.log('📝 收到注册请求');
-    console.log('请求体:', JSON.stringify(req.body, null, 2));
-
     const { username, email, password, avatar }: RegisterRequest = req.body;
 
     // 验证必填字段
@@ -137,9 +134,6 @@ export const register = async (req: Request, res: Response) => {
  */
 export const login = async (req: Request, res: Response) => {
   try {
-    console.log('📝 收到登录请求');
-    console.log('请求体:', JSON.stringify(req.body, null, 2));
-
     const { username, password }: LoginRequest = req.body;
 
     // 验证必填字段

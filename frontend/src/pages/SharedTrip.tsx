@@ -105,46 +105,58 @@ const SharedTrip: React.FC = () => {
           setTrip(response.data);
           setLoading(false); // 行程数据加载完成
 
-          // 为每一天生成地图截图
-          const mapUrls: Record<number, string> = {};
-          setMapsLoading(true); // 开始加载地图
+          // 异步生成地图截图，不阻塞页面显示
+          const generateMapsAsync = async () => {
+            const mapUrls: Record<number, string> = {};
+            setMapsLoading(true); // 开始加载地图
 
-          for (const day of response.data.days) {
-            // 检查该天是否有坐标数据
-            const hasCoordinates = day.itineraryItems.some((item: any) => item.longitude && item.latitude);
+            for (const day of response.data.days) {
+              // 检查该天是否有坐标数据
+              const hasCoordinates = day.itineraryItems.some((item: any) => item.longitude && item.latitude);
 
-            if (hasCoordinates) {
-              try {
-                // 准备单日行程数据
-                const dayData = {
-                  dayNumber: day.dayNumber,
-                  itineraryItems: day.itineraryItems.map((item: any) => ({
-                    name: item.name,
-                    longitude: item.longitude,
-                    latitude: item.latitude,
-                  })),
-                  restaurantName: day.restaurantName,
-                  restaurantLocation: day.restaurantLocation,
-                };
+              if (hasCoordinates) {
+                try {
+                  // 添加超时保护
+                  const mapPromise = generateDayMapScreenshot(
+                    {
+                      dayNumber: day.dayNumber,
+                      itineraryItems: day.itineraryItems.map((item: any) => ({
+                        name: item.name,
+                        longitude: item.longitude,
+                        latitude: item.latitude,
+                      })),
+                      restaurantName: day.restaurantName,
+                      restaurantLocation: day.restaurantLocation,
+                    },
+                    response.data.hotelLocation ? {
+                      name: response.data.hotelName,
+                      location: response.data.hotelLocation,
+                    } : undefined,
+                    800,
+                    500
+                  );
 
-                // 准备酒店信息 - 修复: 使用扁平化字段
-                const hotelInfo = response.data.hotelLocation ? {
-                  name: response.data.hotelName,
-                  location: response.data.hotelLocation,
-                } : undefined;
+                  // 设置10秒超时
+                  const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('地图生成超时')), 10000)
+                  );
 
-                console.log(`🗺️ 生成第${day.dayNumber}天地图, 酒店:`, hotelInfo);
-
-                const mapUrl = await generateDayMapScreenshot(dayData, hotelInfo, 800, 500);
-                mapUrls[day.dayNumber] = mapUrl;
-              } catch (mapError) {
-                console.error(`第${day.dayNumber}天地图生成失败:`, mapError);
+                  const mapUrl = await Promise.race([mapPromise, timeoutPromise]) as string;
+                  mapUrls[day.dayNumber] = mapUrl;
+                  console.log(`✅ 第${day.dayNumber}天地图生成成功`);
+                } catch (mapError: any) {
+                  console.error(`❌ 第${day.dayNumber}天地图生成失败:`, mapError?.message || mapError);
+                  // 地图生成失败不影响页面显示，只是不显示该地图
+                }
               }
             }
-          }
 
-          setDayMapUrls(mapUrls);
-          setMapsLoading(false); // 地图加载完成
+            setDayMapUrls(mapUrls);
+            setMapsLoading(false); // 地图加载完成
+          };
+
+          // 启动异步地图生成
+          generateMapsAsync();
         } else {
           setError(response.error || '获取行程失败');
           setLoading(false);
@@ -152,7 +164,6 @@ const SharedTrip: React.FC = () => {
       } catch (err: any) {
         console.error('获取公开行程失败:', err);
         setError(err.response?.data?.error || '获取行程失败,请稍后重试');
-      } finally {
         setLoading(false);
       }
     };
@@ -198,7 +209,10 @@ const SharedTrip: React.FC = () => {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 0' }}>
-        <Spin size="large" tip="加载中..." />
+        <Spin size="large" tip="正在加载行程信息..." />
+        <div style={{ marginTop: 16, color: '#999' }}>
+          <Text type="secondary">如果加载时间过长，请检查分享链接是否有效</Text>
+        </div>
       </div>
     );
   }
@@ -282,43 +296,44 @@ const SharedTrip: React.FC = () => {
       )}
 
       {/* 每日行程 */}
-      {trip.days.map((day, dayIndex) => (
-        <div key={dayIndex}>
-          {/* 每日地图 */}
-          {mapsLoading ? (
-            <Card
-              title={
-                <span>
-                  <CompassOutlined style={{ marginRight: 8 }} />
-                  第 {day.dayNumber} 天行程路线图
-                </span>
-              }
-              style={{ marginBottom: 24 }}
-            >
-              <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                <Spin size="large" tip="地图生成中,请稍候..." />
-              </div>
-            </Card>
-          ) : dayMapUrls[day.dayNumber] ? (
-            <Card
-              title={
-                <span>
-                  <CompassOutlined style={{ marginRight: 8 }} />
-                  第 {day.dayNumber} 天行程路线图
-                </span>
-              }
-              style={{ marginBottom: 24 }}
-            >
-              <div style={{ textAlign: 'center' }}>
-                <Image
-                  src={dayMapUrls[day.dayNumber]}
-                  alt={`第${day.dayNumber}天地图`}
-                  style={{ maxWidth: '100%', borderRadius: 8 }}
-                  placeholder={<Spin />}
-                />
-              </div>
-            </Card>
-          ) : null}
+      {trip.days.map((day, dayIndex) => {
+        const hasCoordinates = day.itineraryItems.some((item: any) => item.longitude && item.latitude);
+        const mapUrl = dayMapUrls[day.dayNumber];
+        const isMapLoading = mapsLoading && !mapUrl && hasCoordinates;
+
+        return (
+          <div key={dayIndex}>
+            {/* 每日地图 */}
+            {hasCoordinates && (
+              <Card
+                title={
+                  <span>
+                    <CompassOutlined style={{ marginRight: 8 }} />
+                    第 {day.dayNumber} 天行程路线图
+                  </span>
+                }
+                style={{ marginBottom: 24 }}
+              >
+                {isMapLoading ? (
+                  <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                    <Spin size="large" tip="地图生成中,请稍候..." />
+                  </div>
+                ) : mapUrl ? (
+                  <div style={{ textAlign: 'center' }}>
+                    <Image
+                      src={mapUrl}
+                      alt={`第${day.dayNumber}天地图`}
+                      style={{ maxWidth: '100%', borderRadius: 8 }}
+                      placeholder={<Spin />}
+                    />
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '40px 0', color: '#999' }}>
+                    <Text type="secondary">地图生成失败，可能是缺少坐标信息或API限制</Text>
+                  </div>
+                )}
+              </Card>
+            )}
 
           {/* 每日行程详情 */}
           <Card
@@ -409,7 +424,8 @@ const SharedTrip: React.FC = () => {
           )}
         </Card>
         </div>
-      ))}
+        );
+      })}
 
       {/* 预算汇总 */}
       {trip.budget && (

@@ -19,6 +19,7 @@ interface RestaurantRecommendationsProps {
   showSkip?: boolean;
   disabled?: boolean; // 新增：是否禁用（等待酒店推荐完成）
   groupSize?: number; // 新增：人数，用于计算预估费用
+  tripId?: string; // 新增：行程ID,用于使用数据库缓存
 }
 
 export default function RestaurantRecommendations({
@@ -29,6 +30,7 @@ export default function RestaurantRecommendations({
   showSkip = true,
   disabled = false,
   groupSize = 1, // 默认1人
+  tripId, // 行程ID
 }: RestaurantRecommendationsProps) {
   const [recommendations, setRecommendations] = useState<DayRestaurantRecommendation[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,14 +49,16 @@ export default function RestaurantRecommendations({
     setError(null);
 
     try {
-      console.log('🍽️ 获取餐厅推荐...');
-      console.log('   天数:', days.length);
-
-      const response = await getRestaurantRecommendations(days);
+      const response = await getRestaurantRecommendations(days, tripId);
 
       if (response.success && response.data) {
         setRecommendations(response.data);
-        console.log(`✅ 获取到 ${response.data.length} 天的餐厅推荐`);
+        // 显示数据来源
+        if (response.fromCache) {
+          console.log('✅ [数据库缓存] 使用数据库缓存的餐厅推荐');
+        } else {
+          console.log(`✅ [高德API] 获取到 ${response.data.length} 天的餐厅推荐`);
+        }
       } else {
         setError(response.error || '获取餐厅推荐失败');
         message.error(response.error || '获取餐厅推荐失败');

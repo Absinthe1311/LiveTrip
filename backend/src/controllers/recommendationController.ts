@@ -19,7 +19,6 @@ const prisma = new PrismaClient();
  */
 export const getHotelRecommendations = async (req: Request, res: Response) => {
   try {
-    console.log('🏨 收到酒店推荐请求');
     const { spots, budget, tripId } = req.body as HotelRecommendRequest & { tripId?: string };
 
     // 验证必填字段
@@ -58,7 +57,7 @@ export const getHotelRecommendations = async (req: Request, res: Response) => {
         try {
           const cachedHotels = JSON.parse(trip.hotelRecommendationsCache);
           if (cachedHotels && cachedHotels.length > 0) {
-            console.log('✅ 使用缓存的酒店推荐');
+            console.log('✅ [数据库缓存] 酒店推荐 - tripId:', tripId);
             return res.json({
               success: true,
               data: cachedHotels,
@@ -72,13 +71,12 @@ export const getHotelRecommendations = async (req: Request, res: Response) => {
       }
     }
 
-    console.log('📡 调用高德API获取酒店推荐');
-    console.log(`📍 景点数量: ${spots.length}, 预算: ${budget}元`);
+    console.log('📡 [高德API] 酒店推荐 - 景点:', spots.length, '预算:', budget);
 
     // 调用酒店推荐服务
     const hotels = await hotelRecommender.getHotelRecommendations(spots, budget);
 
-    console.log(`✅ 返回 ${hotels.length} 个酒店推荐`);
+    console.log(`✅ [高德API] 酒店推荐成功 - 返回 ${hotels.length} 个结果`);
 
     res.json({
       success: true,
@@ -111,7 +109,6 @@ export const getHotelRecommendations = async (req: Request, res: Response) => {
  */
 export const getRestaurantRecommendations = async (req: Request, res: Response) => {
   try {
-    console.log('🍽️ 收到餐厅推荐请求');
     const { days, tripId } = req.body as RestaurantRecommendRequest & { tripId?: string };
 
     // 验证必填字段
@@ -191,7 +188,7 @@ export const getRestaurantRecommendations = async (req: Request, res: Response) 
         }
 
         if (hasValidCache && cachedRecommendations.length === days.length) {
-          console.log('✅ 使用缓存的餐厅推荐');
+          console.log('✅ [数据库缓存] 餐厅推荐 - tripId:', tripId);
           return res.json({
             success: true,
             data: cachedRecommendations,
@@ -202,13 +199,12 @@ export const getRestaurantRecommendations = async (req: Request, res: Response) 
       }
     }
 
-    console.log('📡 调用高德API获取餐厅推荐');
-    console.log(`📍 天数: ${days.length}`);
+    console.log('📡 [高德API] 餐厅推荐 - 天数:', days.length);
 
     // 调用餐厅推荐服务
     const recommendations = await restaurantRecommender.getRestaurantRecommendations(days);
 
-    console.log(`✅ 返回 ${recommendations.length} 天的餐厅推荐`);
+    console.log(`✅ [高德API] 餐厅推荐成功 - 返回 ${recommendations.length} 天的结果`);
 
     res.json({
       success: true,

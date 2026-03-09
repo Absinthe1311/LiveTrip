@@ -1194,6 +1194,7 @@ export default function Itinerary() {
           showSkip={true}
           onLoadComplete={() => setHotelRecommendationLoaded(true)}
           days={itineraryData.itinerary.length}
+          tripId={itineraryData.tripId}
         />
       )}
 
@@ -1224,7 +1225,8 @@ export default function Itinerary() {
           }}
           showSkip={true}
           disabled={!hotelRecommendationLoaded}
-          groupSize={itineraryData.summary?.group_size || 1}
+          groupSize={itineraryData.summary?.groupSize || 1}
+          tripId={itineraryData.tripId}
         />
       )}
 

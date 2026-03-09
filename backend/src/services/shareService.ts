@@ -90,25 +90,30 @@ export async function generateShareLink(tripId: string, userId: string) {
 export async function getPublicTrip(token: string) {
   console.log(`📖 获取公开行程 - Token: ${token}`);
 
-  // 1. 根据token查询行程
-  const trip = await prisma.trip.findUnique({
-    where: { shareToken: token },
-    include: {
-      budget: true,
-      days: {
-        include: {
-          itineraryItems: {
-            orderBy: {
-              startTime: 'asc',
+  // 1. 根据token查询行程，添加超时保护
+  const trip = await Promise.race([
+    prisma.trip.findUnique({
+      where: { shareToken: token },
+      include: {
+        budget: true,
+        days: {
+          include: {
+            itineraryItems: {
+              orderBy: {
+                startTime: 'asc',
+              },
             },
           },
-        },
-        orderBy: {
-          dayNumber: 'asc',
+          orderBy: {
+            dayNumber: 'asc',
+          },
         },
       },
-    },
-  });
+    }),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('数据库查询超时')), 10000)
+    )
+  ]) as any;
 
   // 2. 验证行程是否存在
   if (!trip) {
@@ -130,7 +135,7 @@ export async function getPublicTrip(token: string) {
     startDate: trip.startDate,
     endDate: trip.endDate,
     totalBudget: trip.totalBudget,
-    days: trip.days.map((day) => ({
+    days: trip.days.map((day: any) => ({
       dayNumber: day.dayNumber,
       date: day.date,
       notes: day.notes,
@@ -139,7 +144,7 @@ export async function getPublicTrip(token: string) {
       restaurantLocation: day.restaurantLocation,
       restaurantType: day.restaurantType,
       restaurantRating: day.restaurantRating,
-      itineraryItems: day.itineraryItems.map((item) => ({
+      itineraryItems: day.itineraryItems.map((item: any) => ({
         name: item.name,
         type: item.type,
         category: item.category,

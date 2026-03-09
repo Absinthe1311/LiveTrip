@@ -16,6 +16,7 @@ interface HotelRecommendationsProps {
   showSkip?: boolean;
   onLoadComplete?: () => void; // 新增：加载完成回调
   days?: number; // 新增：天数
+  tripId?: string; // 新增：行程ID,用于使用数据库缓存
 }
 
 export default function HotelRecommendations({
@@ -27,6 +28,7 @@ export default function HotelRecommendations({
   showSkip = true,
   onLoadComplete,
   days = 3, // 默认3天
+  tripId, // 行程ID
 }: HotelRecommendationsProps) {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(false);
@@ -43,15 +45,16 @@ export default function HotelRecommendations({
     setError(null);
 
     try {
-      console.log('🏨 获取酒店推荐...');
-      console.log('   景点数量:', spots.length);
-      console.log('   预算:', budget);
-
-      const response = await getHotelRecommendations(spots, budget);
+      const response = await getHotelRecommendations(spots, budget, tripId);
 
       if (response.success && response.data) {
         setHotels(response.data);
-        console.log(`✅ 获取到 ${response.data.length} 个酒店推荐`);
+        // 显示数据来源
+        if (response.fromCache) {
+          console.log('✅ [数据库缓存] 使用数据库缓存的酒店推荐');
+        } else {
+          console.log(`✅ [高德API] 获取到 ${response.data.length} 个酒店推荐`);
+        }
         // 通知父组件加载完成
         if (onLoadComplete) {
           onLoadComplete();

@@ -17,19 +17,8 @@ const prisma = new PrismaClient();
  */
 export const createPlan = async (req: Request, res: Response) => {
   try {
-    console.log('📝 收到行程规划请求');
-    console.log('请求体:', JSON.stringify(req.body, null, 2));
-
     // 解析请求参数
     const planData: CreatePlanRequest = req.body;
-
-    // 调试输出
-    console.log('📍 planData.origin:', planData.origin);
-    console.log('🎯 planData.destination:', planData.destination);
-    console.log('📅 planData.start_date:', planData.start_date);
-    console.log('📅 planData.end_date:', planData.end_date);
-    console.log('💰 planData.budget:', planData.budget);
-    console.log('❤️ planData.preferences:', planData.preferences);
 
     // 验证必填字段
     if (!planData.destination || !planData.start_date || !planData.end_date) {

@@ -8,9 +8,6 @@ import { advisorService } from '../services/advisorService';
  */
 export const chatWithAdvisor = async (req: Request, res: Response) => {
   try {
-    console.log('💬 收到AI顾问请求');
-    console.log('请求体:', JSON.stringify(req.body, null, 2));
-
     const { question, planContext } = req.body;
 
     // 验证必填字段
