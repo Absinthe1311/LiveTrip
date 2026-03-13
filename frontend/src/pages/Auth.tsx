@@ -50,7 +50,12 @@ export default function Auth() {
         localStorage.setItem('token', token);
         
         message.success('登录成功！');
-        navigate('/plan');
+        // 根据角色跳转
+        if (user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/plan');
+        }
       }
     } catch (error: any) {
       console.error('❌ 登录失败:', error);
@@ -80,7 +85,12 @@ export default function Auth() {
         localStorage.setItem('token', token);
         
         message.success('注册成功！');
-        navigate('/plan');
+        // 根据角色跳转
+        if (user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/plan');
+        }
       }
     } catch (error: any) {
       console.error('❌ 注册失败:', error);

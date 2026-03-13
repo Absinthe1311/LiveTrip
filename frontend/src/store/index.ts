@@ -13,6 +13,9 @@ interface AppState {
   // 加载状态
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
+
+  // 完成行程
+  completeTrip: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -24,4 +27,17 @@ export const useAppStore = create<AppState>((set) => ({
 
   isLoading: false,
   setIsLoading: (loading) => set({ isLoading: loading }),
+
+  completeTrip: () => set((state) => {
+    if (state.currentItinerary) {
+      return {
+        currentItinerary: {
+          ...state.currentItinerary,
+          status: 'completed',
+          completedAt: new Date().toISOString(),
+        },
+      };
+    }
+    return state;
+  }),
 }));

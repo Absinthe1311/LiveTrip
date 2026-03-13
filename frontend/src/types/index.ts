@@ -7,6 +7,20 @@ export interface User {
   updated_at: string;
 }
 
+export interface Trip {
+  id: string;
+  userId: string;
+  title: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  status: 'planning' | 'completed';
+  completedAt: string | null;
+  totalBudget: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Itinerary {
   id: number;
   user_id: number;

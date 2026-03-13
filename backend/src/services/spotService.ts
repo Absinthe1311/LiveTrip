@@ -1047,6 +1047,107 @@ class SpotService {
   async getBatchIoTData(spotIds: string[]): Promise<Map<string, SpotIoTData>> {
     return this.getIoTDataMap(spotIds);
   }
+
+  /**
+   * 获取景点封面图，按优先级：admin approved → user approved → null
+   * @param spotId 景点ID
+   * @returns 图片URL或null
+   */
+  async getSpotCoverImage(spotId: string): Promise<string | null> {
+    try {
+      // 优先获取 admin approved 图片
+      const adminImage = await prisma.spotImage.findFirst({
+        where: {
+          spotId,
+          source: 'admin',
+          status: 'approved',
+        },
+        orderBy: [
+          { isPrimary: 'desc' },
+          { priority: 'desc' },
+          { createdAt: 'desc' },
+        ],
+        select: { url: true },
+      });
+
+      if (adminImage?.url) {
+        return adminImage.url;
+      }
+
+      // 其次获取 user approved 图片
+      const userImage = await prisma.spotImage.findFirst({
+        where: {
+          spotId,
+          source: 'user',
+          status: 'approved',
+        },
+        orderBy: [
+          { isPrimary: 'desc' },
+          { priority: 'desc' },
+          { createdAt: 'desc' },
+        ],
+        select: { url: true },
+      });
+
+      return userImage?.url || null;
+    } catch (error) {
+      console.error(`获取景点 ${spotId} 封面图失败:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * 批量获取景点封面图，供列表页使用，避免 N+1 查询
+   * @param spotIds 景点ID列表
+   * @returns Map<景点ID, 图片URL或null>
+   */
+  async getSpotCoverImages(spotIds: string[]): Promise<Map<string, string | null>> {
+    const result = new Map<string, string | null>();
+
+    try {
+      // 批量查询所有景点的图片
+      const images = await prisma.spotImage.findMany({
+        where: {
+          spotId: { in: spotIds },
+          status: 'approved',
+        },
+        orderBy: [
+          { spotId: 'asc' },
+          { source: 'asc' }, // admin < user
+          { isPrimary: 'desc' },
+          { priority: 'desc' },
+          { createdAt: 'desc' },
+        ],
+        select: {
+          spotId: true,
+          url: true,
+          source: true,
+        },
+      });
+
+      // 按景点ID分组，选择每个景点的第一张图片
+      const spotImageMap = new Map<string, string>();
+      for (const img of images) {
+        if (!spotImageMap.has(img.spotId) && img.url) {
+          spotImageMap.set(img.spotId, img.url);
+        }
+      }
+
+      // 构建结果
+      for (const spotId of spotIds) {
+        result.set(spotId, spotImageMap.get(spotId) || null);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('批量获取景点封面图失败:', error);
+      // 返回空结果
+      for (const spotId of spotIds) {
+        result.set(spotId, null);
+      }
+      return result;
+    }
+  }
 }
 
 // 导出单例

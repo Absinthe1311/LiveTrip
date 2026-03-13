@@ -25,8 +25,8 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallb
 const upload = multer({
   storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB
-    files: 5, // 最多5张
+    fileSize: 20 * 1024 * 1024, // 20MB
+    files: 1, // 单张图片
   },
   fileFilter,
 });
@@ -34,12 +34,12 @@ const upload = multer({
 /**
  * 处理单张图片上传
  */
-export const handleSingleImageUpload = upload.single('image');
+export const handleSingleImageUpload = upload.single('file');
 
 /**
  * 处理多张图片上传
  */
-export const handleMultipleImageUpload = upload.array('images', 5);
+export const handleMultipleImageUpload = upload.array('files', 5);
 
 /**
  * 错误处理中间件
@@ -55,7 +55,7 @@ export function handleUploadError(
     if (err.code === 'LIMIT_FILE_SIZE') {
       res.status(400).json({
         success: false,
-        error: '图片大小不能超过10MB',
+        message: '图片大小不能超过20MB',
       });
       return;
     }
@@ -63,7 +63,7 @@ export function handleUploadError(
     if (err.code === 'LIMIT_FILE_COUNT') {
       res.status(400).json({
         success: false,
-        error: '最多上传5张图片',
+        message: '最多上传5张图片',
       });
       return;
     }
@@ -71,14 +71,14 @@ export function handleUploadError(
     if (err.code === 'LIMIT_UNEXPECTED_FILE') {
       res.status(400).json({
         success: false,
-        error: '意外的文件字段',
+        message: '意外的文件字段',
       });
       return;
     }
 
     res.status(400).json({
       success: false,
-      error: `文件上传错误: ${err.message}`,
+      message: `文件上传错误: ${err.message}`,
     });
     return;
   }
@@ -87,7 +87,7 @@ export function handleUploadError(
   if (err) {
     res.status(400).json({
       success: false,
-      error: err.message,
+      message: err.message,
     });
     return;
   }
@@ -102,7 +102,7 @@ export function validateFileUpload(req: Request, res: Response, next: NextFuncti
   if (!req.file && !req.files) {
     res.status(400).json({
       success: false,
-      error: '请选择要上传的图片',
+      message: '请选择要上传的图片',
     });
     return;
   }
@@ -111,7 +111,20 @@ export function validateFileUpload(req: Request, res: Response, next: NextFuncti
 }
 
 /**
- * 包装上传中间件，包含错误处理和验证
+ * 包装上传中间件（单张图片），包含错误处理和验证
+ */
+export function uploadSingleImage(req: Request, res: Response, next: NextFunction): void {
+  handleSingleImageUpload(req, res, (err) => {
+    if (err) {
+      handleUploadError(err, req, res, () => {});
+      return;
+    }
+    validateFileUpload(req, res, next);
+  });
+}
+
+/**
+ * 包装上传中间件（多张图片），包含错误处理和验证
  */
 export function uploadImage(req: Request, res: Response, next: NextFunction): void {
   handleMultipleImageUpload(req, res, (err) => {

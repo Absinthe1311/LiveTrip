@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { getOSSService } from './ossService';
+import { cloudinaryService } from './cloudinaryService';
 import { generateFileHash } from '../utils/hashGenerator';
 import { checkDuplicateImage, generateUniqueFileName, getImageExtension } from '../utils/imageValidator';
 
@@ -81,9 +81,8 @@ export class ImageService {
       const extension = getImageExtension(file.mimetype);
       const fileName = generateUniqueFileName(file.originalname, userId);
 
-      // 上传到OSS
-      const ossService = getOSSService();
-      const ossResult = await ossService.uploadFile(file.buffer, fileName, 'spot-images');
+      // 上传到 Cloudinary
+      const cloudinaryResult = await cloudinaryService.uploadImage(file.buffer, 'spot-images');
 
       // 如果是主图，取消旧的主图
       if (isPrimary) {
@@ -102,7 +101,7 @@ export class ImageService {
       const image = await prisma.spotImage.create({
         data: {
           spotId,
-          url: ossResult.url,
+          url: cloudinaryResult.cloudinaryUrl,
           source,
           status: source === 'admin' ? 'approved' : 'pending',
           priority: source === 'admin' ? 10 : 5,
@@ -283,15 +282,15 @@ export class ImageService {
         throw new Error('您没有权限删除此图片');
       }
 
-      // 从OSS删除文件
+      // 从 Cloudinary 删除文件
       try {
-        const ossService = getOSSService();
-        const fileName = this.extractFileNameFromUrl(image.url || '');
-        if (fileName) {
-          await ossService.deleteFile(fileName);
+        // 从 URL 中提取 public_id
+        const cloudinaryId = this.extractCloudinaryIdFromUrl(image.url || '');
+        if (cloudinaryId) {
+          await cloudinaryService.deleteImage(cloudinaryId);
         }
-      } catch (ossError) {
-        console.error('OSS删除失败:', ossError);
+      } catch (cloudinaryError) {
+        console.error('Cloudinary 删除失败:', cloudinaryError);
         // 继续删除数据库记录
       }
 
@@ -332,14 +331,15 @@ export class ImageService {
   }
 
   /**
-   * 从URL中提取文件名
-   * @param url 图片URL
-   * @returns 文件名
+   * 从 URL 中提取 Cloudinary public_id
+   * @param url 图片 URL
+   * @returns Cloudinary public_id
    */
-  private extractFileNameFromUrl(url: string): string | null {
+  private extractCloudinaryIdFromUrl(url: string): string | null {
     try {
-      const urlParts = url.split('/');
-      return urlParts[urlParts.length - 1] || null;
+      // Cloudinary URL 格式: https://res.cloudinary.com/{cloud_name}/image/upload/{public_id}.{format}
+      const match = url.match(/\/upload\/(.+)\.[a-z]+$/);
+      return match ? match[1] : null;
     } catch {
       return null;
     }

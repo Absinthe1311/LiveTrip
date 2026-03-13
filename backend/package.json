@@ -11,6 +11,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "prisma:reset": "prisma migrate reset",
+    "prisma:seed": "ts-node prisma/seed.ts",
     "test:db": "ts-node scripts/test-db-connection.ts",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write src/**/*.ts"
@@ -24,9 +25,9 @@
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "6.1.0",
-    "ali-oss": "^6.23.0",
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.9.0",
     "cors": "2.8.5",
     "dotenv": "16.4.7",
     "express": "4.21.2",
@@ -42,7 +43,6 @@
     "zhipuai": "^2.0.0"
   },
   "devDependencies": {
-    "@types/ali-oss": "^6.23.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "2.8.17",
     "@types/express": "5.0.0",

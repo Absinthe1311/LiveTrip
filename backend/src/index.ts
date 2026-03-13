@@ -6,12 +6,25 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import apiRoutes from './routes';
 import { errorHandler, notFound } from './middleware/errorHandler';
+import { initCloudinary } from './config/cloudinary';
 
 // 加载环境变量
 dotenv.config();
 
+// 初始化 Cloudinary
+initCloudinary();
+
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// 测试 Cloudinary 配置
+app.get('/test/cloudinary', (req, res) => {
+  res.json({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key_set: !!process.env.CLOUDINARY_API_KEY,
+    api_secret_set: !!process.env.CLOUDINARY_API_SECRET,
+  });
+});
 
 // 中间件
 app.use(helmet());

@@ -1,5 +1,5 @@
 // 应用主组件 - 配置路由
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Plan from './pages/Plan';
 import Itinerary from './pages/Itinerary';
@@ -11,7 +11,10 @@ import Destinations from './pages/Destinations';
 import SharedTrip from './pages/SharedTrip';
 import Blogs from './pages/Blogs';
 import CreateBlog from './pages/CreateBlog';
-import AdminDashboard from './pages/AdminDashboard';
+import AdminGuard from './components/admin/AdminGuard';
+import AdminLayout from './components/admin/AdminLayout';
+import SpotManagePage from './pages/admin/SpotManagePage';
+import ReviewPage from './pages/admin/ReviewPage';
 
 function App() {
   return (
@@ -28,8 +31,19 @@ function App() {
         <Route path="/shared/:token" element={<SharedTrip />} />
         <Route path="/blogs" element={<Blogs />} />
         <Route path="/blog/create" element={<CreateBlog />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/spot-images" element={<AdminDashboard />} />
+        {/* 管理员路由 */}
+        <Route
+          path="/admin"
+          element={
+            <AdminGuard>
+              <AdminLayout />
+            </AdminGuard>
+          }
+        >
+          <Route index element={<Navigate to="/admin/spots" replace />} />
+          <Route path="spots" element={<SpotManagePage />} />
+          <Route path="review" element={<ReviewPage />} />
+        </Route>
       </Routes>
     </Router>
   );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, Button, Modal, message, Row, Col, Dropdown, Avatar, Spin } from 'antd';
+import { Typography, Button, Modal, message, Row, Col, Dropdown, Avatar, Spin, Tag, Popconfirm } from 'antd';
 import {
   DndContext,
   closestCenter,
@@ -18,7 +18,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { EnvironmentOutlined } from '@ant-design/icons';
+import { EnvironmentOutlined, CheckCircleOutlined, EditOutlined, CameraOutlined } from '@ant-design/icons';
 import AttractionCard from '../components/AttractionCard';
 import AlternativeAttractions from '../components/AlternativeAttractions';
 import BudgetChart from '../components/BudgetChart';
@@ -26,8 +26,9 @@ import HotelRecommendations from '../components/HotelRecommendations';
 import RestaurantRecommendations from '../components/RestaurantRecommendations';
 import ShareButton from '../components/ShareButton';
 import PDFExportButton from '../components/PDFExportButton';
+import SpotImageUploadModal from '../components/SpotImageUploadModal';
 import { useAppStore } from '../store';
-import { FullItinerary, AttractionItem, calculateRealTimeBudget } from '../api/client';
+import { FullItinerary, AttractionItem, calculateRealTimeBudget, completeTrip } from '../api/client';
 import { adjustItinerary, getIoTData, saveTrip, updateAlternativeRelations } from '../api/client';
 import { Hotel, Restaurant } from '../api/recommendationApi';
 import AMapLoader from '@amap/amap-jsapi-loader';
@@ -486,6 +487,7 @@ export default function Itinerary() {
   const navigate = useNavigate();
   const currentItinerary = useAppStore((state) => state.currentItinerary);
   const setCurrentItinerary = useAppStore((state) => state.setCurrentItinerary);
+  const completeTripInStore = useAppStore((state) => state.completeTrip);
   const [itineraryData, setItineraryData] = useState<FullItinerary | null>(null);
   const [adjustModalVisible, setAdjustModalVisible] = useState(false);
   const [adjustResult, setAdjustResult] = useState<any>(null);
@@ -494,6 +496,10 @@ export default function Itinerary() {
   const [confirming, setConfirming] = useState(false);
   const [tripId, setTripId] = useState<string>(''); // 行程ID(保存后才有)
   const [isSavedTrip, setIsSavedTrip] = useState(false); // 是否是已保存的行程
+  const [tripStatus, setTripStatus] = useState<'planning' | 'completed'>('planning'); // 行程状态
+  const [completing, setCompleting] = useState(false); // 完成行程中
+  const [uploadModalVisible, setUploadModalVisible] = useState(false); // 上传图片弹窗
+  const [selectedSpot, setSelectedSpot] = useState<AttractionItem | null>(null); // 选中的景点
 
   // 备选景点相关状态
   const [expandedAlternatives, setExpandedAlternatives] = useState<Record<string, any>>({});
@@ -906,6 +912,40 @@ export default function Itinerary() {
     }
   };
 
+  // 完成行程
+  const handleCompleteTrip = async () => {
+    if (!tripId) {
+      message.error('请先保存行程');
+      return;
+    }
+
+    setCompleting(true);
+    try {
+      const response = await completeTrip(tripId);
+      if (response.success) {
+        setTripStatus('completed');
+        completeTripInStore();
+        message.success('行程已完成！现在可以写游记和上传图片了');
+      }
+    } catch (error: any) {
+      console.error('❌ 完成行程失败:', error);
+      message.error(error.response?.data?.message || '完成行程失败');
+    } finally {
+      setCompleting(false);
+    }
+  };
+
+  // 打开上传图片弹窗
+  const handleOpenUploadModal = (spot: AttractionItem) => {
+    setSelectedSpot(spot);
+    setUploadModalVisible(true);
+  };
+
+  // 写游记
+  const handleWriteBlog = () => {
+    navigate('/blog/create');
+  };
+
   if (!itineraryData) {
     return (
       <div style={{
@@ -933,13 +973,50 @@ export default function Itinerary() {
         alignItems: 'center',
         marginBottom: '32px'
       }}>
-        <Title level={2} style={{
-          margin: 0,
-          color: '#333'
-        }}>
-          我的行程
-        </Title>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <Title level={2} style={{
+            margin: 0,
+            color: '#333'
+          }}>
+            我的行程
+          </Title>
+          {isSavedTrip && (
+            <Tag color={tripStatus === 'completed' ? 'success' : 'processing'}>
+              {tripStatus === 'completed' ? '已完成' : '规划中'}
+            </Tag>
+          )}
+        </div>
         <div style={{ display: 'flex', gap: '12px' }}>
+          {/* 已完成行程显示写游记和上传图片按钮 */}
+          {tripStatus === 'completed' && (
+            <>
+              <Button
+                type="default"
+                icon={<EditOutlined />}
+                onClick={handleWriteBlog}
+              >
+                写游记
+              </Button>
+            </>
+          )}
+          {/* 规划中行程显示完成按钮 */}
+          {isSavedTrip && tripStatus === 'planning' && (
+            <Popconfirm
+              title="确认完成行程？"
+              description="完成后将无法再修改行程"
+              onConfirm={handleCompleteTrip}
+              okText="确认"
+              cancelText="取消"
+            >
+              <Button
+                type="primary"
+                icon={<CheckCircleOutlined />}
+                loading={completing}
+              >
+                完成行程
+              </Button>
+            </Popconfirm>
+          )}
           {tripId && <ShareButton tripId={tripId} />}
           {itineraryData && (
             <PDFExportButton tripData={{
@@ -1320,6 +1397,20 @@ export default function Itinerary() {
           </div>
         )}
       </Modal>
+
+      {/* 上传图片弹窗 */}
+      <SpotImageUploadModal
+        visible={uploadModalVisible}
+        spot={selectedSpot}
+        tripId={tripId}
+        onClose={() => {
+          setUploadModalVisible(false);
+          setSelectedSpot(null);
+        }}
+        onSuccess={() => {
+          message.success('图片上传成功，等待审核');
+        }}
+      />
     </div>
   );
 }

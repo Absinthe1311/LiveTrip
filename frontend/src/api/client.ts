@@ -10,12 +10,20 @@ const apiClient = axios.create({
   },
 });
 
-// 请求拦截器
+// 导出 apiClient 供其他模块复用
+export { apiClient };
+
+// 请求拦截器 - 添加 token 到请求头
 apiClient.interceptors.request.use(
   (config) => {
     console.log('📤 API Request:', config.method?.toUpperCase(), config.url);
     if (config.data) {
       console.log('📦 Request Data:', config.data);
+    }
+    // 添加 token 到请求头
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -436,6 +444,16 @@ export const getSharedTrip = async (token: string) => {
  */
 export const cloneSharedTrip = async (token: string) => {
   const response = await apiClient.post(`/trips/shared/${token}/clone`);
+  return response.data;
+};
+
+/**
+ * 完成行程
+ * @param tripId 行程ID
+ * @returns 更新后的行程信息
+ */
+export const completeTrip = async (tripId: string) => {
+  const response = await apiClient.put(`/trips/${tripId}/complete`);
   return response.data;
 };
 

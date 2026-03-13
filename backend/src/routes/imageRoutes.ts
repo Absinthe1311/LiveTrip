@@ -5,8 +5,16 @@
 
 import express from 'express';
 import { ImageController } from '../controllers/imageController';
+import { uploadSingleImage } from '../middleware/fileUploadMiddleware';
+import { authenticateToken } from '../controllers/authController';
 
 const router = express.Router();
+
+/**
+ * 上传图片（管理员和用户共用）
+ * POST /api/images/upload
+ */
+router.post('/upload', authenticateToken, uploadSingleImage, ImageController.uploadImage);
 
 /**
  * 获取景点封面图片

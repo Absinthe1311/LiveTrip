@@ -510,7 +510,7 @@ export const updateDayRestaurant = async (req: Request, res: Response) => {
     if (!day) {
       return res.status(404).json({
         success: false,
-        error: '未找到对应的行程天数记录',
+        message: '未找到对应的行程天数记录',
       });
     }
 
@@ -539,7 +539,80 @@ export const updateDayRestaurant = async (req: Request, res: Response) => {
     console.error('❌ 更新餐厅信息失败:', error);
     res.status(500).json({
       success: false,
-      error: error.message || '更新餐厅信息失败',
+      message: error.message || '更新餐厅信息失败',
+    });
+  }
+};
+
+/**
+ * 完成行程
+ * PUT /api/trips/:tripId/complete
+ */
+export const completeTrip = async (req: Request, res: Response) => {
+  try {
+    const { tripId } = req.params;
+    const tripIdStr = Array.isArray(tripId) ? tripId[0] : tripId;
+
+    // 获取当前用户ID
+    const userIdHeader = req.headers['x-user-id'];
+    const userId = Array.isArray(userIdHeader) ? userIdHeader[0] : (userIdHeader || 'default-user');
+
+    console.log(`✅ 收到完成行程请求，行程ID: ${tripIdStr}, 用户ID: ${userId}`);
+
+    // 查找行程
+    const trip = await prisma.trip.findUnique({
+      where: { id: tripIdStr },
+    });
+
+    if (!trip) {
+      return res.status(404).json({
+        success: false,
+        message: '行程不存在',
+      });
+    }
+
+    // 验证行程属于当前用户
+    if (trip.userId !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: '您没有权限完成此行程',
+      });
+    }
+
+    // 验证行程状态
+    if (trip.status !== 'planning') {
+      return res.status(400).json({
+        success: false,
+        message: '行程已完成，不可重复操作',
+      });
+    }
+
+    // 更新行程状态
+    const updatedTrip = await prisma.trip.update({
+      where: { id: tripIdStr },
+      data: {
+        status: 'completed',
+        completedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+
+    console.log('✅ 行程已完成');
+
+    res.json({
+      success: true,
+      message: '行程已完成',
+      data: {
+        id: updatedTrip.id,
+        status: updatedTrip.status,
+        completedAt: updatedTrip.completedAt?.toISOString(),
+      },
+    });
+  } catch (error: any) {
+    console.error('❌ 完成行程失败:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || '完成行程失败',
     });
   }
 };

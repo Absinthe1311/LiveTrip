@@ -6,11 +6,12 @@ ALTER TABLE "User" ADD COLUMN "role" TEXT NOT NULL DEFAULT 'user';
 
 -- Step 2: Modify SpotImage table - add new columns with default values for existing data
 
--- First, add the optional columns
-ALTER TABLE "SpotImage" ADD COLUMN "source" TEXT NOT NULL DEFAULT 'unsplash';
+-- First, add the url column
+ALTER TABLE "SpotImage" ADD COLUMN "url" TEXT;
+
+-- Then add the optional columns (source already exists from previous migration)
 ALTER TABLE "SpotImage" ADD COLUMN "status" TEXT NOT NULL DEFAULT 'approved';
 ALTER TABLE "SpotImage" ADD COLUMN "priority" INTEGER NOT NULL DEFAULT 1;
-ALTER TABLE "SpotImage" ADD COLUMN "isPrimary" INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE "SpotImage" ADD COLUMN "fileHash" TEXT NOT NULL DEFAULT '';
 ALTER TABLE "SpotImage" ADD COLUMN "uploadedBy" TEXT NOT NULL DEFAULT 'system';
 ALTER TABLE "SpotImage" ADD COLUMN "reviewedBy" TEXT;

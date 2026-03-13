@@ -5,8 +5,124 @@
 
 import { Request, Response } from 'express';
 import { imageService } from '../services/imageService';
+import { cloudinaryService } from '../services/cloudinaryService';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+/**
+ * 上传图片响应接口
+ */
+interface UploadImageResponse {
+  imageId: string;
+  cloudinaryUrl: string;
+  status: 'approved' | 'pending';
+}
 
 export class ImageController {
+  /**
+   * 上传图片（管理员和用户共用）
+   * POST /api/images/upload
+   */
+  static async uploadImage(req: Request, res: Response): Promise<void> {
+    try {
+      console.log('📤 上传图片请求');
+      console.log('📦 req.body:', req.body);
+      console.log('📦 req.file:', req.file ? '文件存在' : '文件不存在');
+      console.log('👤 req.user:', req.user);
+
+      const { spotId } = req.body;
+      const user = (req as any).user;
+
+      // 验证用户是否登录
+      if (!user || !user.userId) {
+        res.status(401).json({
+          success: false,
+          message: '请先登录',
+        });
+        return;
+      }
+
+      // 验证 spotId
+      if (!spotId) {
+        res.status(400).json({
+          success: false,
+          message: '景点ID不能为空',
+        });
+        return;
+      }
+
+      // 验证文件是否上传
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          message: '请选择要上传的图片',
+        });
+        return;
+      }
+
+      // 验证景点是否存在
+      const spot = await prisma.spot.findUnique({
+        where: { id: spotId },
+      });
+
+      if (!spot) {
+        res.status(400).json({
+          success: false,
+          message: '景点不存在',
+        });
+        return;
+      }
+
+      // 根据用户角色确定文件夹和状态
+      const isAdmin = user.role === 'admin';
+      const folder = isAdmin ? 'spots/admin' : 'spots/user';
+      const source = isAdmin ? 'admin' : 'user';
+      const status = isAdmin ? 'approved' : 'pending';
+
+      // 上传到 Cloudinary
+      const cloudinaryResult = await cloudinaryService.uploadImage(
+        req.file.buffer,
+        folder
+      );
+
+      // 写入数据库
+      const image = await prisma.spotImage.create({
+        data: {
+          spotId,
+          url: cloudinaryResult.cloudinaryUrl,
+          source,
+          status,
+          priority: isAdmin ? 10 : 5,
+          isPrimary: false,
+          fileHash: '',
+          uploadedBy: user.userId,
+          viewCount: 0,
+          likeCount: 0,
+          reportCount: 0,
+        },
+      });
+
+      const response: UploadImageResponse = {
+        imageId: image.id,
+        cloudinaryUrl: cloudinaryResult.cloudinaryUrl,
+        status: status as 'approved' | 'pending',
+      };
+
+      res.status(200).json({
+        success: true,
+        data: response,
+        message: '图片上传成功',
+      });
+    } catch (error: any) {
+      console.error('上传图片失败:', error);
+      res.status(500).json({
+        success: false,
+        message: '上传图片失败',
+      });
+    }
+  }
+
   /**
    * 获取景点封面图片
    */
