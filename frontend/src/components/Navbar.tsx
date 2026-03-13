@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Layout, Menu, Dropdown, Avatar, Button, Badge } from 'antd';
-import { UserOutlined, LogoutOutlined, SettingOutlined, HeartOutlined } from '@ant-design/icons';
+import { UserOutlined, LogoutOutlined, SettingOutlined, HeartOutlined, BookOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getFavorites } from '../api/client';
 
@@ -114,6 +114,16 @@ export default function Navbar() {
         </Badge>
       ),
       onClick: () => navigate('/favorites'),
+    },
+    {
+      key: 'blogs',
+      label: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <BookOutlined />
+          <span>旅行博客</span>
+        </span>
+      ),
+      onClick: () => navigate('/blogs'),
     },
     {
       key: 'destinations',

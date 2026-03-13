@@ -20,7 +20,7 @@ export const getSimulatedIoTData = async (attractionId: number): Promise<IoTData
       uv_index: Math.floor(Math.random() * 10) + 1, // 1-10
     },
     is_open: Math.random() > 0.1, // 90%概率开放
-    updated_at: new Date()
+    updated_at: new Date().toISOString()
   };
 };
 

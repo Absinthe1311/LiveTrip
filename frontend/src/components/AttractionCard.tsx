@@ -1,5 +1,7 @@
-import { Card, Button, Tag } from 'antd';
-import { ThunderboltOutlined, TeamOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Card, Button, Tag, Image, Empty } from 'antd';
+import { ThunderboltOutlined, TeamOutlined, CheckCircleOutlined, PictureOutlined } from '@ant-design/icons';
+import { useState, useEffect } from 'react';
+import { getSpotCoverImage } from '../api/client';
 
 interface AttractionCardProps {
   time: string;
@@ -14,11 +16,35 @@ interface AttractionCardProps {
     rainProbability: number;
     isOpen: boolean;
   };
-  item?: any; // 添加item参数
+  item?: any;
+  city?: string;
 }
 
-export default function AttractionCard({ time, name, desc, onShowAlternatives, iotData, item }: AttractionCardProps) {
-  // IoT数据评估
+export default function AttractionCard({ time, name, desc, onShowAlternatives, iotData, item, city }: AttractionCardProps) {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
+
+  useEffect(() => {
+    const loadImage = async () => {
+      if (!name) return;
+      
+      setImageLoading(true);
+      try {
+        const response = await getSpotCoverImage(name, city);
+        if (response.success && response.data?.imageUrl) {
+          setImageUrl(response.data.imageUrl);
+          console.log(`✅ 加载景点图片: ${name}`);
+        }
+      } catch (error) {
+        console.error(`❌ 加载景点图片失败 (${name}):`, error);
+      } finally {
+        setImageLoading(false);
+      }
+    };
+
+    loadImage();
+  }, [name, city]);
+
   const getWeatherStatus = () => {
     if (!iotData) return null;
     const { rainProbability, temperature } = iotData;
@@ -58,6 +84,38 @@ export default function AttractionCard({ time, name, desc, onShowAlternatives, i
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
       }}
     >
+      {/* 景点图片 */}
+      {imageUrl && (
+        <div style={{ marginBottom: 16, borderRadius: 8, overflow: 'hidden' }}>
+          <Image
+            src={imageUrl}
+            alt={name}
+            style={{ 
+              width: '100%', 
+              height: 200, 
+              objectFit: 'cover' 
+            }}
+            preview={{
+              mask: '点击预览大图',
+            }}
+          />
+        </div>
+      )}
+      
+      {!imageUrl && !imageLoading && (
+        <div style={{ 
+          marginBottom: 16, 
+          padding: 20, 
+          textAlign: 'center',
+          backgroundColor: '#f5f5f5',
+          borderRadius: 8,
+          color: '#999'
+        }}>
+          <PictureOutlined style={{ fontSize: 32, marginBottom: 8 }} />
+          <div>暂无景点图片</div>
+        </div>
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ flex: 1 }}>
           <div style={{

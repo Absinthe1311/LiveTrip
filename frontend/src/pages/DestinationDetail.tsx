@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Typography, Button, Rate, Tag, Spin, Row, Col, Select, Space, message } from 'antd';
+import { Typography, Button, Rate, Tag, Spin, Row, Col, Select, Space, message, Divider } from 'antd';
 import { ArrowLeftOutlined, FireOutlined, CalendarOutlined, DollarOutlined, StarOutlined } from '@ant-design/icons';
 import DestinationAttractionCard from '../components/DestinationAttractionCard';
+import ReviewList from '../components/ReviewList';
 import type { DestinationDetail, Attraction } from '../types/destination';
 import { destinationsData } from '../data/destinationsData';
 import { getFavorites, addFavorite, removeFavorite, checkFavorite, syncSpot } from '../api/client';
@@ -16,6 +17,7 @@ export default function DestinationDetail() {
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [filter, setFilter] = useState<string>('all');
+  const [selectedAttraction, setSelectedAttraction] = useState<Attraction | null>(null);
 
   useEffect(() => {
     // 加载目的地数据
@@ -455,6 +457,44 @@ export default function DestinationDetail() {
             );
           })}
         </Row>
+      </div>
+
+      {/* 评价区域 */}
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '48px' }}>
+        <Divider />
+        <div style={{ marginBottom: '24px' }}>
+          <Title level={3} style={{ marginBottom: '16px' }}>景点评价</Title>
+          <Select
+            placeholder="选择景点查看评价"
+            style={{ width: 300 }}
+            value={selectedAttraction?.id}
+            onChange={(value) => {
+              const attraction = destination?.attractions.find(a => a.id === value);
+              setSelectedAttraction(attraction || null);
+            }}
+            options={destination?.attractions.map(a => ({
+              label: a.name,
+              value: a.id
+            })) || []}
+          />
+        </div>
+
+        {selectedAttraction ? (
+          <ReviewList
+            spotId={selectedAttraction.id}
+            spotName={selectedAttraction.name}
+          />
+        ) : (
+          <div style={{
+            textAlign: 'center',
+            padding: '40px',
+            background: '#f5f5f5',
+            borderRadius: '8px',
+            color: '#999'
+          }}>
+            请选择一个景点查看和提交评价
+          </div>
+        )}
       </div>
 
       {/* 底部操作区 */}

@@ -439,6 +439,273 @@ export const cloneSharedTrip = async (token: string) => {
   return response.data;
 };
 
+// ==================== 图片相关 ====================
+
+/**
+ * 获取景点封面图片
+ * @param spotName 景点名称
+ * @param city 城市（可选）
+ * @returns 景点图片URL
+ */
+export const getSpotCoverImage = async (spotName: string, city?: string) => {
+  const params: any = {};
+  if (city) params.city = city;
+  const response = await apiClient.get(`/images/spot/${encodeURIComponent(spotName)}/cover`, { params });
+  return response.data;
+};
+
+/**
+ * 搜索Unsplash图片
+ * @param keyword 搜索关键词
+ * @param city 城市（可选）
+ * @param perPage 每页数量
+ * @returns 图片列表
+ */
+export const searchUnsplashImages = async (keyword: string, city?: string, perPage?: number) => {
+  const params: any = {};
+  if (city) params.city = city;
+  if (perPage) params.perPage = perPage;
+  const response = await apiClient.get(`/images/search/${encodeURIComponent(keyword)}`, { params });
+  return response.data;
+};
+
+/**
+ * 批量获取景点图片
+ * @param spots 景点列表
+ * @returns 图片映射
+ */
+export const batchGetSpotImages = async (spots: Array<{ name: string; city?: string }>) => {
+  const response = await apiClient.post('/images/batch', { spots });
+  return response.data;
+};
+
+// ==================== 评价相关 ====================
+
+/**
+ * 创建评价
+ * @param data 评价数据
+ * @returns 评价结果
+ */
+export const createReview = async (data: {
+  spotId: string;
+  userId: string;
+  rating: number;
+  comment?: string;
+  images?: string[];
+}) => {
+  const response = await apiClient.post('/reviews', data);
+  return response.data;
+};
+
+/**
+ * 获取景点的所有评价
+ * @param spotId 景点ID
+ * @param page 页码
+ * @param pageSize 每页数量
+ * @returns 评价列表
+ */
+export const getSpotReviews = async (spotId: string, page?: number, pageSize?: number) => {
+  const params: any = {};
+  if (page) params.page = page;
+  if (pageSize) params.pageSize = pageSize;
+  const response = await apiClient.get(`/reviews/spot/${spotId}`, { params });
+  return response.data;
+};
+
+/**
+ * 获取用户的评价
+ * @param userId 用户ID
+ * @param page 页码
+ * @param pageSize 每页数量
+ * @returns 评价列表
+ */
+export const getUserReviews = async (userId: string, page?: number, pageSize?: number) => {
+  const params: any = {};
+  if (page) params.page = page;
+  if (pageSize) params.pageSize = pageSize;
+  const response = await apiClient.get(`/reviews/user/${userId}`, { params });
+  return response.data;
+};
+
+/**
+ * 删除评价
+ * @param reviewId 评价ID
+ * @param userId 用户ID
+ * @returns 删除结果
+ */
+export const deleteReview = async (reviewId: string, userId: string) => {
+  const response = await apiClient.delete(`/reviews/${reviewId}`, { data: { userId } });
+  return response.data;
+};
+
+/**
+ * 点赞/取消点赞评价
+ * @param reviewId 评价ID
+ * @param userId 用户ID
+ * @returns 点赞结果
+ */
+export const toggleReviewLike = async (reviewId: string, userId: string) => {
+  const response = await apiClient.post(`/reviews/${reviewId}/like`, { userId });
+  return response.data;
+};
+
+/**
+ * 批量获取景点的评价统计
+ * @param spotIds 景点ID列表
+ * @returns 评价统计
+ */
+export const getSpotReviewsStats = async (spotIds: string[]) => {
+  const response = await apiClient.post('/reviews/stats', { spotIds });
+  return response.data;
+};
+
+// ==================== Blog相关 ====================
+
+/**
+ * 创建博客文章
+ * @param data 博客数据
+ * @returns 博客文章
+ */
+export const createBlog = async (data: {
+  userId: string;
+  title: string;
+  content: string;
+  coverImage?: string;
+  tags?: string[];
+  city?: string;
+  spotIds?: string[];
+  isPublished?: boolean;
+}) => {
+  const response = await apiClient.post('/blogs', data);
+  return response.data;
+};
+
+/**
+ * 获取博客文章列表
+ * @param params 查询参数
+ * @returns 博客列表
+ */
+export const getBlogPosts = async (params?: {
+  userId?: string;
+  city?: string;
+  tags?: string[];
+  isPublished?: boolean;
+  page?: number;
+  pageSize?: number;
+  sortBy?: 'latest' | 'popular' | 'mostLiked';
+}) => {
+  const response = await apiClient.get('/blogs', { params });
+  return response.data;
+};
+
+/**
+ * 获取博客文章详情
+ * @param id 博客ID
+ * @returns 博客详情
+ */
+export const getBlogPostById = async (id: string) => {
+  const response = await apiClient.get(`/blogs/${id}`);
+  return response.data;
+};
+
+/**
+ * 增加博客浏览量
+ * @param id 博客ID
+ * @returns 增加浏览量结果
+ */
+export const incrementBlogViewCount = async (id: string) => {
+  const response = await apiClient.post(`/blogs/${id}/view`);
+  return response.data;
+};
+
+/**
+ * 更新博客文章
+ * @param id 博客ID
+ * @param userId 用户ID
+ * @param data 更新数据
+ * @returns 更新后的博客
+ */
+export const updateBlog = async (id: string, userId: string, data: {
+  title?: string;
+  content?: string;
+  coverImage?: string;
+  tags?: string[];
+  city?: string;
+  spotIds?: string[];
+  isPublished?: boolean;
+}) => {
+  const response = await apiClient.put(`/blogs/${id}`, { userId, ...data });
+  return response.data;
+};
+
+/**
+ * 删除博客文章
+ * @param id 博客ID
+ * @param userId 用户ID
+ * @returns 删除结果
+ */
+export const deleteBlog = async (id: string, userId: string) => {
+  const response = await apiClient.delete(`/blogs/${id}`, { data: { userId } });
+  return response.data;
+};
+
+/**
+ * 点赞/取消点赞
+ * @param postId 博客ID
+ * @param userId 用户ID
+ * @returns 点赞结果
+ */
+export const toggleLike = async (postId: string, userId: string) => {
+  const response = await apiClient.post(`/blogs/${postId}/like`, { userId });
+  return response.data;
+};
+
+/**
+ * 添加评论
+ * @param postId 博客ID
+ * @param userId 用户ID
+ * @param content 评论内容
+ * @returns 评论
+ */
+export const addBlogComment = async (postId: string, userId: string, content: string) => {
+  const response = await apiClient.post(`/blogs/${postId}/comments`, { userId, content });
+  return response.data;
+};
+
+/**
+ * 删除评论
+ * @param commentId 评论ID
+ * @param userId 用户ID
+ * @returns 删除结果
+ */
+export const deleteBlogComment = async (commentId: string, userId: string) => {
+  const response = await apiClient.delete(`/blogs/comments/${commentId}`, { data: { userId } });
+  return response.data;
+};
+
+/**
+ * 点赞/取消点赞评论
+ * @param commentId 评论ID
+ * @param userId 用户ID
+ * @returns 点赞结果
+ */
+export const toggleBlogCommentLike = async (commentId: string, userId: string) => {
+  const response = await apiClient.post(`/blogs/comments/${commentId}/like`, { userId });
+  return response.data;
+};
+
+/**
+ * 获取热门标签
+ * @param limit 数量限制
+ * @returns 热门标签列表
+ */
+export const getPopularTags = async (limit?: number) => {
+  const params: any = {};
+  if (limit) params.limit = limit;
+  const response = await apiClient.get('/blogs/tags/popular', { params });
+  return response.data;
+};
+
 // ==================== 导出 ====================
 
 export default apiClient;

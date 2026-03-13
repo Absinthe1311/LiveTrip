@@ -9,6 +9,9 @@ import DestinationDetail from './pages/DestinationDetail';
 import Favorites from './pages/Favorites';
 import Destinations from './pages/Destinations';
 import SharedTrip from './pages/SharedTrip';
+import Blogs from './pages/Blogs';
+import CreateBlog from './pages/CreateBlog';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
@@ -23,6 +26,10 @@ function App() {
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/destinations" element={<Destinations />} />
         <Route path="/shared/:token" element={<SharedTrip />} />
+        <Route path="/blogs" element={<Blogs />} />
+        <Route path="/blog/create" element={<CreateBlog />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/spot-images" element={<AdminDashboard />} />
       </Routes>
     </Router>
   );

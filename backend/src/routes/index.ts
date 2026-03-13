@@ -12,6 +12,10 @@ import destinationRoutes from './destinationRoutes';
 import recommendationRoutes from './recommendationRoutes';
 import advisorRoutes from './advisorRoutes';
 import shareRoutes from './shareRoutes';
+import imageRoutes from './imageRoutes';
+import reviewRoutes from './reviewRoutes';
+import blogRoutes from './blogRoutes';
+import adminRoutes from './adminRoutes';
 
 const router = Router();
 
@@ -28,5 +32,9 @@ router.use('/destinations', destinationRoutes);
 router.use('/recommendations', recommendationRoutes);
 router.use('/advisor', advisorRoutes);
 router.use(shareRoutes);
+router.use('/images', imageRoutes);
+router.use('/reviews', reviewRoutes);
+router.use('/blogs', blogRoutes);
+router.use('/admin', adminRoutes);
 
 export default router;

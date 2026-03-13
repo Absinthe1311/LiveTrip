@@ -15,12 +15,16 @@ model User {
   email        String?  @unique
   passwordHash String
   avatar       String?  @default("")
+  role         String   @default("user") // 'admin', 'user'
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   // Relations
-  trips       Trip[]
-  preferences UserPreferences?
+  trips           Trip[]
+  preferences     UserPreferences?
+  uploadedImages  SpotImage[] @relation("ImageUploader")
+  reviewedImages  SpotImage[] @relation("ImageReviewer")
+  reviewedBlogs   BlogPost[] @relation("BlogReviewer")
 }
 
 // User Preferences Table
@@ -245,6 +249,11 @@ model Spot {
   description String?
   isOutdoor   Boolean? @default(true)
 
+  // 图片相关字段
+  coverImage  String?  // 主要图片URL
+  avgRating   Float?   // 平均评分
+  reviewCount Int      @default(0) // 评价数量
+
   // Metadata
   source    String   @default("amap") // 'amap', 'user_contributed'
   createdAt DateTime @default(now())
@@ -253,6 +262,8 @@ model Spot {
   // Relations
   iotData   SpotIoTData?
   favorites Favorite[]
+  images    SpotImage[]
+  reviews   Review[]
 
   @@index([city])
   @@index([category])
@@ -277,6 +288,90 @@ model SpotIoTData {
 
   @@index([spotId])
   @@index([generatedAt])
+}
+
+// Spot Image Table - 景点图片表（完整版）
+model SpotImage {
+  id         String   @id @default(cuid())
+  spotId     String
+  spot       Spot     @relation(fields: [spotId], references: [id], onDelete: Cascade)
+
+  // 图片信息
+  url        String?  @default("") // 图片URL (可为空，用于迁移现有数据)
+  source     String   @default("unsplash") // 'admin', 'user_upload', 'community', 'unsplash'
+  status     String   @default("approved") // 'pending', 'approved', 'rejected' (默认approved用于现有数据)
+  priority   Int      @default(1) // admin=10, user=5, unsplash=1
+  isPrimary  Boolean  @default(false) // 是否为主图
+  fileHash   String   @default("") // 文件hash，用于去重 (默认空字符串用于迁移)
+
+  // 审核信息
+  uploadedBy String   @default("system") // 上传者ID (默认system用于迁移)
+  uploader   User     @relation("ImageUploader", fields: [uploadedBy], references: [id])
+  reviewedBy String?
+  reviewer   User?    @relation("ImageReviewer", fields: [reviewedBy], references: [id])
+  reviewedAt DateTime?
+  reviewNote String?
+
+  // 统计信息
+  viewCount  Int      @default(0)
+  likeCount  Int      @default(0)
+  reportCount Int     @default(0)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) // 使用默认值而非@updatedAt
+
+  @@index([spotId])
+  @@index([source])
+  @@index([status])
+  @@index([priority])
+  @@index([uploadedBy])
+  // 注意：唯一索引暂时移除，因为现有数据的fileHash都是空字符串
+  // @@unique([spotId, fileHash]) // 防止同一景点上传重复图片
+}
+
+// Review Table - 评价表
+model Review {
+  id         String   @id @default(cuid())
+  spotId     String
+  spot       Spot     @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  userId     String   // 用户ID（暂时使用固定ID）
+  rating     Float    // 评分 1-5
+  comment    String?  // 评论内容
+  likeCount  Int      @default(0) // 点赞数
+  images     ReviewImage[] // 评论图片
+  likes      ReviewLike[] // 点赞记录
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([spotId])
+  @@index([userId])
+  @@index([rating])
+  @@index([likeCount])
+}
+
+// Review Image Table - 评价图片表
+model ReviewImage {
+  id       String @id @default(cuid())
+  reviewId String
+  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  imageUrl String // 图片URL
+  altText  String? // 图片描述
+  createdAt DateTime @default(now())
+
+  @@index([reviewId])
+}
+
+// Review Like Table - 评价点赞表
+model ReviewLike {
+  id        String   @id @default(cuid())
+  reviewId  String
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId    String   // 用户ID
+  createdAt DateTime @default(now())
+
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+  @@index([userId])
 }
 
 // Spot Alternatives Table - 备选景点关系表
@@ -327,4 +422,86 @@ model DestinationCache {
 
   @@index([city])
   @@index([expiresAt])
+}
+
+// Blog Post Table - 博客文章表
+model BlogPost {
+  id          String   @id @default(cuid())
+  userId      String   // 用户ID
+  title       String   // 标题
+  content     String   // 内容（富文本）
+  coverImage  String?  // 封面图片
+  tags        String   // 标签（逗号分隔）
+  city        String?  // 相关城市
+  spotIds     String?  // 相关景点ID（逗号分隔）
+  imageIds    String?  // 图片ID列表（逗号分隔）
+  viewCount   Int      @default(0) // 浏览量
+  likeCount   Int      @default(0) // 点赞数
+  commentCount Int     @default(0) // 评论数
+  isPublished Boolean  @default(false) // 是否发布
+  publishedAt DateTime? // 发布时间
+
+  // 审核字段
+  status      String   @default("pending") // 'pending', 'approved', 'rejected'
+  reviewedBy  String?
+  reviewer    User?    @relation("BlogReviewer", fields: [reviewedBy], references: [id])
+  reviewedAt  DateTime?
+  reviewNote  String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  comments    BlogComment[]
+  likes       BlogLike[]
+
+  @@index([userId])
+  @@index([city])
+  @@index([isPublished])
+  @@index([publishedAt])
+  @@index([status])
+}
+
+// Blog Comment Table - 博客评论表
+model BlogComment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String   // 用户ID
+  content   String   // 评论内容
+  likeCount Int      @default(0) // 点赞数
+  likes     BlogCommentLike[] // 点赞记录
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([likeCount])
+}
+
+// Blog Comment Like Table - 博客评论点赞表
+model BlogCommentLike {
+  id        String   @id @default(cuid())
+  commentId String
+  comment   BlogComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String   // 用户ID
+  createdAt DateTime @default(now())
+
+  @@unique([commentId, userId])
+  @@index([commentId])
+  @@index([userId])
+}
+
+// Blog Like Table - 博客点赞表
+model BlogLike {
+  id        String   @id @default(cuid())
+  postId    String
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String   // 用户ID
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
 }
