@@ -65,17 +65,16 @@ export async function getPendingImages(
 }
 
 /**
- * 上传景点图片
+ * 上传景点图片（管理员专用，自动审核通过）
  */
 export async function uploadAdminImage(
   spotId: string,
   file: File
 ): Promise<UploadImageResponse> {
   const formData = new FormData();
-  formData.append('file', file);
-  formData.append('spotId', spotId);
+  formData.append('images', file); // 注意：后端期望的字段名是 'images'
 
-  const response = await apiClient.post('/images/upload', formData, {
+  const response = await apiClient.post(`/admin/spots/${spotId}/upload-images`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },

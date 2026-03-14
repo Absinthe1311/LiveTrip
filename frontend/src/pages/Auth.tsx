@@ -54,7 +54,7 @@ export default function Auth() {
         if (user.role === 'admin') {
           navigate('/admin');
         } else {
-          navigate('/plan');
+          navigate('/'); // 普通用户跳转到首页
         }
       }
     } catch (error: any) {
@@ -89,7 +89,7 @@ export default function Auth() {
         if (user.role === 'admin') {
           navigate('/admin');
         } else {
-          navigate('/plan');
+          navigate('/'); // 普通用户跳转到首页
         }
       }
     } catch (error: any) {

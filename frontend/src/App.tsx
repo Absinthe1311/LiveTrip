@@ -11,6 +11,7 @@ import Destinations from './pages/Destinations';
 import SharedTrip from './pages/SharedTrip';
 import Blogs from './pages/Blogs';
 import CreateBlog from './pages/CreateBlog';
+import AuthGuard from './components/AuthGuard';
 import AdminGuard from './components/admin/AdminGuard';
 import AdminLayout from './components/admin/AdminLayout';
 import SpotManagePage from './pages/admin/SpotManagePage';
@@ -22,15 +23,58 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
-        <Route path="/plan" element={<Plan />} />
-        <Route path="/itinerary" element={<Itinerary />} />
-        <Route path="/my-trips" element={<MyTrips />} />
+        {/* 普通用户路由 - 管理员无法访问 */}
+        <Route
+          path="/plan"
+          element={
+            <AuthGuard>
+              <Plan />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/itinerary"
+          element={
+            <AuthGuard>
+              <Itinerary />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/my-trips"
+          element={
+            <AuthGuard>
+              <MyTrips />
+            </AuthGuard>
+          }
+        />
         <Route path="/destination/:id" element={<DestinationDetail />} />
-        <Route path="/favorites" element={<Favorites />} />
+        <Route
+          path="/favorites"
+          element={
+            <AuthGuard>
+              <Favorites />
+            </AuthGuard>
+          }
+        />
         <Route path="/destinations" element={<Destinations />} />
         <Route path="/shared/:token" element={<SharedTrip />} />
-        <Route path="/blogs" element={<Blogs />} />
-        <Route path="/blog/create" element={<CreateBlog />} />
+        <Route
+          path="/blogs"
+          element={
+            <AuthGuard>
+              <Blogs />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/blog/create"
+          element={
+            <AuthGuard>
+              <CreateBlog />
+            </AuthGuard>
+          }
+        />
         {/* 管理员路由 */}
         <Route
           path="/admin"
