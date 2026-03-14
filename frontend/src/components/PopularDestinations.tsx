@@ -1,7 +1,24 @@
 import { useState, useEffect } from 'react';
-import { Card, Row, Col, Button, Rate } from 'antd';
+import { Card, Row, Col, Button, Rate, Spin, Empty } from 'antd';
 import { FireOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+
+interface HotCity {
+  city: string;
+  count: number;
+  avgRating: number;
+  spots: HotSpot[];
+}
+
+interface HotSpot {
+  id: string;
+  name: string;
+  city: string;
+  rating: number;
+  description: string;
+  category: string;
+  ticketPrice: number;
+}
 
 interface Destination {
   id: string;
@@ -13,6 +30,46 @@ interface Destination {
   rating: number;
   description: string;
 }
+
+// 城市图标映射
+const cityIcons: Record<string, string> = {
+  '北京市': '🏛️',
+  '上海市': '🌃',
+  '成都市': '🐼',
+  '杭州市': '🏞️',
+  '厦门市': '🌊',
+  '西安市': '🏔️',
+};
+
+// 城市推荐天数映射
+const cityDays: Record<string, number> = {
+  '北京市': 3,
+  '上海市': 2,
+  '成都市': 4,
+  '杭州市': 3,
+  '厦门市': 2,
+  '西安市': 4,
+};
+
+// 城市预算映射
+const cityBudget: Record<string, number> = {
+  '北京市': 2000,
+  '上海市': 1800,
+  '成都市': 2200,
+  '杭州市': 1900,
+  '厦门市': 1700,
+  '西安市': 2100,
+};
+
+// 城市推荐季节映射
+const cityBestSeason: Record<string, string> = {
+  '北京市': '春秋',
+  '上海市': '全年',
+  '成都市': '春秋',
+  '杭州市': '春秋',
+  '厦门市': '春秋',
+  '西安市': '春秋',
+};
 
 interface DestinationCardProps {
   destination: Destination;
@@ -181,74 +238,90 @@ function DestinationCard({ destination, delay, onClick }: DestinationCardProps) 
 
 export default function PopularDestinations() {
   const navigate = useNavigate();
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const destinations: Destination[] = [
-    {
-      id: '1',
-      name: '北京',
-      icon: '🏛️',
-      days: 3,
-      budget: 2000,
-      bestSeason: '春秋',
-      rating: 4.8,
-      description: '探索千年古都，感受历史文化的魅力。故宫、长城、天坛，每一个景点都承载着厚重的历史。'
-    },
-    {
-      id: '2',
-      name: '上海',
-      icon: '🌃',
-      days: 2,
-      budget: 1800,
-      bestSeason: '全年',
-      rating: 4.7,
-      description: '现代化国际大都市，外滩夜景令人陶醉。迪士尼乐园、豫园、南京路，体验都市繁华。'
-    },
-    {
-      id: '3',
-      name: '成都',
-      icon: '🐼',
-      days: 4,
-      budget: 2200,
-      bestSeason: '春秋',
-      rating: 4.9,
-      description: '天府之国，美食之都。看大熊猫、品川菜、逛宽窄巷子，享受悠闲慢生活。'
-    },
-    {
-      id: '4',
-      name: '杭州',
-      icon: '🏞️',
-      days: 3,
-      budget: 1900,
-      bestSeason: '春秋',
-      rating: 4.8,
-      description: '人间天堂，西湖美景。断桥残雪、雷峰夕照，诗情画意的美景让人流连忘返。'
-    },
-    {
-      id: '5',
-      name: '厦门',
-      icon: '🌊',
-      days: 2,
-      budget: 1700,
-      bestSeason: '春秋',
-      rating: 4.7,
-      description: '海上花园，浪漫之都。鼓浪屿、曾厝垵、环岛路，感受海风拂面的惬意。'
-    },
-    {
-      id: '6',
-      name: '西安',
-      icon: '🏔️',
-      days: 4,
-      budget: 2100,
-      bestSeason: '春秋',
-      rating: 4.8,
-      description: '十三朝古都，丝绸之路起点。兵马俑、大雁塔、回民街，穿越千年历史。'
+  useEffect(() => {
+    loadHotCities();
+  }, []);
+
+  const loadHotCities = async () => {
+    try {
+      setLoading(true);
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api';
+      const response = await fetch(`${apiBaseUrl}/hot-spots/cities`);
+      
+      if (!response.ok) {
+        throw new Error('获取热门城市失败');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        // 转换为Destination格式
+        const formattedDestinations: Destination[] = result.data.map((city: HotCity, index: number) => ({
+          id: `city_${index}`,
+          name: city.city.replace('市', ''), // 移除"市"后缀
+          icon: cityIcons[city.city] || '🏙️',
+          days: cityDays[city.city] || 3,
+          budget: cityBudget[city.city] || 2000,
+          bestSeason: cityBestSeason[city.city] || '全年',
+          rating: city.avgRating || 4.5,
+          description: `${city.city}热门景点，共${city.count}个精选景点等你探索`,
+        }));
+        
+        setDestinations(formattedDestinations);
+      }
+    } catch (error) {
+      console.error('加载热门城市失败:', error);
+      // 使用默认数据作为降级方案
+      setDestinations([
+        { id: '1', name: '北京', icon: '🏛️', days: 3, budget: 2000, bestSeason: '春秋', rating: 4.8, description: '探索千年古都，感受历史文化的魅力' },
+        { id: '2', name: '上海', icon: '🌃', days: 2, budget: 1800, bestSeason: '全年', rating: 4.7, description: '现代化国际大都市，外滩夜景令人陶醉' },
+        { id: '3', name: '成都', icon: '🐼', days: 4, budget: 2200, bestSeason: '春秋', rating: 4.9, description: '天府之国，美食之都' },
+        { id: '4', name: '杭州', icon: '🏞️', days: 3, budget: 1900, bestSeason: '春秋', rating: 4.8, description: '人间天堂，西湖美景' },
+        { id: '5', name: '厦门', icon: '🌊', days: 2, budget: 1700, bestSeason: '春秋', rating: 4.7, description: '海上花园，浪漫之都' },
+        { id: '6', name: '西安', icon: '🏔️', days: 4, budget: 2100, bestSeason: '春秋', rating: 4.8, description: '十三朝古都，丝绸之路起点' },
+      ]);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const handleDestinationClick = (destination: Destination) => {
     // 跳转到目的地详情页
     navigate(`/destination/${destination.id}`);
   };
+
+  if (loading) {
+    return (
+      <div style={{
+        padding: '100px 48px',
+        background: '#f5f7fa',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '400px'
+      }}>
+        <Spin size="large" tip="加载热门目的地..." />
+      </div>
+    );
+  }
+
+  if (destinations.length === 0) {
+    return (
+      <div style={{
+        padding: '100px 48px',
+        background: '#f5f7fa',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '400px'
+      }}>
+        <Empty description="暂无热门目的地" />
+      </div>
+    );
+  }
 
   return (
     <div style={{

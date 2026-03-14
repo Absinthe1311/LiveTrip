@@ -1294,8 +1294,6 @@ export default function Itinerary() {
           disabled={!hotelRecommendationLoaded}
           groupSize={itineraryData.summary?.groupSize || 1}
           tripId={itineraryData.tripId}
-          tripId={itineraryData.tripId}
-          tripId={itineraryData.tripId}
         />
       )}
 
