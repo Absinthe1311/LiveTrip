@@ -56,6 +56,7 @@ export const createPlan = async (req: Request, res: Response) => {
 
     // 转换为AI推荐服务需要的格式
     const attractions = spots.map(spot => ({
+      id: spot.id, // 添加spotId
       name: spot.name,
       location: spot.location,
       address: spot.address || '',

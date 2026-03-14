@@ -146,8 +146,14 @@ model ItineraryItem {
   // Cost info
   cost Float @default(0)
 
+  // Spot relation (optional, for image upload)
+  spotId String?
+  spot   Spot?  @relation(fields: [spotId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([spotId])
 }
 
 // Budget Table
@@ -249,6 +255,7 @@ model Spot {
   rating      Float?
   description String?
   isOutdoor   Boolean? @default(true)
+  isHot       Boolean  @default(false) // 是否为热门景点
 
   // 图片相关字段
   coverImage  String?  // 主要图片URL
@@ -261,10 +268,11 @@ model Spot {
   updatedAt DateTime @updatedAt
 
   // Relations
-  iotData   SpotIoTData?
-  favorites Favorite[]
-  images    SpotImage[]
-  reviews   Review[]
+  iotData        SpotIoTData?
+  favorites      Favorite[]
+  images         SpotImage[]
+  reviews        Review[]
+  itineraryItems ItineraryItem[]
 
   @@index([city])
   @@index([category])

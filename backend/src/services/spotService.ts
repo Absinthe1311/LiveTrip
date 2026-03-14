@@ -2,6 +2,7 @@
 import { PrismaClient } from '@prisma/client';
 import { AmapAttraction, amapService } from './amapService';
 import { iotDataGenerator } from '../iot/iotDataGenerator';
+import { deduplicateSpots } from '../utils/spotDeduplication';
 
 const prisma = new PrismaClient();
 const amapServiceInstance = amapService();
@@ -67,11 +68,15 @@ class SpotService {
 
       console.log(`✅ 从高德API获取到 ${amapAttractions.length} 个景点`);
 
-      // 3. 转换并存储到数据库
-      const spots = await this.saveSpotsToDatabase(amapAttractions, city);
+      // 3. 去重处理
+      const uniqueAttractions = deduplicateSpots(amapAttractions);
+      console.log(`✅ 去重后剩余 ${uniqueAttractions.length} 个景点`);
+
+      // 4. 转换并存储到数据库
+      const spots = await this.saveSpotsToDatabase(uniqueAttractions, city);
       console.log(`💾 已存储 ${spots.length} 个景点到数据库`);
 
-      // 4. 为每个景点生成IoT数据
+      // 5. 为每个景点生成IoT数据
       await this.generateIoTDataForSpots(spots);
       console.log(`💾 已生成并存储 ${spots.length} 个景点的IoT数据`);
 
@@ -1146,6 +1151,68 @@ class SpotService {
         result.set(spotId, null);
       }
       return result;
+    }
+  }
+
+  /**
+   * 根据景点名称和城市查找景点ID
+   * @param name 景点名称
+   * @param city 城市名称
+   * @param location 经纬度（可选，用于精确匹配）
+   * @returns 景点ID，如果找不到则返回null
+   */
+  async findSpotIdByNameAndCity(
+    name: string,
+    city: string,
+    location?: string
+  ): Promise<string | null> {
+    try {
+      // 1. 尝试精确匹配（名称+城市）
+      let spot = await prisma.spot.findFirst({
+        where: {
+          name: name,
+          city: city,
+        },
+      });
+
+      if (spot) {
+        return spot.id;
+      }
+
+      // 2. 如果提供了经纬度，尝试通过位置匹配
+      if (location) {
+        spot = await prisma.spot.findFirst({
+          where: {
+            city: city,
+            location: location,
+          },
+        });
+
+        if (spot) {
+          return spot.id;
+        }
+      }
+
+      // 3. 尝试模糊匹配（名称包含）
+      spot = await prisma.spot.findFirst({
+        where: {
+          name: {
+            contains: name,
+          },
+          city: city,
+        },
+      });
+
+      if (spot) {
+        console.log(`⚠️  模糊匹配: "${name}" -> "${spot.name}"`);
+        return spot.id;
+      }
+
+      console.log(`⚠️  未找到景点: ${name} (${city})`);
+      return null;
+    } catch (error) {
+      console.error('❌ 查找景点ID失败:', error);
+      return null;
     }
   }
 }

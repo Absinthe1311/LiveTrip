@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { budgetCalculator } from '../services/budgetCalculator';
+import { spotService } from '../services/spotService';
 
 const prisma = new PrismaClient();
 
@@ -13,9 +14,15 @@ export const getUserTrips = async (req: Request, res: Response) => {
   try {
     console.log('📝 收到获取行程列表请求');
 
-    // 获取当前用户（从请求头或默认用户）
-    const userIdHeader = req.headers['x-user-id'];
-    const userId = Array.isArray(userIdHeader) ? userIdHeader[0] : (userIdHeader || 'default-user');
+    // 从认证中间件获取用户ID
+    const userId = (req as any).user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: '未授权，请先登录',
+      });
+    }
 
     console.log(`👤 用户ID: ${userId}`);
 
@@ -150,8 +157,15 @@ export const saveTrip = async (req: Request, res: Response) => {
 
     const tripData = req.body;
 
-    // 获取当前用户（从请求头或默认用户）
-    const userId = req.headers['x-user-id'] as string || 'default-user';
+    // 从认证中间件获取用户ID
+    const userId = (req as any).user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: '未授权，请先登录',
+      });
+    }
 
     // 验证必填字段
     if (!tripData.summary) {
@@ -161,21 +175,16 @@ export const saveTrip = async (req: Request, res: Response) => {
       });
     }
 
-    // 确保用户存在，如果不存在则创建
-    let user = await prisma.user.findUnique({
+    // 验证用户是否存在
+    const user = await prisma.user.findUnique({
       where: { id: userId },
     });
 
     if (!user) {
-      console.log('👤 用户不存在，创建默认用户');
-      user = await prisma.user.create({
-        data: {
-          id: userId,
-          username: userId === 'default-user' ? '默认用户' : userId,
-          passwordHash: 'default', // 实际应用中应该使用加密密码
-        },
+      return res.status(404).json({
+        success: false,
+        error: '用户不存在',
       });
-      console.log(`✅ 用户创建成功，ID: ${user.id}`);
     }
 
     const { summary, itinerary, total_cost, budget_breakdown, hotel, hotelRecommendations, restaurantRecommendations } = tripData;
@@ -272,6 +281,26 @@ export const saveTrip = async (req: Request, res: Response) => {
           latitude = lat;
         }
 
+        // 优先使用传递过来的spotId（如果存在）
+        let spotId: string | null = item.id || null;
+
+        // 如果没有spotId，则查找
+        if (!spotId) {
+          spotId = await spotService.findSpotIdByNameAndCity(
+            item.name,
+            summary.destination,
+            item.location
+          );
+
+          if (spotId) {
+            console.log(`✅ 找到景点ID: ${item.name} -> ${spotId}`);
+          } else {
+            console.log(`⚠️  未找到景点ID: ${item.name}`);
+          }
+        } else {
+          console.log(`✅ 使用传递的景点ID: ${item.name} -> ${spotId}`);
+        }
+
         await prisma.itineraryItem.create({
           data: {
             dayId: dayRecord.id,
@@ -285,6 +314,7 @@ export const saveTrip = async (req: Request, res: Response) => {
             latitude,
             longitude,
             cost: item.estimated_cost || 0,
+            spotId: spotId, // 保存spotId
           },
         });
       }

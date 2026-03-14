@@ -59,36 +59,48 @@ export default function SpotImageUploadModal({
       return;
     }
 
-    setUploading(true);
-    setUploadProgress(0);
-
-    // 首先通过景点名称查找景点 ID
-    let spotId: string | null = null;
-    if (!city) {
-      message.error('缺少城市信息，无法上传图片');
-      setUploading(false);
+    // 检查用户是否登录
+    const token = localStorage.getItem('token');
+    if (!token) {
+      message.error('请先登录后再上传图片');
       return;
     }
 
-    try {
-      const searchResponse = await fetch('/api/spots/search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: spot.name,
-          city: city,
-        }),
-      });
-      const searchData = await searchResponse.json();
-      if (searchData.success && searchData.data && searchData.data.id) {
-        spotId = searchData.data.id;
-      } else if (searchData.data && searchData.data.id) {
-        spotId = searchData.data.id;
+    setUploading(true);
+    setUploadProgress(0);
+
+    // 优先使用spotId（如果存在）
+    let spotId: string | null = spot.spotId || null;
+
+    // 如果没有spotId，则通过景点名称查找
+    if (!spotId) {
+      if (!city) {
+        message.error('缺少城市信息，无法上传图片');
+        setUploading(false);
+        return;
       }
-    } catch (error) {
-      console.error('查找景点 ID 失败:', error);
+
+      try {
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api';
+        const searchResponse = await fetch(`${apiBaseUrl}/spots/search`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: spot.name,
+            city: city,
+          }),
+        });
+        const searchData = await searchResponse.json();
+        if (searchData.success && searchData.data && searchData.data.id) {
+          spotId = searchData.data.id;
+        } else if (searchData.data && searchData.data.id) {
+          spotId = searchData.data.id;
+        }
+      } catch (error) {
+        console.error('查找景点 ID 失败:', error);
+      }
     }
 
     if (!spotId) {
@@ -110,8 +122,17 @@ export default function SpotImageUploadModal({
         formData.append('file', file.file);
         formData.append('spotId', spotId); // 使用景点 ID
 
-        const response = await fetch('/api/images/upload', {
+        // 获取token
+        const token = localStorage.getItem('token');
+        const headers: HeadersInit = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api';
+        const response = await fetch(`${apiBaseUrl}/images/upload`, {
           method: 'POST',
+          headers,
           body: formData,
         });
 
@@ -170,7 +191,7 @@ export default function SpotImageUploadModal({
           上传您在景点拍摄的照片，审核通过后将展示在景点详情中。最多可上传5张图片。
         </p>
         <p style={{ color: '#999', fontSize: 12 }}>
-          支持 JPG、PNG 格式，单张图片不超过 5MB
+          支持 JPG、PNG 格式，单张图片不超过 20MB
         </p>
       </div>
 

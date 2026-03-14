@@ -4,6 +4,7 @@ import { ZhipuAI } from 'zhipuai';
 
 // 推荐的景点项
 export interface RecommendedAttraction {
+  id?: string; // spotId
   name: string;
   time: string;
   location: string;
@@ -412,6 +413,7 @@ ${attractionsJSON}
       const endTime = currentTime + duration;
 
       result.push({
+        id: (attraction as any).id, // 保留spotId
         name: attraction.name,
         time: `${this.minutesToTime(currentTime)}-${this.minutesToTime(endTime)}`,
         location: attraction.location,

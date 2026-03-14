@@ -16,6 +16,7 @@ import imageRoutes from './imageRoutes';
 import reviewRoutes from './reviewRoutes';
 import blogRoutes from './blogRoutes';
 import adminRoutes from './adminRoutes';
+import hotSpotRoutes from './hotSpotRoutes';
 
 const router = Router();
 
@@ -36,5 +37,6 @@ router.use('/images', imageRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/blogs', blogRoutes);
 router.use('/admin', adminRoutes);
+router.use('/hot-spots', hotSpotRoutes);
 
 export default router;

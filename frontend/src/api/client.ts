@@ -58,6 +58,7 @@ export interface AttractionItem {
   description: string;
   type?: string;
   address?: string;
+  spotId?: string; // 景点ID（用于图片上传）
 }
 
 // 每日行程
