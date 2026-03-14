@@ -448,6 +448,9 @@ function convertTripToItinerary(trip: any): any {
 
   return {
     id: trip.id,
+    tripId: trip.id,
+    isSavedTrip: true,
+    status: trip.status || 'planning', // 添加行程状态
     itinerary,
     total_cost: trip.totalBudget || 0,
     budget_breakdown: {

@@ -8,6 +8,7 @@ interface SpotImageUploadModalProps {
   visible: boolean;
   spot: AttractionItem | null;
   tripId: string;
+  city?: string; // 添加城市参数
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -16,6 +17,7 @@ export default function SpotImageUploadModal({
   visible,
   spot,
   tripId,
+  city,
   onClose,
   onSuccess,
 }: SpotImageUploadModalProps) {
@@ -60,6 +62,41 @@ export default function SpotImageUploadModal({
     setUploading(true);
     setUploadProgress(0);
 
+    // 首先通过景点名称查找景点 ID
+    let spotId: string | null = null;
+    if (!city) {
+      message.error('缺少城市信息，无法上传图片');
+      setUploading(false);
+      return;
+    }
+
+    try {
+      const searchResponse = await fetch('/api/spots/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: spot.name,
+          city: city,
+        }),
+      });
+      const searchData = await searchResponse.json();
+      if (searchData.success && searchData.data && searchData.data.id) {
+        spotId = searchData.data.id;
+      } else if (searchData.data && searchData.data.id) {
+        spotId = searchData.data.id;
+      }
+    } catch (error) {
+      console.error('查找景点 ID 失败:', error);
+    }
+
+    if (!spotId) {
+      message.error('未找到对应的景点，无法上传图片');
+      setUploading(false);
+      return;
+    }
+
     const totalFiles = fileList.length;
     let successCount = 0;
     let failCount = 0;
@@ -71,18 +108,11 @@ export default function SpotImageUploadModal({
       try {
         const formData = new FormData();
         formData.append('file', file.file);
-        formData.append('spotName', spot.name);
-        formData.append('tripId', tripId);
-        if (spot.location) {
-          formData.append('location', spot.location);
-        }
+        formData.append('spotId', spotId); // 使用景点 ID
 
         const response = await fetch('/api/images/upload', {
           method: 'POST',
           body: formData,
-          headers: {
-            'x-user-id': localStorage.getItem('userId') || 'default-user',
-          },
         });
 
         const result = await response.json();
@@ -90,6 +120,7 @@ export default function SpotImageUploadModal({
         if (result.success) {
           successCount++;
         } else {
+          console.error('上传失败:', result.message);
           failCount++;
         }
       } catch (error) {

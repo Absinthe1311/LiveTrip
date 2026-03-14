@@ -520,7 +520,7 @@ export default function Itinerary() {
   useEffect(() => {
     console.log('📍 Itinerary 页面加载');
     console.log('📦 Store 中的行程数据:', currentItinerary);
-    
+
     if (currentItinerary) {
       console.log('✅ 找到行程数据，设置到页面状态');
       setItineraryData(currentItinerary);
@@ -533,12 +533,17 @@ export default function Itinerary() {
         }
       }
 
+      // 检查行程状态（是否已完成）
+      if (currentItinerary.status === 'completed') {
+        setTripStatus('completed');
+      }
+
       // 从行程数据中恢复酒店信息
       if (currentItinerary.hotel) {
         console.log('🏨 恢复酒店信息:', currentItinerary.hotel);
         setSelectedHotel(currentItinerary.hotel);
       }
-      
+
       // 从行程数据中恢复餐厅信息
       if (currentItinerary.restaurants) {
         console.log('🍽️ 恢复餐厅信息:', currentItinerary.restaurants);
@@ -550,10 +555,10 @@ export default function Itinerary() {
         });
         setSelectedRestaurants(restaurantsMap);
       }
-      
+
       // 加载IoT数据
       loadIoTData();
-      
+
       // 计算实时预算
       calculateBudget();
     } else {
@@ -965,7 +970,8 @@ export default function Itinerary() {
       maxWidth: '1600px',
       margin: '0 auto',
       background: '#f5f5f5',
-      minHeight: '100vh'
+      minHeight: 'auto',
+      paddingBottom: '100px'
     }}>
       <div style={{
         display: 'flex',
@@ -987,36 +993,6 @@ export default function Itinerary() {
           )}
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          {/* 已完成行程显示写游记和上传图片按钮 */}
-          {tripStatus === 'completed' && (
-            <>
-              <Button
-                type="default"
-                icon={<EditOutlined />}
-                onClick={handleWriteBlog}
-              >
-                写游记
-              </Button>
-            </>
-          )}
-          {/* 规划中行程显示完成按钮 */}
-          {isSavedTrip && tripStatus === 'planning' && (
-            <Popconfirm
-              title="确认完成行程？"
-              description="完成后将无法再修改行程"
-              onConfirm={handleCompleteTrip}
-              okText="确认"
-              cancelText="取消"
-            >
-              <Button
-                type="primary"
-                icon={<CheckCircleOutlined />}
-                loading={completing}
-              >
-                完成行程
-              </Button>
-            </Popconfirm>
-          )}
           {tripId && <ShareButton tripId={tripId} />}
           {itineraryData && (
             <PDFExportButton tripData={{
@@ -1155,9 +1131,9 @@ export default function Itinerary() {
                         border: '3px solid #fff',
                         boxShadow: '0 0 0 3px #667eea'
                       }} />
-                      <SortableAttractionCard 
-                        item={item} 
-                        index={index} 
+                      <SortableAttractionCard
+                        item={item}
+                        index={index}
                         dayIndex={dayIndex}
                         attractionIndex={index}
                         city={itineraryData.summary?.destination}
@@ -1165,6 +1141,20 @@ export default function Itinerary() {
                         onTimeChange={(attrIndex, newTime) => handleTimeChange(dayIndex, attrIndex, newTime)}
                         iotData={iotData}
                       />
+
+                      {/* 图片上传按钮（仅已完成行程显示） */}
+                      {tripStatus === 'completed' && (
+                        <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
+                          <Button
+                            type="default"
+                            size="small"
+                            icon={<CameraOutlined />}
+                            onClick={() => handleOpenUploadModal(item)}
+                          >
+                            上传图片
+                          </Button>
+                        </div>
+                      )}
                       
                       {/* 备选景点展示区域 */}
                       {(() => {
@@ -1321,7 +1311,7 @@ export default function Itinerary() {
         warningLevel={budgetInfo?.warningLevel || 0}
       />
 
-      {/* 确认按钮 */}
+      {/* 底部操作按钮 */}
       <div style={{
         marginTop: '32px',
         padding: '24px',
@@ -1336,42 +1326,95 @@ export default function Itinerary() {
           marginBottom: '16px',
           margin: 0
         }}>
-          {isSavedTrip ? '查看行程详情' : '💡 确认后行程将保存到数据库'}
+          {isSavedTrip ? (
+            tripStatus === 'completed' ? '✅ 行程已完成，可以上传图片和写游记了' : '查看行程详情'
+          ) : '💡 确认后行程将保存到数据库'}
         </p>
-        {isSavedTrip ? (
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          {/* 已完成行程显示写游记按钮 */}
+          {tripStatus === 'completed' && (
+            <Button
+              type="primary"
+              size="large"
+              icon={<EditOutlined />}
+              onClick={handleWriteBlog}
+              style={{
+                background: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 600,
+                minWidth: '150px'
+              }}
+            >
+              写游记
+            </Button>
+          )}
+
+          {/* 规划中行程显示完成按钮 */}
+          {isSavedTrip && tripStatus === 'planning' && (
+            <Popconfirm
+              title="确认完成行程？"
+              description="完成后将无法再修改行程，但可以上传图片和写游记"
+              onConfirm={handleCompleteTrip}
+              okText="确认完成"
+              cancelText="取消"
+            >
+              <Button
+                type="primary"
+                size="large"
+                icon={<CheckCircleOutlined />}
+                loading={completing}
+                style={{
+                  background: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  minWidth: '150px'
+                }}
+              >
+                完成行程
+              </Button>
+            </Popconfirm>
+          )}
+
+          {/* 返回首页按钮 */}
           <Button
-            type="primary"
+            type="default"
             size="large"
             onClick={() => navigate('/')}
             style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              border: 'none',
               borderRadius: '8px',
               fontSize: '16px',
               fontWeight: 600,
-              minWidth: '200px'
+              minWidth: '150px'
             }}
           >
             返回首页
           </Button>
-        ) : (
-          <Button
-            type="primary"
-            size="large"
-            loading={confirming}
-            onClick={handleConfirmItinerary}
-            style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: 600,
-              minWidth: '200px'
-            }}
-          >
-            确认并返回主页
-          </Button>
-        )}
+
+          {/* 确认并保存按钮（仅未保存时显示） */}
+          {!isSavedTrip && (
+            <Button
+              type="primary"
+              size="large"
+              loading={confirming}
+              onClick={handleConfirmItinerary}
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 600,
+                minWidth: '200px'
+              }}
+            >
+              确认并保存
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* 调整建议弹窗 */}
@@ -1403,6 +1446,7 @@ export default function Itinerary() {
         visible={uploadModalVisible}
         spot={selectedSpot}
         tripId={tripId}
+        city={itineraryData.summary?.destination}
         onClose={() => {
           setUploadModalVisible(false);
           setSelectedSpot(null);
