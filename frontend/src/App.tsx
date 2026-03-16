@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Home from './pages/Home';
 import Plan from './pages/Plan';
 import Itinerary from './pages/Itinerary';
+import TripDetail from './pages/TripDetail';
 import MyTrips from './pages/MyTrips';
 import Auth from './pages/Auth';
 import DestinationDetail from './pages/DestinationDetail';
@@ -37,6 +38,15 @@ function App() {
           element={
             <AuthGuard>
               <Itinerary />
+            </AuthGuard>
+          }
+        />
+        {/* 行程详情页面 - 查看已保存的行程 */}
+        <Route
+          path="/trip/:id"
+          element={
+            <AuthGuard>
+              <TripDetail />
             </AuthGuard>
           }
         />

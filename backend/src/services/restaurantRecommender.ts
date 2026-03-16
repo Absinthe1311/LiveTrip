@@ -1,6 +1,7 @@
 // 餐厅推荐服务 - 基于每天行程景点位置推荐午餐餐厅
 import { amapService, AmapAttraction } from './amapService';
 import { amapRateLimiter } from '../utils/apiRateLimiter';
+import { restaurantCacheService, RestaurantCache } from './restaurantCacheService';
 
 // 餐厅信息接口
 export interface Restaurant {
@@ -48,16 +49,10 @@ class RestaurantRecommender {
     }>
   ): Promise<DayRestaurantRecommendation[]> {
     try {
-      console.log('🍽️ 开始餐厅推荐...');
-      console.log(`   天数: ${days.length}`);
-
       const results: DayRestaurantRecommendation[] = [];
 
       for (const dayData of days) {
-        console.log(`\n📍 处理第 ${dayData.day} 天的餐厅推荐...`);
-
         if (!dayData.spots || dayData.spots.length === 0) {
-          console.log(`⚠️  第 ${dayData.day} 天没有景点，跳过餐厅推荐`);
           results.push({
             day: dayData.day,
             date: dayData.date,
@@ -72,33 +67,67 @@ class RestaurantRecommender {
         const centerIndex = this.getCenterIndex(dayData.spots.length);
         const centerSpot = dayData.spots[centerIndex];
 
-        console.log(`   中心景点: ${centerSpot.name} (${centerSpot.location})`);
+        // 先从数据库查询附近餐厅
+        const cachedRestaurants = await restaurantCacheService.getNearbyRestaurants(
+          centerSpot.location,
+          1000,
+          20
+        );
 
-        // 使用速率限制器调用高德API搜索周边餐厅
-        const restaurants = await amapRateLimiter.execute(async () => {
-          const amapServiceInstance = amapService();
-          return await amapServiceInstance.searchAround(
-            centerSpot.location,
-            '餐厅',
-            '050000', // 餐饮服务
-            1000,     // 1公里半径
-            20        // 获取20个候选
-          );
-        });
+        let restaurants: AmapAttraction[];
 
-        if (restaurants.length === 0) {
-          console.log(`⚠️  第 ${dayData.day} 天未搜索到周边餐厅`);
-          results.push({
-            day: dayData.day,
-            date: dayData.date,
-            centerSpot: centerSpot.name,
-            centerLocation: centerSpot.location,
-            restaurants: [],
+        if (cachedRestaurants && cachedRestaurants.length > 0) {
+          console.log(`✅ [数据库] 第${dayData.day}天找到 ${cachedRestaurants.length} 个餐厅`);
+          restaurants = cachedRestaurants.map(r => ({
+            name: r.name,
+            location: r.location,
+            address: r.address,
+            type: r.type,
+            typecode: '050000',
+            tel: r.tel,
+            rating: r.rating,
+          }));
+        } else {
+          // 数据库没有，调用高德API
+          console.log(`📡 [高德API] 第${dayData.day}天搜索餐厅 - 中心点: ${centerSpot.location}`);
+          restaurants = await amapRateLimiter.execute(async () => {
+            const amapServiceInstance = amapService();
+            return await amapServiceInstance.searchAround(
+              centerSpot.location,
+              '餐厅',
+              '050000',
+              1000,
+              20
+            );
           });
-          continue;
-        }
 
-        console.log(`   搜索到 ${restaurants.length} 个餐厅`);
+          if (restaurants.length === 0) {
+            results.push({
+              day: dayData.day,
+              date: dayData.date,
+              centerSpot: centerSpot.name,
+              centerLocation: centerSpot.location,
+              restaurants: [],
+            });
+            continue;
+          }
+
+          console.log(`✅ [高德API] 第${dayData.day}天找到 ${restaurants.length} 个餐厅`);
+
+          // 保存到数据库
+          const restaurantCaches: RestaurantCache[] = restaurants.map(r => ({
+            name: r.name,
+            address: r.address,
+            location: r.location,
+            tel: r.tel,
+            type: r.type,
+            rating: r.rating,
+          }));
+
+          const city = this.inferCityFromSpots(dayData.spots);
+          await restaurantCacheService.saveRestaurants(restaurantCaches, city);
+          console.log(`💾 [数据库] 第${dayData.day}天保存 ${restaurants.length} 个餐厅`);
+        }
 
         // 处理餐厅数据
         const processedRestaurants = restaurants.map(r => ({
@@ -116,7 +145,6 @@ class RestaurantRecommender {
 
         // 返回最多3个推荐
         const recommendations = sortedRestaurants.slice(0, Math.min(3, sortedRestaurants.length));
-        console.log(`   返回 ${recommendations.length} 个餐厅推荐`);
 
         results.push({
           day: dayData.day,
@@ -127,7 +155,6 @@ class RestaurantRecommender {
         });
       }
 
-      console.log(`\n✅ 餐厅推荐完成，共处理 ${results.length} 天`);
       return results;
     } catch (error) {
       console.error('❌ 餐厅推荐失败:', error);
@@ -224,6 +251,13 @@ class RestaurantRecommender {
       // 都没有评分，按距离升序
       return a.distance - b.distance;
     });
+  }
+
+  /**
+   * 从景点列表推断城市名称
+   */
+  private inferCityFromSpots(spots: Array<{ name: string; location: string }>): string {
+    return '未知城市';
   }
 }
 

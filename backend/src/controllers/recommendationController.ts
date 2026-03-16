@@ -78,6 +78,19 @@ export const getHotelRecommendations = async (req: Request, res: Response) => {
 
     console.log(`✅ [高德API] 酒店推荐成功 - 返回 ${hotels.length} 个结果`);
 
+    // 保存推荐数据到缓存（如果有tripId）
+    if (tripId && hotels.length > 0) {
+      try {
+        await prisma.trip.update({
+          where: { id: tripId },
+          data: { hotelRecommendationsCache: JSON.stringify(hotels) },
+        });
+        console.log(`💾 [数据库] 保存酒店推荐缓存 - tripId: ${tripId}`);
+      } catch (e) {
+        console.warn('⚠️  保存酒店推荐缓存失败:', e);
+      }
+    }
+
     res.json({
       success: true,
       data: hotels,
@@ -205,6 +218,23 @@ export const getRestaurantRecommendations = async (req: Request, res: Response) 
     const recommendations = await restaurantRecommender.getRestaurantRecommendations(days);
 
     console.log(`✅ [高德API] 餐厅推荐成功 - 返回 ${recommendations.length} 天的结果`);
+
+    // 保存推荐数据到缓存（如果有tripId）
+    if (tripId && recommendations.length > 0) {
+      try {
+        for (const rec of recommendations) {
+          if (rec.restaurants && rec.restaurants.length > 0) {
+            await prisma.day.updateMany({
+              where: { tripId, dayNumber: rec.day },
+              data: { restaurantRecommendationsCache: JSON.stringify(rec.restaurants) },
+            });
+          }
+        }
+        console.log(`💾 [数据库] 保存餐厅推荐缓存 - tripId: ${tripId}`);
+      } catch (e) {
+        console.warn('⚠️  保存餐厅推荐缓存失败:', e);
+      }
+    }
 
     res.json({
       success: true,

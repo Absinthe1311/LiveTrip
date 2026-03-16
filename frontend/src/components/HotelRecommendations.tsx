@@ -1,5 +1,5 @@
 // 酒店推荐组件 - 展示推荐的酒店列表供用户选择
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, Spin, Empty, Tag, Rate, Button, message } from 'antd';
 import { EnvironmentOutlined, PhoneOutlined, StarOutlined, CloseOutlined } from '@ant-design/icons';
 import { Hotel, getHotelRecommendations } from '../api/recommendationApi';
@@ -14,9 +14,10 @@ interface HotelRecommendationsProps {
   selectedHotel?: Hotel | null;
   onSkip?: () => void;
   showSkip?: boolean;
-  onLoadComplete?: () => void; // 新增：加载完成回调
-  days?: number; // 新增：天数
-  tripId?: string; // 新增：行程ID,用于使用数据库缓存
+  onLoadComplete?: () => void; // 加载完成回调
+  onLoadData?: (hotels: Hotel[]) => void; // 新增：加载推荐数据回调
+  days?: number;
+  tripId?: string;
 }
 
 export default function HotelRecommendations({
@@ -27,20 +28,43 @@ export default function HotelRecommendations({
   onSkip,
   showSkip = true,
   onLoadComplete,
+  onLoadData, // 新增
   days = 3, // 默认3天
   tripId, // 行程ID
 }: HotelRecommendationsProps) {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // 使用 ref 防止重复请求
+  const lastRequestKeyRef = useRef<string>('');
+  const isRequestingRef = useRef(false);
+
+  // 使用 useMemo 缓存 spots 的序列化值，避免每次渲染创建新数组导致 useEffect 重复触发
+  const spotsKey = useMemo(() => JSON.stringify(spots), [spots]);
 
   useEffect(() => {
+    // 生成请求唯一标识
+    const requestKey = `${spotsKey}-${budget}-${tripId || 'no-trip'}`;
+    
+    // 如果是相同的请求，或者正在请求中，则跳过
+    if (lastRequestKeyRef.current === requestKey || isRequestingRef.current) {
+      return;
+    }
+    
     if (spots.length > 0 && budget > 0) {
+      lastRequestKeyRef.current = requestKey;
       fetchHotels();
     }
-  }, [spots, budget]);
+  }, [spotsKey, budget, tripId]);
 
   const fetchHotels = async () => {
+    // 防止重复请求
+    if (isRequestingRef.current) {
+      return;
+    }
+    
+    isRequestingRef.current = true;
     setLoading(true);
     setError(null);
 
@@ -49,11 +73,9 @@ export default function HotelRecommendations({
 
       if (response.success && response.data) {
         setHotels(response.data);
-        // 显示数据来源
-        if (response.fromCache) {
-          console.log('✅ [数据库缓存] 使用数据库缓存的酒店推荐');
-        } else {
-          console.log(`✅ [高德API] 获取到 ${response.data.length} 个酒店推荐`);
+        // 通知父组件推荐数据
+        if (onLoadData) {
+          onLoadData(response.data);
         }
         // 通知父组件加载完成
         if (onLoadComplete) {
@@ -73,6 +95,7 @@ export default function HotelRecommendations({
       message.error('获取酒店推荐失败，请稍后重试');
     } finally {
       setLoading(false);
+      isRequestingRef.current = false;
     }
   };
 

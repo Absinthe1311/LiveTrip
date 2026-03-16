@@ -1179,7 +1179,7 @@ class SpotService {
         return spot.id;
       }
 
-      // 2. 如果提供了经纬度，尝试通过位置匹配
+      // 2. 如果提供了经纬度，尝试通过位置匹配（精确匹配）
       if (location) {
         spot = await prisma.spot.findFirst({
           where: {
@@ -1193,19 +1193,43 @@ class SpotService {
         }
       }
 
-      // 3. 尝试模糊匹配（名称包含）
+      // 3. 尝试反向模糊匹配（数据库名称包含查询名称）
+      // 注意：这里使用更严格的匹配，确保不会错误匹配
       spot = await prisma.spot.findFirst({
         where: {
-          name: {
-            contains: name,
-          },
+          name: name, // 精确匹配
           city: city,
         },
       });
 
       if (spot) {
-        console.log(`⚠️  模糊匹配: "${name}" -> "${spot.name}"`);
         return spot.id;
+      }
+
+      // 4. 尝试去除常见后缀后匹配（如"广场"、"公园"等）
+      const simplifiedName = name
+        .replace(/广场$/, '')
+        .replace(/公园$/, '')
+        .replace(/博物馆$/, '')
+        .replace(/纪念馆$/, '')
+        .replace(/景区$/, '')
+        .replace(/景点$/, '')
+        .trim();
+
+      if (simplifiedName !== name && simplifiedName.length > 0) {
+        spot = await prisma.spot.findFirst({
+          where: {
+            OR: [
+              { name: simplifiedName, city: city },
+              { name: { startsWith: simplifiedName }, city: city },
+            ],
+          },
+        });
+
+        if (spot) {
+          console.log(`⚠️  简化名称匹配: "${name}" -> "${spot.name}"`);
+          return spot.id;
+        }
       }
 
       console.log(`⚠️  未找到景点: ${name} (${city})`);

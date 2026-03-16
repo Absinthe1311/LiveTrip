@@ -583,9 +583,15 @@ export const completeTrip = async (req: Request, res: Response) => {
     const { tripId } = req.params;
     const tripIdStr = Array.isArray(tripId) ? tripId[0] : tripId;
 
-    // 获取当前用户ID
-    const userIdHeader = req.headers['x-user-id'];
-    const userId = Array.isArray(userIdHeader) ? userIdHeader[0] : (userIdHeader || 'default-user');
+    // 从认证中间件获取用户ID
+    const userId = (req as any).user?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: '未授权，请先登录',
+      });
+    }
 
     console.log(`✅ 收到完成行程请求，行程ID: ${tripIdStr}, 用户ID: ${userId}`);
 
@@ -601,8 +607,11 @@ export const completeTrip = async (req: Request, res: Response) => {
       });
     }
 
+    console.log(`📋 行程信息: trip.userId=${trip.userId}, 当前用户=${userId}`);
+
     // 验证行程属于当前用户
     if (trip.userId !== userId) {
+      console.log(`❌ 权限验证失败: 行程属于用户 ${trip.userId}，但当前用户是 ${userId}`);
       return res.status(403).json({
         success: false,
         message: '您没有权限完成此行程',

@@ -69,11 +69,13 @@ export default function SpotImageUploadModal({
     setUploading(true);
     setUploadProgress(0);
 
-    // 优先使用spotId（如果存在）
-    let spotId: string | null = spot.spotId || null;
+    // 优先使用id字段（后端返回的字段名），其次使用spotId（兼容旧数据）
+    let spotId: string | null = spot.id || spot.spotId || null;
 
-    // 如果没有spotId，则通过景点名称查找
-    if (!spotId) {
+    if (spotId) {
+      console.log(`✅ 使用已存储的景点ID: ${spot.name} -> ${spotId}`);
+    } else {
+      // 如果没有spotId，则通过景点名称查找
       if (!city) {
         message.error('缺少城市信息，无法上传图片');
         setUploading(false);
@@ -81,6 +83,7 @@ export default function SpotImageUploadModal({
       }
 
       try {
+        console.log(`🔍 查找景点ID: ${spot.name} (${city})`);
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api';
         const searchResponse = await fetch(`${apiBaseUrl}/spots/search`, {
           method: 'POST',
@@ -95,8 +98,10 @@ export default function SpotImageUploadModal({
         const searchData = await searchResponse.json();
         if (searchData.success && searchData.data && searchData.data.id) {
           spotId = searchData.data.id;
+          console.log(`✅ 找到景点ID: ${spot.name} -> ${spotId}`);
         } else if (searchData.data && searchData.data.id) {
           spotId = searchData.data.id;
+          console.log(`✅ 找到景点ID: ${spot.name} -> ${spotId}`);
         }
       } catch (error) {
         console.error('查找景点 ID 失败:', error);

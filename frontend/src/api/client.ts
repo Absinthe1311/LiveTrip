@@ -16,10 +16,6 @@ export { apiClient };
 // 请求拦截器 - 添加 token 到请求头
 apiClient.interceptors.request.use(
   (config) => {
-    console.log('📤 API Request:', config.method?.toUpperCase(), config.url);
-    if (config.data) {
-      console.log('📦 Request Data:', config.data);
-    }
     // 添加 token 到请求头
     const token = localStorage.getItem('token');
     if (token) {
@@ -28,7 +24,6 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('❌ Request Error:', error);
     return Promise.reject(error);
   }
 );
@@ -36,13 +31,10 @@ apiClient.interceptors.request.use(
 // 响应拦截器
 apiClient.interceptors.response.use(
   (response) => {
-    console.log('✅ API Response:', response.config.url);
-    console.log('📦 Response Data:', response.data);
     return response;
   },
   (error) => {
-    console.error('❌ Response Error:', error);
-    console.error('Error Details:', error.response?.data);
+    console.error('API Error:', error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
@@ -51,6 +43,7 @@ apiClient.interceptors.response.use(
 
 // 景点项
 export interface AttractionItem {
+  id?: string; // 景点ID（spotId，用于图片上传）- 后端返回的字段名
   name: string;
   time: string;
   location: string;
@@ -58,7 +51,7 @@ export interface AttractionItem {
   description: string;
   type?: string;
   address?: string;
-  spotId?: string; // 景点ID（用于图片上传）
+  spotId?: string; // 兼容旧字段名
 }
 
 // 每日行程

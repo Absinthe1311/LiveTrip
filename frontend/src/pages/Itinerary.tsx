@@ -30,7 +30,7 @@ import SpotImageUploadModal from '../components/SpotImageUploadModal';
 import { useAppStore } from '../store';
 import { FullItinerary, AttractionItem, calculateRealTimeBudget, completeTrip } from '../api/client';
 import { adjustItinerary, getIoTData, saveTrip, updateAlternativeRelations } from '../api/client';
-import { Hotel, Restaurant } from '../api/recommendationApi';
+import { Hotel, Restaurant, DayRestaurantRecommendation } from '../api/recommendationApi';
 import AMapLoader from '@amap/amap-jsapi-loader';
 import { alternativeRecommender } from '../services/alternativeRecommender';
 
@@ -508,9 +508,11 @@ export default function Itinerary() {
 
   // 酒店推荐相关状态
   const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
+  const [hotelRecommendations, setHotelRecommendations] = useState<Hotel[]>([]); // 所有酒店推荐
 
   // 餐厅推荐相关状态
   const [selectedRestaurants, setSelectedRestaurants] = useState<Record<number, Restaurant | null>>({});
+  const [restaurantRecommendations, setRestaurantRecommendations] = useState<DayRestaurantRecommendation[]>([]); // 所有餐厅推荐
   const [hotelRecommendationLoaded, setHotelRecommendationLoaded] = useState(false); // 酒店推荐是否已加载完成
 
   // 预算相关状态
@@ -636,14 +638,16 @@ export default function Itinerary() {
         selectedRestaurant: selectedRestaurants[day.day] || null,
       }));
 
-      // 保存行程到数据库（包含酒店和餐厅信息）
+      // 保存行程到数据库（包含酒店和餐厅信息及推荐缓存）
       const response = await saveTrip({
         summary: itineraryData.summary,
         itinerary: itineraryData,
         total_cost: itineraryData.total_cost,
         budget_breakdown: itineraryData.budget_breakdown,
-        hotel: selectedHotel, // 添加酒店信息
-        restaurants: restaurantsData, // 添加餐厅信息
+        hotel: selectedHotel,
+        restaurants: restaurantsData,
+        hotelRecommendations: hotelRecommendations, // 添加酒店推荐缓存
+        restaurantRecommendations: restaurantRecommendations, // 添加餐厅推荐缓存
       });
 
       if (response.success) {
@@ -1260,8 +1264,9 @@ export default function Itinerary() {
           }}
           showSkip={true}
           onLoadComplete={() => setHotelRecommendationLoaded(true)}
+          onLoadData={(hotels) => setHotelRecommendations(hotels)}
           days={itineraryData.itinerary.length}
-          tripId={itineraryData.tripId}
+          tripId={tripId || itineraryData.tripId}
         />
       )}
 
@@ -1293,7 +1298,8 @@ export default function Itinerary() {
           showSkip={true}
           disabled={!hotelRecommendationLoaded}
           groupSize={itineraryData.summary?.groupSize || 1}
-          tripId={itineraryData.tripId}
+          tripId={tripId || itineraryData.tripId}
+          onLoadData={(recommendations) => setRestaurantRecommendations(recommendations)}
         />
       )}
 

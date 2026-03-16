@@ -742,11 +742,10 @@ export class AdminController {
       const spotIds: string[] = [];
 
       for (const item of itineraries) {
+        // 使用精确匹配，避免错误匹配
         const spot = await prisma.spot.findFirst({
           where: {
-            name: {
-              contains: item.name,
-            },
+            name: item.name, // 精确匹配
           },
         });
 

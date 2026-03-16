@@ -1,6 +1,7 @@
 // 酒店推荐服务 - 基于行程景点位置和用户预算推荐酒店
 import { amapService, AmapAttraction } from './amapService';
 import { amapRateLimiter } from '../utils/apiRateLimiter';
+import { hotelCacheService, HotelCache } from './hotelCacheService';
 
 // 酒店信息接口
 export interface Hotel {
@@ -38,47 +39,72 @@ class HotelRecommender {
     budget: number
   ): Promise<Hotel[]> {
     try {
-      console.log('🏨 开始酒店推荐...');
-      console.log(`   景点数量: ${spots.length}`);
-      console.log(`   用户预算: ${budget}元`);
-
       if (spots.length === 0) {
-        console.warn('⚠️  没有景点数据，无法推荐酒店');
         return [];
       }
 
       // 步骤1: 计算所有景点的地理重心
       const centerPoint = this.calculateCenterPoint(spots);
-      console.log(`📍 景点地理重心: ${centerPoint}`);
 
       // 步骤2: 根据预算确定酒店档次
       const hotelTier = this.getHotelTierByBudget(budget);
-      console.log(`💰 酒店档次: ${hotelTier}`);
 
-      // 步骤3: 使用速率限制器调用高德API搜索周边酒店
-      const hotels = await amapRateLimiter.execute(async () => {
-        const amapServiceInstance = amapService();
-        return await amapServiceInstance.searchAround(
-          centerPoint,
-          '酒店',
-          '100101', // 住宿服务 - 酒店
-          5000,     // 5公里半径
-          30        // 获取30个候选
-        );
-      });
+      // 步骤3: 先从数据库查询附近酒店
+      const cachedHotels = await hotelCacheService.getNearbyHotels(centerPoint, 5000, 30);
+      
+      let hotels: AmapAttraction[];
+      
+      if (cachedHotels && cachedHotels.length > 0) {
+        console.log(`✅ [数据库] 找到 ${cachedHotels.length} 个酒店`);
+        hotels = cachedHotels.map(h => ({
+          name: h.name,
+          location: h.location,
+          address: h.address,
+          type: h.type,
+          typecode: '100101',
+          tel: h.tel,
+          rating: h.rating,
+        }));
+      } else {
+        // 步骤4: 数据库没有，调用高德API
+        console.log(`📡 [高德API] 搜索酒店 - 中心点: ${centerPoint}`);
+        hotels = await amapRateLimiter.execute(async () => {
+          const amapServiceInstance = amapService();
+          return await amapServiceInstance.searchAround(
+            centerPoint,
+            '酒店',
+            '100101',
+            5000,
+            30
+          );
+        });
 
-      if (hotels.length === 0) {
-        console.warn('⚠️  未搜索到周边酒店');
-        return [];
+        if (hotels.length === 0) {
+          return [];
+        }
+
+        console.log(`✅ [高德API] 找到 ${hotels.length} 个酒店`);
+
+        // 步骤5: 保存到数据库
+        const hotelCaches: HotelCache[] = hotels.map(h => ({
+          name: h.name,
+          address: h.address,
+          location: h.location,
+          tel: h.tel,
+          type: h.type,
+          rating: h.rating,
+        }));
+        
+        // 从景点中推断城市
+        const city = this.inferCityFromSpots(spots);
+        await hotelCacheService.saveHotels(hotelCaches, city);
+        console.log(`💾 [数据库] 保存 ${hotels.length} 个酒店`);
       }
 
-      console.log(`✅ 搜索到 ${hotels.length} 个酒店`);
-
-      // 步骤4: 根据档次过滤酒店
+      // 步骤6: 根据档次过滤酒店
       const filteredHotels = this.filterHotelsByTier(hotels, hotelTier);
-      console.log(`✅ 档次过滤后剩余 ${filteredHotels.length} 个酒店`);
 
-      // 步骤5: 计算每个酒店到各天景点的平均距离
+      // 步骤7: 计算每个酒店到各天景点的平均距离
       const hotelsWithDistance = filteredHotels.map(hotel => {
         const { avgDistance, distanceDetails } = this.calculateAvgDistance(hotel, spots);
         return {
@@ -93,14 +119,11 @@ class HotelRecommender {
         };
       });
 
-      // 步骤6: 综合评分排序（距离评分 + 高德评分）
+      // 步骤8: 综合评分排序
       const sortedHotels = this.sortHotels(hotelsWithDistance);
 
-      // 步骤7: 返回3个推荐
-      const recommendations = sortedHotels.slice(0, Math.min(3, sortedHotels.length));
-      console.log(`✅ 返回 ${recommendations.length} 个酒店推荐`);
-
-      return recommendations;
+      // 步骤9: 返回3个推荐
+      return sortedHotels.slice(0, Math.min(3, sortedHotels.length));
     } catch (error) {
       console.error('❌ 酒店推荐失败:', error);
       throw error;
@@ -230,27 +253,30 @@ class HotelRecommender {
    */
   private sortHotels(hotels: Hotel[]): Hotel[] {
     return hotels.sort((a, b) => {
-      // 计算综合评分
-      // 距离评分（权重60%）：距离越近分数越高
-      // 高德评分（权重40%）：评分越高分数越高
-
       const maxDistance = Math.max(...hotels.map(h => h.avgDistance));
       const minDistance = Math.min(...hotels.map(h => h.avgDistance));
       const distanceRange = maxDistance - minDistance || 1;
 
-      // 距离评分（归一化到0-100，距离越近分数越高）
       const distanceScoreA = (1 - (a.avgDistance - minDistance) / distanceRange) * 60;
       const distanceScoreB = (1 - (b.avgDistance - minDistance) / distanceRange) * 60;
 
-      // 高德评分（归一化到0-100）
       const ratingScoreA = (a.rating || 3.5) / 5 * 40;
       const ratingScoreB = (b.rating || 3.5) / 5 * 40;
 
       const totalScoreA = distanceScoreA + ratingScoreA;
       const totalScoreB = distanceScoreB + ratingScoreB;
 
-      return totalScoreB - totalScoreA; // 降序
+      return totalScoreB - totalScoreA;
     });
+  }
+
+  /**
+   * 从景点列表推断城市名称
+   */
+  private inferCityFromSpots(spots: Array<{ name: string; location: string }>): string {
+    // 简单实现：返回默认城市
+    // 实际应用中可以通过逆地理编码获取城市
+    return '未知城市';
   }
 }
 

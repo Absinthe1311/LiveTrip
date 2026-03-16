@@ -514,3 +514,55 @@ model BlogLike {
   @@index([postId])
   @@index([userId])
 }
+
+// Hotel Table - 酒店表（永久存储）
+model Hotel {
+  id String @id @default(cuid())
+
+  // 酒店基本信息
+  amapId       String  @unique // 高德地图POI ID
+  name         String
+  address      String?
+  location     String  // 经纬度 "116.397428,39.90923"
+  tel          String?
+  type         String  // 酒店类型/档次
+  rating       Float?
+
+  // 地理信息
+  city         String  // 所属城市
+
+  // 统计信息
+  hitCount     Int     @default(0) // 使用次数
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([city])
+  @@index([location])
+}
+
+// Restaurant Table - 餐厅表（永久存储）
+model Restaurant {
+  id String @id @default(cuid())
+
+  // 餐厅基本信息
+  amapId       String  @unique // 高德地图POI ID
+  name         String
+  address      String?
+  location     String  // 经纬度 "116.397428,39.90923"
+  tel          String?
+  type         String  // 菜系/类型
+  rating       Float?
+
+  // 地理信息
+  city         String  // 所属城市
+
+  // 统计信息
+  hitCount     Int     @default(0) // 使用次数
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([city])
+  @@index([location])
+}

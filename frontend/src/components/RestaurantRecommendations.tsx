@@ -1,5 +1,5 @@
 // 餐厅推荐组件 - 按天展示推荐的餐厅列表供用户选择
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, Spin, Empty, Tag, Rate, Button, message, Tabs } from 'antd';
 import { EnvironmentOutlined, PhoneOutlined, StarOutlined } from '@ant-design/icons';
 import { Restaurant, DayRestaurantRecommendation, getRestaurantRecommendations } from '../api/recommendationApi';
@@ -17,9 +17,10 @@ interface RestaurantRecommendationsProps {
   selectedRestaurants?: Record<number, Restaurant | null>;
   onSkip?: (day: number) => void;
   showSkip?: boolean;
-  disabled?: boolean; // 新增：是否禁用（等待酒店推荐完成）
-  groupSize?: number; // 新增：人数，用于计算预估费用
-  tripId?: string; // 新增：行程ID,用于使用数据库缓存
+  disabled?: boolean;
+  groupSize?: number;
+  tripId?: string;
+  onLoadData?: (recommendations: DayRestaurantRecommendation[]) => void; // 新增：加载推荐数据回调
 }
 
 export default function RestaurantRecommendations({
@@ -29,22 +30,45 @@ export default function RestaurantRecommendations({
   onSkip,
   showSkip = true,
   disabled = false,
-  groupSize = 1, // 默认1人
-  tripId, // 行程ID
+  groupSize = 1,
+  tripId,
+  onLoadData, // 新增
 }: RestaurantRecommendationsProps) {
   const [recommendations, setRecommendations] = useState<DayRestaurantRecommendation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('0');
+  
+  // 使用 ref 防止重复请求
+  const lastRequestKeyRef = useRef<string>('');
+  const isRequestingRef = useRef(false);
+
+  // 使用 useMemo 缓存 days 的序列化值，避免每次渲染创建新数组导致 useEffect 重复触发
+  const daysKey = useMemo(() => JSON.stringify(days), [days]);
 
   useEffect(() => {
+    // 生成请求唯一标识
+    const requestKey = `${daysKey}-${disabled}-${tripId || 'no-trip'}`;
+    
+    // 如果是相同的请求，或者正在请求中，则跳过
+    if (lastRequestKeyRef.current === requestKey || isRequestingRef.current) {
+      return;
+    }
+    
     // 只有当没有被禁用时才获取餐厅推荐
     if (days.length > 0 && !disabled) {
+      lastRequestKeyRef.current = requestKey;
       fetchRestaurants();
     }
-  }, [days, disabled]);
+  }, [daysKey, disabled, tripId]);
 
   const fetchRestaurants = async () => {
+    // 防止重复请求
+    if (isRequestingRef.current) {
+      return;
+    }
+    
+    isRequestingRef.current = true;
     setLoading(true);
     setError(null);
 
@@ -53,11 +77,9 @@ export default function RestaurantRecommendations({
 
       if (response.success && response.data) {
         setRecommendations(response.data);
-        // 显示数据来源
-        if (response.fromCache) {
-          console.log('✅ [数据库缓存] 使用数据库缓存的餐厅推荐');
-        } else {
-          console.log(`✅ [高德API] 获取到 ${response.data.length} 天的餐厅推荐`);
+        // 通知父组件推荐数据
+        if (onLoadData) {
+          onLoadData(response.data);
         }
       } else {
         setError(response.error || '获取餐厅推荐失败');
@@ -69,6 +91,7 @@ export default function RestaurantRecommendations({
       message.error('获取餐厅推荐失败，请稍后重试');
     } finally {
       setLoading(false);
+      isRequestingRef.current = false;
     }
   };
 

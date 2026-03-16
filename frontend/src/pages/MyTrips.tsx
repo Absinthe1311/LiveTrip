@@ -35,19 +35,8 @@ export default function MyTrips() {
   };
 
   const handleViewTrip = (trip: any) => {
-    console.log('📍 查看行程:', trip);
-
-    // 将行程转换为前端格式
-    const itinerary = convertTripToItinerary(trip);
-
-    // 标记这是已保存的行程,避免重复保存
-    itinerary.isSavedTrip = true;
-    itinerary.tripId = trip.id;
-
-    setCurrentItinerary(itinerary);
-
-    // 跳转到行程详情页面
-    navigate('/itinerary');
+    // 直接跳转到行程详情页面
+    navigate(`/trip/${trip.id}`);
   };
 
   const handleDeleteTrip = async (tripId: string) => {

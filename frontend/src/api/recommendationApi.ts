@@ -1,6 +1,5 @@
 // 酒店和餐厅推荐 API - 封装推荐相关的后端调用
 import apiClient from './client';
-import { getCache, setCache } from '../utils/amapCache';
 
 // ==================== 类型定义 ====================
 
@@ -87,28 +86,12 @@ export const getHotelRecommendations = async (
   budget: number,
   tripId?: string
 ): Promise<HotelRecommendResponse> => {
-  // 生成缓存键
-  const cacheKey = spots.map(s => s.location).sort().join(',');
-
-  // 尝试从前端内存缓存获取
-  const cached = getCache('hotels', cacheKey, budget);
-  if (cached) {
-    console.log('✅ [前端缓存] 使用内存缓存的酒店推荐');
-    return cached;
-  }
-
-  // 调用API
-  console.log('📡 [API调用] 获取酒店推荐', tripId ? `(tripId: ${tripId})` : '');
+  // 直接调用API，由后端处理数据库缓存
   const response = await apiClient.post<HotelRecommendResponse>('/recommendations/hotels', {
     spots,
     budget,
-    tripId, // 传递tripId给后端
+    tripId,
   });
-
-  // 保存到前端内存缓存
-  if (response.data.success) {
-    setCache('hotels', [cacheKey, budget], response.data);
-  }
 
   return response.data;
 };
@@ -127,29 +110,11 @@ export const getRestaurantRecommendations = async (
   }>,
   tripId?: string
 ): Promise<RestaurantRecommendResponse> => {
-  // 生成缓存键
-  const cacheKey = days.map(d =>
-    `${d.day}_${d.spots.map(s => s.location).sort().join(',')}`
-  ).join('|');
-
-  // 尝试从前端内存缓存获取
-  const cached = getCache('restaurants', cacheKey);
-  if (cached) {
-    console.log('✅ [前端缓存] 使用内存缓存的餐厅推荐');
-    return cached;
-  }
-
-  // 调用API
-  console.log('📡 [API调用] 获取餐厅推荐', tripId ? `(tripId: ${tripId})` : '');
+  // 直接调用API，由后端处理数据库缓存
   const response = await apiClient.post<RestaurantRecommendResponse>('/recommendations/restaurants', {
     days,
     tripId, // 传递tripId给后端
   });
-
-  // 保存到前端内存缓存
-  if (response.data.success) {
-    setCache('restaurants', [cacheKey], response.data);
-  }
 
   return response.data;
 };
