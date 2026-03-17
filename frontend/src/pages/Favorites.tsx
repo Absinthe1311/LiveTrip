@@ -1,292 +1,191 @@
+// 我的收藏页面 - 基于 V0 设计重构
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Empty, Spin, message, Typography, Tag, Rate, Button } from 'antd';
-import { HeartFilled, ArrowLeftOutlined, ReloadOutlined } from '@ant-design/icons';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Menu, Search, Bell, Heart, Home as HomeIcon, Globe, PenLine, List, MapPin, ChevronRight, Plus } from "lucide-react";
 import { getFavorites, removeFavorite } from '../api/client';
-
-const { Title } = Typography;
+import { Sidebar } from '../components/SharedSidebar';
 
 export default function Favorites() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
 
   useEffect(() => {
     loadFavorites();
+    
+    const checkScreenSize = () => {
+      setIsLargeScreen(window.innerWidth >= 1024);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  // 从后端API加载收藏数据
   const loadFavorites = async () => {
     setLoading(true);
     try {
-      console.log('📦 从后端API加载收藏数据...');
-      const response = await getFavorites(true); // 包含IoT数据
-
+      const response = await getFavorites();
       if (response.success && response.data) {
-        console.log('✅ 收藏数据加载成功:', response.data);
-        console.log('📊 收藏数量:', response.data.length);
         setFavorites(response.data);
-      } else {
-        console.log('⚠️ 后端返回失败:', response);
-        setFavorites([]);
       }
     } catch (error) {
-      console.error('❌ 加载收藏失败:', error);
-      message.error('加载收藏失败，请检查后端服务是否启动');
-      setFavorites([]);
+      console.error('加载收藏失败:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // 取消收藏
-  const handleRemoveFavorite = async (spotId: string) => {
+  const handleRemove = async (spotId: string) => {
     try {
       const response = await removeFavorite(spotId);
       if (response.success) {
-        message.success('已取消收藏');
-        // 重新加载收藏列表
-        await loadFavorites();
-
-        // 触发收藏更新事件，通知Navbar更新收藏数量
-        window.dispatchEvent(new Event('favoritesUpdated'));
-      } else {
-        message.error(response.error || '取消收藏失败');
+        loadFavorites();
       }
     } catch (error) {
-      console.error('❌ 取消收藏失败:', error);
-      message.error('取消收藏失败');
+      console.error('移除收藏失败:', error);
     }
   };
 
-  // 查看目的地详情
-  const handleViewDestination = (destinationId: string) => {
-    navigate(`/destination/${destinationId}`);
+  const getCrowdLevelStyle = (level: number) => {
+    if (level < 0.3) return { bg: 'bg-secondary', text: 'text-primary', border: 'border-primary/20', label: '人流低' };
+    if (level < 0.7) return { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-500/25', label: '人流中' };
+    return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-500/25', label: '人流高' };
   };
 
-  if (loading) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        background: '#f5f7fa'
-      }}>
-        <Spin size="large" tip="加载中..." />
-      </div>
-    );
-  }
-
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f7fa', padding: '24px' }}>
-      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        {/* 页面头部 */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '32px'
-        }}>
-          <div>
-            <Button
-              type="text"
-              icon={<ArrowLeftOutlined />}
-              onClick={() => navigate(-1)}
-              style={{ marginBottom: '16px' }}
-            >
-              返回
-            </Button>
-            <Title level={2} style={{ margin: 0, color: '#333' }}>
-              <HeartFilled style={{ color: '#ff4d4f', marginRight: '8px' }} />
-              我的收藏
-            </Title>
-            <p style={{ color: '#666', marginTop: '8px', margin: 0 }}>
-              共 {favorites.length} 个收藏景点
-            </p>
+    <div className="min-h-screen bg-livetrip-background">
+      {/* Top Navbar */}
+      <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-border z-50 flex items-center shadow-subtle">
+        <div className="w-[220px] h-full flex items-center px-4 border-r border-border shrink-0">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`p-2 rounded-lg hover:bg-gray-100 transition-colors mr-2 ${isLargeScreen ? 'hidden' : 'block'}`}>
+            <Menu className="h-5 w-5 text-gray-700" />
+          </button>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+            <div className="w-9 h-9 bg-livetrip-primary rounded-lg flex items-center justify-center">
+              <span className="text-lg">✈️</span>
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-lg font-semibold text-livetrip-primary-dark font-serif">LiveTrip</span>
+              <span className="text-[10px] text-livetrip-primary font-medium tracking-wide">AI · IoT · Travel</span>
+            </div>
           </div>
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={loadFavorites}
-            loading={loading}
-          >
-            刷新
-          </Button>
         </div>
 
-        {/* 收藏列表 */}
-        {favorites.length === 0 ? (
-          <Card>
-            <Empty
-              description="暂无收藏景点"
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-            >
-              <Button
-                type="primary"
-                onClick={() => navigate('/')}
-                style={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  border: 'none',
-                  borderRadius: '6px'
-                }}
-              >
-                去探索热门目的地
-              </Button>
-            </Empty>
-          </Card>
-        ) : (
-          <Row gutter={[24, 24]}>
-            {favorites.map((favorite) => (
-              <Col xs={24} sm={12} lg={8} xl={6} key={favorite.id}>
-                <Card
-                  hoverable
-                  style={{
-                    borderRadius: '12px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                    transition: 'all 0.3s',
-                    overflow: 'hidden'
-                  }}
-                  bodyStyle={{
-                    padding: '0',
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-                  }}
-                >
-                  {/* 景点图片区域 */}
-                  <div style={{
-                    height: '200px',
-                    background: 'linear-gradient(135deg, #667eea20 0%, #764ba220 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '60px',
-                    position: 'relative'
-                  }}>
-                    <span>🏛️</span>
+        <div className="flex-1 flex items-center justify-center px-6">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input type="text" placeholder="搜索目的地、景点、攻略…" className="w-full h-10 pl-10 pr-4 rounded-full bg-gray-100 border-none outline-none text-sm focus:ring-2 focus:ring-livetrip-primary/20 transition-all" />
+          </div>
+        </div>
 
-                    {/* 城市标签 */}
-                    <div style={{
-                      position: 'absolute',
-                      top: '12px',
-                      left: '12px'
-                    }}>
-                      <Tag color="blue">{favorite.spot.city}</Tag>
+        <div className="flex items-center gap-1 px-4">
+          <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <Bell className="h-5 w-5 text-muted-foreground" />
+            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <button onClick={() => navigate('/favorites')} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <Heart className="h-5 w-5 text-muted-foreground" />
+          </button>
+          <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border cursor-pointer">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-livetrip-primary to-emerald-400 flex items-center justify-center text-white text-xs font-medium">ZL</div>
+            <span className={`text-sm font-medium text-livetrip-primary-dark ${isLargeScreen ? 'block' : 'hidden'}`}>Zhang Lei</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Overlay for mobile */}
+      {sidebarOpen && !isLargeScreen && <div className="fixed inset-0 bg-black/50 z-30" onClick={() => setSidebarOpen(false)} />}
+
+      {/* Sidebar */}
+      <aside className={`fixed left-0 top-14 bottom-0 w-[220px] bg-white border-r border-border z-40 flex flex-col transition-transform duration-300 ${isLargeScreen ? 'translate-x-0' : (sidebarOpen ? 'translateX(0)' : '-translate-x-full')}`}>
+        <nav className="flex-1 overflow-y-auto py-4">
+          <div className="mb-4">
+            <h3 className="px-4 mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">主菜单</h3>
+            <ul className="space-y-0.5">
+              <li><button onClick={() => { navigate('/'); setSidebarOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:bg-gray-50 transition-colors"><HomeIcon className="h-4 w-4" /><span>首页</span></button></li>
+              <li><button onClick={() => { navigate('/plan'); setSidebarOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:bg-gray-50 transition-colors"><Plus className="h-4 w-4" /><span>创建行程</span></button></li>
+              <li><button onClick={() => { navigate('/destinations'); setSidebarOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:bg-gray-50 transition-colors"><Globe className="h-4 w-4" /><span>热门目的地</span></button></li>
+              <li><button onClick={() => { navigate('/favorites'); setSidebarOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-primary font-medium bg-secondary transition-colors relative"><span className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary" /><Heart className="h-4 w-4" /><span>我的收藏</span></button></li>
+            </ul>
+          </div>
+        </nav>
+
+        <div className="p-3 border-t border-border">
+          <button className="w-full flex items-center gap-3 p-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center text-white text-sm font-medium">ZL</div>
+            <div className="flex-1 text-left"><p className="text-sm font-medium text-foreground">Zhang Lei</p><p className="text-[11px] text-muted-foreground">旅行达人 · Lv.4</p></div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className={`pt-14 min-h-screen ${isLargeScreen ? 'lg:pl-[240px]' : ''}`}>
+        <div className="max-w-4xl mx-auto px-6 py-6 lg:px-7">
+          {/* Page Header */}
+          <div className="mb-3.5">
+            <h1 className="font-serif text-xl font-semibold text-foreground">我的收藏</h1>
+            <p className="text-[13px] text-muted-foreground mt-0.5">已收藏 {favorites.length} 处景点</p>
+          </div>
+
+          {/* Favorites Grid */}
+          {loading ? (
+            <div className="flex items-center justify-center h-48">
+              <span className="text-muted-foreground">加载中...</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {favorites.map((place: any) => {
+                const crowdStyle = place.iotData ? getCrowdLevelStyle(place.iotData.crowdLevel) : null;
+                return (
+                  <div key={place.id} className="bg-card border border-border rounded-lg overflow-hidden transition-all hover:border-primary cursor-pointer">
+                    {/* Image */}
+                    <div className="relative h-[88px] bg-gray-200">
+                      <img src={place.coverImage || `https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=300&q=70`} alt={place.name} className="w-full h-full object-cover" />
                     </div>
 
-                    {/* 取消收藏按钮 */}
-                    <Button
-                      type="text"
-                      icon={<HeartFilled />}
-                      onClick={() => handleRemoveFavorite(favorite.spotId)}
-                      style={{
-                        position: 'absolute',
-                        top: '12px',
-                        right: '12px',
-                        background: 'rgba(255, 77, 79, 0.1)',
-                        borderRadius: '50%',
-                        width: '36px',
-                        height: '36px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#ff4d4f',
-                        fontSize: '18px'
-                      }}
-                      title="取消收藏"
-                    />
-                  </div>
-
-                  {/* 景点信息 */}
-                  <div style={{
-                    padding: '20px',
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}>
-                    <h3 style={{
-                      fontSize: '18px',
-                      fontWeight: 600,
-                      marginBottom: '8px',
-                      color: '#333'
-                    }}>
-                      {favorite.spot.name}
-                    </h3>
-
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      marginBottom: '8px'
-                    }}>
-                      <Rate disabled value={favorite.spot.rating || 4.5} style={{ fontSize: '14px' }} />
-                      <span style={{ fontSize: '14px', color: '#666' }}>
-                        {(favorite.spot.rating || 4.5).toFixed(1)}
-                      </span>
-                    </div>
-
-                    <p style={{
-                      fontSize: '14px',
-                      color: '#666',
-                      marginBottom: '12px',
-                      lineHeight: '1.5',
-                      flex: 1
-                    }}>
-                      {favorite.spot.description || '暂无描述'}
-                    </p>
-
-                    {/* IoT数据显示 */}
-                    {favorite.spot.iotData && (
-                      <div style={{
-                        display: 'flex',
-                        gap: '8px',
-                        flexWrap: 'wrap',
-                        marginBottom: '12px'
-                      }}>
-                        <Tag color={favorite.spot.iotData.rainProbability > 50 ? 'orange' : 'green'}>
-                          🌡️ {favorite.spot.iotData.temperature}°C
-                        </Tag>
-                        <Tag color={favorite.spot.iotData.crowdLevel > 60 ? 'orange' : 'green'}>
-                          👥 人流{favorite.spot.iotData.crowdLevel > 60 ? '较多' : '较少'}
-                        </Tag>
-                        <Tag color={favorite.spot.iotData.isOpen ? 'green' : 'red'}>
-                          {favorite.spot.iotData.isOpen ? '🔓 开放' : '🔒 关闭'}
-                        </Tag>
+                    {/* Body */}
+                    <div className="p-2.5 px-3">
+                      {/* Top Row */}
+                      <div className="flex items-start justify-between mb-1">
+                        <h3 className="text-[13px] font-medium text-foreground">{place.name}</h3>
+                        <button onClick={() => handleRemove(place.id)} className="text-[11px] text-red-400 hover:text-red-500 hover:bg-red-50 px-1.5 py-0.5 rounded transition-colors">移除</button>
                       </div>
-                    )}
 
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      paddingTop: '12px',
-                      borderTop: '1px solid #f0f0f0'
-                    }}>
-                      <div style={{ fontSize: '12px', color: '#999' }}>
-                        <div>开放时间: {favorite.spot.openTime || '全天'}</div>
-                      </div>
-                      <div style={{
-                        fontSize: '16px',
-                        fontWeight: 600,
-                        color: '#ff4d4f'
-                      }}>
-                        {favorite.spot.ticketPrice === 0 ? '免费' : `¥${favorite.spot.ticketPrice}`}
-                      </div>
+                      {/* Location */}
+                      <p className="text-[11px] text-muted-foreground mb-2">📍 {place.city}</p>
+
+                      {/* IoT Chips */}
+                      {place.iotData && (
+                        <div className="flex flex-wrap gap-1.5">
+                          <span className={`text-[10px] px-2 py-0.5 rounded-md border ${crowdStyle?.bg} ${crowdStyle?.text} ${crowdStyle?.border}`}>
+                            {crowdStyle?.label}
+                          </span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-500/20">
+                            {place.iotData.temperature}°C
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        )}
-      </div>
+                );
+              })}
+
+              {favorites.length === 0 && (
+                <div className="text-center py-12 col-span-2">
+                  <p className="text-muted-foreground">暂无收藏景点</p>
+                  <button onClick={() => navigate('/destinations')} className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">探索景点</button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }

@@ -12,6 +12,8 @@ import Destinations from './pages/Destinations';
 import SharedTrip from './pages/SharedTrip';
 import Blogs from './pages/Blogs';
 import CreateBlog from './pages/CreateBlog';
+import AIFeatures from './pages/AIFeatures';
+import Today from './pages/Today';
 import AuthGuard from './components/AuthGuard';
 import AdminGuard from './components/admin/AdminGuard';
 import AdminLayout from './components/admin/AdminLayout';
@@ -82,6 +84,24 @@ function App() {
           element={
             <AuthGuard>
               <CreateBlog />
+            </AuthGuard>
+          }
+        />
+        {/* AI 功能页面 */}
+        <Route
+          path="/ai-features"
+          element={
+            <AuthGuard>
+              <AIFeatures />
+            </AuthGuard>
+          }
+        />
+        {/* 当前行程页面 */}
+        <Route
+          path="/today"
+          element={
+            <AuthGuard>
+              <Today />
             </AuthGuard>
           }
         />

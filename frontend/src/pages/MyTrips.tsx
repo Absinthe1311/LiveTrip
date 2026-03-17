@@ -1,21 +1,33 @@
+// 我的行程页面 - 基于 V0 设计重构
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, List, Button, Empty, Spin, message, Typography, Tag, Space } from 'antd';
-import { PlusOutlined, CalendarOutlined, EnvironmentOutlined, DollarOutlined, HomeOutlined } from '@ant-design/icons';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Menu, Search, Bell, Heart, Home as HomeIcon, Globe, PenLine, List, MapPin, ChevronRight, Plus, Camera } from "lucide-react";
 import { getUserTrips, deleteTrip } from '../api/client';
-import { useAppStore } from '../store';
+import { Sidebar } from '../components/SharedSidebar';
 
-const { Title, Text } = Typography;
+type FilterStatus = "all" | "planning" | "completed";
 
 export default function MyTrips() {
   const navigate = useNavigate();
-  const setCurrentItinerary = useAppStore((state) => state.setCurrentItinerary);
+  const location = useLocation();
   const [trips, setTrips] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<FilterStatus>("all");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     loadTrips();
+    
+    const checkScreenSize = () => {
+      setIsLargeScreen(window.innerWidth >= 1024);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
   const loadTrips = async () => {
@@ -24,315 +36,236 @@ export default function MyTrips() {
       const response = await getUserTrips();
       if (response.success && response.data) {
         setTrips(response.data);
-        console.log('✅ 加载行程列表成功:', response.data);
       }
-    } catch (error: any) {
-      console.error('❌ 加载行程列表失败:', error);
-      message.error('加载行程列表失败');
+    } catch (error) {
+      console.error('加载行程列表失败:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleViewTrip = (trip: any) => {
-    // 直接跳转到行程详情页面
-    navigate(`/trip/${trip.id}`);
-  };
-
   const handleDeleteTrip = async (tripId: string) => {
+    if (!confirm('确定要删除这个行程吗？')) return;
+    
     setDeleting(tripId);
     try {
       const response = await deleteTrip(tripId);
       if (response.success) {
-        message.success('行程删除成功');
         loadTrips();
       }
-    } catch (error: any) {
-      console.error('❌ 删除行程失败:', error);
-      message.error('删除行程失败');
+    } catch (error) {
+      console.error('删除行程失败:', error);
     } finally {
       setDeleting(null);
     }
   };
 
-  // 将数据库行程格式转换为前端格式
-  const convertTripToItinerary = (trip: any): any => {
-    const itinerary: any[] = [];
-    const restaurants: any[] = [];
-    
-    if (trip.days) {
-      trip.days.forEach((day: any) => {
-        const attractions: any[] = [];
-        
-        if (day.itineraryItems) {
-          day.itineraryItems.forEach((item: any) => {
-            // 将DateTime时间转换为时间字符串
-            const startDateTime = new Date(item.startTime);
-            const endDateTime = new Date(item.endTime);
-            const startTime = `${String(startDateTime.getHours()).padStart(2, '0')}:${String(startDateTime.getMinutes()).padStart(2, '0')}`;
-            const endTime = `${String(endDateTime.getHours()).padStart(2, '0')}:${String(endDateTime.getMinutes()).padStart(2, '0')}`;
-            
-            attractions.push({
-              name: item.name,
-              time: `${startTime}-${endTime}`,
-              location: item.longitude && item.latitude ? `${item.longitude},${item.latitude}` : '',
-              longitude: item.longitude, // 保留原始经度(用于PDF地图显示)
-              latitude: item.latitude,   // 保留原始纬度(用于PDF地图显示)
-              estimated_cost: item.cost || 0,
-              description: item.description || item.type || '',
-              type: item.type || '景点',
-              address: item.address || '',
-            });
-          });
-        }
-
-        itinerary.push({
-          day: day.dayNumber,
-          date: new Date(day.date).toISOString().split('T')[0],
-          attractions,
-          daily_cost: attractions.reduce((sum: number, attr: any) => sum + attr.estimated_cost, 0),
-        });
-
-        // 转换餐厅信息
-        if (day.restaurantName) {
-          restaurants.push({
-            day: day.dayNumber,
-            selectedRestaurant: {
-              name: day.restaurantName,
-              address: day.restaurantAddress,
-              location: day.restaurantLocation,
-              tel: day.restaurantTel,
-              type: day.restaurantType,
-              rating: day.restaurantRating,
-            },
-          });
-        } else {
-          restaurants.push({
-            day: day.dayNumber,
-            selectedRestaurant: null,
-          });
-        }
-      });
-    }
-
-    // 转换酒店信息
-    const hotel = trip.hotelName ? {
-      name: trip.hotelName,
-      address: trip.hotelAddress,
-      location: trip.hotelLocation,
-      tel: trip.hotelTel,
-      type: trip.hotelType,
-      rating: trip.hotelRating,
-    } : null;
-
-    return {
-      id: trip.id,
-      itinerary,
-      total_cost: trip.totalBudget || 0,
-      budget_breakdown: {
-        transportation: trip.budget?.transportation || 0,
-        accommodation: trip.budget?.accommodation || 0,
-        dining: trip.budget?.food || 0,
-        tickets: trip.budget?.tickets || 0,
-      },
-      summary: {
-        destination: trip.destination,
-        start_date: trip.startDate ? new Date(trip.startDate).toISOString().split('T')[0] : '',
-        end_date: trip.endDate ? new Date(trip.endDate).toISOString().split('T')[0] : '',
-        budget: trip.totalBudget || 0,
-        days: itinerary.length,
-      },
-      hotel, // 添加酒店信息
-      restaurants, // 添加餐厅信息
-    };
-  };
-
   const formatDateRange = (startDate: string, endDate: string) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-    
-    return `${start.getMonth() + 1}月${start.getDate()}日 - ${end.getMonth() + 1}月${end.getDate()}日 (${days}天)`;
+    return `${start.getFullYear()}/${String(start.getMonth() + 1).padStart(2, '0')}/${String(start.getDate()).padStart(2, '0')} — ${String(end.getMonth() + 1).padStart(2, '0')}/${String(end.getDate()).padStart(2, '0')}`;
   };
 
-  if (loading) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        background: '#f5f7fa'
-      }}>
-        <Spin size="large" tip="加载中..." />
-      </div>
-    );
-  }
+  const calculateDuration = (startDate: string, endDate: string) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    return `${days}天`;
+  };
+
+  const filteredTrips = trips.filter(trip => {
+    if (filter === "all") return true;
+    return trip.status === filter;
+  });
+
+  const counts = {
+    all: trips.length,
+    planning: trips.filter(t => t.status === 'planning').length,
+    completed: trips.filter(t => t.status === 'completed').length,
+  };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f7fa', padding: '24px' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '32px'
-        }}>
-          <div>
-            <Title level={2} style={{ margin: 0, color: '#333' }}>
-              我的行程
-            </Title>
-            <Text type="secondary">
-              共 {trips.length} 个行程
-            </Text>
+    <div className="min-h-screen bg-livetrip-background">
+      {/* Top Navbar */}
+      <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-border z-50 flex items-center shadow-subtle">
+        <div className="w-[220px] h-full flex items-center px-4 border-r border-border shrink-0">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className={`p-2 rounded-lg hover:bg-gray-100 transition-colors mr-2 ${isLargeScreen ? 'hidden' : 'block'}`}
+          >
+            <Menu className="h-5 w-5 text-gray-700" />
+          </button>
+          <div 
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => navigate('/')}
+          >
+            <div className="w-9 h-9 bg-livetrip-primary rounded-lg flex items-center justify-center">
+              <span className="text-lg">✈️</span>
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-lg font-semibold text-livetrip-primary-dark font-serif">LiveTrip</span>
+              <span className="text-[10px] text-livetrip-primary font-medium tracking-wide">AI · IoT · Travel</span>
+            </div>
           </div>
-          <Space>
-            <Button
-              icon={<HomeOutlined />}
-              onClick={() => navigate('/')}
-              style={{
-                borderRadius: '6px',
-                fontSize: '16px',
-                fontWeight: 500
-              }}
-            >
-              返回首页
-            </Button>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => navigate('/plan')}
-              style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '16px',
-                fontWeight: 500
-              }}
-            >
-              创建新行程
-            </Button>
-          </Space>
         </div>
 
-        {trips.length === 0 ? (
-          <Card>
-            <Empty
-              description="暂无行程"
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-            >
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => navigate('/plan')}
-                style={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  border: 'none',
-                  borderRadius: '6px'
-                }}
+        <div className="flex-1 flex items-center justify-center px-6">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="搜索目的地、景点、攻略…"
+              className="w-full h-10 pl-10 pr-4 rounded-full bg-gray-100 border-none outline-none text-sm focus:ring-2 focus:ring-livetrip-primary/20 transition-all"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1 px-4">
+          <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <Bell className="h-5 w-5 text-muted-foreground" />
+            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <button 
+            onClick={() => navigate('/favorites')}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <Heart className="h-5 w-5 text-muted-foreground" />
+          </button>
+          <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border cursor-pointer">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-livetrip-primary to-emerald-400 flex items-center justify-center text-white text-xs font-medium">
+              ZL
+            </div>
+            <span className={`text-sm font-medium text-livetrip-primary-dark ${isLargeScreen ? 'block' : 'hidden'}`}>
+              Zhang Lei
+            </span>
+          </div>
+        </div>
+      </header>
+
+      {/* Sidebar */}
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)} 
+        isLargeScreen={isLargeScreen}
+        currentPage={location.pathname}
+      />
+
+      {/* Main Content */}
+      <main className={`pt-14 min-h-screen ${isLargeScreen ? 'lg:pl-[240px]' : ''}`}>
+        <div className="max-w-4xl mx-auto px-6 py-6 lg:px-7">
+          {/* Page Header */}
+          <h1 className="font-serif text-xl font-semibold text-foreground mb-3.5">
+            我的行程
+          </h1>
+
+          {/* Filter Tab Bar */}
+          <div className="flex gap-2 mb-4">
+            {[
+              { key: "all" as FilterStatus, label: "全部" },
+              { key: "planning" as FilterStatus, label: "规划中" },
+              { key: "completed" as FilterStatus, label: "已完成" },
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setFilter(tab.key)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  filter === tab.key
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-card text-muted-foreground border border-border hover:border-primary/50"
+                }`}
               >
-                创建第一个行程
-              </Button>
-            </Empty>
-          </Card>
-        ) : (
-          <List
-            grid={{
-              gutter: 24,
-              xs: 1,
-              sm: 2,
-              md: 2,
-              lg: 3,
-              xl: 3,
-              xxl: 3,
-            }}
-            dataSource={trips}
-            renderItem={(trip) => (
-              <List.Item>
-                <Card
-                  hoverable
-                  style={{
-                    borderRadius: '12px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                    transition: 'all 0.3s',
-                  }}
-                  bodyStyle={{ padding: '24px' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-                  }}
+                {tab.label} ({counts[tab.key]})
+              </button>
+            ))}
+          </div>
+
+          {/* Trip Cards List */}
+          {loading ? (
+            <div className="flex items-center justify-center h-48">
+              <span className="text-muted-foreground">加载中...</span>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {filteredTrips.map(trip => (
+                <div
+                  key={trip.id}
+                  className="bg-card border border-border rounded-lg flex overflow-hidden hover:border-foreground/20 transition-all cursor-pointer"
+                  onClick={() => navigate(`/trip/${trip.id}`)}
                 >
-                  <div style={{ marginBottom: '16px' }}>
-                    <Title level={4} style={{ margin: 0, color: '#333' }}>
-                      {trip.title}
-                    </Title>
-                    {trip.description && (
-                      <Text type="secondary" style={{ fontSize: '14px' }}>
-                        {trip.description}
-                      </Text>
-                    )}
+                  {/* Left Image */}
+                  <div className="relative w-[110px] min-h-[90px] flex-shrink-0 bg-gray-200">
+                    <img
+                      src={`https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=200&q=70`}
+                      alt={trip.title || trip.destination}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
 
-                  <Space direction="vertical" size="small" style={{ width: '100%', marginBottom: '16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <EnvironmentOutlined style={{ color: '#667eea' }} />
-                      <Text style={{ fontSize: '14px' }}>
-                        {trip.destination}
-                      </Text>
+                  {/* Middle Body */}
+                  <div className="flex-1 p-3.5 px-4">
+                    <h3 className="text-sm font-medium text-foreground mb-1">
+                      {trip.title || trip.destination}
+                    </h3>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {formatDateRange(trip.startDate, trip.endDate)} · {calculateDuration(trip.startDate, trip.endDate)} · ¥{trip.totalBudget?.toLocaleString() || 0}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border">
+                        🏛 旅行
+                      </span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <CalendarOutlined style={{ color: '#667eea' }} />
-                      <Text style={{ fontSize: '14px' }}>
-                        {formatDateRange(trip.startDate, trip.endDate)}
-                      </Text>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <DollarOutlined style={{ color: '#667eea' }} />
-                      <Text style={{ fontSize: '14px' }}>
-                        预算: ¥{trip.totalBudget?.toLocaleString() || 0}
-                      </Text>
-                    </div>
-                  </Space>
-
-                  <div style={{ marginBottom: '16px' }}>
-                    <Tag color={trip.status === 'planning' ? 'blue' : 'green'}>
-                      {trip.status === 'planning' ? '规划中' : trip.status}
-                    </Tag>
-                    {trip.aiGenerated && (
-                      <Tag color="purple">AI生成</Tag>
-                    )}
                   </div>
 
-                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                    <Button
-                      type="primary"
-                      onClick={() => handleViewTrip(trip)}
-                      style={{
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        border: 'none',
-                        borderRadius: '6px'
-                      }}
+                  {/* Right Section */}
+                  <div className="p-3.5 px-4 flex flex-col items-end justify-between">
+                    {/* Status Pill */}
+                    <span
+                      className={`text-[11px] px-2.5 py-1 rounded-md font-medium ${
+                        trip.status === "planning"
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-secondary text-primary"
+                      }`}
                     >
-                      查看详情
-                    </Button>
-                    <Button
-                      danger
-                      loading={deleting === trip.id}
-                      onClick={() => handleDeleteTrip(trip.id)}
-                    >
-                      删除
-                    </Button>
-                  </Space>
-                </Card>
-              </List.Item>
-            )}
-          />
-        )}
-      </div>
+                      {trip.status === "planning" ? "规划中" : "已完成"}
+                    </span>
+
+                    {/* Action */}
+                    {trip.status === "planning" ? (
+                      <span className="text-[11px] text-muted-foreground hover:text-foreground transition-colors">
+                        查看行程 →
+                      </span>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteTrip(trip.id);
+                        }}
+                        disabled={deleting === trip.id}
+                        className="h-7 text-[11px] gap-1.5 px-3 py-1 rounded-md border border-border text-muted-foreground hover:text-foreground transition-colors flex items-center"
+                      >
+                        <Camera className="w-3 h-3" />
+                        删除
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {filteredTrips.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">暂无行程</p>
+                  <button
+                    onClick={() => navigate('/plan')}
+                    className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                  >
+                    创建新行程
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }

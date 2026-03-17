@@ -26,11 +26,15 @@
 
 - **框架**: React 18.3.1 + TypeScript 5.7.3
 - **构建工具**: Vite 6.0.7
-- **UI组件库**: Ant Design 5.22.5
+- **UI组件库**: 
+  - Ant Design 5.22.5（主要组件库）
+  - shadcn/ui（现代化 UI 组件，基于 Radix UI）
+- **样式方案**: Tailwind CSS + CSS Variables
 - **状态管理**: Zustand 5.0.2
 - **拖拽**: dnd-kit
-- **图表**: Recharts
+- **图表**: ECharts
 - **地图**: 高德地图 API
+- **图标库**: Lucide React + Ant Design Icons
 
 ### 后端技术
 
@@ -65,10 +69,14 @@ LiveTrip/
 │   ├── src/                     # 源代码目录
 │   │   ├── pages/               # 页面组件
 │   │   ├── components/          # 公共组件
+│   │   │   └── ui/              # shadcn/ui 组件
 │   │   ├── api/                 # API客户端
 │   │   ├── store/               # 状态管理
+│   │   ├── lib/                 # 工具函数
 │   │   └── types/               # 类型定义
 │   ├── public/                  # 公共资源
+│   ├── components.json          # shadcn/ui 配置
+│   ├── tailwind.config.js       # Tailwind CSS 配置
 │   └── package.json
 │
 ├── README.md                   # 项目说明文档
@@ -128,6 +136,25 @@ cd backend
 npx prisma migrate dev
 npx prisma generate
 ```
+
+### shadcn/ui 组件管理（可选）
+
+项目已集成 shadcn/ui，你可以根据需要添加更多组件：
+
+```bash
+# 添加单个组件
+npx shadcn@latest add <component-name>
+
+# 添加多个组件
+npx shadcn@latest add button card input
+
+# 查看所有可用组件
+npx shadcn@latest add
+```
+
+**已安装的组件**：
+- button, card, badge, input, textarea
+- scroll-area, tabs, separator, avatar
 
 ### 启动服务
 

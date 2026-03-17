@@ -718,6 +718,15 @@ export const getPopularTags = async (limit?: number) => {
   return response.data;
 };
 
+/**
+ * 获取热门目的地
+ * @returns 热门目的地列表
+ */
+export const getHotDestinations = async () => {
+  const response = await apiClient.get('/hot-spots');
+  return response.data;
+};
+
 // ==================== 导出 ====================
 
 export default apiClient;

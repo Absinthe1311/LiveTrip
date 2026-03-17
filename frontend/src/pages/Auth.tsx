@@ -1,296 +1,193 @@
+// 登录注册页面 - 基于 V0 设计风格
 import { useState } from 'react';
-import { Form, Input, Button, Card, Tabs, message, Divider } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-
-const { TabPane } = Tabs;
-
-interface LoginForm {
-  username: string;
-  password: string;
-}
-
-interface RegisterForm {
-  username: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
 
 export default function Auth() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-
-  // 登录表单
-  const [loginForm, setLoginForm] = useState<LoginForm>({
-    username: '',
-    password: '',
-  });
-
-  // 注册表单
-  const [registerForm, setRegisterForm] = useState<RegisterForm>({
+  const [isLogin, setIsLogin] = useState(true);
+  const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
 
-  // 处理登录
-  const handleLogin = async (values: LoginForm) => {
-    setLoading(true);
-    try {
-      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, values);
-      
-      if (response.data.success) {
-        const { user, token } = response.data.data;
-        
-        // 保存到 localStorage
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('token', token);
-        
-        message.success('登录成功！');
-        // 根据角色跳转
-        if (user.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/'); // 普通用户跳转到首页
-        }
-      }
-    } catch (error: any) {
-      console.error('❌ 登录失败:', error);
-      message.error(error.response?.data?.error || '登录失败，请稍后重试');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 处理注册
-  const handleRegister = async (values: RegisterForm) => {
-    setLoading(true);
-    try {
-      const { username, email, password } = values;
-      
-      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, {
-        username,
-        email,
-        password,
-      });
-      
-      if (response.data.success) {
-        const { user, token } = response.data.data;
-        
-        // 保存到 localStorage
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('token', token);
-        
-        message.success('注册成功！');
-        // 根据角色跳转
-        if (user.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/'); // 普通用户跳转到首页
-        }
-      }
-    } catch (error: any) {
-      console.error('❌ 注册失败:', error);
-      message.error(error.response?.data?.error || '注册失败，请稍后重试');
-    } finally {
-      setLoading(false);
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // 占位：模拟登录/注册
+    const testUser = {
+      id: 'test-user-1',
+      username: formData.username || 'Zhang Lei',
+      role: 'user'
+    };
+    localStorage.setItem('user', JSON.stringify(testUser));
+    localStorage.setItem('token', 'test-token-123');
+    navigate('/');
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '24px'
-    }}>
-      <Card
-        style={{
-          width: '100%',
-          maxWidth: '400px',
-          borderRadius: '12px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h1 style={{
-            fontSize: '28px',
-            fontWeight: 700,
-            marginBottom: '8px',
-            color: '#333'
-          }}>
-            智能旅行规划
-          </h1>
-          <p style={{ color: '#666', fontSize: '14px' }}>
-            欢迎回来
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-livetrip-primary to-emerald-600 p-6">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-2xl">✈️</span>
+            </div>
+            <div className="text-left">
+              <h1 className="text-2xl font-serif font-bold text-white">LiveTrip</h1>
+              <p className="text-xs text-white/80">AI · IoT · Travel</p>
+            </div>
+          </div>
+          <p className="text-white/90 text-sm">
+            {isLogin ? '欢迎回来，继续你的旅程' : '加入我们，开启智能旅行'}
           </p>
         </div>
 
-        <Tabs defaultActiveKey="login" centered>
-          <TabPane tab="登录" key="login">
-            <Form
-              name="login"
-              onFinish={handleLogin}
-              autoComplete="off"
-              layout="vertical"
-              size="large"
+        {/* Auth Card */}
+        <div className="bg-white rounded-2xl shadow-2xl p-8">
+          {/* Tab Switcher */}
+          <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setIsLogin(true)}
+              className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
+                isLogin ? 'bg-white text-livetrip-primary shadow-sm' : 'text-gray-600'
+              }`}
             >
-              <Form.Item
-                name="username"
-                rules={[
-                  { required: true, message: '请输入用户名' },
-                { min: 3, message: '用户名至少3个字符' },
-                { max: 20, message: '用户名最多20个字符' },
-                { pattern: /^[a-zA-Z0-9_]+$/, message: '只能包含字母、数字和下划线' },
-                ]}
-              >
-                <Input 
-                  prefix={<UserOutlined />} 
-                  placeholder="用户名"
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="password"
-                rules={[
-                  { required: true, message: '请输入密码' },
-                  { min: 6, message: '密码至少6个字符' },
-                ]}
-              >
-                <Input.Password
-                  prefix={<LockOutlined />}
-                  placeholder="密码"
-                />
-              </Form.Item>
-
-              <Form.Item>
-                <Button 
-                  type="primary" 
-                  htmlType="submit" 
-                  block 
-                  loading={loading}
-                  style={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    border: 'none',
-                    height: '45px',
-                    fontSize: '16px',
-                    fontWeight: 500
-                  }}
-                >
-                  登录
-                </Button>
-              </Form.Item>
-            </Form>
-          </TabPane>
-
-          <TabPane tab="注册" key="register">
-            <Form
-              name="register"
-              onFinish={handleRegister}
-              autoComplete="off"
-              layout="vertical"
-              size="large"
+              登录
+            </button>
+            <button
+              onClick={() => setIsLogin(false)}
+              className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
+                !isLogin ? 'bg-white text-livetrip-primary shadow-sm' : 'text-gray-600'
+              }`}
             >
-              <Form.Item
-                name="username"
-                rules={[
-                  { required: true, message: '请输入用户名' },
-                  { min: 3, message: '用户名至少3个字符' },
-                  { max: 20, message: '用户名最多20个字符' },
-                  { pattern: /^[a-zA-Z0-9_]+$/, message: '只能包含字母、数字和下划线' },
-                ]}
-              >
-                <Input 
-                  prefix={<UserOutlined />} 
-                  placeholder="用户名"
+              注册
+            </button>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <div>
+                <label className="text-xs text-gray-600 mb-1.5 block">用户名</label>
+                <input
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  placeholder="请输入用户名"
+                  className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-livetrip-primary/20 focus:border-livetrip-primary transition-all"
                 />
-              </Form.Item>
+              </div>
+            )}
 
-              <Form.Item
-                name="email"
-                rules={[
-                  { required: true, message: '请输入邮箱' },
-                  { type: 'email', message: '请输入有效的邮箱地址' },
-                ]}
-              >
-                <Input 
-                  prefix={<MailOutlined />} 
-                  placeholder="邮箱"
+            <div>
+              <label className="text-xs text-gray-600 mb-1.5 block">
+                {isLogin ? '用户名 / 邮箱' : '邮箱'}
+              </label>
+              <input
+                type={isLogin ? 'text' : 'email'}
+                value={isLogin ? formData.username : formData.email}
+                onChange={(e) => setFormData({ ...formData, [isLogin ? 'username' : 'email']: e.target.value })}
+                placeholder={isLogin ? '请输入用户名或邮箱' : '请输入邮箱'}
+                className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-livetrip-primary/20 focus:border-livetrip-primary transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-gray-600 mb-1.5 block">密码</label>
+              <input
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder="请输入密码"
+                className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-livetrip-primary/20 focus:border-livetrip-primary transition-all"
+              />
+            </div>
+
+            {!isLogin && (
+              <div>
+                <label className="text-xs text-gray-600 mb-1.5 block">确认密码</label>
+                <input
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  placeholder="请再次输入密码"
+                  className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-livetrip-primary/20 focus:border-livetrip-primary transition-all"
                 />
-              </Form.Item>
+              </div>
+            )}
 
-              <Form.Item
-                name="password"
-                rules={[
-                  { required: true, message: '请输入密码' },
-                  { min: 6, message: '密码至少6个字符' },
-                ]}
-              >
-                <Input.Password
-                  prefix={<LockOutlined />}
-                  placeholder="密码"
-                />
-              </Form.Item>
+            {isLogin && (
+              <div className="flex items-center justify-between text-xs">
+                <label className="flex items-center gap-2 text-gray-600">
+                  <input type="checkbox" className="rounded border-gray-300" />
+                  记住我
+                </label>
+                <button type="button" className="text-livetrip-primary hover:underline">
+                  忘记密码？
+                </button>
+              </div>
+            )}
 
-              <Form.Item
-                name="confirmPassword"
-                dependencies={['password']}
-                rules={[
-                  { required: true, message: '请确认密码' },
-                  ({ getFieldValue }) => ({
-                    validator(_, value) {
-                      if (!value || getFieldValue('password') === value) {
-                        return Promise.resolve();
-                      }
-                      return Promise.reject(new Error('两次输入的密码不一致'));
-                    },
-                  }),
-                ]}
-              >
-                <Input.Password
-                  prefix={<LockOutlined />}
-                  placeholder="确认密码"
-                />
-              </Form.Item>
+            <button
+              type="submit"
+              className="w-full h-10 bg-livetrip-primary text-white rounded-lg text-sm font-medium hover:bg-livetrip-primary-dark transition-colors"
+            >
+              {isLogin ? '登录' : '注册'}
+            </button>
+          </form>
 
-              <Form.Item>
-                <Button 
-                  type="primary" 
-                  htmlType="submit" 
-                  block 
-                  loading={loading}
-                  style={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    border: 'none',
-                    height: '45px',
-                    fontSize: '16px',
-                    fontWeight: 500
-                  }}
-                >
-                  注册
-                </Button>
-              </Form.Item>
-            </Form>
-          </TabPane>
-        </Tabs>
+          {/* Divider */}
+          <div className="flex items-center gap-4 my-6">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs text-gray-400">或</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
 
-        <Divider style={{ margin: '24px 0 16px 0' }} />
+          {/* Social Login */}
+          <div className="space-y-2">
+            <button className="w-full h-10 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+              <span>📱</span>
+              使用微信登录
+            </button>
+            <button className="w-full h-10 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+              <span>📧</span>
+              使用邮箱登录
+            </button>
+          </div>
 
-        <div style={{ textAlign: 'center' }}>
-          <Button 
-            type="link" 
-            onClick={() => navigate('/')}
-            style={{ color: '#667eea' }}
-          >
-            返回首页
-          </Button>
+          {/* Test Login Button */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <button
+              onClick={() => {
+                const testUser = {
+                  id: 'test-user-1',
+                  username: 'Zhang Lei',
+                  role: 'user'
+                };
+                localStorage.setItem('user', JSON.stringify(testUser));
+                localStorage.setItem('token', 'test-token-123');
+                navigate('/');
+              }}
+              className="w-full h-10 bg-livetrip-accent text-white rounded-lg text-sm font-medium hover:bg-livetrip-accent/90 transition-colors"
+            >
+              测试登录（开发模式）
+            </button>
+            <p className="text-xs text-gray-400 text-center mt-2">
+              仅用于开发测试，无需真实账号
+            </p>
+          </div>
         </div>
-      </Card>
+
+        {/* Footer */}
+        <p className="text-center text-white/70 text-xs mt-6">
+          登录即表示同意我们的
+          <button className="text-white hover:underline mx-1">服务条款</button>
+          和
+          <button className="text-white hover:underline mx-1">隐私政策</button>
+        </p>
+      </div>
     </div>
   );
 }
