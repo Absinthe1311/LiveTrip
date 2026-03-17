@@ -1,45 +1,44 @@
-// 创建行程页面 - 基于 V0 设计重构
+// 创建行程页面 - 完整功能实现
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, Check, Send, Sparkles } from "lucide-react";
+import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, Check, Send, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { Sidebar } from '../components/SharedSidebar';
+import { createPlan } from '../api/client';
+import { useAppStore } from '../store';
+import LocationInput from '../components/LocationInput';
+import DateRangeInput from '../components/DateRangeInput';
+import BudgetRangeInput from '../components/BudgetRangeInput';
+import PreferenceInput from '../components/PreferenceInput';
+import AIAdvisor from '../components/AIAdvisor';
 
 const steps = [
-  { id: 1, label: "出发地", done: true },
-  { id: 2, label: "目的地", done: true },
-  { id: 3, label: "日期预算", done: false, active: true },
-  { id: 4, label: "偏好", done: false },
-  { id: 5, label: "确认", done: false },
+  { id: 1, label: "出发地", icon: "📍" },
+  { id: 2, label: "目的地", icon: "🎯" },
+  { id: 3, label: "行程日期", icon: "📅" },
+  { id: 4, label: "预算范围", icon: "💰" },
+  { id: 5, label: "兴趣偏好", icon: "🎨" },
 ];
-
-const interests = [
-  { id: "culture", label: "文化历史", icon: "🏛", selected: true },
-  { id: "food", label: "美食探索", icon: "🍜", selected: true },
-  { id: "nature", label: "自然风光", icon: "🏞", selected: false },
-  { id: "shopping", label: "购物娱乐", icon: "🛍", selected: true },
-  { id: "art", label: "艺术展览", icon: "🎭", selected: false },
-  { id: "temple", label: "寺庙神社", icon: "⛩", selected: false },
-];
-
-interface Message {
-  id: number;
-  role: "ai" | "user";
-  content: string;
-}
 
 export default function Plan() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
-  const [selectedInterests, setSelectedInterests] = useState<string[]>(
-    interests.filter(i => i.selected).map(i => i.id)
-  );
-  const [messages, setMessages] = useState<Message[]>([
-    { id: 1, role: "ai", content: "你好！我是你的 AI 旅行顾问 🌍\n有任何关于旅行规划的问题，随时问我！" },
-  ]);
-  const [inputValue, setInputValue] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const setCurrentItinerary = useAppStore((state) => state.setCurrentItinerary);
+
+  // 用户输入的状态
+  const [formData, setFormData] = useState<Record<string, any>>({
+    origin: '',
+    destination: '',
+    startDate: '',
+    endDate: '',
+    preferences: [],
+    minBudget: 5000,
+    maxBudget: 20000,
+  });
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -52,40 +51,173 @@ export default function Plan() {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  const toggleInterest = (id: string) => {
-    setSelectedInterests(prev =>
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
+  // 从路由状态中获取预填充的数据
+  useEffect(() => {
+    if (location.state) {
+      const { destination } = location.state as { destination?: string };
+      if (destination) {
+        setFormData(prev => ({
+          ...prev,
+          destination: destination
+        }));
+        console.log('📍 预填充目的地:', destination);
+      }
+    }
+  }, [location.state]);
+
+  const handleNext = () => {
+    setError(null);
+    // 验证当前步骤
+    if (currentStep === 0 && !formData.origin) {
+      setError('请选择出发地');
+      return;
+    }
+    if (currentStep === 1 && !formData.destination) {
+      setError('请选择目的地');
+      return;
+    }
+    if (currentStep === 2 && (!formData.startDate || !formData.endDate)) {
+      setError('请选择行程日期');
+      return;
+    }
+
+    setCurrentStep(prev => prev + 1);
   };
 
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
+  const handlePrev = () => {
+    setError(null);
+    setCurrentStep(prev => prev - 1);
+  };
 
-    const userMessage: Message = {
-      id: messages.length + 1,
-      role: "user",
-      content: inputValue.trim(),
-    };
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue("");
-    setIsTyping(true);
+  const handleGenerate = async () => {
+    // 验证所有必填项
+    if (!formData.origin) {
+      setError('请选择出发地');
+      setCurrentStep(0);
+      return;
+    }
+    if (!formData.destination) {
+      setError('请选择目的地');
+      setCurrentStep(1);
+      return;
+    }
+    if (!formData.startDate || !formData.endDate) {
+      setError('请选择行程日期');
+      setCurrentStep(2);
+      return;
+    }
+    if (formData.preferences.length === 0) {
+      setError('请选择至少一个兴趣偏好');
+      return;
+    }
 
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: messages.length + 2,
-        role: "ai",
-        content: "好的，我会帮你规划行程！请告诉我你的出发地、目的地、日期和预算。",
+    setLoading(true);
+    setError(null);
+
+    try {
+      // 计算平均预算
+      const avgBudget = Math.round((formData.minBudget + formData.maxBudget) / 2);
+
+      // 构建请求参数
+      const request = {
+        origin: formData.origin,
+        destination: formData.destination,
+        start_date: formData.startDate,
+        end_date: formData.endDate,
+        budget: avgBudget,
+        preferences: {
+          interests: formData.preferences.join(','),
+        },
       };
-      setMessages(prev => [...prev, aiResponse]);
-      setIsTyping(false);
-    }, 600);
+
+      console.log('📝 发送行程规划请求:', request);
+
+      // 调用后端 API
+      const response = await createPlan(request);
+
+      if (response.success) {
+        console.log('✅ 行程规划成功:', response.data);
+
+        // 保存到 Zustand store
+        console.log('💾 正在保存行程数据到 Store...');
+        setCurrentItinerary(response.data);
+        console.log('✅ 行程数据已保存到 Store');
+
+        // 跳转到行程页面显示推荐结果
+        console.log('🚀 准备跳转到行程页面...');
+        navigate('/itinerary');
+      } else {
+        setError('行程规划失败，请稍后重试');
+      }
+    } catch (error: any) {
+      console.error('❌ 行程规划失败:', error);
+      setError(error.response?.data?.error || '行程规划失败，请稍后重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <LocationInput
+            title="选择出发地"
+            placeholder="输入出发城市"
+            value={formData.origin}
+            onChange={(value) => setFormData({ ...formData, origin: value })}
+            showLocationButton={true}
+          />
+        );
+      case 1:
+        return (
+          <LocationInput
+            title="选择目的地"
+            placeholder="输入目的地城市"
+            value={formData.destination}
+            onChange={(value) => setFormData({ ...formData, destination: value })}
+            showPopularDestinations={true}
+          />
+        );
+      case 2:
+        return (
+          <DateRangeInput
+            startDate={formData.startDate}
+            endDate={formData.endDate}
+            onChange={(startDate, endDate) =>
+              setFormData({ ...formData, startDate, endDate })
+            }
+          />
+        );
+      case 3:
+        return (
+          <BudgetRangeInput
+            minBudget={formData.minBudget}
+            maxBudget={formData.maxBudget}
+            onChange={(minBudget, maxBudget) =>
+              setFormData({ ...formData, minBudget, maxBudget })
+            }
+          />
+        );
+      case 4:
+        return (
+          <PreferenceInput
+            value={formData.preferences}
+            onChange={(preferences) =>
+              setFormData({ ...formData, preferences })
+            }
+          />
+        );
+      default:
+        return null;
+    }
   };
 
   return (
     <div className="min-h-screen bg-livetrip-background">
       {/* Top Navbar */}
       <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-border z-50 flex items-center shadow-subtle">
-        <div className="w-[220px] h-full flex items-center px-4 border-r border-border shrink-0">
+        <div className="w-[240px] h-full flex items-center px-5 border-r border-border shrink-0">
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`p-2 rounded-lg hover:bg-gray-100 transition-colors mr-2 ${isLargeScreen ? 'hidden' : 'block'}`}>
             <Menu className="h-5 w-5 text-gray-700" />
           </button>
@@ -130,154 +262,111 @@ export default function Plan() {
 
       {/* Main Content */}
       <main className={`pt-14 min-h-screen ${isLargeScreen ? 'lg:pl-[240px]' : ''}`}>
-        <div className="flex h-[calc(100vh-56px)]">
-          {/* Left: Multi-Step Form */}
-          <div className="flex-1 overflow-y-auto p-6 lg:p-7">
-            {/* Step Progress Bar */}
-            <div className="flex items-center justify-between mb-8">
-              {steps.map((step, index) => (
-                <div key={step.id} className="flex items-center">
-                  <div className="flex flex-col items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${step.done ? "bg-primary text-primary-foreground" : step.active ? "bg-secondary text-primary border-2 border-primary" : "bg-muted text-muted-foreground border border-border"}`}>
-                      {step.done ? <Check className="w-4 h-4" /> : step.id}
-                    </div>
-                    <span className={`text-xs mt-1.5 ${step.done || step.active ? "text-foreground" : "text-muted-foreground"}`}>{step.label}</span>
-                  </div>
-                  {index < steps.length - 1 && <div className={`w-12 lg:w-20 h-0.5 mx-2 ${step.done ? "bg-primary" : "bg-border"}`} />}
-                </div>
-              ))}
-            </div>
-
-            {/* Form Cards */}
-            <div className="space-y-4 max-w-2xl">
-              {/* Card 1: 出行信息 */}
-              <div className="bg-card border border-border rounded-lg">
-                <div className="p-4 border-b border-border">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-secondary rounded flex items-center justify-center text-sm">📍</div>
-                    <h3 className="font-medium text-foreground">出行信息</h3>
-                  </div>
-                </div>
-                <div className="p-4 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1.5 block">出发城市</label>
-                      <input type="text" placeholder="例如：上海" className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1.5 block">目的地</label>
-                      <input type="text" placeholder="例如：东京，日本" className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1.5 block">出发日期</label>
-                      <input type="date" className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1.5 block">返回日期</label>
-                      <input type="date" className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 2: 预算设置 */}
-              <div className="bg-card border border-border rounded-lg">
-                <div className="p-4 border-b border-border">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-secondary rounded flex items-center justify-center text-sm">💰</div>
-                    <h3 className="font-medium text-foreground">预算设置</h3>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <input type="text" placeholder="例如：¥6,000 — ¥10,000" className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
-                </div>
-              </div>
-
-              {/* Card 3: 兴趣偏好 */}
-              <div className="bg-card border border-border rounded-lg">
-                <div className="p-4 border-b border-border">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-secondary rounded flex items-center justify-center text-sm">🎯</div>
-                    <h3 className="font-medium text-foreground">兴趣偏好</h3>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <div className="grid grid-cols-3 gap-2">
-                    {interests.map(interest => (
-                      <button
-                        key={interest.id}
-                        onClick={() => toggleInterest(interest.id)}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${selectedInterests.includes(interest.id) ? "bg-secondary text-primary border border-primary" : "bg-muted text-muted-foreground border border-border hover:border-primary/50"}`}
-                      >
-                        {interest.icon} {interest.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Buttons */}
-              <div className="flex gap-3 pt-2">
-                <button className="px-4 py-2 rounded-md border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">上一步</button>
-                <button className="flex-1 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
-                  下一步：确认行程 →
-                </button>
-              </div>
-            </div>
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          {/* Page Header */}
+          <div className="mb-8">
+            <h1 className="font-serif text-2xl font-semibold text-foreground">开始规划您的完美旅程</h1>
+            <p className="text-[15px] text-muted-foreground mt-1">只需几步，AI 为您定制专属行程</p>
           </div>
 
-          {/* Right: AI Travel Advisor Panel */}
-          <div className="hidden lg:flex w-[300px] border-l border-border bg-card flex-col">
-            {/* Header */}
-            <div className="p-4 border-b border-border">
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-foreground">AI 旅行顾问</h4>
-                  <p className="text-xs text-muted-foreground">随时为你解答旅行问题</p>
+          <div className="flex gap-6">
+            {/* Left: Form */}
+            <div className="flex-1">
+              {/* Progress Bar */}
+              <div className="bg-card border border-border rounded-lg p-5 mb-6">
+                <div className="flex items-center justify-between">
+                  {steps.map((step, index) => (
+                    <div key={step.id} className="flex items-center">
+                      <div className="flex flex-col items-center">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-medium transition-all ${
+                          index < currentStep 
+                            ? "bg-primary text-white" 
+                            : index === currentStep 
+                              ? "bg-secondary text-primary border-2 border-primary" 
+                              : "bg-muted text-muted-foreground border border-border"
+                        }`}>
+                          {index < currentStep ? <Check className="w-5 h-5" /> : step.icon}
+                        </div>
+                        <span className={`text-[13px] mt-2 font-medium ${
+                          index <= currentStep ? "text-foreground" : "text-muted-foreground"
+                        }`}>
+                          {step.label}
+                        </span>
+                      </div>
+                      {index < steps.length - 1 && (
+                        <div className={`w-16 h-0.5 mx-3 ${
+                          index < currentStep ? "bg-primary" : "bg-border"
+                        }`} />
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
 
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-3.5 space-y-2.5">
-              {messages.map(message => (
-                <div key={message.id} className={`${message.role === "user" ? "ml-auto" : ""}`}>
-                  <div className={`max-w-[85%] px-3 py-2 text-xs leading-relaxed whitespace-pre-line ${message.role === "ai" ? "bg-muted border border-border rounded-tr-xl rounded-br-xl rounded-bl-xl text-foreground" : "bg-primary text-primary-foreground rounded-tl-xl rounded-tr-xl rounded-bl-xl ml-auto"}`}>
-                    {message.content}
-                  </div>
-                </div>
-              ))}
-              {isTyping && (
-                <div className="bg-muted border border-border rounded-tr-xl rounded-br-xl rounded-bl-xl max-w-[85%] px-3 py-2">
-                  <div className="flex gap-1">
-                    <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                  </div>
+              {/* Step Content */}
+              <div className="bg-card border border-border rounded-lg p-6 mb-6 min-h-[300px]">
+                {renderStepContent()}
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-[15px]">
+                  {error}
                 </div>
               )}
+
+              {/* Navigation Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handlePrev}
+                  disabled={currentStep === 0}
+                  className={`flex-1 h-12 rounded-lg border border-border text-[15px] font-medium transition-colors flex items-center justify-center gap-2 ${
+                    currentStep === 0 
+                      ? 'opacity-50 cursor-not-allowed text-muted-foreground' 
+                      : 'hover:bg-gray-50 text-foreground'
+                  }`}
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                  上一步
+                </button>
+                {currentStep < steps.length - 1 ? (
+                  <button
+                    onClick={handleNext}
+                    className="flex-1 h-12 rounded-lg bg-primary text-white text-[15px] font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+                  >
+                    下一步
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleGenerate}
+                    disabled={loading}
+                    className="flex-1 h-12 rounded-lg bg-accent text-white text-[15px] font-medium hover:bg-accent/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        生成中...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5" />
+                        生成行程
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Input Area */}
-            <div className="border-t border-border p-3.5">
-              <div className="flex gap-2">
-                <textarea
-                  value={inputValue}
-                  onChange={e => setInputValue(e.target.value)}
-                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
-                  placeholder="输入你的问题..."
-                  className="flex-1 min-h-[36px] max-h-[100px] px-3 py-2 text-xs bg-muted rounded-lg resize-none focus:outline-none focus:ring-1 focus:ring-primary"
-                  rows={1}
-                />
-                <button onClick={handleSendMessage} disabled={!inputValue.trim()} className="w-9 h-9 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md flex items-center justify-center disabled:opacity-50">
-                  <Send className="w-4 h-4" />
-                </button>
-              </div>
+            {/* Right: AI Advisor */}
+            <div className="w-[350px] hidden lg:block space-y-4">
+              <AIAdvisor
+                destination={formData.destination}
+                startDate={formData.startDate}
+                endDate={formData.endDate}
+                budget={Math.round((formData.minBudget + formData.maxBudget) / 2)}
+              />
             </div>
           </div>
         </div>
