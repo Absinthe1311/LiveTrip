@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, ArrowRight, Star, TrendingUp, Menu, Search, Bell, Heart, Home as HomeIcon, Sparkles, Globe, PenLine, List, MapPin, ChevronRight } from "lucide-react";
+import { getUserTrips, getFavoriteCount } from '../api/client';
+import { popularDestinations } from '../data/popularDestinations';
 
 // ==================== 未登录态视图 ====================
 function GuestView() {
@@ -121,67 +123,67 @@ function WorkspaceView() {
   const loadData = async () => {
     setLoading(true);
     try {
-      // 使用本地数据作为 fallback
+      // 并行加载所有数据
+      const [tripsResponse, favoritesResponse] = await Promise.all([
+        getUserTrips().catch(() => null),
+        getFavoriteCount().catch(() => null),
+      ]);
+
+      // 处理行程数据
+      let trips: any[] = [];
+      let completedCount = 0;
+      if (tripsResponse?.success && tripsResponse.data) {
+        trips = tripsResponse.data;
+        completedCount = trips.filter((t: any) => t.status === 'completed').length;
+      }
+
+      // 处理收藏数据
+      let favoriteCount = 0;
+      if (favoritesResponse?.success && favoritesResponse.data) {
+        favoriteCount = favoritesResponse.data.count || 0;
+      }
+
+      // 设置统计数据
       setStatsData([
         {
           label: "行程总数",
-          value: 4,
-          change: "本月新增 1",
+          value: trips.length,
+          change: trips.length > 0 ? `本月新增 ${trips.filter((t: any) => {
+            const created = new Date(t.createdAt);
+            const now = new Date();
+            return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+          }).length}` : null,
           trend: "up",
         },
         {
           label: "已完成",
-          value: 2,
+          value: completedCount,
           change: null,
           trend: null,
         },
         {
           label: "收藏景点",
-          value: 12,
-          change: "新增 3",
+          value: favoriteCount,
+          change: favoriteCount > 0 ? `共 ${favoriteCount} 个` : null,
           trend: "up",
         },
       ]);
 
-      setRecentTrips([
-        {
-          id: '1',
-          title: '东京深度游',
-          destination: '东京',
-          startDate: '2026-03-20',
-          endDate: '2026-03-27',
-          totalBudget: 8500,
-          status: 'planning'
-        },
-        {
-          id: '2',
-          title: '京都赏樱',
-          destination: '京都',
-          startDate: '2026-02-01',
-          endDate: '2026-02-05',
-          totalBudget: 6200,
-          status: 'completed'
-        },
-        {
-          id: '3',
-          title: '巴厘岛度假',
-          destination: '巴厘岛',
-          startDate: '2025-12-24',
-          endDate: '2025-12-30',
-          totalBudget: 5800,
-          status: 'completed'
-        },
-      ]);
+      // 设置最近行程（最多显示3个）
+      setRecentTrips(trips.slice(0, 3));
 
-      setHotDestinations([
-        { id: '1', name: '东京', rating: 4.9, days: '7天推荐', city: '东京', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=300&q=70' },
-        { id: '2', name: '京都', rating: 4.8, days: '5天推荐', city: '京都', image: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=300&q=70' },
-        { id: '3', name: '巴厘岛', rating: 4.7, days: '6天推荐', city: '巴厘岛', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=300&q=70' },
-        { id: '4', name: '巴黎', rating: 4.8, days: '8天推荐', city: '巴黎', image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=300&q=70' },
-        { id: '5', name: '巴塞罗那', rating: 4.7, days: '7天推荐', city: '巴塞罗那', image: 'https://images.unsplash.com/photo-1531572753322-ad063cecc140?w=300&q=70' },
-      ]);
+      // 使用城市级别的热门目的地数据
+      setHotDestinations(popularDestinations);
     } catch (error) {
-      console.error('加载数据失败:', error);
+      console.error('❌ 加载数据失败:', error);
+      // 出错时使用默认数据
+      setStatsData([
+        { label: "行程总数", value: 0, change: null, trend: null },
+        { label: "已完成", value: 0, change: null, trend: null },
+        { label: "收藏景点", value: 0, change: null, trend: null },
+      ]);
+      setRecentTrips([]);
+      setHotDestinations(popularDestinations);
     } finally {
       setLoading(false);
     }
@@ -393,7 +395,7 @@ function WorkspaceView() {
                   <List className="h-4 w-4" />
                   <span>我的行程</span>
                   <span className="ml-auto bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded-full">
-                    4
+                    {statsData[0]?.value || 0}
                   </span>
                 </button>
               </li>
@@ -467,7 +469,7 @@ function WorkspaceView() {
                       你好，今天去哪儿？
                     </h1>
                     <p className="text-sm text-white/80 mt-2">
-                      你有 1 个行程正在规划中
+                      你有 {statsData[0]?.value || 0} 个行程{statsData[0]?.value > 0 ? '正在规划中' : ''}
                     </p>
                   </div>
                   <button 

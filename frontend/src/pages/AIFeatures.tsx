@@ -50,7 +50,7 @@ export default function AIFeatures() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSendMessage = (message?: string) => {
+  const handleSendMessage = async (message?: string) => {
     const text = message || inputValue.trim();
     if (!text) return;
 
@@ -63,16 +63,44 @@ export default function AIFeatures() {
     setInputValue("");
     setIsTyping(true);
 
-    // 模拟 AI 回复
-    setTimeout(() => {
-      const aiResponse: Message = {
+    try {
+      // 调用后端 AI 顾问 API
+      const response = await fetch('http://localhost:3003/api/advisor/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          question: text,
+          planContext: null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.data?.answer) {
+        const aiResponse: Message = {
+          id: messages.length + 2,
+          role: "ai",
+          content: data.data.answer,
+        };
+        setMessages(prev => [...prev, aiResponse]);
+      } else {
+        throw new Error(data.error || '获取回答失败');
+      }
+    } catch (error: any) {
+      console.error('❌ AI顾问请求失败:', error);
+      // 显示错误消息
+      const errorMessage: Message = {
         id: messages.length + 2,
         role: "ai",
-        content: "好的，我来帮你规划！这是一个很棒的问题。让我为你提供一些建议...\n\n你可以点击左侧菜单的\"创建行程\"来开始规划你的旅行。",
+        content: `抱歉，AI顾问暂时无法使用。错误信息：${error.message || '请稍后再试'}`,
       };
-      setMessages(prev => [...prev, aiResponse]);
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1000);
+    }
   };
 
   return (
