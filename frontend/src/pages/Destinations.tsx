@@ -1,50 +1,108 @@
-// 热门目的地页面 - 基于 V0 设计重构
+// 热门目的地页面 - 按城市分组展示景点
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, Star } from "lucide-react";
-import { getHotDestinations } from '../api/client';
+import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, Star, MapPin } from "lucide-react";
 import { Sidebar } from '../components/SharedSidebar';
+import { getFavorites, addFavorite, removeFavorite } from '../api/client';
+
+interface HotSpot {
+  id: string;
+  name: string;
+  city: string;
+  rating: number;
+  description: string;
+  category: string;
+  ticketPrice: number;
+  image?: string;
+  isHot: boolean;
+}
+
+interface HotCity {
+  city: string;
+  count: number;
+  avgRating: number;
+  spots: HotSpot[];
+}
+
+const cityIcons: Record<string, string> = {
+  '北京市': '🏛️',
+  '上海市': '🌃',
+  '成都市': '🐼',
+  '杭州市': '🏞️',
+  '厦门市': '🌊',
+  '西安市': '🏔️',
+  '广州市': '🌸',
+  '深圳市': '🏙️',
+  '武汉市': '🌊',
+};
 
 export default function Destinations() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [destinations, setDestinations] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
+  const [hotCities, setHotCities] = useState<HotCity[]>([]);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadDestinations();
-    
-    const checkScreenSize = () => {
-      setIsLargeScreen(window.innerWidth >= 1024);
-    };
-    
+    const checkScreenSize = () => setIsLargeScreen(window.innerWidth >= 1024);
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
-    
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  const loadDestinations = async () => {
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
     setLoading(true);
     try {
-      const response = await getHotDestinations();
-      if (response.success && response.data) {
-        setDestinations(response.data);
+      // 并行加载热门城市和收藏列表
+      const [citiesResponse, favoritesResponse] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api'}/hot-spots/cities`),
+        getFavorites().catch(() => null),
+      ]);
+
+      // 处理热门城市数据
+      if (citiesResponse.ok) {
+        const result = await citiesResponse.json();
+        if (result.success && result.data) {
+          // 过滤掉无效数据
+          const validCities = result.data.filter((city: HotCity) => city && city.city);
+          setHotCities(validCities);
+        }
+      }
+
+      // 处理收藏数据
+      if (favoritesResponse?.success && favoritesResponse.data) {
+        const favoriteIds = new Set(favoritesResponse.data.map((f: any) => f.spotId || f.id));
+        setFavorites(favoriteIds);
       }
     } catch (error) {
-      console.error('加载热门目的地失败:', error);
-      // 使用默认数据
-      setDestinations([
-        { id: '1', name: '东京', city: '东京', rating: 4.9, days: '7天推荐', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&q=75' },
-        { id: '2', name: '京都', city: '京都', rating: 4.8, days: '5天推荐', image: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=400&q=75' },
-        { id: '3', name: '巴厘岛', city: '巴厘岛', rating: 4.7, days: '6天推荐', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&q=75' },
-        { id: '4', name: '巴黎', city: '巴黎', rating: 4.8, days: '8天推荐', image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&q=75' },
-        { id: '5', name: '巴塞罗那', city: '巴塞罗那', rating: 4.7, days: '7天推荐', image: 'https://images.unsplash.com/photo-1531572753322-ad063cecc140?w=400&q=75' },
-      ]);
+      console.error('❌ 加载数据失败:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleFavorite = async (spotId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      if (favorites.has(spotId)) {
+        await removeFavorite(spotId);
+        setFavorites(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(spotId);
+          return newSet;
+        });
+      } else {
+        await addFavorite(spotId);
+        setFavorites(prev => new Set(prev).add(spotId));
+      }
+    } catch (error) {
+      console.error('❌ 收藏操作失败:', error);
     }
   };
 
@@ -52,7 +110,7 @@ export default function Destinations() {
     <div className="min-h-screen bg-livetrip-background">
       {/* Top Navbar */}
       <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-border z-50 flex items-center shadow-subtle">
-        <div className="w-[220px] h-full flex items-center px-4 border-r border-border shrink-0">
+        <div className="w-[240px] h-full flex items-center px-5 border-r border-border shrink-0">
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`p-2 rounded-lg hover:bg-gray-100 transition-colors mr-2 ${isLargeScreen ? 'hidden' : 'block'}`}>
             <Menu className="h-5 w-5 text-gray-700" />
           </button>
@@ -88,53 +146,113 @@ export default function Destinations() {
       </header>
 
       {/* Sidebar */}
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
-        isLargeScreen={isLargeScreen}
-        currentPage={location.pathname}
-      />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} isLargeScreen={isLargeScreen} currentPage={location.pathname} />
 
       {/* Main Content */}
       <main className={`pt-14 min-h-screen ${isLargeScreen ? 'lg:pl-[240px]' : ''}`}>
-        <div className="max-w-4xl mx-auto px-6 py-6 lg:px-7">
-          {/* Hero Banner */}
-          <div className="relative h-[140px] rounded-2xl overflow-hidden mb-5 cursor-pointer group">
-            <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=900&q=80" alt="Hot Destinations" className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0f4a32]/90 to-[#0f4a32]/40" />
-            <div className="absolute inset-0 flex flex-col justify-center px-6">
-              <h2 className="font-serif text-[22px] font-semibold text-white mb-1">探索热门目的地</h2>
-              <p className="text-xs text-white/75 max-w-md">基于 AI 推荐与 IoT 实时人气数据，为你精选全球旅行胜地</p>
-            </div>
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          {/* Page Header */}
+          <div className="mb-8">
+            <h1 className="font-serif text-2xl font-semibold text-foreground">热门目的地</h1>
+            <p className="text-[15px] text-muted-foreground mt-1">探索精选热门景点，开启你的精彩旅程</p>
           </div>
 
-          {/* Destination Grid */}
           {loading ? (
             <div className="flex items-center justify-center h-48">
               <span className="text-muted-foreground">加载中...</span>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {destinations.map(dest => (
-                <div key={dest.id} onClick={() => navigate(`/destination/${dest.id}`)} className="bg-card border border-border rounded-lg overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg cursor-pointer">
-                  <div className="relative h-[110px] bg-gray-200">
-                    <img src={dest.image || `https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&q=75`} alt={dest.name} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="p-3.5">
-                    <h3 className="font-medium text-foreground mb-1">{dest.name || dest.city}</h3>
-                    <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-2">
-                      <span>{dest.days || '5-7天推荐'}</span>
-                      <span className="text-amber-500 font-semibold flex items-center gap-0.5">
-                        <Star className="h-3 w-3 fill-current" />
-                        {dest.rating || 4.8}
-                      </span>
+            <div className="space-y-10">
+              {hotCities.map((cityData) => (
+                <div key={cityData.city || 'unknown'}>
+                  {/* City Header */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-4xl">{cityIcons[cityData.city] || '🏙️'}</span>
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">
+                        {(cityData.city || '未知城市').replace('市', '')}
+                      </h2>
+                      <p className="text-[13px] text-muted-foreground">
+                        {cityData.count || 0} 个热门景点 · 平均评分 {(cityData.avgRating || 0).toFixed(1)}
+                      </p>
                     </div>
-                    <span className="inline-block text-[10px] px-2 py-0.5 rounded-lg bg-secondary text-primary">
-                      🌟 热门推荐
-                    </span>
+                  </div>
+
+                  {/* Spots Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {(cityData.spots || []).map((spot) => (
+                      <div
+                        key={spot.id}
+                        onClick={() => navigate(`/destination/${spot.id}`)}
+                        className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
+                      >
+                        {/* Image */}
+                        <div className="relative h-40 bg-gray-200">
+                          {spot.image ? (
+                            <img src={spot.image} alt={spot.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-4xl">
+                              {cityIcons[cityData.city] || '🏛️'}
+                            </div>
+                          )}
+                          {spot.isHot && (
+                            <span className="absolute top-2 right-2 bg-red-500 text-white text-[11px] px-2 py-1 rounded-full font-medium">
+                              热门
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <h3 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors">
+                              {spot.name || '未知景点'}
+                            </h3>
+                            <button
+                              onClick={(e) => handleToggleFavorite(spot.id, e)}
+                              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <Heart
+                                className={`h-4 w-4 ${
+                                  favorites.has(spot.id)
+                                    ? 'fill-red-500 text-red-500'
+                                    : 'text-muted-foreground'
+                                }`}
+                              />
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-1">
+                              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                              <span className="text-[13px] text-foreground">{(spot.rating || 0).toFixed(1)}</span>
+                            </div>
+                            <span className="text-[12px] text-muted-foreground">·</span>
+                            <span className="text-[12px] text-muted-foreground">{spot.category || '景点'}</span>
+                          </div>
+
+                          <p className="text-[12px] text-muted-foreground line-clamp-2 mb-2">
+                            {spot.description || '暂无描述'}
+                          </p>
+
+                          {spot.ticketPrice > 0 && (
+                            <div className="flex items-center gap-1 text-[13px] text-primary font-medium">
+                              <span>¥{spot.ticketPrice}</span>
+                              <span className="text-muted-foreground font-normal">/人</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
+
+              {hotCities.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">暂无热门景点数据</p>
+                </div>
+              )}
             </div>
           )}
         </div>
