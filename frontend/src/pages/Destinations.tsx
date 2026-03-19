@@ -59,19 +59,42 @@ export default function Destinations() {
   const loadData = async () => {
     setLoading(true);
     try {
-      // 并行加载热门城市和收藏列表
-      const [citiesResponse, favoritesResponse] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api'}/hot-spots/cities`),
+      // 并行加载热门景点和收藏列表
+      const [spotsResponse, favoritesResponse] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api'}/hot-spots`),
         getFavorites().catch(() => null),
       ]);
 
-      // 处理热门城市数据
-      if (citiesResponse.ok) {
-        const result = await citiesResponse.json();
+      // 处理热门景点数据
+      if (spotsResponse.ok) {
+        const result = await spotsResponse.json();
         if (result.success && result.data) {
-          // 过滤掉无效数据
-          const validCities = result.data.filter((city: HotCity) => city && city.city);
-          setHotCities(validCities);
+          // 按城市分组
+          const cityMap: Record<string, HotCity> = {};
+          result.data.forEach((spot: HotSpot) => {
+            if (!spot.city) return;
+
+            if (!cityMap[spot.city]) {
+              cityMap[spot.city] = {
+                city: spot.city,
+                count: 0,
+                avgRating: 0,
+                spots: [],
+              };
+            }
+
+            cityMap[spot.city].count++;
+            cityMap[spot.city].avgRating += spot.rating || 0;
+            cityMap[spot.city].spots.push(spot);
+          });
+
+          // 计算平均评分
+          const cities = Object.values(cityMap).map(city => ({
+            ...city,
+            avgRating: city.count > 0 ? city.avgRating / city.count : 0,
+          }));
+
+          setHotCities(cities);
         }
       }
 

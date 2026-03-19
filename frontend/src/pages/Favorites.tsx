@@ -17,6 +17,13 @@ interface FavoriteSpot {
   image?: string;
   notes?: string;
   createdAt: string;
+  iotData?: {
+    crowdLevel: number;
+    temperature: number;
+    rainProbability: number;
+    isOpen: boolean;
+  };
+  openTime?: string;
 }
 
 export default function Favorites() {
@@ -41,12 +48,38 @@ export default function Favorites() {
   const loadFavorites = async () => {
     setLoading(true);
     try {
-      const response = await getFavorites();
+      console.log('📦 从后端API加载收藏数据...');
+      const response = await getFavorites(true); // 包含IoT数据
+
       if (response.success && response.data) {
-        setFavorites(response.data);
+        console.log('✅ 收藏数据加载成功:', response.data);
+        console.log('📊 收藏数量:', response.data.length);
+
+        // 转换数据格式以匹配前端界面
+        const formattedFavorites: FavoriteSpot[] = response.data.map((fav: any) => ({
+          id: fav.id,
+          spotId: fav.spotId,
+          name: fav.spot.name,
+          city: fav.spot.city,
+          rating: fav.spot.rating || 4.5,
+          description: fav.spot.description || '暂无描述',
+          category: fav.spot.category || '景点',
+          ticketPrice: fav.spot.ticketPrice || 0,
+          image: '', // 后端暂未返回图片URL
+          notes: fav.notes || '',
+          createdAt: fav.createdAt,
+          iotData: fav.spot.iotData, // IoT数据
+          openTime: fav.spot.openTime || '全天开放',
+        }));
+
+        setFavorites(formattedFavorites);
+      } else {
+        console.log('⚠️ 后端返回失败:', response);
+        setFavorites([]);
       }
     } catch (error) {
       console.error('❌ 加载收藏失败:', error);
+      setFavorites([]);
     } finally {
       setLoading(false);
     }
@@ -188,12 +221,31 @@ export default function Favorites() {
                       {spot.description}
                     </p>
 
+                    {/* IoT数据显示 */}
+                    {spot.iotData && (
+                      <div className="flex items-center gap-2 mb-2 text-[11px] text-muted-foreground flex-wrap">
+                        <span className={`px-2 py-0.5 rounded-full ${spot.iotData.rainProbability > 50 ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
+                          🌡️ {spot.iotData.temperature}°C
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full ${spot.iotData.crowdLevel > 60 ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
+                          👥 人流{spot.iotData.crowdLevel > 60 ? '较多' : '较少'}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full ${spot.iotData.isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {spot.iotData.isOpen ? '🔓 开放' : '🔒 关闭'}
+                        </span>
+                      </div>
+                    )}
+
                     {spot.ticketPrice > 0 && (
                       <div className="flex items-center gap-1 text-[13px] text-primary font-medium">
                         <span>¥{spot.ticketPrice}</span>
                         <span className="text-muted-foreground font-normal">/人</span>
                       </div>
                     )}
+
+                    <div className="text-[11px] text-muted-foreground mt-1">
+                      开放时间: {spot.openTime || '全天开放'}
+                    </div>
 
                     {spot.notes && (
                       <div className="mt-2 pt-2 border-t border-border">

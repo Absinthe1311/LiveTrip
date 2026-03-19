@@ -250,14 +250,16 @@ export default function PopularDestinations() {
       setLoading(true);
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api';
       const response = await fetch(`${apiBaseUrl}/hot-spots/cities`);
-      
+
       if (!response.ok) {
         throw new Error('获取热门城市失败');
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success && result.data) {
+        console.log('🎉 热门城市数据:', result.data);
+
         // 转换为Destination格式
         const formattedDestinations: Destination[] = result.data.map((city: HotCity, index: number) => ({
           id: `city_${index}`,
@@ -269,12 +271,16 @@ export default function PopularDestinations() {
           rating: city.avgRating || 4.5,
           description: `${city.city}热门景点，共${city.count}个精选景点等你探索`,
         }));
-        
+
         setDestinations(formattedDestinations);
+      } else {
+        console.warn('⚠️ 后端返回的数据格式不正确:', result);
+        throw new Error('数据格式不正确');
       }
     } catch (error) {
-      console.error('加载热门城市失败:', error);
+      console.error('❌ 加载热门城市失败:', error);
       // 使用默认数据作为降级方案
+      console.log('🔄 使用默认数据作为降级方案');
       setDestinations([
         { id: '1', name: '北京', icon: '🏛️', days: 3, budget: 2000, bestSeason: '春秋', rating: 4.8, description: '探索千年古都，感受历史文化的魅力' },
         { id: '2', name: '上海', icon: '🌃', days: 2, budget: 1800, bestSeason: '全年', rating: 4.7, description: '现代化国际大都市，外滩夜景令人陶醉' },

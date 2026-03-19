@@ -1,64 +1,122 @@
-// 旅行博客页面 - 基于 V0 设计重构
+// 旅行博客页面 - 连接后端 API
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, PenLine, MessageCircle, Sparkles, List, MapPin, ChevronRight } from "lucide-react";
+import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, PenLine, MessageCircle, Sparkles, List, MapPin, ChevronRight, Eye } from "lucide-react";
 import { Sidebar } from '../components/SharedSidebar';
+import { getBlogPosts, toggleLike } from '../api/client';
 
-const blogs = [
-  {
-    id: 1,
-    title: "三月京都，满城樱花如梦",
-    excerpt: "伏见稻荷的朱红鸟居配上落樱，是我见过最美的画面。早上六点出发，整条参道只有我一人…",
-    author: "Li Mei",
-    date: "2天前",
-    likes: 234,
-    comments: 18,
-    image: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=200&q=70",
-  },
-  {
-    id: 2,
-    title: "巴厘岛7日，从零到惊艳",
-    excerpt: "带着预算5000元，我拿下了五星级Villa和私人泳池。藏在Seminyak背街的这家民宿，绝对是隐藏宝藏…",
-    author: "Wang Fang",
-    date: "5天前",
-    likes: 189,
-    comments: 32,
-    image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=200&q=70",
-  },
-  {
-    id: 3,
-    title: "东京拉面地图：米其林之外的宝藏小店",
-    excerpt: "不用排队两小时，就能吃到极品拉面。这几条巷子里藏着老板专门为懂行人留的隐秘菜单…",
-    author: "Chen Hao",
-    date: "1周前",
-    likes: 312,
-    comments: 45,
-    placeholder: "🍜",
-  },
-];
+interface Blog {
+  id: string;
+  title: string;
+  content: string;
+  excerpt?: string;
+  author?: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
+  userId?: string;
+  coverImage?: string;
+  tags?: string[];
+  city?: string;
+  likes: number;
+  views: number;
+  comments: number;
+  createdAt: string;
+  updatedAt?: string;
+  isPublished: boolean;
+}
 
 export default function Blogs() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [sortBy, setSortBy] = useState<'latest' | 'popular' | 'mostLiked'>('latest');
 
   useEffect(() => {
-    const checkScreenSize = () => {
-      setIsLargeScreen(window.innerWidth >= 1024);
-    };
-    
+    const checkScreenSize = () => setIsLargeScreen(window.innerWidth >= 1024);
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
-    
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
+
+  useEffect(() => {
+    loadBlogs();
+  }, [page, sortBy]);
+
+  const loadBlogs = async () => {
+    setLoading(true);
+    try {
+      const response = await getBlogPosts({
+        isPublished: true,
+        page,
+        pageSize,
+        sortBy,
+      });
+
+      if (response.success && response.data) {
+        setBlogs(response.data.posts || []);
+        setTotal(response.data.total || 0);
+      }
+    } catch (error) {
+      console.error('❌ 加载博客失败:', error);
+      setBlogs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleLike = async (postId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      // 从 localStorage 获取用户 ID
+      let userId = '';
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        userId = user.id || user.userId || '';
+      }
+      if (!userId) {
+        userId = localStorage.getItem('userId') || 'default-user';
+      }
+
+      await toggleLike(postId, userId);
+      loadBlogs();
+    } catch (error) {
+      console.error('❌ 点赞失败:', error);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return '今天';
+    if (diffDays === 1) return '昨天';
+    if (diffDays < 7) return `${diffDays}天前`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)}周前`;
+    return `${Math.floor(diffDays / 30)}月前`;
+  };
+
+  const getExcerpt = (content: string, maxLength: number = 100) => {
+    if (!content) return '';
+    const text = content.replace(/<[^>]*>/g, '').replace(/\n/g, ' ');
+    return text.length > maxLength ? text.substring(0, maxLength) + '…' : text;
+  };
 
   return (
     <div className="min-h-screen bg-livetrip-background">
       {/* Top Navbar */}
       <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-border z-50 flex items-center shadow-subtle">
-        <div className="w-[220px] h-full flex items-center px-4 border-r border-border shrink-0">
+        <div className="w-[240px] h-full flex items-center px-5 border-r border-border shrink-0">
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`p-2 rounded-lg hover:bg-gray-100 transition-colors mr-2 ${isLargeScreen ? 'hidden' : 'block'}`}>
             <Menu className="h-5 w-5 text-gray-700" />
           </button>
@@ -94,12 +152,7 @@ export default function Blogs() {
       </header>
 
       {/* Sidebar */}
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
-        isLargeScreen={isLargeScreen}
-        currentPage={location.pathname}
-      />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} isLargeScreen={isLargeScreen} currentPage={location.pathname} />
 
       {/* Main Content */}
       <main className={`pt-14 min-h-screen ${isLargeScreen ? 'lg:pl-[240px]' : ''}`}>
@@ -121,34 +174,132 @@ export default function Blogs() {
             </div>
           </div>
 
-          {/* Blog List */}
-          <div className="space-y-2.5">
-            {blogs.map(blog => (
-              <div key={blog.id} className="bg-card border border-border rounded-lg flex overflow-hidden hover:border-foreground/20 hover:shadow-sm transition-all cursor-pointer">
-                {/* Left Image */}
-                <div className="relative w-[100px] flex-shrink-0 bg-gray-200">
-                  {blog.image ? (
-                    <img src={blog.image} alt={blog.title} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center text-3xl">{blog.placeholder}</div>
-                  )}
-                </div>
+          {/* Sort Options */}
+          <div className="flex items-center gap-2 mb-4">
+            <button
+              onClick={() => setSortBy('latest')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                sortBy === 'latest'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-gray-100 text-muted-foreground hover:bg-gray-200'
+              }`}
+            >
+              最新发布
+            </button>
+            <button
+              onClick={() => setSortBy('popular')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                sortBy === 'popular'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-gray-100 text-muted-foreground hover:bg-gray-200'
+              }`}
+            >
+              最多浏览
+            </button>
+            <button
+              onClick={() => setSortBy('mostLiked')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                sortBy === 'mostLiked'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-gray-100 text-muted-foreground hover:bg-gray-200'
+              }`}
+            >
+              最多点赞
+            </button>
+          </div>
 
-                {/* Right Body */}
-                <div className="flex-1 p-3.5 px-4 flex flex-col">
-                  <h3 className="text-sm font-medium text-foreground mb-1 leading-snug">{blog.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed flex-1 line-clamp-2">{blog.excerpt}</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-[11px] text-muted-foreground">by {blog.author} · {blog.date}</span>
-                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                      <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{blog.likes}</span>
-                      <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" />{blog.comments}</span>
+          {/* Blog List */}
+          {loading ? (
+            <div className="flex items-center justify-center h-48">
+              <span className="text-muted-foreground">加载中...</span>
+            </div>
+          ) : blogs.length === 0 ? (
+            <div className="text-center py-12">
+              <PenLine className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">暂无博客</h3>
+              <p className="text-[14px] text-muted-foreground mb-6">
+                成为第一个分享旅行故事的人吧
+              </p>
+              <button
+                onClick={() => navigate('/blog/create')}
+                className="px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                写博客
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {blogs.map(blog => (
+                <div
+                  key={blog.id}
+                  onClick={() => navigate(`/blog/${blog.id}`)}
+                  className="bg-card border border-border rounded-lg flex overflow-hidden hover:border-foreground/20 hover:shadow-sm transition-all cursor-pointer"
+                >
+                  {/* Left Image */}
+                  <div className="relative w-[100px] flex-shrink-0 bg-gray-200">
+                    {blog.coverImage ? (
+                      <img src={blog.coverImage} alt={blog.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-muted flex items-center justify-center text-3xl">📝</div>
+                    )}
+                  </div>
+
+                  {/* Right Body */}
+                  <div className="flex-1 p-3.5 px-4 flex flex-col">
+                    <h3 className="text-sm font-medium text-foreground mb-1 leading-snug">{blog.title}</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed flex-1 line-clamp-2">
+                      {blog.excerpt || getExcerpt(blog.content)}
+                    </p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-[11px] text-muted-foreground">
+                        by {blog.author?.name || '匿名用户'} · {formatDate(blog.createdAt)}
+                      </span>
+                      <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Eye className="w-3 h-3" />
+                          {blog.views || 0}
+                        </span>
+                        <button
+                          onClick={(e) => handleToggleLike(blog.id, e)}
+                          className="flex items-center gap-1 hover:text-red-500 transition-colors"
+                        >
+                          <Heart className="w-3 h-3" />
+                          {blog.likes || 0}
+                        </button>
+                        <span className="flex items-center gap-1">
+                          <MessageCircle className="w-3 h-3" />
+                          {blog.comments || 0}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+
+              {/* Pagination */}
+              {total > pageSize && (
+                <div className="flex items-center justify-center gap-2 mt-6">
+                  <button
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="px-3 py-1.5 rounded-md text-xs font-medium bg-gray-100 text-muted-foreground hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    上一页
+                  </button>
+                  <span className="text-xs text-muted-foreground">
+                    第 {page} 页 / 共 {Math.ceil(total / pageSize)} 页
+                  </span>
+                  <button
+                    onClick={() => setPage(p => Math.min(Math.ceil(total / pageSize), p + 1))}
+                    disabled={page >= Math.ceil(total / pageSize)}
+                    className="px-3 py-1.5 rounded-md text-xs font-medium bg-gray-100 text-muted-foreground hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    下一页
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
     </div>

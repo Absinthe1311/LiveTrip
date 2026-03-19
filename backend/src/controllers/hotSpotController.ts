@@ -116,3 +116,73 @@ export const getHotCities = async (req: Request, res: Response) => {
     });
   }
 };
+
+/**
+ * 获取热门城市列表（包含景点信息和评分）
+ * GET /api/hot-spots/cities
+ */
+export const getHotCitiesWithSpots = async (req: Request, res: Response) => {
+  try {
+    console.log('🔥 获取热门城市列表（包含景点）');
+
+    // 获取所有热门景点
+    const hotSpots = await prisma.spot.findMany({
+      where: {
+        isHot: true,
+      },
+      include: {
+        iotData: true,
+      },
+      orderBy: {
+        rating: 'desc',
+      },
+    });
+
+    // 按城市分组
+    const cityGroups: Record<string, typeof hotSpots> = {};
+    hotSpots.forEach(spot => {
+      if (!cityGroups[spot.city]) {
+        cityGroups[spot.city] = [];
+      }
+      cityGroups[spot.city].push(spot);
+    });
+
+    // 计算每个城市的平均评分和景点数量
+    const cityData = Object.entries(cityGroups).map(([city, spots]) => {
+      const totalRating = spots.reduce((sum, spot) => sum + (spot.rating || 4.5), 0);
+      const avgRating = totalRating / spots.length;
+
+      return {
+        city,
+        count: spots.length,
+        avgRating: parseFloat(avgRating.toFixed(1)),
+        spots: spots.map(spot => ({
+          id: spot.id,
+          name: spot.name,
+          city: spot.city,
+          rating: spot.rating || 4.5,
+          description: spot.description || '',
+          category: spot.category || '景点',
+          ticketPrice: spot.ticketPrice || 0,
+          isHot: spot.isHot,
+        })),
+      };
+    });
+
+    // 按景点数量排序
+    cityData.sort((a, b) => b.count - a.count);
+
+    console.log(`✅ 找到 ${cityData.length} 个热门城市`);
+
+    res.json({
+      success: true,
+      data: cityData,
+    });
+  } catch (error: any) {
+    console.error('❌ 获取热门城市失败:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || '获取热门城市失败',
+    });
+  }
+};

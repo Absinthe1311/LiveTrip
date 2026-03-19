@@ -74,8 +74,14 @@ export default function BlogEditor({ visible, postId, userId = 'default-user', o
   const handleSubmit = async (values: any) => {
     try {
       setLoading(true);
-      
-      const coverImage = fileList.length > 0 
+
+      // 验证用户 ID
+      if (!userId || userId === 'default-user') {
+        message.warning('请先登录后再发布博客');
+        return;
+      }
+
+      const coverImage = fileList.length > 0
         ? (fileList[0].response?.url || fileList[0].url)
         : undefined;
 
@@ -89,11 +95,14 @@ export default function BlogEditor({ visible, postId, userId = 'default-user', o
         isPublished: true,  // 直接设置为已发布
       };
 
+      console.log('📝 发布博客数据:', blogData);
+
       if (isEditMode && postId) {
         await updateBlog(postId, userId, blogData);
         message.success('博客更新成功！');
       } else {
-        await createBlog(blogData);
+        const response = await createBlog(blogData);
+        console.log('✅ 博客发布响应:', response);
         message.success('博客发布成功！');
       }
 
@@ -103,7 +112,8 @@ export default function BlogEditor({ visible, postId, userId = 'default-user', o
       setFileList([]);
       onSuccess();
     } catch (error: any) {
-      message.error(error.response?.data?.message || '操作失败');
+      console.error('❌ 博客发布失败:', error);
+      message.error(error.response?.data?.message || error.message || '操作失败');
     } finally {
       setLoading(false);
     }

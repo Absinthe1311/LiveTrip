@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Button } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
@@ -7,6 +7,28 @@ import Navbar from '../components/Navbar';
 
 export default function CreateBlog() {
   const navigate = useNavigate();
+  const [userId, setUserId] = useState<string>('');
+
+  useEffect(() => {
+    // 从 localStorage 获取用户信息
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setUserId(user.id || user.userId || '');
+      } catch (error) {
+        console.error('解析用户信息失败:', error);
+      }
+    }
+
+    // 如果没有用户信息，尝试从 userId 获取
+    if (!userId) {
+      const storedUserId = localStorage.getItem('userId');
+      if (storedUserId) {
+        setUserId(storedUserId);
+      }
+    }
+  }, []);
 
   const handleSuccess = () => {
     navigate('/blogs');
@@ -32,6 +54,7 @@ export default function CreateBlog() {
         >
           <BlogEditor
             visible={true}
+            userId={userId}
             onCancel={() => navigate('/blogs')}
             onSuccess={handleSuccess}
           />
