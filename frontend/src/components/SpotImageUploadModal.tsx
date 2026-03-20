@@ -35,7 +35,7 @@ export default function SpotImageUploadModal({
       uid: `${Date.now()}-${file.name}`,
       name: file.name,
       status: 'done' as const,
-      file: file,
+      originFileObj: file,
       thumbUrl: URL.createObjectURL(file),
     }));
 
@@ -119,12 +119,12 @@ export default function SpotImageUploadModal({
     let failCount = 0;
 
     for (let i = 0; i < fileList.length; i++) {
-      const file = fileList[i];
-      if (!file.file) continue;
+      const fileItem = fileList[i];
+      if (!fileItem.originFileObj) continue;
 
       try {
         const formData = new FormData();
-        formData.append('file', file.file);
+        formData.append('file', fileItem.originFileObj);
         formData.append('spotId', spotId); // 使用景点 ID
 
         // 获取token

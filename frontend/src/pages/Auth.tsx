@@ -1,10 +1,14 @@
 // 登录注册页面 - 基于 V0 设计风格
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { App } from 'antd';
 
 export default function Auth() {
   const navigate = useNavigate();
+  const { message } = App.useApp();
   const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -12,17 +16,87 @@ export default function Auth() {
     confirmPassword: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // 处理登录
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 占位：模拟登录/注册
-    const testUser = {
-      id: 'test-user-1',
-      username: formData.username || 'Zhang Lei',
-      role: 'user'
-    };
-    localStorage.setItem('user', JSON.stringify(testUser));
-    localStorage.setItem('token', 'test-token-123');
-    navigate('/');
+    setLoading(true);
+
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, {
+        username: formData.username,
+        password: formData.password,
+      });
+
+      if (response.data.success) {
+        const { user, token } = response.data.data;
+
+        // 保存到 localStorage
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('token', token);
+
+        message.success('登录成功！');
+
+        // 根据角色跳转
+        if (user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
+      }
+    } catch (error: any) {
+      console.error('❌ 登录失败:', error);
+      message.error(error.response?.data?.error || '登录失败，请稍后重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 处理注册
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // 验证密码
+    if (formData.password !== formData.confirmPassword) {
+      message.error('两次输入的密码不一致');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      message.error('密码至少需要6个字符');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (response.data.success) {
+        const { user, token } = response.data.data;
+
+        // 保存到 localStorage
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('token', token);
+
+        message.success('注册成功！');
+
+        // 根据角色跳转
+        if (user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
+      }
+    } catch (error: any) {
+      console.error('❌ 注册失败:', error);
+      message.error(error.response?.data?.error || '注册失败，请稍后重试');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -67,7 +141,7 @@ export default function Auth() {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-4">
             {!isLogin && (
               <div>
                 <label className="text-xs text-gray-600 mb-1.5 block">用户名</label>
@@ -132,9 +206,10 @@ export default function Auth() {
 
             <button
               type="submit"
-              className="w-full h-10 bg-livetrip-primary text-white rounded-lg text-sm font-medium hover:bg-livetrip-primary-dark transition-colors"
+              disabled={loading}
+              className="w-full h-10 bg-livetrip-primary text-white rounded-lg text-sm font-medium hover:bg-livetrip-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLogin ? '登录' : '注册'}
+              {loading ? (isLogin ? '登录中...' : '注册中...') : (isLogin ? '登录' : '注册')}
             </button>
           </form>
 
@@ -155,28 +230,6 @@ export default function Auth() {
               <span>📧</span>
               使用邮箱登录
             </button>
-          </div>
-
-          {/* Test Login Button */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <button
-              onClick={() => {
-                const testUser = {
-                  id: 'test-user-1',
-                  username: 'Zhang Lei',
-                  role: 'user'
-                };
-                localStorage.setItem('user', JSON.stringify(testUser));
-                localStorage.setItem('token', 'test-token-123');
-                navigate('/');
-              }}
-              className="w-full h-10 bg-livetrip-accent text-white rounded-lg text-sm font-medium hover:bg-livetrip-accent/90 transition-colors"
-            >
-              测试登录（开发模式）
-            </button>
-            <p className="text-xs text-gray-400 text-center mt-2">
-              仅用于开发测试，无需真实账号
-            </p>
           </div>
         </div>
 

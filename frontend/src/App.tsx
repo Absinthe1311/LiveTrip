@@ -1,5 +1,6 @@
 // 应用主组件 - 配置路由
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { App as AntdApp } from 'antd';
 import Home from './pages/Home';
 import Plan from './pages/Plan';
 import Itinerary from './pages/Itinerary';
@@ -20,7 +21,7 @@ import AdminLayout from './components/admin/AdminLayout';
 import SpotManagePage from './pages/admin/SpotManagePage';
 import ReviewPage from './pages/admin/ReviewPage';
 
-function App() {
+function AppContent() {
   return (
     <Router>
       <Routes>
@@ -120,6 +121,14 @@ function App() {
         </Route>
       </Routes>
     </Router>
+  );
+}
+
+function App() {
+  return (
+    <AntdApp>
+      <AppContent />
+    </AntdApp>
   );
 }
 
