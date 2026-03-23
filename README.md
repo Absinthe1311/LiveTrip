@@ -1,88 +1,92 @@
 # LiveTrip - AI + IoT 智能旅行规划系统
 
-## 📖 项目简介
+<div align="center">
 
-**LiveTrip** 是一款基于人工智能和物联网技术的智能旅行规划系统，能够根据用户偏好、实时物联网数据动态优化旅行行程。
+![LiveTrip Logo](https://img.shields.io/badge/LiveTrip-AI%20%2B%20IoT-blue?style=for-the-badge)
 
-### 核心特性
+**基于人工智能和物联网的智能旅行规划系统**
 
-- 🤖 **AI智能推荐** - 基于用户偏好生成个性化行程
-- 🌡 **IoT实时数据** - 实时显示景点人流、天气、开放状态
-- 🔄 **动态调整** - 根据实时数据智能推荐备选景点
-- 💾 **智能缓存** - 景点、酒店、餐厅数据永久存储，减少API调用
-- 🗺️ **地图集成** - 可视化显示行程和周围环境（含酒店、餐厅标记）
-- 📊 **预算管理** - 自动计算和分配旅行预算
-- 🔥 **热门景点** - 动态展示热门目的地
-- 🖼️ **景点图片** - 用户上传图片，管理员审核
-- 🏨 **酒店推荐** - 基于景点位置推荐酒店
-- 🍽️ **餐厅推荐** - 基于景点位置推荐餐厅
-- 📤 **行程分享** - 支持PDF导出和链接分享
+[在线演示](#) | [功能特性](#功能特性) | [快速开始](#快速开始) | [技术栈](#技术栈)
+
+</div>
 
 ---
 
-## 🛠 技术栈
+## 📖 项目简介
+
+LiveTrip 是一个基于 **AI + IoT** 的智能旅行规划系统，结合智谱AI（ChatGLM）的强大能力和物联网实时数据，为用户提供个性化的旅行规划服务。
+
+### 核心亮点
+
+- 🤖 **AI智能规划**：基于智谱AI的智能行程规划，自动生成最优路线和时间安排
+- 📡 **IoT实时数据**：集成物联网传感器数据，提供景点拥挤度、天气等实时信息
+- 🗺️ **智能推荐**：景点、酒店、餐厅智能推荐，支持备选景点查看和替换
+- 📱 **现代化UI**：采用 Tailwind CSS + shadcn/ui 的现代化界面设计
+- 🔗 **行程分享**：支持行程链接分享和PDF导出
+- 📸 **图片管理**：景点图片上传、审核和管理功能
+- ✍️ **游记撰写**：行程完成后可撰写游记，记录美好时光
+
+---
+
+## ✨ 功能特性
+
+### 用户功能
+
+| 功能模块 | 功能描述 |
+|---------|---------|
+| **AI行程规划** | 输入目的地、日期、预算，AI自动生成完整行程 |
+| **实时数据** | 查看景点拥挤度、天气、开放状态等IoT数据 |
+| **景点管理** | 拖拽排序、查看备选、替换景点 |
+| **酒店推荐** | 基于位置和预算的智能酒店推荐 |
+| **餐厅推荐** | 每日餐厅推荐，支持选择和跳过 |
+| **行程分享** | 生成分享链接，好友可查看行程 |
+| **PDF导出** | 导出精美PDF行程单 |
+| **图片上传** | 行程完成后上传景点图片 |
+| **游记撰写** | Markdown编辑器，支持图片和格式化 |
+| **收藏管理** | 收藏喜欢的景点、酒店、餐厅 |
+
+### 管理员功能
+
+| 功能模块 | 功能描述 |
+|---------|---------|
+| **图片审核** | 审核用户上传的景点图片 |
+| **景点管理** | 管理景点信息和图片 |
+
+---
+
+## 🛠️ 技术栈
 
 ### 前端技术
 
-- **框架**: React 18.3.1 + TypeScript 5.7.3
-- **构建工具**: Vite 6.0.7
-- **UI组件库**: 
-  - Ant Design 5.22.5（主要组件库）
-  - shadcn/ui（现代化 UI 组件，基于 Radix UI）
-- **样式方案**: Tailwind CSS + CSS Variables
-- **状态管理**: Zustand 5.0.2
-- **拖拽**: dnd-kit
-- **图表**: ECharts
-- **地图**: 高德地图 API
-- **图标库**: Lucide React + Ant Design Icons
+| 技术 | 版本 | 说明 |
+|------|------|------|
+| React | 18.3.1 | 前端框架 |
+| TypeScript | 5.7.3 | 类型安全 |
+| Vite | 6.0.7 | 构建工具 |
+| Tailwind CSS | 3.4.19 | 样式框架 |
+| shadcn/ui | - | UI组件库 |
+| Ant Design | 5.22.5 | 企业级UI组件 |
+| Zustand | 5.0.2 | 状态管理 |
+| React Router | 7.1.1 | 路由管理 |
+| Axios | 1.7.9 | HTTP客户端 |
+| @dnd-kit | - | 拖拽排序 |
+| ECharts | 6.0.0 | 图表可视化 |
+| jsPDF | 4.2.0 | PDF生成 |
+| Lucide React | - | 图标库 |
 
 ### 后端技术
 
-- **运行环境**: Node.js
-- **框架**: Express 4.21.2 + TypeScript
-- **ORM**: Prisma 6.1.0
-- **数据库**: SQLite
-- **AI服务**: 智谱AI (ChatGLM)
-- **地图服务**: 高德地图 API
-- **图片存储**: Cloudinary
-- **认证**: JWT + bcryptjs
-
----
-
-## 📁 项目结构
-
-```
-LiveTrip/
-├── backend/                    # 后端项目
-│   ├── src/                     # 源代码目录
-│   │   ├── controllers/         # 控制器层
-│   │   ├── services/            # 服务层
-│   │   ├── routes/              # 路由层
-│   │   ├── iot/                 # IoT相关
-│   │   ├── utils/               # 工具函数
-│   │   └── types/               # 类型定义
-│   ├── prisma/                  # Prisma配置
-│   ├── scripts/                 # 脚本工具
-│   └── package.json
-│
-├── frontend/                   # 前端项目
-│   ├── src/                     # 源代码目录
-│   │   ├── pages/               # 页面组件
-│   │   ├── components/          # 公共组件
-│   │   │   └── ui/              # shadcn/ui 组件
-│   │   ├── api/                 # API客户端
-│   │   ├── store/               # 状态管理
-│   │   ├── lib/                 # 工具函数
-│   │   └── types/               # 类型定义
-│   ├── public/                  # 公共资源
-│   ├── components.json          # shadcn/ui 配置
-│   ├── tailwind.config.js       # Tailwind CSS 配置
-│   └── package.json
-│
-├── README.md                   # 项目说明文档
-├── 项目交接文档.md              # 项目交接文档
-└── 景点图片检索关键字.md        # 图片检索关键字
-```
+| 技术 | 版本 | 说明 |
+|------|------|------|
+| Node.js | - | 运行环境 |
+| Express | 4.21.2 | Web框架 |
+| Prisma | 6.1.0 | ORM框架 |
+| SQLite | - | 数据库 |
+| JWT | - | 身份认证 |
+| bcryptjs | - | 密码加密 |
+| Cloudinary | - | 图片存储 |
+| 智谱AI | - | AI服务 |
+| 高德地图 | - | 地图服务 |
 
 ---
 
@@ -90,195 +94,248 @@ LiveTrip/
 
 ### 环境要求
 
-- Node.js >= 16
-- npm >= 8
+- Node.js >= 18.0.0
+- npm >= 9.0.0
 
-### 安装依赖
+### 安装步骤
+
+#### 1. 克隆项目
 
 ```bash
-# 安装后端依赖
-cd backend
-npm install
+git clone https://github.com/your-username/livetrip.git
+cd livetrip
+```
 
+#### 2. 安装依赖
+
+```bash
 # 安装前端依赖
 cd frontend
 npm install
+
+# 安装后端依赖
+cd ../backend
+npm install
 ```
 
-### 配置环境变量
+#### 3. 配置环境变量
 
-#### 后端配置 (`backend/.env`)
-
-```env
-PORT=3003
-DATABASE_URL="file:./dev.db"
-AMAP_API_KEY=your_amap_api_key
-ZHIPU_API_KEY=your_zhipu_api_key
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-JWT_SECRET=your_jwt_secret
-CORS_ORIGIN=http://localhost:5173
-```
-
-#### 前端配置 (`frontend/.env`)
-
-```env
-VITE_AMAP_KEY=your_amap_api_key
-VITE_API_BASE_URL=http://localhost:3003/api
-VITE_API_URL=http://localhost:3003/api
-```
-
-### 初始化数据库
+**后端配置**：
 
 ```bash
 cd backend
-npx prisma migrate dev
-npx prisma generate
+cp .env.example .env
 ```
 
-### shadcn/ui 组件管理（可选）
+编辑 `.env` 文件，填入以下配置：
 
-项目已集成 shadcn/ui，你可以根据需要添加更多组件：
+```env
+# 数据库
+DATABASE_URL="file:./dev.db"
 
-```bash
-# 添加单个组件
-npx shadcn@latest add <component-name>
+# JWT
+JWT_SECRET=your-jwt-secret-key
 
-# 添加多个组件
-npx shadcn@latest add button card input
+# 智谱AI
+ZHIPUAI_API_KEY=your-zhipuai-api-key
 
-# 查看所有可用组件
-npx shadcn@latest add
+# 高德地图
+AMAP_JS_KEY=your-amap-js-key
+AMAP_JS_SECRET=your-amap-js-secret
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 ```
 
-**已安装的组件**：
-- button, card, badge, input, textarea
-- scroll-area, tabs, separator, avatar
-
-### 启动服务
+**前端配置**：
 
 ```bash
-# 启动后端服务
+cd ../frontend
+cp .env.example .env
+```
+
+编辑 `.env` 文件：
+
+```env
+VITE_API_BASE_URL=http://localhost:3001
+VITE_AMAP_JS_KEY=your-amap-js-key
+VITE_AMAP_JS_SECRET=your-amap-js-secret
+VITE_ZHIPUAI_API_KEY=your-zhipuai-api-key
+```
+
+#### 4. 初始化数据库
+
+```bash
+cd backend
+
+# 生成Prisma客户端
+npm run prisma:generate
+
+# 运行数据库迁移
+npm run prisma:migrate
+
+# 填充初始数据
+npm run prisma:seed
+```
+
+#### 5. 启动项目
+
+**启动后端**：
+
+```bash
 cd backend
 npm run dev
+```
 
-# 启动前端服务
+**启动前端**（新终端）：
+
+```bash
 cd frontend
 npm run dev
 ```
 
-- 后端地址: http://localhost:3003
-- 前端地址: http://localhost:5173
+#### 6. 访问应用
+
+打开浏览器访问：http://localhost:5173
 
 ---
 
-## 🎯 核心功能
+## 📁 项目结构
 
-### 1. 用户系统
-- 用户注册/登录
-- 管理员账号（用户名: 666, 密码: 666666）
-- 路由权限控制
-
-### 2. 智能行程规划
-- AI生成个性化行程
-- 景点推荐与去重
-- 酒店和餐厅推荐
-
-### 3. 行程管理
-- 查看每日行程安排
-- 拖拽调整景点顺序
-- 查看行程地图
-- 查看预算分配
-- 行程分享
-
-### 4. 热门景点
-- 动态展示热门目的地
-- 从数据库加载热门景点
-- 管理员标记热门景点
-
-### 5. 景点图片
-- 用户上传图片（需审核）
-- 管理员上传图片（自动通过）
-- 图片审核管理
-
-### 6. IoT数据展示
-- 实时显示景点人流情况
-- 显示天气信息
-- 显示景点开放状态
-
----
-
-## 📊 数据库设计
-
-### 主要表结构
-
-- **User** - 用户表
-- **Spot** - 景点信息表
-- **SpotImage** - 景点图片表
-- **SpotIoTData** - IoT数据表
-- **Trip** - 行程表（含酒店信息和推荐缓存）
-- **Day** - 行程天数表（含餐厅信息和推荐缓存）
-- **ItineraryItem** - 行程项目表（关联spotId）
-- **Favorite** - 收藏表
-- **Hotel** - 酒店缓存表（永久存储）
-- **Restaurant** - 餐厅缓存表（永久存储）
-- **AmapPOICache** - 高德POI缓存表（永久存储）
-
----
-
-## 🔧 开发指南
-
-### 常用脚本
-
-```bash
-# 创建管理员账号
-cd backend
-npx ts-node scripts/createAdmin.ts
-
-# 预热热门景点数据
-npx ts-node scripts/seedHotSpots.ts
-
-# 预热城市景点数据
-npx ts-node scripts/preloadCitySpots.ts
-
-# 生成图片检索关键字
-npx ts-node scripts/generateSearchKeywords.ts
+```
+LiveTrip/
+├── frontend/                 # 前端项目
+│   ├── src/
+│   │   ├── api/             # API接口
+│   │   ├── components/      # 组件
+│   │   ├── pages/           # 页面
+│   │   ├── store/           # 状态管理
+│   │   ├── services/        # 服务
+│   │   ├── types/           # 类型定义
+│   │   └── utils/           # 工具函数
+│   ├── public/              # 静态资源
+│   └── package.json
+│
+├── backend/                  # 后端项目
+│   ├── src/
+│   │   ├── routes/          # 路由
+│   │   ├── middleware/      # 中间件
+│   │   ├── services/        # 服务
+│   │   └── utils/           # 工具函数
+│   ├── prisma/              # 数据库
+│   │   ├── schema.prisma    # 数据库模型
+│   │   └── seed.ts          # 初始数据
+│   └── package.json
+│
+├── README.md                 # 项目说明
+├── 使用说明文档.md           # 用户手册
+└── 项目交接文档.md           # 交接文档
 ```
 
 ---
 
-## 📝 更新日志
+## 🔑 API Key 获取
 
-### v1.2.0 (2026-03-16)
+### 智谱AI
 
-- ✅ 修复酒店/餐厅推荐页面闪烁问题
-- ✅ 完善酒店/餐厅数据永久存储
-- ✅ 修复图片上传景点关联错误问题
-- ✅ 优化景点匹配逻辑（精确匹配优先）
-- ✅ 推荐数据缓存到行程中
-- ✅ 清理项目无用文件
+1. 访问 [智谱AI开放平台](https://open.bigmodel.cn/)
+2. 注册账号并登录
+3. 在控制台创建API Key
+4. 复制API Key到环境变量
 
-### v1.1.0 (2026-03-14)
+### 高德地图
 
-- ✅ 修复登录后路由跳转问题
-- ✅ 添加路由权限控制
-- ✅ 修复管理员图片上传逻辑
-- ✅ 热门景点动态加载
-- ✅ 景点数据预热功能
-- ✅ 减少高德API调用
+1. 访问 [高德开放平台](https://console.amap.com/)
+2. 注册账号并登录
+3. 创建应用，选择"Web服务"
+4. 获取Key和密钥
+5. 复制到环境变量
 
-### v1.0.0 (2026-02-08)
+### Cloudinary
 
-- ✅ 智能行程规划功能
-- ✅ 备选景点推荐功能
-- ✅ IoT数据实时展示
-- ✅ 智能缓存系统
-- ✅ 地图可视化
-- ✅ 预算管理
+1. 访问 [Cloudinary](https://cloudinary.com/)
+2. 注册账号并登录
+3. 在Dashboard获取配置信息
+4. 复制到环境变量
+
+---
+
+## 📝 开发指南
+
+### 前端开发
+
+```bash
+cd frontend
+
+# 开发模式
+npm run dev
+
+# 构建生产版本
+npm run build
+
+# 预览生产版本
+npm run preview
+
+# 代码检查
+npm run lint
+
+# 代码格式化
+npm run format
+```
+
+### 后端开发
+
+```bash
+cd backend
+
+# 开发模式
+npm run dev
+
+# 构建
+npm run build
+
+# 生产模式
+npm run start
+
+# 数据库操作
+npm run prisma:studio    # 打开Prisma Studio
+npm run prisma:migrate   # 运行迁移
+npm run prisma:reset     # 重置数据库
+```
+
+---
+
+## 🤝 贡献指南
+
+欢迎贡献代码！请遵循以下步骤：
+
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 创建 Pull Request
 
 ---
 
 ## 📄 许可证
 
-MIT License
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
+
+---
+
+## 👥 联系方式
+
+- 项目主页：https://github.com/your-username/livetrip
+- 问题反馈：https://github.com/your-username/livetrip/issues
+
+---
+
+<div align="center">
+
+**⭐ 如果这个项目对你有帮助，请给一个 Star ⭐**
+
+Made with ❤️ by LiveTrip Team
+
+</div>

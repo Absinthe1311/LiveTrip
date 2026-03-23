@@ -18,6 +18,7 @@ backend/build/
 # IDE
 .vscode/
 .idea/
+.arts/
 *.swp
 *.swo
 *~
@@ -40,3 +41,19 @@ coverage/
 # Misc
 .cache/
 .temp/
+
+# Backup files
+*_backup.tsx
+*_backup.ts
+backup_*/
+
+# Test files
+test_*.txt
+test_*.ts
+
+# v0 directory (deprecated)
+v0/
+
+# Database
+*.db
+*.db-journal
