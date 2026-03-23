@@ -13,7 +13,7 @@ const apiClient = axios.create({
 // 导出 apiClient 供其他模块复用
 export { apiClient };
 
-// 请求拦截器 - 添加 token 到请求头
+// 请求拦截器 - 添加 token 和 userId 到请求头
 apiClient.interceptors.request.use(
   (config) => {
     // 添加 token 到请求头
@@ -21,6 +21,20 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // 添加 userId 到请求头 (用于权限验证)
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user && user.id) {
+          config.headers['x-user-id'] = user.id;
+        }
+      } catch (e) {
+        console.warn('解析用户信息失败:', e);
+      }
+    }
+    
     return config;
   },
   (error) => {

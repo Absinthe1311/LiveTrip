@@ -5,6 +5,8 @@ import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, PenLine, List
 import { Sidebar } from '../components/SharedSidebar';
 import { getUserTrips, getTripById } from '../api/client';
 import AMapLoader from '@amap/amap-jsapi-loader';
+import ShareButton from '../components/ShareButton';
+import PDFExportButton from '../components/PDFExportButton';
 
 // 高德地图类型定义
 declare global {
@@ -52,6 +54,7 @@ interface Attraction {
   status?: 'completed' | 'current' | 'pending';
   crowdLevel?: string;
   weather?: string;
+  description?: string;
 }
 
 export default function Today() {
@@ -648,31 +651,78 @@ export default function Today() {
                     Day {currentDayIndex + 1} · {currentDayItinerary ? formatDate(currentDayItinerary.date) : ''}
                   </p>
                 </div>
-                <div className="relative">
-                  <button
-                    onClick={() => setShowTripSelector(!showTripSelector)}
-                    className="px-3 py-1.5 rounded-md border border-border text-xs text-muted-foreground hover:bg-muted transition-colors flex items-center gap-1"
-                  >
-                    切换行程
-                    <ChevronDown className="h-3 w-3" />
-                  </button>
-
-                  {/* Trip Selector Dropdown */}
-                  {showTripSelector && (
-                    <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-border rounded-lg shadow-lg z-10">
-                      {trips.map((trip) => (
-                        <button
-                          key={trip.id}
-                          onClick={() => handleSelectTrip(trip.id)}
-                          className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-100 transition-colors ${
-                            trip.id === currentTrip.id ? 'bg-blue-50 text-primary' : ''
-                          }`}
-                        >
-                          {trip.summary || trip.destination}
-                        </button>
-                      ))}
-                    </div>
+                <div className="flex items-center gap-2">
+                  {/* 分享和PDF导出按钮 */}
+                  {currentTrip?.id && (
+                    <>
+                      <ShareButton tripId={currentTrip.id} style={{ fontSize: '12px', padding: '4px 12px', height: '32px' }} />
+                      <PDFExportButton 
+                        tripData={{
+                          id: currentTrip.id,
+                          title: currentTrip.summary || currentTrip.destination,
+                          destination: currentTrip.destination,
+                          startDate: currentTrip.startDate,
+                          endDate: currentTrip.endDate,
+                          totalBudget: 0,
+                          days: currentTrip.itinerary?.map((day) => ({
+                            dayNumber: day.day,
+                            date: day.date,
+                            itineraryItems: day.attractions?.map((item) => ({
+                              name: item.name,
+                              type: item.category || '景点',
+                              description: item.category || '',
+                              startTime: `${day.date} ${item.time}`,
+                              endTime: `${day.date} ${item.time}`,
+                              address: '',
+                              cost: item.ticketPrice || 0,
+                              longitude: item.location ? parseFloat(item.location.split(',')[0]) : undefined,
+                              latitude: item.location ? parseFloat(item.location.split(',')[1]) : undefined,
+                            })) || [],
+                            restaurantName: day.restaurant?.name,
+                            restaurantAddress: day.restaurant?.address,
+                            restaurantLocation: day.restaurant?.location,
+                            restaurantType: day.restaurant?.type,
+                            restaurantRating: day.restaurant?.rating,
+                          })) || [],
+                          hotel: currentTrip.hotel ? {
+                            name: currentTrip.hotel.name,
+                            address: currentTrip.hotel.address,
+                            location: currentTrip.hotel.location,
+                            type: currentTrip.hotel.type,
+                            rating: currentTrip.hotel.rating,
+                          } : undefined,
+                        }}
+                        style={{ fontSize: '12px', padding: '4px 12px', height: '32px' }}
+                      />
+                    </>
                   )}
+                  
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowTripSelector(!showTripSelector)}
+                      className="px-3 py-1.5 rounded-md border border-border text-xs text-muted-foreground hover:bg-muted transition-colors flex items-center gap-1"
+                    >
+                      切换行程
+                      <ChevronDown className="h-3 w-3" />
+                    </button>
+
+                    {/* Trip Selector Dropdown */}
+                    {showTripSelector && (
+                      <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-border rounded-lg shadow-lg z-10">
+                        {trips.map((trip) => (
+                          <button
+                            key={trip.id}
+                            onClick={() => handleSelectTrip(trip.id)}
+                            className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-100 transition-colors ${
+                              trip.id === currentTrip.id ? 'bg-blue-50 text-primary' : ''
+                            }`}
+                          >
+                            {trip.summary || trip.destination}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
