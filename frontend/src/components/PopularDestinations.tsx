@@ -39,6 +39,8 @@ const cityIcons: Record<string, string> = {
   '杭州市': '🏞️',
   '厦门市': '🌊',
   '西安市': '🏔️',
+  '武汉市': '🌸',
+  '三亚': '🏖️',
 };
 
 // 城市推荐天数映射
@@ -49,6 +51,8 @@ const cityDays: Record<string, number> = {
   '杭州市': 3,
   '厦门市': 2,
   '西安市': 4,
+  '武汉市': 3,
+  '三亚': 3,
 };
 
 // 城市预算映射
@@ -59,6 +63,8 @@ const cityBudget: Record<string, number> = {
   '杭州市': 1900,
   '厦门市': 1700,
   '西安市': 2100,
+  '武汉市': 1800,
+  '三亚': 2500,
 };
 
 // 城市推荐季节映射
@@ -69,6 +75,8 @@ const cityBestSeason: Record<string, string> = {
   '杭州市': '春秋',
   '厦门市': '春秋',
   '西安市': '春秋',
+  '武汉市': '春秋',
+  '三亚': '冬春',
 };
 
 interface DestinationCardProps {
@@ -288,6 +296,8 @@ export default function PopularDestinations() {
         { id: '4', name: '杭州', icon: '🏞️', days: 3, budget: 1900, bestSeason: '春秋', rating: 4.8, description: '人间天堂，西湖美景' },
         { id: '5', name: '厦门', icon: '🌊', days: 2, budget: 1700, bestSeason: '春秋', rating: 4.7, description: '海上花园，浪漫之都' },
         { id: '6', name: '西安', icon: '🏔️', days: 4, budget: 2100, bestSeason: '春秋', rating: 4.8, description: '十三朝古都，丝绸之路起点' },
+        { id: '7', name: '武汉', icon: '🌸', days: 3, budget: 1800, bestSeason: '春秋', rating: 4.6, description: '江城武汉，樱花之城' },
+        { id: '8', name: '三亚', icon: '🏖️', days: 3, budget: 2500, bestSeason: '冬春', rating: 4.7, description: '热带天堂，椰风海韵' },
       ]);
     } finally {
       setLoading(false);

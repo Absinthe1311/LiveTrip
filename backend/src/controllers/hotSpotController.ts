@@ -100,7 +100,7 @@ export const getHotCities = async (req: Request, res: Response) => {
     const cities = Object.entries(cityCount)
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
+      .slice(0, 8); // 只返回前8个城市
 
     console.log(`✅ 找到 ${cities.length} 个热门城市`);
 
@@ -172,11 +172,14 @@ export const getHotCitiesWithSpots = async (req: Request, res: Response) => {
     // 按景点数量排序
     cityData.sort((a, b) => b.count - a.count);
 
-    console.log(`✅ 找到 ${cityData.length} 个热门城市`);
+    // 只返回前8个城市
+    const topCities = cityData.slice(0, 8);
+
+    console.log(`✅ 找到 ${topCities.length} 个热门城市`);
 
     res.json({
       success: true,
-      data: cityData,
+      data: topCities,
     });
   } catch (error: any) {
     console.error('❌ 获取热门城市失败:', error);
