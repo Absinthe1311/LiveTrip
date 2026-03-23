@@ -64,6 +64,7 @@ export const createPlan = async (req: Request, res: Response) => {
       typecode: spot.category || '110000',
       rating: spot.rating || 3.5,
       cost: spot.ticketPrice ? `${spot.ticketPrice}元` : '免费',
+      description: spot.description || spot.category || '热门景点', // 添加description字段
     }));
 
     console.log(`✅ 获取并存储了 ${spots.length} 个景点到数据库`);

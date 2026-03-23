@@ -670,7 +670,7 @@ export default function Today() {
                             itineraryItems: day.attractions?.map((item) => ({
                               name: item.name,
                               type: item.category || '景点',
-                              description: item.category || '',
+                              description: item.description || item.category || '',
                               startTime: `${day.date} ${item.time}`,
                               endTime: `${day.date} ${item.time}`,
                               address: '',
@@ -793,8 +793,8 @@ export default function Today() {
                           )}
 
                           {/* Info */}
-                          {item.category && (
-                            <p className="text-xs text-muted-foreground mb-2">{item.category}</p>
+                          {(item.description || item.category) && (
+                            <p className="text-xs text-muted-foreground mb-2">{item.description || item.category}</p>
                           )}
 
                           {/* IoT Data */}

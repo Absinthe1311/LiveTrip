@@ -5,6 +5,7 @@ import {
   getSupportedCities,
   warmupCache,
   cleanExpiredCache,
+  clearAllCache,
 } from '../controllers/destinationController';
 
 const router = Router();
@@ -26,6 +27,12 @@ router.post('/warmup', warmupCache);
  * POST /api/destinations/cleanup
  */
 router.post('/cleanup', cleanExpiredCache);
+
+/**
+ * 清理所有缓存（强制刷新）
+ * POST /api/destinations/clear-all
+ */
+router.post('/clear-all', clearAllCache);
 
 /**
  * 获取城市的热门景点列表

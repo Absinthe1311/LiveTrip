@@ -418,7 +418,7 @@ ${attractionsJSON}
         time: `${this.minutesToTime(currentTime)}-${this.minutesToTime(endTime)}`,
         location: attraction.location,
         estimated_cost: this.estimateCost(attraction),
-        description: attraction.type || '',
+        description: (attraction as any).description || attraction.type || '热门景点',
         type: attraction.type,
         address: attraction.address,
       });

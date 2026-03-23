@@ -109,3 +109,26 @@ export const cleanExpiredCache = async (req: Request, res: Response) => {
     });
   }
 };
+
+/**
+ * 清理所有缓存（强制刷新）
+ * POST /api/destinations/clear-all
+ */
+export const clearAllCache = async (req: Request, res: Response) => {
+  try {
+    console.log('🧹 接收清理所有缓存请求');
+
+    await destinationCacheService.clearAllCache();
+
+    res.json({
+      success: true,
+      message: '所有缓存已清理，下次访问将重新获取数据',
+    });
+  } catch (error: any) {
+    console.error('❌ 清理所有缓存失败:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || '清理所有缓存失败',
+    });
+  }
+};

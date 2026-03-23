@@ -42,7 +42,7 @@ export default function DestinationDetail() {
                 name: item.name,
                 image: '',
                 rating: item.rating || 4.5,
-                description: item.type || '热门景点',
+                description: item.description || item.type || '热门景点',
                 openTime: '全天开放',
                 ticketPrice: item.cost ? parseInt(item.cost) : 0,
                 category: item.type || '景点',
