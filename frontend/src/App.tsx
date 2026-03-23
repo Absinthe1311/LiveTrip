@@ -106,19 +106,28 @@ function AppContent() {
             </AuthGuard>
           }
         />
-        {/* 管理员路由 */}
+        {/* 管理员路由 - 直接访问页面，不使用嵌套布局 */}
         <Route
-          path="/admin"
+          path="/admin/spots"
           element={
             <AdminGuard>
-              <AdminLayout />
+              <SpotManagePage />
             </AdminGuard>
           }
-        >
-          <Route index element={<Navigate to="/admin/spots" replace />} />
-          <Route path="spots" element={<SpotManagePage />} />
-          <Route path="review" element={<ReviewPage />} />
-        </Route>
+        />
+        <Route
+          path="/admin/review"
+          element={
+            <AdminGuard>
+              <ReviewPage />
+            </AdminGuard>
+          }
+        />
+        {/* 管理员默认路由 - 重定向到景点管理 */}
+        <Route
+          path="/admin"
+          element={<Navigate to="/admin/spots" replace />}
+        />
       </Routes>
     </Router>
   );

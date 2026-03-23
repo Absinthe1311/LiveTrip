@@ -1,31 +1,17 @@
+// 景点图片管理页面 - 新UI设计
 import { useState, useEffect } from 'react';
-import {
-  Typography,
-  Input,
-  Table,
-  Button,
-  Badge,
-  Image,
-  Modal,
-  Tabs,
-  Upload,
-  message,
-  Popconfirm,
-  Empty,
-  Spin,
-} from 'antd';
-import {
-  SearchOutlined,
-  UploadOutlined,
-  DeleteOutlined,
-} from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, PenLine, List, MapPin, ChevronRight, Navigation, Route, Search as SearchIcon, ChevronDown, Image as ImageIcon, Upload, Trash2, Check, X, Eye } from "lucide-react";
+import { AdminSidebar } from '../../components/admin/AdminSidebar';
 import { getAdminSpots, getSpotImages, deleteAdminImage, uploadAdminImage } from '../../api/adminApi';
 import type { AdminSpotListItem, SpotImageItem } from '../../types/admin';
 
-const { Title } = Typography;
-
 export default function SpotManagePage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
+  
   const [spots, setSpots] = useState<AdminSpotListItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -34,19 +20,24 @@ export default function SpotManagePage() {
   const [images, setImages] = useState<SpotImageItem[]>([]);
   const [imagesLoading, setImagesLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'approved' | 'pending' | 'rejected'>('approved');
 
-  // 加载景点列表
+  useEffect(() => {
+    const checkScreenSize = () => setIsLargeScreen(window.innerWidth >= 1024);
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
   const loadSpots = async () => {
     setLoading(true);
     try {
       const response = await getAdminSpots(1, 100);
       if (response.success && response.data) {
-        // response.data 是 { items, total, page, pageSize }
         setSpots(response.data.items || []);
       }
     } catch (error) {
       console.error('加载景点列表失败:', error);
-      message.error('加载景点列表失败');
     } finally {
       setLoading(false);
     }
@@ -56,12 +47,10 @@ export default function SpotManagePage() {
     loadSpots();
   }, []);
 
-  // 过滤景点
   const filteredSpots = spots.filter((spot) =>
     spot.name.toLowerCase().includes(searchKeyword.toLowerCase())
   );
 
-  // 打开图片管理弹窗
   const handleManageImages = async (spot: AdminSpotListItem) => {
     setSelectedSpot(spot);
     setModalVisible(true);
@@ -69,8 +58,6 @@ export default function SpotManagePage() {
     try {
       const response = await getSpotImages(spot.id);
       if (response.success && response.data) {
-        // response.data 是 { approved: [], pending: [], rejected: [] }
-        // 将所有图片合并到一个数组，并添加 status 字段
         const allImages: SpotImageItem[] = [
           ...(response.data.approved || []).map((img) => ({ ...img, status: 'approved' as const })),
           ...(response.data.pending || []).map((img) => ({ ...img, status: 'pending' as const })),
@@ -80,35 +67,30 @@ export default function SpotManagePage() {
       }
     } catch (error) {
       console.error('加载图片列表失败:', error);
-      message.error('加载图片列表失败');
     } finally {
       setImagesLoading(false);
     }
   };
 
-  // 删除图片
   const handleDeleteImage = async (imageId: string) => {
     try {
       const response = await deleteAdminImage(imageId);
       if (response.success) {
-        message.success('删除成功');
         setImages((prev) => prev.filter((img) => img.id !== imageId));
       }
     } catch (error) {
       console.error('删除图片失败:', error);
-      message.error('删除图片失败');
     }
   };
 
-  // 上传图片
-  const handleUpload = async (file: File) => {
-    if (!selectedSpot) return;
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedSpot) return;
+    
     setUploading(true);
     try {
       const response = await uploadAdminImage(selectedSpot.id, file);
       if (response.success) {
-        message.success('上传成功');
-        // 重新加载图片列表
         const imagesResponse = await getSpotImages(selectedSpot.id);
         if (imagesResponse.success && imagesResponse.data) {
           const allImages: SpotImageItem[] = [
@@ -121,211 +103,260 @@ export default function SpotManagePage() {
       }
     } catch (error) {
       console.error('上传图片失败:', error);
-      message.error('上传图片失败');
     } finally {
       setUploading(false);
     }
   };
 
-  // 表格列定义
-  const columns: ColumnsType<AdminSpotListItem> = [
-    {
-      title: '景点名称',
-      dataIndex: 'name',
-      key: 'name',
-      width: 200,
-    },
-    {
-      title: '城市',
-      dataIndex: 'city',
-      key: 'city',
-      width: 100,
-    },
-    {
-      title: '已审核图片',
-      dataIndex: 'approvedImageCount',
-      key: 'approvedImageCount',
-      width: 120,
-      render: (count: number) => (
-        <Badge count={count} showZero color="#52c41a" />
-      ),
-    },
-    {
-      title: '待审核图片',
-      dataIndex: 'pendingImageCount',
-      key: 'pendingImageCount',
-      width: 120,
-      render: (count: number) =>
-        count > 0 ? <Badge count={count} color="#faad14" /> : null,
-    },
-    {
-      title: '封面图',
-      dataIndex: 'coverImageUrl',
-      key: 'coverImageUrl',
-      width: 100,
-      render: (url: string | null) =>
-        url ? (
-          <Image src={url} width={60} height={40} style={{ objectFit: 'cover' }} />
-        ) : (
-          <span style={{ color: '#999' }}>暂无图片</span>
-        ),
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 120,
-      render: (_, record) => (
-        <Button type="link" onClick={() => handleManageImages(record)}>
-          管理图片
-        </Button>
-      ),
-    },
-  ];
-
-  // 按状态分组图片
   const approvedImages = images.filter((img) => img.status === 'approved');
   const pendingImages = images.filter((img) => img.status === 'pending');
   const rejectedImages = images.filter((img) => img.status === 'rejected');
 
-  // 渲染图片网格
-  const renderImageGrid = (imageList: SpotImageItem[], showDelete: boolean = false) => {
-    if (imageList.length === 0) {
-      return <Empty description="暂无图片" />;
-    }
-    return (
-      <Image.PreviewGroup>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
-          {imageList.map((img) => (
-            <div
-              key={img.id}
-              style={{
-                width: 200,
-                border: '1px solid #d9d9d9',
-                borderRadius: 8,
-                padding: 8,
-              }}
-            >
-              <Image
-                src={img.cloudinaryUrl}
-                width={184}
-                height={120}
-                style={{ objectFit: 'cover', borderRadius: 4 }}
-              />
-              {showDelete && (
-                <div style={{ marginTop: 8, textAlign: 'center' }}>
-                  <Popconfirm
-                    title="确认删除此图片？"
-                    onConfirm={() => handleDeleteImage(img.id)}
-                  >
-                    <Button
-                      type="text"
-                      danger
-                      size="small"
-                      icon={<DeleteOutlined />}
-                    >
-                      删除
-                    </Button>
-                  </Popconfirm>
-                </div>
-              )}
-              {!showDelete && (
-                <div style={{ marginTop: 8, textAlign: 'center', color: '#999', fontSize: 12 }}>
-                  {img.uploaderName && `上传者: ${img.uploaderName}`}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </Image.PreviewGroup>
-    );
-  };
+  const currentImages = activeTab === 'approved' ? approvedImages : activeTab === 'pending' ? pendingImages : rejectedImages;
 
   return (
-    <div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 24,
-        }}
-      >
-        <Title level={3} style={{ margin: 0 }}>
-          景点图片管理
-        </Title>
-        <Input
-          placeholder="搜索景点名称"
-          prefix={<SearchOutlined />}
-          value={searchKeyword}
-          onChange={(e) => setSearchKeyword(e.target.value)}
-          style={{ width: 200 }}
-        />
-      </div>
-
-      <Table
-        columns={columns}
-        dataSource={filteredSpots}
-        rowKey="id"
-        loading={loading}
-        pagination={{ pageSize: 10 }}
-      />
-
-      {/* 图片管理弹窗 */}
-      <Modal
-        title={`${selectedSpot?.name || ''} - 图片管理`}
-        open={modalVisible}
-        onCancel={() => {
-          setModalVisible(false);
-          setSelectedSpot(null);
-          setImages([]);
-        }}
-        footer={null}
-        width={800}
-      >
-        {imagesLoading ? (
-          <div style={{ textAlign: 'center', padding: 40 }}>
-            <Spin />
+    <div className="min-h-screen flex flex-col font-sans">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-border z-50 flex items-center shadow-subtle">
+        <div 
+          className="w-[240px] h-full flex items-center px-5 border-r border-border shrink-0 cursor-pointer"
+          onClick={() => navigate('/')}
+        >
+          <div className="w-9 h-9 bg-livetrip-primary rounded-lg flex items-center justify-center mr-2">
+            <span className="text-lg">✈️</span>
           </div>
-        ) : (
-          <Tabs
-            items={[
-              {
-                key: 'approved',
-                label: `已审核 (${approvedImages.length})`,
-                children: (
-                  <div>
-                    <div style={{ marginBottom: 16 }}>
-                      <Upload
-                        accept="image/*"
-                        showUploadList={false}
-                        beforeUpload={(file) => {
-                          handleUpload(file);
-                          return false;
-                        }}
-                      >
-                        <Button icon={<UploadOutlined />} loading={uploading}>
-                          上传新图片
-                        </Button>
-                      </Upload>
-                    </div>
-                    {renderImageGrid(approvedImages, true)}
+          <div className="flex flex-col leading-tight">
+            <span className="text-lg font-semibold text-livetrip-primary-dark font-serif">LiveTrip</span>
+            <span className="text-[10px] text-livetrip-primary font-medium tracking-wide">Admin</span>
+          </div>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center px-6">
+          <h1 className="text-base font-semibold text-foreground">景点图片管理</h1>
+        </div>
+
+        <div className="flex items-center gap-1 px-4">
+          <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <Bell className="h-5 w-5 text-muted-foreground" />
+          </button>
+          <button onClick={() => navigate('/favorites')} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <Heart className="h-5 w-5 text-muted-foreground" />
+          </button>
+        </div>
+      </header>
+
+      {/* Sidebar */}
+      <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} isLargeScreen={isLargeScreen} currentPage={location.pathname} />
+
+      {/* Main Content */}
+      <main className={`pt-14 min-h-screen ${isLargeScreen ? 'lg:pl-[240px]' : ''}`}>
+        <div className="max-w-6xl mx-auto px-6 py-6">
+          {/* Search */}
+          <div className="bg-white rounded-lg border border-border p-4 mb-6">
+            <div className="flex items-center gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="搜索景点名称..."
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  className="w-full h-10 pl-10 pr-4 rounded-lg border border-border focus:ring-2 focus:ring-primary/20 transition-all"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Spots Table */}
+          <div className="bg-white rounded-lg border border-border overflow-hidden">
+            {loading ? (
+              <div className="p-12 text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">加载中...</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-border">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">景点名称</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">城市</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">已审核</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">待审核</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">封面图</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filteredSpots.map((spot) => (
+                      <tr key={spot.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-medium text-foreground">{spot.name}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-muted-foreground">{spot.city}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            {spot.approvedImageCount || 0}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {spot.pendingImageCount > 0 && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              {spot.pendingImageCount}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {spot.coverImageUrl ? (
+                            <img src={spot.coverImageUrl} alt="" className="w-16 h-12 object-cover rounded" />
+                          ) : (
+                            <span className="text-xs text-muted-foreground">暂无</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() => handleManageImages(spot)}
+                            className="text-primary hover:text-primary-dark text-sm font-medium"
+                          >
+                            管理图片
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+
+      {/* Image Management Modal */}
+      {modalVisible && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">
+                {selectedSpot?.name} - 图片管理
+              </h2>
+              <button
+                onClick={() => {
+                  setModalVisible(false);
+                  setSelectedSpot(null);
+                  setImages([]);
+                }}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {imagesLoading ? (
+                <div className="p-12 text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">加载中...</p>
+                </div>
+              ) : (
+                <>
+                  {/* Tabs */}
+                  <div className="flex items-center gap-2 mb-6">
+                    <button
+                      onClick={() => setActiveTab('approved')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        activeTab === 'approved'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-gray-100 text-muted-foreground hover:bg-gray-200'
+                      }`}
+                    >
+                      已审核 ({approvedImages.length})
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('pending')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        activeTab === 'pending'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-gray-100 text-muted-foreground hover:bg-gray-200'
+                      }`}
+                    >
+                      待审核 ({pendingImages.length})
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('rejected')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        activeTab === 'rejected'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-gray-100 text-muted-foreground hover:bg-gray-200'
+                      }`}
+                    >
+                      已拒绝 ({rejectedImages.length})
+                    </button>
                   </div>
-                ),
-              },
-              {
-                key: 'pending',
-                label: `待审核 (${pendingImages.length})`,
-                children: renderImageGrid(pendingImages),
-              },
-              {
-                key: 'rejected',
-                label: `已拒绝 (${rejectedImages.length})`,
-                children: renderImageGrid(rejectedImages),
-              },
-            ]}
-          />
-        )}
-      </Modal>
+
+                  {/* Upload Button (only for approved tab) */}
+                  {activeTab === 'approved' && (
+                    <div className="mb-6">
+                      <label className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary-dark transition-colors cursor-pointer">
+                        <Upload className="h-4 w-4" />
+                        {uploading ? '上传中...' : '上传新图片'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleUpload}
+                          disabled={uploading}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  )}
+
+                  {/* Images Grid */}
+                  {currentImages.length === 0 ? (
+                    <div className="p-12 text-center">
+                      <ImageIcon className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+                      <p className="text-muted-foreground">暂无图片</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-4">
+                      {currentImages.map((img) => (
+                        <div key={img.id} className="bg-gray-50 rounded-lg border border-border overflow-hidden">
+                          <div className="aspect-[4/3] overflow-hidden">
+                            <img
+                              src={img.cloudinaryUrl}
+                              alt=""
+                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+                          <div className="p-3">
+                            {activeTab === 'approved' && (
+                              <button
+                                onClick={() => handleDeleteImage(img.id)}
+                                className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded transition-colors text-sm"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                删除
+                              </button>
+                            )}
+                            {activeTab !== 'approved' && img.uploaderName && (
+                              <p className="text-xs text-muted-foreground text-center">
+                                上传者: {img.uploaderName}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

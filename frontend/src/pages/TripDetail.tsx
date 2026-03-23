@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, PenLine, List, MapPin, ChevronRight, Navigation, Route, Search as SearchIcon, ChevronDown, Calendar, DollarSign, Clock, Share2, FileText, CheckCircle, Camera, Map, X } from "lucide-react";
 import { Sidebar } from '../components/SharedSidebar';
-import { getTripById, completeTrip, getIoTData, updateAlternativeRelations } from '../api/client';
+import { getTripById, completeTrip, getIoTData, updateAlternativeRelations, getSpotCoverImage } from '../api/client';
 import { FullItinerary, AttractionItem } from '../api/client';
 import { alternativeRecommender } from '../services/alternativeRecommender';
 import AMapLoader from '@amap/amap-jsapi-loader';
@@ -352,62 +352,102 @@ function SortableAttractionCard({
   };
 
   const iotInfo = getAttractionIoTData(item, iotData || []);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
+
+  // 加载景点图片
+  useEffect(() => {
+    const loadImage = async () => {
+      if (!item.name) return;
+      
+      setImageLoading(true);
+      try {
+        const response = await getSpotCoverImage(item.name, city);
+        if (response.success && response.data?.imageUrl) {
+          setImageUrl(response.data.imageUrl);
+        }
+      } catch (error) {
+        console.error(`加载景点图片失败 (${item.name}):`, error);
+      } finally {
+        setImageLoading(false);
+      }
+    };
+
+    loadImage();
+  }, [item.name, city]);
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <div className={`bg-white rounded-lg p-4 border border-border hover:shadow-md transition-all ${isDragging ? 'shadow-xl' : ''}`}>
-        <div className="flex items-start justify-between mb-2">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">{item.time}</span>
-            </div>
-            <h3 className="text-base font-semibold text-foreground">{item.name}</h3>
+      <div className={`bg-white rounded-lg border border-border hover:shadow-md transition-all overflow-hidden ${isDragging ? 'shadow-xl' : ''}`}>
+        {/* 景点图片 */}
+        {imageLoading ? (
+          <div className="w-full h-40 bg-gray-100 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onShowAlternatives(item, city)}
-              className="p-1.5 rounded-md hover:bg-gray-100 transition-colors text-muted-foreground hover:text-foreground"
-              title="查看备选景点"
-            >
-              <Navigation className="h-4 w-4" />
-            </button>
-            {tripStatus === 'completed' && (
+        ) : imageUrl ? (
+          <div className="w-full h-40 overflow-hidden">
+            <img 
+              src={imageUrl} 
+              alt={item.name}
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+        ) : null}
+        
+        <div className="p-4">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">{item.time}</span>
+              </div>
+              <h3 className="text-base font-semibold text-foreground">{item.name}</h3>
+            </div>
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => onOpenUploadModal(item)}
+                onClick={() => onShowAlternatives(item, city)}
                 className="p-1.5 rounded-md hover:bg-gray-100 transition-colors text-muted-foreground hover:text-foreground"
-                title="上传图片"
+                title="查看备选景点"
               >
-                <Camera className="h-4 w-4" />
+                <Navigation className="h-4 w-4" />
               </button>
+              {tripStatus === 'completed' && (
+                <button
+                  onClick={() => onOpenUploadModal(item)}
+                  className="p-1.5 rounded-md hover:bg-gray-100 transition-colors text-muted-foreground hover:text-foreground"
+                  title="上传图片"
+                >
+                  <Camera className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+          
+          {item.description && (
+            <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
+          )}
+          
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            {item.estimated_cost > 0 && (
+              <span className="flex items-center gap-1">
+                <DollarSign className="h-3 w-3" />
+                ¥{item.estimated_cost}
+              </span>
+            )}
+            {iotInfo && (
+              <>
+                {iotInfo.crowdLevel !== undefined && (
+                  <span className="flex items-center gap-1">
+                    <span className={`w-2 h-2 rounded-full ${iotInfo.crowdLevel > 70 ? 'bg-red-500' : iotInfo.crowdLevel > 40 ? 'bg-yellow-500' : 'bg-green-500'}`}></span>
+                    拥挤度: {iotInfo.crowdLevel}%
+                  </span>
+                )}
+                {iotInfo.temperature !== undefined && (
+                  <span>{iotInfo.temperature}°C</span>
+                )}
+              </>
             )}
           </div>
-        </div>
-        
-        {item.description && (
-          <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
-        )}
-        
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          {item.estimated_cost > 0 && (
-            <span className="flex items-center gap-1">
-              <DollarSign className="h-3 w-3" />
-              ¥{item.estimated_cost}
-            </span>
-          )}
-          {iotInfo && (
-            <>
-              {iotInfo.crowdLevel !== undefined && (
-                <span className="flex items-center gap-1">
-                  <span className={`w-2 h-2 rounded-full ${iotInfo.crowdLevel > 70 ? 'bg-red-500' : iotInfo.crowdLevel > 40 ? 'bg-yellow-500' : 'bg-green-500'}`}></span>
-                  拥挤度: {iotInfo.crowdLevel}%
-                </span>
-              )}
-              {iotInfo.temperature !== undefined && (
-                <span>{iotInfo.temperature}°C</span>
-              )}
-            </>
-          )}
         </div>
       </div>
     </div>
