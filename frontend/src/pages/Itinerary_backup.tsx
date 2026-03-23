@@ -1,7 +1,6 @@
-// 行程规划页面 - 现代化UI设计
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Modal, message, Spin } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { Typography, Button, Modal, message, Row, Col, Dropdown, Avatar, Spin, Tag, Popconfirm } from 'antd';
 import {
   DndContext,
   closestCenter,
@@ -19,8 +18,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, PenLine, List, MapPin, ChevronRight, Navigation, Route as RouteIcon, Search as SearchIcon, ChevronDown, Calendar, DollarSign, Users, Clock, Share2, FileText, CheckCircle, Camera, X, Map, Image as ImageIcon, Upload, Check, AlertCircle } from "lucide-react";
-import { Sidebar } from '../components/SharedSidebar';
+import { EnvironmentOutlined, CheckCircleOutlined, EditOutlined, CameraOutlined } from '@ant-design/icons';
 import AttractionCard from '../components/AttractionCard';
 import AlternativeAttractions from '../components/AlternativeAttractions';
 import BudgetChart from '../components/BudgetChart';
@@ -31,16 +29,17 @@ import PDFExportButton from '../components/PDFExportButton';
 import SpotImageUploadModal from '../components/SpotImageUploadModal';
 import { useAppStore } from '../store';
 import { FullItinerary, AttractionItem, calculateRealTimeBudget, completeTrip } from '../api/client';
-import { adjustItinerary, getIoTData, saveTrip, updateAlternativeRelations, getSpotCoverImage } from '../api/client';
+import { adjustItinerary, getIoTData, saveTrip, updateAlternativeRelations } from '../api/client';
 import { Hotel, Restaurant, DayRestaurantRecommendation } from '../api/recommendationApi';
 import AMapLoader from '@amap/amap-jsapi-loader';
 import { alternativeRecommender } from '../services/alternativeRecommender';
+
+const { Title } = Typography;
 
 // 高德地图类型定义
 declare global {
   interface Window {
     AMap: any;
-    _AMapSecurityConfig: any;
   }
 }
 
@@ -70,12 +69,12 @@ function DayMap({ day, hotel, restaurant }: { day: any; hotel?: Hotel | null; re
       const coordinates = day.attractions.map((item: any) =>
         item.location.split(',').map(Number)
       );
-
+      
       // 如果有酒店，也加入中心点计算
       if (hotel?.location) {
         coordinates.push(hotel.location.split(',').map(Number));
       }
-
+      
       // 如果有餐厅，也加入中心点计算
       if (restaurant?.location) {
         coordinates.push(restaurant.location.split(',').map(Number));
@@ -89,9 +88,9 @@ function DayMap({ day, hotel, restaurant }: { day: any; hotel?: Hotel | null; re
         center: [centerLng, centerLat],
         viewMode: '2D',
         mapStyle: 'amap://styles/normal',
-        features: ['bg', 'road', 'building', 'point'],
-        showLabel: true,
-        showIndoorMap: false,
+        features: ['bg', 'road', 'building', 'point'], // 显示背景、道路、建筑、兴趣点
+        showLabel: true, // 显示文字标注
+        showIndoorMap: false, // 不显示室内地图
       });
 
       mapRef.current = map;
@@ -110,7 +109,7 @@ function DayMap({ day, hotel, restaurant }: { day: any; hotel?: Hotel | null; re
       // 添加餐厅标记（如果有）
       if (restaurant?.location) {
         const restaurantCoords = restaurant.location.split(',').map(Number);
-
+        
         const restaurantMarker = new AMap.Marker({
           position: restaurantCoords,
           title: restaurant.name,
@@ -160,7 +159,7 @@ function DayMap({ day, hotel, restaurant }: { day: any; hotel?: Hotel | null; re
       // 添加酒店标记（如果有）
       if (hotel?.location) {
         const hotelCoords = hotel.location.split(',').map(Number);
-
+        
         const hotelMarker = new AMap.Marker({
           position: hotelCoords,
           title: hotel.name,
@@ -292,13 +291,34 @@ function DayMap({ day, hotel, restaurant }: { day: any; hotel?: Hotel | null; re
   }, [day, amapKey, hotel, restaurant]);
 
   return (
-    <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md">
+    <div style={{
+      width: '100%',
+      height: '500px',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+    }}>
       <div
         ref={mapContainer}
-        className="w-full h-full"
+        style={{
+          width: '100%',
+          height: '100%'
+        }}
       />
       {!amapKey && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white z-50">
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#fff',
+          zIndex: 1000
+        }}>
           高德地图 Key 未配置
         </div>
       )}
@@ -307,28 +327,24 @@ function DayMap({ day, hotel, restaurant }: { day: any; hotel?: Hotel | null; re
 }
 
 // 可拖拽的景点卡片包装组件
-function SortableAttractionCard({
-  item,
-  index,
+function SortableAttractionCard({ 
+  item, 
+  index, 
   dayIndex,
   attractionIndex,
   onShowAlternatives,
   onTimeChange,
   city,
-  iotData,
-  tripStatus,
-  onOpenUploadModal
-}: {
-  item: AttractionItem;
-  index: number;
+  iotData
+}: { 
+  item: AttractionItem; 
+  index: number; 
   dayIndex: number;
   attractionIndex: number;
   onShowAlternatives: (item: AttractionItem, city?: string) => void;
   onTimeChange?: (index: number, newTime: string) => void;
   city?: string;
   iotData?: any[];
-  tripStatus: 'planning' | 'completed';
-  onOpenUploadModal: (spot: AttractionItem) => void;
 }) {
   const {
     attributes,
@@ -343,7 +359,7 @@ function SortableAttractionCard({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 1000 : 1,
+    boxShadow: isDragging ? '0 8px 24px rgba(0,0,0,0.2)' : undefined,
   };
 
   // 计算推荐游玩时长（从时间段中提取）
@@ -352,74 +368,18 @@ function SortableAttractionCard({
     return duration;
   })();
 
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [imageLoading, setImageLoading] = useState(false);
-
-  // 加载景点图片
-  useEffect(() => {
-    const loadImage = async () => {
-      if (!item.name) return;
-
-      setImageLoading(true);
-      try {
-        const response = await getSpotCoverImage(item.name, city);
-        if (response.success && response.data?.imageUrl) {
-          setImageUrl(response.data.imageUrl);
-        }
-      } catch (error) {
-        console.error(`加载景点图片失败 (${item.name}):`, error);
-      } finally {
-        setImageLoading(false);
-      }
-    };
-
-    loadImage();
-  }, [item.name, city]);
-
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <div className={`bg-white rounded-lg border border-border hover:shadow-md transition-all overflow-hidden ${isDragging ? 'shadow-xl' : ''}`}>
-        {/* 景点图片 */}
-        {imageLoading ? (
-          <div className="w-full h-40 bg-gray-100 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : imageUrl ? (
-          <div className="w-full h-40 overflow-hidden">
-            <img
-              src={imageUrl}
-              alt={item.name}
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            />
-          </div>
-        ) : null}
-
-        <div className="p-4">
-          <AttractionCard
-            time={item.time}
-            name={item.name}
-            desc={item.description}
-            onShowAlternatives={() => onShowAlternatives(item, city)}
-            onTimeChange={(newTime) => onTimeChange?.(index, newTime)}
-            recommendedDuration={recommendedDuration}
-            iotData={getAttractionIoTData(item, iotData || [])}
-            item={item}
-          />
-
-          {/* 图片上传按钮（仅已完成行程显示） */}
-          {tripStatus === 'completed' && (
-            <div className="mt-3 flex justify-end">
-              <button
-                onClick={() => onOpenUploadModal(item)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm text-primary hover:bg-secondary rounded-md transition-colors"
-              >
-                <Camera className="h-4 w-4" />
-                <span>上传图片</span>
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+      <AttractionCard
+        time={item.time}
+        name={item.name}
+        desc={item.description}
+        onShowAlternatives={() => onShowAlternatives(item, city)}
+        onTimeChange={(newTime) => onTimeChange?.(index, newTime)}
+        recommendedDuration={recommendedDuration}
+        iotData={getAttractionIoTData(item, iotData)}
+        item={item}
+      />
     </div>
   );
 }
@@ -429,14 +389,14 @@ function getAttractionIoTData(attraction: AttractionItem, iotDataList: any[]): a
   if (!iotDataList || iotDataList.length === 0) {
     return null;
   }
-
+  
   // 通过景点名称匹配IoT数据
   const iotData = iotDataList.find((data: any) => data.name === attraction.name);
-
+  
   if (!iotData) {
     return null;
   }
-
+  
   return {
     crowdLevel: iotData.crowdLevel,
     temperature: iotData.temperature,
@@ -467,6 +427,7 @@ function isValidTime(minutes: number): boolean {
 }
 
 // 根据新顺序重新分配时间段
+// 修复：使用固定的起始时间（早上 9:00），而不是第一个景点的时间
 function recalculateTimeSlots(items: AttractionItem[]): AttractionItem[] {
   if (items.length === 0) return items;
 
@@ -483,7 +444,7 @@ function recalculateTimeSlots(items: AttractionItem[]): AttractionItem[] {
 
   return newItems.map((item, index) => {
     const { duration } = parseTimeRange(item.time);
-
+    
     // 如果时间超过一天限制，停止计算
     if (!isValidTime(currentTime)) {
       return {
@@ -496,9 +457,11 @@ function recalculateTimeSlots(items: AttractionItem[]): AttractionItem[] {
     const end = start + duration;
 
     // 计算下一个景点的开始时间
+    // 如果是上午最后一个景点(假设12:00左右),添加午餐时间
     const nextStart = end + TRAVEL_TIME;
 
     // 检查是否需要添加午餐时间
+    // 如果当前景点结束时间在 11:30-13:30 之间,添加午餐时间
     if (end >= 11 * 60 + 30 && end <= 13 * 60 + 30) {
       currentTime = end + LUNCH_TIME;
     } else {
@@ -522,24 +485,21 @@ function recalculateTimeSlots(items: AttractionItem[]): AttractionItem[] {
 
 export default function Itinerary() {
   const navigate = useNavigate();
-  const location = useLocation();
   const currentItinerary = useAppStore((state) => state.currentItinerary);
   const setCurrentItinerary = useAppStore((state) => state.setCurrentItinerary);
   const completeTripInStore = useAppStore((state) => state.completeTrip);
-
-  // 状态管理
   const [itineraryData, setItineraryData] = useState<FullItinerary | null>(null);
   const [adjustModalVisible, setAdjustModalVisible] = useState(false);
   const [adjustResult, setAdjustResult] = useState<any>(null);
-  const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
+  const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const [tripId, setTripId] = useState<string>('');
-  const [isSavedTrip, setIsSavedTrip] = useState(false);
-  const [tripStatus, setTripStatus] = useState<'planning' | 'completed'>('planning');
-  const [completing, setCompleting] = useState(false);
-  const [uploadModalVisible, setUploadModalVisible] = useState(false);
-  const [selectedSpot, setSelectedSpot] = useState<AttractionItem | null>(null);
+  const [tripId, setTripId] = useState<string>(''); // 行程ID(保存后才有)
+  const [isSavedTrip, setIsSavedTrip] = useState(false); // 是否是已保存的行程
+  const [tripStatus, setTripStatus] = useState<'planning' | 'completed'>('planning'); // 行程状态
+  const [completing, setCompleting] = useState(false); // 完成行程中
+  const [uploadModalVisible, setUploadModalVisible] = useState(false); // 上传图片弹窗
+  const [selectedSpot, setSelectedSpot] = useState<AttractionItem | null>(null); // 选中的景点
 
   // 备选景点相关状态
   const [expandedAlternatives, setExpandedAlternatives] = useState<Record<string, any>>({});
@@ -548,29 +508,15 @@ export default function Itinerary() {
 
   // 酒店推荐相关状态
   const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
-  const [hotelRecommendations, setHotelRecommendations] = useState<Hotel[]>([]);
+  const [hotelRecommendations, setHotelRecommendations] = useState<Hotel[]>([]); // 所有酒店推荐
 
   // 餐厅推荐相关状态
   const [selectedRestaurants, setSelectedRestaurants] = useState<Record<number, Restaurant | null>>({});
-  const [restaurantRecommendations, setRestaurantRecommendations] = useState<DayRestaurantRecommendation[]>([]);
-  const [hotelRecommendationLoaded, setHotelRecommendationLoaded] = useState(false);
+  const [restaurantRecommendations, setRestaurantRecommendations] = useState<DayRestaurantRecommendation[]>([]); // 所有餐厅推荐
+  const [hotelRecommendationLoaded, setHotelRecommendationLoaded] = useState(false); // 酒店推荐是否已加载完成
 
   // 预算相关状态
   const [budgetInfo, setBudgetInfo] = useState<any>(null);
-
-  // UI状态
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isLargeScreen, setIsLargeScreen] = useState(false);
-
-  // 检测屏幕大小
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsLargeScreen(window.innerWidth >= 1024);
-    };
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
 
   // 从 store 加载行程数据
   useEffect(() => {
@@ -645,7 +591,7 @@ export default function Itinerary() {
 
       const days = itineraryData.itinerary.length;
       const totalBudget = itineraryData.summary?.budget || itineraryData.total_cost || 10000;
-      const groupSize = (itineraryData.summary as any)?.group_size || 1;
+      const groupSize = itineraryData.summary?.group_size || 1;
 
       // 收集所有景点费用
       const spots = itineraryData.itinerary.flatMap(day =>
@@ -657,10 +603,11 @@ export default function Itinerary() {
       const response = await calculateRealTimeBudget({
         totalBudget,
         days,
+        groupSize,
         hotel: selectedHotel,
         restaurants: selectedRestaurants,
-        spots: spots || [],
-      } as any);
+        spots,
+      });
 
       if (response.success && response.data) {
         setBudgetInfo(response.data);
@@ -686,26 +633,27 @@ export default function Itinerary() {
       console.log('🍽️ 选中的餐厅:', selectedRestaurants);
 
       // 构建餐厅数据
-      const restaurantsData = itineraryData!.itinerary.map((day) => ({
+      const restaurantsData = itineraryData.itinerary.map((day) => ({
         day: day.day,
         selectedRestaurant: selectedRestaurants[day.day] || null,
       }));
 
       // 保存行程到数据库（包含酒店和餐厅信息及推荐缓存）
       const response = await saveTrip({
-        summary: itineraryData!.summary,
-        itinerary: itineraryData!,
-        total_cost: itineraryData!.total_cost,
-        budget_breakdown: itineraryData!.budget_breakdown,
+        summary: itineraryData.summary,
+        itinerary: itineraryData,
+        total_cost: itineraryData.total_cost,
+        budget_breakdown: itineraryData.budget_breakdown,
         hotel: selectedHotel,
         restaurants: restaurantsData,
-        hotelRecommendations: hotelRecommendations,
-        restaurantRecommendations: restaurantRecommendations,
+        hotelRecommendations: hotelRecommendations, // 添加酒店推荐缓存
+        restaurantRecommendations: restaurantRecommendations, // 添加餐厅推荐缓存
       });
 
       if (response.success) {
         console.log('✅ 行程保存成功:', response.data);
         message.success('行程已保存');
+        // 设置tripId(用于分享功能)
         if (response.data.tripId) {
           setTripId(response.data.tripId);
         }
@@ -720,6 +668,14 @@ export default function Itinerary() {
       message.error('保存行程失败，请稍后重试');
       setConfirming(false);
     }
+  };
+
+  // 处理退出登录
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    setCurrentUser(null);
+    window.location.href = '/';
   };
 
   const sensors = useSensors(
@@ -784,11 +740,11 @@ export default function Itinerary() {
   const handleShowAlternatives = async (item: AttractionItem, city?: string) => {
     console.log('🔍 handleShowAlternatives 接收到 item:', item);
     console.log('🔍 item.name:', item.name);
-
+    
     const attractionKey = `${item.name}-${item.time}`;
-
+    
     console.log('🔍 attractionKey:', attractionKey);
-
+    
     // 如果已经展开，则收起
     if (expandedAlternatives[attractionKey]) {
       setExpandedAlternatives(prev => {
@@ -801,28 +757,28 @@ export default function Itinerary() {
 
     // 展开备选列表
     setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: true }));
-
+    
     try {
       console.log('🔍 查看备选景点:', item.name);
       console.log('   城市:', city || '未指定');
-
+      
       // 获取行程中所有景点的名称（用于排除）
-      const allSpotNames = itineraryData!.itinerary.flatMap(day =>
+      const allSpotNames = itineraryData.itinerary.flatMap(day => 
         day.attractions.map(attr => attr.name)
       );
-
+      
       console.log('   行程中的景点:', allSpotNames.join(', '));
-
+      
       // 使用推荐服务获取备选景点
       const recommendations = await alternativeRecommender.getRecommendations(
-        item,
-        iotData,
+        item, 
+        iotData, 
         city,
-        allSpotNames
+        allSpotNames // 传递行程中的景点名称列表
       );
-
+      
       console.log('✅ 获取到备选景点:', recommendations.length);
-
+      
       setExpandedAlternatives(prev => ({
         ...prev,
         [attractionKey]: recommendations
@@ -853,6 +809,7 @@ export default function Itinerary() {
 
     // 判断调用方式
     if (typeof params === 'object' && params.dayIndex !== undefined) {
+      // 新方式：handleReplaceAttraction({ dayIndex, attractionIndex, originalItem, newItem, skipConfirm })
       dayIndex = params.dayIndex;
       attractionIndex = params.attractionIndex;
       originalItem = params.originalItem;
@@ -865,6 +822,7 @@ export default function Itinerary() {
       console.log('   newItem:', newItem);
       console.log('   skipConfirm:', skipConfirm);
     } else {
+      // 旧方式：handleReplaceAttraction(dayIndex, attractionIndex, originalItem, newAttraction)
       dayIndex = params;
       attractionIndex = originalItemParam;
       originalItem = originalItemParam;
@@ -887,7 +845,7 @@ export default function Itinerary() {
 
         // 替换景点
         day.attractions[attractionIndex] = {
-          ...day.attractions[attractionIndex],
+          ...day.attractions[attractionIndex], // 保留原始数据
           name: newItem.name,
           description: newItem.description,
           estimated_cost: newItem.estimated_cost,
@@ -909,13 +867,14 @@ export default function Itinerary() {
           try {
             console.log('🔄 更新备选关系...');
             await updateAlternativeRelations(
-              originalItem.name,
+              originalItem.name, // 这里使用名称作为oldSpotId（因为AttractionItem没有id）
               newItem.id,
               itineraryData.summary.destination
             );
             console.log('✅ 备选关系更新成功');
           } catch (error) {
             console.error('⚠️  更新备选关系失败:', error);
+            // 不影响主流程，继续执行
           }
         }
 
@@ -931,8 +890,10 @@ export default function Itinerary() {
 
     // 根据 skipConfirm 决定是否显示确认弹窗
     if (skipConfirm) {
+      // 直接执行替换，不显示弹窗
       executeReplacement();
     } else {
+      // 显示确认弹窗
       Modal.confirm({
         title: '确认替换景点',
         content: (
@@ -996,457 +957,485 @@ export default function Itinerary() {
 
   if (!itineraryData) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold text-muted-foreground mb-2">暂无行程数据</h2>
-          <p className="text-muted-foreground">请先在规划页面生成行程</p>
-        </div>
+      <div style={{
+        padding: '100px 24px',
+        textAlign: 'center',
+        color: '#999'
+      }}>
+        <h2>暂无行程数据</h2>
+        <p>请先在规划页面生成行程</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-border z-50 flex items-center px-4 lg:px-6">
-        <div className="flex items-center gap-4 flex-1">
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden p-2 hover:bg-gray-100 rounded-md"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-
-          {/* Logo */}
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-          >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
-              <MapPin className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-lg font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent hidden sm:block">
-              LiveTrip
-            </span>
-          </button>
+    <div style={{
+      padding: '24px',
+      maxWidth: '1600px',
+      margin: '0 auto',
+      background: '#f5f5f5',
+      minHeight: 'auto',
+      paddingBottom: '100px'
+    }}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '32px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <Title level={2} style={{
+            margin: 0,
+            color: '#333'
+          }}>
+            我的行程
+          </Title>
+          {isSavedTrip && (
+            <Tag color={tripStatus === 'completed' ? 'success' : 'processing'}>
+              {tripStatus === 'completed' ? '已完成' : '规划中'}
+            </Tag>
+          )}
         </div>
-
-        {/* Right side */}
-        <div className="flex items-center gap-3">
-          <button className="p-2 hover:bg-gray-100 rounded-md relative">
-            <Bell className="h-5 w-5 text-muted-foreground" />
-          </button>
-          <button
-            onClick={() => navigate('/favorites')}
-            className="p-2 hover:bg-gray-100 rounded-md"
-          >
-            <Heart className="h-5 w-5 text-muted-foreground" />
-          </button>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white text-sm font-semibold cursor-pointer">
-            U
-          </div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          {tripId && <ShareButton tripId={tripId} />}
+          {itineraryData && (
+            <PDFExportButton tripData={{
+              id: tripId,
+              title: itineraryData.summary?.destination ? `${itineraryData.summary.destination}之旅` : '我的行程',
+              destination: itineraryData.summary?.destination || '',
+              startDate: itineraryData.summary?.start_date || '',
+              endDate: itineraryData.summary?.end_date || '',
+              totalBudget: itineraryData.summary?.budget || itineraryData.total_cost || 0,
+              days: itineraryData.itinerary.map(day => ({
+                dayNumber: day.day,
+                date: day.date,
+                itineraryItems: day.attractions.map(attr => ({
+                  name: attr.name,
+                  type: attr.type || 'attraction',
+                  category: attr.category,
+                  description: attr.description,
+                  startTime: `${day.date} ${attr.time.split('-')[0]}`,
+                  endTime: `${day.date} ${attr.time.split('-')[1]}`,
+                  address: attr.address,
+                  cost: attr.estimated_cost || 0,
+                  longitude: attr.location ? parseFloat(attr.location.split(',')[0]) : undefined,
+                  latitude: attr.location ? parseFloat(attr.location.split(',')[1]) : undefined,
+                })),
+                restaurantName: selectedRestaurants[day.day]?.name,
+                restaurantAddress: selectedRestaurants[day.day]?.address,
+                restaurantLocation: selectedRestaurants[day.day]?.location, // 餐厅位置坐标(用于地图显示)
+                restaurantType: selectedRestaurants[day.day]?.type,
+                restaurantRating: selectedRestaurants[day.day]?.rating,
+              })),
+              budget: itineraryData.budget_breakdown ? {
+                transportation: itineraryData.budget_breakdown.transportation || 0,
+                accommodation: itineraryData.budget_breakdown.accommodation || 0,
+                food: itineraryData.budget_breakdown.dining || 0,
+                tickets: itineraryData.budget_breakdown.tickets || 0,
+                shopping: 0,
+                other: 0,
+              } : undefined,
+              hotel: selectedHotel ? {
+                name: selectedHotel.name,
+                address: selectedHotel.address,
+                location: selectedHotel.location, // 酒店位置坐标(用于地图显示)
+                type: selectedHotel.type,
+                rating: selectedHotel.rating,
+              } : undefined,
+            }} />
+          )}
         </div>
-      </header>
+      </div>
 
-      {/* Sidebar */}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} isLargeScreen={isLargeScreen} currentPage={location.pathname} />
-
-      {/* Main Content */}
-      <main className={`pt-14 transition-all duration-300 ${isLargeScreen ? 'ml-[240px]' : ''}`}>
-        <div className="p-6 max-w-7xl mx-auto">
-          {/* Page Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <h1 className="text-3xl font-bold text-foreground">我的行程</h1>
-                {isSavedTrip && (
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    tripStatus === 'completed'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {tripStatus === 'completed' ? '已完成' : '规划中'}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                {tripId && <ShareButton tripId={tripId} />}
-                {itineraryData && (
-                  <PDFExportButton tripData={{
-                    id: tripId,
-                    title: itineraryData.summary?.destination ? `${itineraryData.summary.destination}之旅` : '我的行程',
-                    destination: itineraryData.summary?.destination || '',
-                    startDate: itineraryData.summary?.start_date || '',
-                    endDate: itineraryData.summary?.end_date || '',
-                    totalBudget: itineraryData.summary?.budget || itineraryData.total_cost || 0,
-                    days: itineraryData.itinerary.map(day => ({
-                      dayNumber: day.day,
-                      date: day.date,
-                      itineraryItems: day.attractions.map(attr => ({
-                        name: attr.name,
-                        type: attr.type || 'attraction',
-                        category: (attr as any).category,
-                        description: attr.description,
-                        startTime: `${day.date} ${attr.time.split('-')[0]}`,
-                        endTime: `${day.date} ${attr.time.split('-')[1]}`,
-                        address: attr.address,
-                        cost: attr.estimated_cost || 0,
-                        longitude: attr.location ? parseFloat(attr.location.split(',')[0]) : undefined,
-                        latitude: attr.location ? parseFloat(attr.location.split(',')[1]) : undefined,
-                      })),
-                      restaurantName: selectedRestaurants[day.day]?.name,
-                      restaurantAddress: selectedRestaurants[day.day]?.address,
-                      restaurantLocation: selectedRestaurants[day.day]?.location,
-                      restaurantType: selectedRestaurants[day.day]?.type,
-                      restaurantRating: selectedRestaurants[day.day]?.rating,
-                    })),
-                    budget: itineraryData.budget_breakdown ? {
-                      transportation: itineraryData.budget_breakdown.transportation || 0,
-                      accommodation: itineraryData.budget_breakdown.accommodation || 0,
-                      food: itineraryData.budget_breakdown.dining || 0,
-                      tickets: itineraryData.budget_breakdown.tickets || 0,
-                      shopping: 0,
-                      other: 0,
-                    } : undefined,
-                    hotel: selectedHotel ? {
-                      name: selectedHotel.name,
-                      address: selectedHotel.address,
-                      location: selectedHotel.location,
-                      type: selectedHotel.type,
-                      rating: selectedHotel.rating,
-                    } : undefined,
-                  }} />
-                )}
-              </div>
-            </div>
-
-            {/* 行程概览卡片 */}
-            <div className="bg-gradient-to-r from-primary/10 via-purple-500/10 to-primary/10 rounded-xl p-6 border border-primary/20">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <MapPin className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">目的地</p>
-                    <p className="font-semibold text-foreground">{itineraryData.summary?.destination || '未设置'}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <Calendar className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">日期</p>
-                    <p className="font-semibold text-foreground">{itineraryData.summary?.start_date || '未设置'}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <Clock className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">天数</p>
-                    <p className="font-semibold text-foreground">{itineraryData.itinerary.length} 天</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <DollarSign className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">预算</p>
-                    <p className="font-semibold text-foreground">¥{itineraryData.summary?.budget || itineraryData.total_cost || 0}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 天数选择器 */}
-          <div className="mb-6">
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {itineraryData.itinerary.map((day, index) => (
-                <button
-                  key={day.day}
-                  onClick={() => setSelectedDayIndex(index)}
-                  className={`flex-shrink-0 px-4 py-2 rounded-lg font-medium transition-all ${
-                    selectedDayIndex === index
-                      ? 'bg-primary text-white shadow-md'
-                      : 'bg-white text-muted-foreground hover:bg-gray-50 border border-border'
-                  }`}
-                >
-                  第{day.day}天
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 每日行程内容 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* 左侧：景点列表 */}
-            <div>
-              {itineraryData.itinerary[selectedDayIndex] && (
-                <div>
-                  {/* 天数标题 */}
-                  <div className="bg-gradient-to-r from-primary to-purple-600 rounded-lg p-4 mb-4 text-white shadow-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-xl font-bold">第{itineraryData.itinerary[selectedDayIndex].day}天</h3>
-                        <p className="text-sm opacity-90">{itineraryData.itinerary[selectedDayIndex].date}</p>
-                      </div>
-                      <button
-                        onClick={() => setShowMap(!showMap)}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-md transition-colors"
-                      >
-                        <Map className="h-4 w-4" />
-                        <span>{showMap ? '隐藏地图' : '查看地图'}</span>
-                      </button>
+      <Row gutter={24}>
+        <Col span={showMap ? 14 : 24}>
+          <div style={{ marginBottom: '40px' }}>
+            {itineraryData.itinerary.map((day, dayIndex) => (
+              <div key={day.day} style={{ marginBottom: '32px' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '20px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  padding: '16px 24px',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{
+                      fontSize: '24px',
+                      fontWeight: 700,
+                      marginRight: '16px'
+                    }}>
+                      第{day.day}天
+                    </div>
+                    <div style={{
+                      fontSize: '16px',
+                      opacity: 0.95
+                    }}>
+                      {day.date}
                     </div>
                   </div>
-
-                  {/* 景点列表 */}
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={(event) => handleDragEnd(event, selectedDayIndex)}
+                  <Button
+                    type="primary"
+                    icon={<EnvironmentOutlined />}
+                    onClick={() => {
+                      setSelectedDayIndex(dayIndex);
+                      setShowMap(!showMap);
+                    }}
+                    style={{
+                      background: 'rgba(255,255,255,0.2)',
+                      borderColor: 'rgba(255,255,255,0.4)',
+                      color: '#fff'
+                    }}
                   >
-                    <SortableContext
-                      items={itineraryData.itinerary[selectedDayIndex].attractions.map((_, index) => index)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      <div className="space-y-4">
-                        {itineraryData.itinerary[selectedDayIndex].attractions.map((item, index) => (
-                          <div key={index}>
-                            <SortableAttractionCard
-                              item={item}
-                              index={index}
-                              dayIndex={selectedDayIndex}
-                              attractionIndex={index}
-                              city={itineraryData.summary?.destination}
-                              onShowAlternatives={handleShowAlternatives}
-                              onTimeChange={(attrIndex, newTime) => handleTimeChange(selectedDayIndex, attrIndex, newTime)}
-                              iotData={iotData}
-                              tripStatus={tripStatus}
-                              onOpenUploadModal={handleOpenUploadModal}
-                            />
+                    {showMap && selectedDayIndex === dayIndex ? '隐藏地图' : '查看地图'}
+                  </Button>
+                </div>
 
-                            {/* 备选景点展示区域 */}
-                            {(() => {
-                              const attractionKey = `${item.name}-${item.time}`;
-                              const alternatives = expandedAlternatives[attractionKey];
-                              const isLoading = loadingAlternatives[attractionKey];
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={(event) => handleDragEnd(event, dayIndex)}
+                >
+                  <SortableContext
+                    items={day.attractions.map((_, index) => index)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div style={{
+                      position: 'relative',
+                      paddingLeft: '32px'
+                }}>
+                  {/* 时间轴 */}
+                  <div style={{
+                    position: 'absolute',
+                    left: '8px',
+                    top: '0',
+                    bottom: '0',
+                    width: '2px',
+                    background: 'linear-gradient(to bottom, #667eea 0%, #764ba2 100%)'
+                  }} />
 
-                              if (!alternatives && !isLoading) return null;
+                  {day.attractions.map((item, index) => (
+                    <div key={index} style={{
+                      position: 'relative',
+                      marginBottom: '24px'
+                    }}>
+                      {/* 时间轴节点 */}
+                      <div style={{
+                        position: 'absolute',
+                        left: '-24px',
+                        top: '20px',
+                        width: '12px',
+                        height: '12px',
+                        borderRadius: '50%',
+                        background: '#667eea',
+                        border: '3px solid #fff',
+                        boxShadow: '0 0 0 3px #667eea'
+                      }} />
+                      <SortableAttractionCard
+                        item={item}
+                        index={index}
+                        dayIndex={dayIndex}
+                        attractionIndex={index}
+                        city={itineraryData.summary?.destination}
+                        onShowAlternatives={handleShowAlternatives}
+                        onTimeChange={(attrIndex, newTime) => handleTimeChange(dayIndex, attrIndex, newTime)}
+                        iotData={iotData}
+                      />
 
-                              return (
-                                <div className="mt-4">
-                                  {isLoading ? (
-                                    <div className="p-10 text-center bg-gray-50 rounded-lg">
-                                      <Spin tip="加载备选景点..." />
-                                    </div>
-                                  ) : (
-                                    <AlternativeAttractions
-                                      originalAttraction={item}
-                                      alternatives={alternatives}
-                                      onClose={() => handleCloseAlternatives(item)}
-                                      onReplace={(params) => {
-                                        if (params && typeof params === 'object' && params.newItem) {
-                                          handleReplaceAttraction(params);
-                                        } else {
-                                          handleReplaceAttraction({
-                                            dayIndex: selectedDayIndex,
-                                            attractionIndex: index,
-                                            originalItem: item,
-                                            newItem: params
-                                          });
-                                        }
-                                      }}
-                                      city={itineraryData.summary?.destination}
-                                      dayIndex={selectedDayIndex}
-                                      attractionIndex={index}
-                                    />
-                                  )}
-                                </div>
-                              );
-                            })()}
+                      {/* 图片上传按钮（仅已完成行程显示） */}
+                      {tripStatus === 'completed' && (
+                        <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
+                          <Button
+                            type="default"
+                            size="small"
+                            icon={<CameraOutlined />}
+                            onClick={() => handleOpenUploadModal(item)}
+                          >
+                            上传图片
+                          </Button>
+                        </div>
+                      )}
+                      
+                      {/* 备选景点展示区域 */}
+                      {(() => {
+                        const attractionKey = `${item.name}-${item.time}`;
+                        const alternatives = expandedAlternatives[attractionKey];
+                        const isLoading = loadingAlternatives[attractionKey];
+
+                        if (!alternatives && !isLoading) return null;
+
+                        return (
+                          <div style={{ marginTop: '16px' }}>
+                            {isLoading ? (
+                              <div style={{
+                                padding: '40px',
+                                textAlign: 'center',
+                                background: '#f9f9f9',
+                                borderRadius: '8px'
+                              }}>
+                                <Spin tip="加载备选景点..." />
+                              </div>
+                            ) : (
+                              <AlternativeAttractions
+                                originalAttraction={item}
+                                alternatives={alternatives}
+                                onClose={() => handleCloseAlternatives(item)}
+                                onReplace={(params) => {
+                                  // 判断参数类型
+                                  if (params && typeof params === 'object' && params.newItem) {
+                                    // 从收藏列表调用：params = {originalItem, newItem, dayIndex, attractionIndex, skipConfirm}
+                                    handleReplaceAttraction(params);
+                                  } else {
+                                    // 从备选列表调用：params = 景点对象
+                                    handleReplaceAttraction({
+                                      dayIndex,
+                                      attractionIndex: index,
+                                      originalItem: item,
+                                      newItem: params
+                                    });
+                                  }
+                                }}
+                                city={itineraryData.summary?.destination}
+                                dayIndex={dayIndex}
+                                attractionIndex={index}
+                              />
+                            )}
                           </div>
-                        ))}
-                      </div>
-                    </SortableContext>
-                  </DndContext>
+                        );
+                      })()}
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
-
-            {/* 右侧：地图 */}
-            {showMap && itineraryData.itinerary[selectedDayIndex] && (
-              <div className="lg:sticky lg:top-20 h-fit">
-                <div className="bg-white rounded-lg border border-border p-4 shadow-md">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">
-                    第{itineraryData.itinerary[selectedDayIndex].day}天行程地图
-                  </h3>
-                  <DayMap
-                    day={itineraryData.itinerary[selectedDayIndex]}
-                    hotel={selectedHotel}
-                    restaurant={selectedRestaurants[itineraryData.itinerary[selectedDayIndex].day]}
-                  />
-                </div>
-              </div>
-            )}
+              </SortableContext>
+            </DndContext>
           </div>
+        ))}
+      </div>
+        </Col>
 
-          {/* 酒店推荐 */}
-          {itineraryData.itinerary && itineraryData.summary?.budget && (
-            <div className="mb-8">
-              <HotelRecommendations
-                spots={itineraryData.itinerary.flatMap(day =>
-                  day.attractions.map(attr => ({
-                    name: attr.name,
-                    location: attr.location,
-                  }))
-                )}
-                budget={itineraryData.summary.budget}
-                selectedHotel={selectedHotel}
-                onSelect={(hotel) => setSelectedHotel(hotel)}
-                onSkip={() => {
-                  setSelectedHotel(null);
-                  message.info('已跳过酒店选择');
-                }}
-                showSkip={true}
-                onLoadComplete={() => setHotelRecommendationLoaded(true)}
-                onLoadData={(hotels) => setHotelRecommendations(hotels)}
-                days={itineraryData.itinerary.length}
-                tripId={tripId || (itineraryData as any).tripId}
+        {/* 右侧地图 */}
+        {showMap && selectedDayIndex !== null && (
+          <Col span={10}>
+            <div style={{
+              background: '#fff',
+              borderRadius: '8px',
+              padding: '16px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              position: 'sticky',
+              top: '24px'
+            }}>
+              <h3 style={{
+                marginBottom: '16px',
+                color: '#333',
+                fontSize: '18px',
+                fontWeight: 600
+              }}>
+                第{itineraryData.itinerary[selectedDayIndex].day}天行程地图
+              </h3>
+              <DayMap 
+                day={itineraryData.itinerary[selectedDayIndex]} 
+                hotel={selectedHotel} 
+                restaurant={selectedRestaurants[itineraryData.itinerary[selectedDayIndex].day]} 
               />
             </div>
+          </Col>
+        )}
+      </Row>
+
+      {/* 酒店推荐 */}
+      {itineraryData.itinerary && itineraryData.summary?.budget && (
+        <HotelRecommendations
+          spots={itineraryData.itinerary.flatMap(day => 
+            day.attractions.map(attr => ({
+              name: attr.name,
+              location: attr.location,
+            }))
+          )}
+          budget={itineraryData.summary.budget}
+          selectedHotel={selectedHotel}
+          onSelect={(hotel) => setSelectedHotel(hotel)}
+          onSkip={() => {
+            setSelectedHotel(null);
+            message.info('已跳过酒店选择');
+          }}
+          showSkip={true}
+          onLoadComplete={() => setHotelRecommendationLoaded(true)}
+          onLoadData={(hotels) => setHotelRecommendations(hotels)}
+          days={itineraryData.itinerary.length}
+          tripId={tripId || itineraryData.tripId}
+        />
+      )}
+
+      {/* 餐厅推荐 */}
+      {itineraryData.itinerary && (
+        <RestaurantRecommendations
+          days={itineraryData.itinerary.map(day => ({
+            day: day.day,
+            date: day.date,
+            spots: day.attractions.map(attr => ({
+              name: attr.name,
+              location: attr.location,
+            })),
+          }))}
+          selectedRestaurants={selectedRestaurants}
+          onSelect={(day, restaurant) => {
+            setSelectedRestaurants(prev => ({
+              ...prev,
+              [day]: restaurant,
+            }));
+          }}
+          onSkip={(day) => {
+            setSelectedRestaurants(prev => ({
+              ...prev,
+              [day]: null,
+            }));
+            message.info(`第${day}天: 已跳过餐厅选择`);
+          }}
+          showSkip={true}
+          disabled={!hotelRecommendationLoaded}
+          groupSize={itineraryData.summary?.groupSize || 1}
+          tripId={tripId || itineraryData.tripId}
+          onLoadData={(recommendations) => setRestaurantRecommendations(recommendations)}
+        />
+      )}
+
+      {/* 预算图表 */}
+      <BudgetChart 
+        data={[
+          { category: '交通', amount: itineraryData.budget_breakdown.transportation },
+          { category: '住宿', amount: itineraryData.budget_breakdown.accommodation },
+          { category: '餐饮', amount: itineraryData.budget_breakdown.dining },
+          { category: '门票', amount: itineraryData.budget_breakdown.tickets },
+        ]}
+        totalBudget={itineraryData.summary?.budget || itineraryData.total_cost || 10000}
+        actualBudget={budgetInfo}
+        warningMessage={budgetInfo?.warningMessage}
+        warningLevel={budgetInfo?.warningLevel || 0}
+      />
+
+      {/* 底部操作按钮 */}
+      <div style={{
+        marginTop: '32px',
+        padding: '24px',
+        background: 'linear-gradient(135deg, #667eea10 0%, #764ba210 100%)',
+        borderRadius: '12px',
+        border: '1px solid #667eea30',
+        textAlign: 'center'
+      }}>
+        <p style={{
+          fontSize: '16px',
+          color: '#333',
+          marginBottom: '16px',
+          margin: 0
+        }}>
+          {isSavedTrip ? (
+            tripStatus === 'completed' ? '✅ 行程已完成，可以上传图片和写游记了' : '查看行程详情'
+          ) : '💡 确认后行程将保存到数据库'}
+        </p>
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          {/* 已完成行程显示写游记按钮 */}
+          {tripStatus === 'completed' && (
+            <Button
+              type="primary"
+              size="large"
+              icon={<EditOutlined />}
+              onClick={handleWriteBlog}
+              style={{
+                background: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 600,
+                minWidth: '150px'
+              }}
+            >
+              写游记
+            </Button>
           )}
 
-          {/* 餐厅推荐 */}
-          {itineraryData.itinerary && (
-            <div className="mb-8">
-              <RestaurantRecommendations
-                days={itineraryData.itinerary.map(day => ({
-                  day: day.day,
-                  date: day.date,
-                  spots: day.attractions.map(attr => ({
-                    name: attr.name,
-                    location: attr.location,
-                  })),
-                }))}
-                selectedRestaurants={selectedRestaurants}
-                onSelect={(day, restaurant) => {
-                  setSelectedRestaurants(prev => ({
-                    ...prev,
-                    [day]: restaurant,
-                  }));
+          {/* 规划中行程显示完成按钮 */}
+          {isSavedTrip && tripStatus === 'planning' && (
+            <Popconfirm
+              title="确认完成行程？"
+              description="完成后将无法再修改行程，但可以上传图片和写游记"
+              onConfirm={handleCompleteTrip}
+              okText="确认完成"
+              cancelText="取消"
+            >
+              <Button
+                type="primary"
+                size="large"
+                icon={<CheckCircleOutlined />}
+                loading={completing}
+                style={{
+                  background: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  minWidth: '150px'
                 }}
-                onSkip={(day) => {
-                  setSelectedRestaurants(prev => ({
-                    ...prev,
-                    [day]: null,
-                  }));
-                  message.info(`第${day}天: 已跳过餐厅选择`);
-                }}
-                showSkip={true}
-                disabled={!hotelRecommendationLoaded}
-                groupSize={(itineraryData.summary as any)?.groupSize || 1}
-                tripId={tripId || (itineraryData as any).tripId}
-                onLoadData={(recommendations) => setRestaurantRecommendations(recommendations)}
-              />
-            </div>
-          )}
-
-          {/* 预算图表 */}
-          <div className="mb-8">
-            <BudgetChart
-              data={[
-                { category: '交通', amount: itineraryData.budget_breakdown.transportation },
-                { category: '住宿', amount: itineraryData.budget_breakdown.accommodation },
-                { category: '餐饮', amount: itineraryData.budget_breakdown.dining },
-                { category: '门票', amount: itineraryData.budget_breakdown.tickets },
-              ]}
-              totalBudget={itineraryData.summary?.budget || itineraryData.total_cost || 10000}
-              actualBudget={budgetInfo}
-              warningMessage={budgetInfo?.warningMessage}
-              warningLevel={budgetInfo?.warningLevel || 0}
-            />
-          </div>
-
-          {/* 底部操作按钮 */}
-          <div className="bg-gradient-to-r from-primary/5 via-purple-500/5 to-primary/5 rounded-xl p-6 border border-primary/10">
-            <p className="text-center text-muted-foreground mb-4">
-              {isSavedTrip ? (
-                tripStatus === 'completed' ? '✅ 行程已完成，可以上传图片和写游记了' : '查看行程详情'
-              ) : '💡 确认后行程将保存到数据库'}
-            </p>
-
-            <div className="flex justify-center gap-4 flex-wrap">
-              {/* 已完成行程显示写游记按钮 */}
-              {tripStatus === 'completed' && (
-                <button
-                  onClick={handleWriteBlog}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
-                >
-                  <PenLine className="h-5 w-5" />
-                  <span>写游记</span>
-                </button>
-              )}
-
-              {/* 规划中行程显示完成按钮 */}
-              {isSavedTrip && tripStatus === 'planning' && (
-                <button
-                  onClick={() => {
-                    Modal.confirm({
-                      title: '确认完成行程？',
-                      content: '完成后将无法再修改行程，但可以上传图片和写游记',
-                      okText: '确认完成',
-                      cancelText: '取消',
-                      onOk: handleCompleteTrip,
-                    });
-                  }}
-                  disabled={completing}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50"
-                >
-                  <CheckCircle className="h-5 w-5" />
-                  <span>{completing ? '处理中...' : '完成行程'}</span>
-                </button>
-              )}
-
-              {/* 返回首页按钮 */}
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2 px-6 py-3 bg-white border border-border text-foreground rounded-lg font-medium hover:bg-gray-50 transition-all"
               >
-                <HomeIcon className="h-5 w-5" />
-                <span>返回首页</span>
-              </button>
+                完成行程
+              </Button>
+            </Popconfirm>
+          )}
 
-              {/* 确认并保存按钮（仅未保存时显示） */}
-              {!isSavedTrip && (
-                <button
-                  onClick={handleConfirmItinerary}
-                  disabled={confirming}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50"
-                >
-                  <Check className="h-5 w-5" />
-                  <span>{confirming ? '保存中...' : '确认并保存'}</span>
-                </button>
-              )}
-            </div>
-          </div>
+          {/* 返回首页按钮 */}
+          <Button
+            type="default"
+            size="large"
+            onClick={() => navigate('/')}
+            style={{
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: 600,
+              minWidth: '150px'
+            }}
+          >
+            返回首页
+          </Button>
+
+          {/* 确认并保存按钮（仅未保存时显示） */}
+          {!isSavedTrip && (
+            <Button
+              type="primary"
+              size="large"
+              loading={confirming}
+              onClick={handleConfirmItinerary}
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 600,
+                minWidth: '200px'
+              }}
+            >
+              确认并保存
+            </Button>
+          )}
         </div>
-      </main>
+      </div>
 
       {/* 调整建议弹窗 */}
       <Modal
         title="行程调整建议"
         open={adjustModalVisible}
         onCancel={() => setAdjustModalVisible(false)}
-        onOk={handleApplyAdjustment}
-        okText="应用调整"
-        cancelText="取消"
+        footer={[
+          <Button key="cancel" onClick={() => setAdjustModalVisible(false)}>
+            取消
+          </Button>,
+          <Button key="apply" type="primary" onClick={handleApplyAdjustment}>
+            应用调整
+          </Button>,
+        ]}
       >
         {adjustResult && adjustResult.adjustments.length > 0 && (
           <div>
