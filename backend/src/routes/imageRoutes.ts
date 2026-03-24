@@ -11,6 +11,12 @@ import { authenticateToken } from '../controllers/authController';
 const router = express.Router();
 
 /**
+ * 上传博客内容图片（不需要spotId）
+ * POST /api/images/blog-upload
+ */
+router.post('/blog-upload', authenticateToken, uploadSingleImage, ImageController.uploadBlogImage);
+
+/**
  * 上传图片（管理员和用户共用）
  * POST /api/images/upload
  */

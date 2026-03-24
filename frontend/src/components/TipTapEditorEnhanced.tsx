@@ -6,7 +6,8 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import TextAlign from '@tiptap/extension-text-align';
-import { Upload, message, Dropdown, ColorPicker } from 'antd';
+import { Extension } from '@tiptap/core';
+import { Upload, message, Dropdown, ColorPicker, Select } from 'antd';
 import {
   Bold,
   Italic,
@@ -23,8 +24,69 @@ import {
   AlignRight,
   Palette,
   FileText,
+  Type,
 } from 'lucide-react';
 import { useState } from 'react';
+
+// 自定义字体扩展
+const FontFamily = Extension.create({
+  name: 'fontFamily',
+
+  addOptions() {
+    return {
+      types: ['textStyle'],
+    };
+  },
+
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          fontFamily: {
+            default: null,
+            parseHTML: element => element.style.fontFamily?.replace(/['"]/g, ''),
+            renderHTML: attributes => {
+              if (!attributes.fontFamily) {
+                return {};
+              }
+              return {
+                style: `font-family: ${attributes.fontFamily}`,
+              };
+            },
+          },
+        },
+      },
+    ];
+  },
+
+  addCommands() {
+    return {
+      setFontFamily:
+        fontFamily =>
+        ({ chain }) => {
+          return chain().setMark('textStyle', { fontFamily }).run();
+        },
+      unsetFontFamily:
+        () =>
+        ({ chain }) => {
+          return chain().setMark('textStyle', { fontFamily: null }).removeEmptyTextStyle().run();
+        },
+    };
+  },
+});
+
+// 字体选项
+const FONT_FAMILIES = [
+  { label: '默认字体', value: '' },
+  { label: '微软雅黑', value: '"Microsoft YaHei", sans-serif' },
+  { label: '宋体', value: '"SimSun", serif' },
+  { label: '黑体', value: '"SimHei", sans-serif' },
+  { label: '楷体', value: '"KaiTi", serif' },
+  { label: 'Arial', value: 'Arial, sans-serif' },
+  { label: 'Georgia', value: 'Georgia, serif' },
+  { label: 'Times New Roman', value: '"Times New Roman", serif' },
+];
 
 interface TipTapEditorProps {
   content: string;
@@ -114,6 +176,7 @@ export default function TipTapEditorEnhanced({
 }: TipTapEditorProps) {
   const [uploading, setUploading] = useState(false);
   const [textColor, setTextColor] = useState<string>('#000000');
+  const [fontFamily, setFontFamily] = useState<string>('');
 
   const editor = useEditor({
     extensions: [
@@ -121,6 +184,7 @@ export default function TipTapEditorEnhanced({
         heading: {
           levels: [1, 2, 3],
         },
+        link: false, // 禁用StarterKit中的link，使用我们配置的
       }),
       Image.configure({
         inline: false,
@@ -140,6 +204,7 @@ export default function TipTapEditorEnhanced({
       }),
       Color,
       TextStyle,
+      FontFamily,
       TextAlign.configure({
         types: ['heading', 'paragraph', 'image'],
       }),
@@ -165,30 +230,36 @@ export default function TipTapEditorEnhanced({
     try {
       setUploading(true);
 
+      // 使用后端API上传图片 - 使用博客专用的上传接口
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('upload_preset', 'livetrip_blog');
 
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/dbfuvkopc/image/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/images/blog-upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
 
       if (!response.ok) {
-        throw new Error('图片上传失败');
+        const errorData = await response.json();
+        throw new Error(errorData.message || '图片上传失败');
       }
 
       const data = await response.json();
-      const imageUrl = data.secure_url;
+      const imageUrl = data.data?.url || data.url;
+
+      if (!imageUrl) {
+        throw new Error('未获取到图片URL');
+      }
 
       editor.chain().focus().setImage({ src: imageUrl }).run();
       message.success('图片上传成功');
-    } catch (error) {
+    } catch (error: any) {
       console.error('图片上传失败:', error);
-      message.error('图片上传失败，请重试');
+      message.error(error.message || '图片上传失败，请重试');
     } finally {
       setUploading(false);
     }
@@ -207,6 +278,16 @@ export default function TipTapEditorEnhanced({
     const hexColor = typeof color === 'string' ? color : color?.toHexString?.() || '#000000';
     setTextColor(hexColor);
     editor.chain().focus().setColor(hexColor).run();
+  };
+
+  // 设置字体
+  const handleFontFamilyChange = (value: string) => {
+    setFontFamily(value);
+    if (value) {
+      editor.chain().focus().setFontFamily(value).run();
+    } else {
+      editor.chain().focus().unsetFontFamily().run();
+    }
   };
 
   // 应用模板
@@ -242,6 +323,7 @@ export default function TipTapEditorEnhanced({
             {BLOG_TEMPLATES.map(template => (
               <button
                 key={template.id}
+                type="button"
                 onClick={() => applyTemplate(template.id)}
                 className="px-3 py-1.5 rounded-lg text-sm font-medium bg-white border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all flex items-center gap-1.5"
               >
@@ -258,6 +340,7 @@ export default function TipTapEditorEnhanced({
         {/* 标题组 */}
         <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-gray-200">
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
             className={toolbarButtonClass(editor.isActive('heading', { level: 1 }))}
             title="一级标题 (Ctrl+Alt+1)"
@@ -265,6 +348,7 @@ export default function TipTapEditorEnhanced({
             <span className="font-bold">H1</span>
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
             className={toolbarButtonClass(editor.isActive('heading', { level: 2 }))}
             title="二级标题 (Ctrl+Alt+2)"
@@ -272,6 +356,7 @@ export default function TipTapEditorEnhanced({
             <span className="font-bold">H2</span>
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
             className={toolbarButtonClass(editor.isActive('heading', { level: 3 }))}
             title="三级标题 (Ctrl+Alt+3)"
@@ -285,6 +370,7 @@ export default function TipTapEditorEnhanced({
         {/* 文字格式组 */}
         <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-gray-200">
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleBold().run()}
             className={toolbarButtonClass(editor.isActive('bold'))}
             title="加粗 (Ctrl+B)"
@@ -292,6 +378,7 @@ export default function TipTapEditorEnhanced({
             <Bold className="w-4 h-4" />
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleItalic().run()}
             className={toolbarButtonClass(editor.isActive('italic'))}
             title="斜体 (Ctrl+I)"
@@ -299,12 +386,39 @@ export default function TipTapEditorEnhanced({
             <Italic className="w-4 h-4" />
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
             className={toolbarButtonClass(editor.isActive('blockquote'))}
             title="引用"
           >
             <Quote className="w-4 h-4" />
           </button>
+
+          {/* 字体选择器 */}
+          <Dropdown
+            menu={{
+              items: FONT_FAMILIES.map(font => ({
+                key: font.value,
+                label: (
+                  <div
+                    style={{ fontFamily: font.value || 'inherit' }}
+                    onClick={() => handleFontFamilyChange(font.value)}
+                  >
+                    {font.label}
+                  </div>
+                ),
+              })),
+            }}
+          >
+            <button
+              type="button"
+              className={toolbarButtonClass(false)}
+              title="字体"
+            >
+              <Type className="w-4 h-4" />
+            </button>
+          </Dropdown>
+
           <Dropdown
             menu={{
               items: [
@@ -325,6 +439,7 @@ export default function TipTapEditorEnhanced({
             }}
           >
             <button
+              type="button"
               className={toolbarButtonClass(false)}
               title="文字颜色"
             >
@@ -338,6 +453,7 @@ export default function TipTapEditorEnhanced({
         {/* 对齐组 */}
         <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-gray-200">
           <button
+            type="button"
             onClick={() => editor.chain().focus().setTextAlign('left').run()}
             className={toolbarButtonClass(editor.isActive({ textAlign: 'left' }))}
             title="左对齐"
@@ -345,6 +461,7 @@ export default function TipTapEditorEnhanced({
             <AlignLeft className="w-4 h-4" />
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().setTextAlign('center').run()}
             className={toolbarButtonClass(editor.isActive({ textAlign: 'center' }))}
             title="居中"
@@ -352,6 +469,7 @@ export default function TipTapEditorEnhanced({
             <AlignCenter className="w-4 h-4" />
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().setTextAlign('right').run()}
             className={toolbarButtonClass(editor.isActive({ textAlign: 'right' }))}
             title="右对齐"
@@ -365,6 +483,7 @@ export default function TipTapEditorEnhanced({
         {/* 列表组 */}
         <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-gray-200">
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             className={toolbarButtonClass(editor.isActive('bulletList'))}
             title="无序列表"
@@ -372,6 +491,7 @@ export default function TipTapEditorEnhanced({
             <List className="w-4 h-4" />
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             className={toolbarButtonClass(editor.isActive('orderedList'))}
             title="有序列表"
@@ -385,6 +505,7 @@ export default function TipTapEditorEnhanced({
         {/* 插入组 */}
         <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-gray-200">
           <button
+            type="button"
             onClick={addLink}
             className={toolbarButtonClass(editor.isActive('link'))}
             title="插入链接"
@@ -400,6 +521,7 @@ export default function TipTapEditorEnhanced({
             }}
           >
             <button
+              type="button"
               className={toolbarButtonClass(false, uploading)}
               title="上传图片"
               disabled={uploading}
@@ -408,6 +530,7 @@ export default function TipTapEditorEnhanced({
             </button>
           </Upload>
           <button
+            type="button"
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
             className={toolbarButtonClass(false)}
             title="分割线"
@@ -419,6 +542,7 @@ export default function TipTapEditorEnhanced({
         {/* 撤销/重做 */}
         <div className="flex items-center gap-1 ml-auto px-2 py-1 rounded-lg bg-white border border-gray-200">
           <button
+            type="button"
             onClick={() => editor.chain().focus().undo().run()}
             disabled={!editor.can().undo()}
             className={toolbarButtonClass(false, !editor.can().undo())}
@@ -427,6 +551,7 @@ export default function TipTapEditorEnhanced({
             <Undo className="w-4 h-4" />
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().redo()}
             className={toolbarButtonClass(false, !editor.can().redo())}

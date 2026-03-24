@@ -13,6 +13,7 @@ import Destinations from './pages/Destinations';
 import SharedTrip from './pages/SharedTrip';
 import Blogs from './pages/Blogs';
 import CreateBlog from './pages/CreateBlog';
+import BlogDetailPage from './pages/BlogDetailPage';
 import AIFeatures from './pages/AIFeatures';
 import Today from './pages/Today';
 import AuthGuard from './components/AuthGuard';
@@ -85,6 +86,14 @@ function AppContent() {
           element={
             <AuthGuard>
               <CreateBlog />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/blog/:id"
+          element={
+            <AuthGuard>
+              <BlogDetailPage />
             </AuthGuard>
           }
         />

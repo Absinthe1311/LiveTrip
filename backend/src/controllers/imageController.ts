@@ -21,6 +21,61 @@ interface UploadImageResponse {
 
 export class ImageController {
   /**
+   * 上传博客内容图片（不需要spotId）
+   * POST /api/images/blog-upload
+   */
+  static async uploadBlogImage(req: Request, res: Response): Promise<void> {
+    try {
+      console.log('📤 上传博客图片请求');
+      console.log('📦 req.file:', req.file ? '文件存在' : '文件不存在');
+      console.log('👤 req.user:', req.user);
+
+      const user = (req as any).user;
+
+      // 验证用户是否登录
+      if (!user || !user.userId) {
+        res.status(401).json({
+          success: false,
+          message: '请先登录',
+        });
+        return;
+      }
+
+      // 验证文件是否上传
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          message: '请选择要上传的图片',
+        });
+        return;
+      }
+
+      // 上传到 Cloudinary 博客文件夹
+      const cloudinaryResult = await cloudinaryService.uploadImage(
+        req.file.buffer,
+        'blogs/content'
+      );
+
+      // 直接返回图片URL，不需要存储到数据库
+      res.status(200).json({
+        success: true,
+        data: {
+          url: cloudinaryResult.cloudinaryUrl,
+          cloudinaryId: cloudinaryResult.cloudinaryId,
+        },
+        message: '博客图片上传成功',
+      });
+    } catch (error: any) {
+      console.error('上传博客图片失败:', error);
+      res.status(500).json({
+        success: false,
+        message: '上传博客图片失败',
+        error: error.message,
+      });
+    }
+  }
+
+  /**
    * 上传图片（管理员和用户共用）
    * POST /api/images/upload
    */

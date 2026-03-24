@@ -20,9 +20,12 @@ interface Blog {
   coverImage?: string;
   tags?: string[];
   city?: string;
-  likes: number;
+  likes?: Array<{ userId: string; createdAt: string }>;
+  likeCount?: number;
   views: number;
-  comments: number;
+  viewCount?: number;
+  comments?: Array<{ id: string; userId: string; content: string; createdAt: string }>;
+  commentCount?: number;
   createdAt: string;
   updatedAt?: string;
   isPublished: boolean;
@@ -262,18 +265,18 @@ export default function Blogs() {
                         </span>
                         <span className="flex items-center gap-1">
                           <Eye className="w-3 h-3" />
-                          {blog.views || 0}
+                          {blog.viewCount || blog.views || 0}
                         </span>
                         <button
                           onClick={(e) => handleToggleLike(blog.id, e)}
                           className="flex items-center gap-1 hover:text-red-500 transition-colors"
                         >
                           <Heart className="w-3 h-3" />
-                          {blog.likes || 0}
+                          {blog.likeCount || (blog.likes?.length || 0)}
                         </button>
                         <span className="flex items-center gap-1">
                           <MessageCircle className="w-3 h-3" />
-                          {blog.comments || 0}
+                          {blog.commentCount || (blog.comments?.length || 0)}
                         </span>
                       </div>
                     </div>
