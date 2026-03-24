@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card, Avatar, Button, Tag, Image, Empty, Spin, Space, Divider, List, message } from 'antd';
 import { UserOutlined, LikeFilled, LikeOutlined, MessageOutlined, EditOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { getBlogPostById, toggleLike, deleteBlog, addBlogComment, deleteBlogComment, toggleBlogCommentLike, incrementBlogViewCount } from '../api/client';
+import { calculateWordCount, calculateReadingTime, formatReadingTime } from '../utils/blogContentUtils';
 
 interface BlogDetailProps {
   postId: string;
@@ -186,72 +185,15 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
 
         {/* 内容 */}
         <div
+          className="prose prose-lg max-w-none"
           style={{
             fontSize: 16,
             lineHeight: '1.8',
             color: '#333',
             marginBottom: 24,
           }}
-        >
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              // 自定义组件样式
-              h1: ({ node, ...props }) => (
-                <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 16, marginTop: 24 }} {...props} />
-              ),
-              h2: ({ node, ...props }) => (
-                <h2 style={{ fontSize: 28, fontWeight: 600, marginBottom: 14, marginTop: 20 }} {...props} />
-              ),
-              h3: ({ node, ...props }) => (
-                <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 12, marginTop: 16 }} {...props} />
-              ),
-              p: ({ node, ...props }) => (
-                <p style={{ marginBottom: 12 }} {...props} />
-              ),
-              ul: ({ node, ...props }) => (
-                <ul style={{ marginBottom: 12, paddingLeft: 20 }} {...props} />
-              ),
-              ol: ({ node, ...props }) => (
-                <ol style={{ marginBottom: 12, paddingLeft: 20 }} {...props} />
-              ),
-              li: ({ node, ...props }) => (
-                <li style={{ marginBottom: 4 }} {...props} />
-              ),
-              a: ({ node, ...props }) => (
-                <a style={{ color: '#1890ff', textDecoration: 'none' }} {...props} />
-              ),
-              blockquote: ({ node, ...props }) => (
-                <blockquote style={{
-                  borderLeft: '4px solid #1890ff',
-                  paddingLeft: 16,
-                  margin: '16px 0',
-                  color: '#666',
-                  fontStyle: 'italic'
-                }} {...props} />
-              ),
-              code: ({ node, inline, ...props }) => inline ? (
-                <code style={{
-                  background: '#f5f5f5',
-                  padding: '2px 6px',
-                  borderRadius: 4,
-                  fontSize: '0.9em',
-                  fontFamily: 'monospace'
-                }} {...props} />
-              ) : (
-                <pre style={{
-                  background: '#f5f5f5',
-                  padding: 16,
-                  borderRadius: 8,
-                  overflow: 'auto',
-                  marginBottom: 16
-                }}><code {...props} /></pre>
-              ),
-            }}
-          >
-            {blog.content}
-          </ReactMarkdown>
-        </div>
+          dangerouslySetInnerHTML={{ __html: blog.content }}
+        />
 
         <Divider />
 
@@ -274,6 +216,8 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
           <div style={{ marginLeft: 'auto', color: '#999', fontSize: 14 }}>
             <Space size={16}>
               <span>浏览 {blog.viewCount}</span>
+              <span>字数 {calculateWordCount(blog.content)}</span>
+              <span>阅读 {formatReadingTime(calculateReadingTime(calculateWordCount(blog.content)))}</span>
             </Space>
           </div>
         </div>

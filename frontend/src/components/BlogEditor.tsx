@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Modal, Form, Input, Button, Upload, message, Spin, Tag } from 'antd';
 import { UploadOutlined, PlusOutlined, BookOutlined } from '@ant-design/icons';
-import MDEditor from '@uiw/react-md-editor';
-import '@uiw/react-md-editor/markdown-editor.css';
+import TipTapEditorEnhanced from './TipTapEditorEnhanced';
 import { createBlog, updateBlog, getBlogPostById } from '../api/client';
 import type { UploadFile } from 'antd/es/upload/interface';
 
@@ -157,20 +156,12 @@ export default function BlogEditor({ visible, postId, userId = 'default-user', o
 
           <div style={{ marginBottom: 16 }}>
             <div style={{ marginBottom: 8, fontWeight: 500 }}>内容</div>
-            <div data-color-mode="light">
-              <MDEditor
-                value={content}
-                onChange={(val) => setContent(val || '')}
-                height={500}
-                preview="live"
-                hideToolbar={false}
-                visibleDragBar={false}
-                extraCommands={[]}
-              />
-            </div>
-            <div style={{ color: '#999', fontSize: 12, marginTop: 8 }}>
-              支持 Markdown 语法：**加粗**、*斜体*、# 标题、- 列表、[链接](url)等
-            </div>
+            <TipTapEditorEnhanced
+              content={content}
+              onChange={(val) => setContent(val)}
+              height={400}
+              placeholder="开始编写你的旅行故事..."
+            />
           </div>
 
           <Form.Item

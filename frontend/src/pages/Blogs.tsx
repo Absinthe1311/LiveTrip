@@ -1,9 +1,10 @@
 // 旅行博客页面 - 连接后端 API
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, PenLine, MessageCircle, Sparkles, List, MapPin, ChevronRight, Eye } from "lucide-react";
+import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, PenLine, MessageCircle, Sparkles, List, MapPin, ChevronRight, Eye, Clock } from "lucide-react";
 import { Sidebar } from '../components/SharedSidebar';
 import { getBlogPosts, toggleLike } from '../api/client';
+import { extractFirstImage, calculateWordCount, calculateReadingTime, formatReadingTime } from '../utils/blogContentUtils';
 
 interface Blog {
   id: string;
@@ -237,8 +238,8 @@ export default function Blogs() {
                 >
                   {/* Left Image */}
                   <div className="relative w-[100px] flex-shrink-0 bg-gray-200">
-                    {blog.coverImage ? (
-                      <img src={blog.coverImage} alt={blog.title} className="w-full h-full object-cover" />
+                    {blog.coverImage || extractFirstImage(blog.content) ? (
+                      <img src={blog.coverImage || extractFirstImage(blog.content)} alt={blog.title} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-muted flex items-center justify-center text-3xl">📝</div>
                     )}
@@ -255,6 +256,10 @@ export default function Blogs() {
                         by {blog.author?.name || '匿名用户'} · {formatDate(blog.createdAt)}
                       </span>
                       <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                        <span className="flex items-center gap-1" title={`${calculateWordCount(blog.content)}字`}>
+                          <Clock className="w-3 h-3" />
+                          {formatReadingTime(calculateReadingTime(calculateWordCount(blog.content)))}
+                        </span>
                         <span className="flex items-center gap-1">
                           <Eye className="w-3 h-3" />
                           {blog.views || 0}
