@@ -468,10 +468,10 @@ export const completeTrip = async (tripId: string) => {
 // ==================== 图片相关 ====================
 
 /**
- * 获取景点封面图片
+ * 获取景点封面图片（带来源信息）
  * @param spotName 景点名称
  * @param city 城市（可选）
- * @returns 景点图片URL
+ * @returns 景点图片URL和来源信息
  */
 export const getSpotCoverImage = async (spotName: string, city?: string) => {
   const params: any = {};

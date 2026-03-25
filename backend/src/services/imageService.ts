@@ -438,12 +438,12 @@ export class ImageService {
   }
 
   /**
-   * 获取景点封面图片
+   * 获取景点封面图片（带图片来源）
    * @param spotName 景点名称
    * @param city 城市名称（可选）
-   * @returns 图片URL，如果没有找到则返回null
+   * @returns 图片对象，包含URL和来源信息
    */
-  async getSpotCoverImage(spotName: string, city?: string): Promise<string | null> {
+  async getSpotCoverImageWithSource(spotName: string, city?: string): Promise<{ url: string; source: string } | null> {
     try {
       // 构建查询条件
       const where: any = {
@@ -463,15 +463,19 @@ export class ImageService {
         return null;
       }
 
-      // 查找景点的图片
+      // 查找景点的图片（优先 admin approved）
       const image = await prisma.spotImage.findFirst({
         where: {
           spotId: spot.id,
           status: 'approved',
           isPrimary: true,
         },
+        orderBy: {
+          priority: 'desc',
+        },
         select: {
           url: true,
+          source: true,
         },
       });
 
@@ -487,17 +491,51 @@ export class ImageService {
           },
           select: {
             url: true,
+            source: true,
           },
         });
 
-        return firstImage?.url || null;
+        if (firstImage?.url) {
+          return {
+            url: firstImage.url,
+            source: firstImage.source
+          };
+        }
       }
 
-      return image.url;
+      if (image?.url) {
+        return {
+          url: image.url,
+          source: image.source
+        };
+      }
+
+      // 如果数据库中没有图片，尝试使用 Unsplash
+      console.log(`⚠️  景点 ${spotName} 没有图片，尝试使用 Unsplash`);
+      const unsplashImages = await this.searchUnsplashImages(spotName, city, 1);
+      if (unsplashImages.length > 0) {
+        return {
+          url: unsplashImages[0].url,
+          source: 'unsplash'
+        };
+      }
+
+      return null;
     } catch (error) {
       console.error('❌ 获取景点封面图片失败:', error);
       return null;
     }
+  }
+
+  /**
+   * 获取景点封面图片（兼容旧接口）
+   * @param spotName 景点名称
+   * @param city 城市名称（可选）
+   * @returns 图片URL，如果没有找到则返回null
+   */
+  async getSpotCoverImage(spotName: string, city?: string): Promise<string | null> {
+    const result = await this.getSpotCoverImageWithSource(spotName, city);
+    return result?.url || null;
   }
 
   /**

@@ -179,7 +179,7 @@ export class ImageController {
   }
 
   /**
-   * 获取景点封面图片
+   * 获取景点封面图片（带来源信息）
    */
   static async getSpotCoverImage(req: Request, res: Response): Promise<void> {
     try {
@@ -198,18 +198,19 @@ export class ImageController {
       const cityStr = city ? (Array.isArray(city) ? city[0] : city) : undefined;
       const cityStrToUse = cityStr ? String(cityStr) : undefined;
 
-      const imageUrl = await imageService.getSpotCoverImage(
+      const imageData = await imageService.getSpotCoverImageWithSource(
         decodeURIComponent(spotNameStr),
         cityStrToUse ? decodeURIComponent(cityStrToUse) : undefined
       );
 
-      if (imageUrl) {
+      if (imageData) {
         res.status(200).json({
           success: true,
           data: {
             spotName: decodeURIComponent(spotNameStr),
             city: cityStrToUse ? decodeURIComponent(cityStrToUse) : undefined,
-            imageUrl: imageUrl,
+            imageUrl: imageData.url,
+            source: imageData.source,
           },
         });
       } else {
@@ -220,6 +221,7 @@ export class ImageController {
             spotName: decodeURIComponent(spotNameStr),
             city: cityStrToUse ? decodeURIComponent(cityStrToUse) : undefined,
             imageUrl: null,
+            source: null,
           },
         });
       }
