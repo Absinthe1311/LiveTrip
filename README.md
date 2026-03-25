@@ -52,6 +52,14 @@ LiveTrip 是一个基于 **AI + IoT** 的智能旅行规划系统，结合智谱
 | **图片审核** | 审核用户上传的景点图片 |
 | **景点管理** | 管理景点信息和图片 |
 
+### 默认管理员账号
+
+- **用户名**：`666`
+- **密码**：`666666`
+- **邮箱**：`666@666.com`
+
+> 💡 提示：管理员账号通过 `backend/prisma/seed.ts` 脚本创建，如需重置请运行 `npm run prisma:seed`
+
 ---
 
 ## 🛠️ 技术栈
@@ -221,17 +229,24 @@ LiveTrip/
 ├── backend/                  # 后端项目
 │   ├── src/
 │   │   ├── routes/          # 路由
+│   │   ├── controllers/     # 控制器
 │   │   ├── middleware/      # 中间件
-│   │   ├── services/        # 服务
+│   │   ├── services/        # 业务服务
 │   │   └── utils/           # 工具函数
 │   ├── prisma/              # 数据库
 │   │   ├── schema.prisma    # 数据库模型
-│   │   └── seed.ts          # 初始数据
+│   │   ├── seed.ts          # 初始数据（管理员账号）
+│   │   └── migrations/      # 数据库迁移文件
+│   ├── scripts/             # 脚本工具
+│   │   ├── backup-db.ts     # 数据库备份脚本
+│   │   └── restore-db.ts    # 数据库恢复脚本
+│   ├── backups/             # 备份文件目录
 │   └── package.json
 │
 ├── README.md                 # 项目说明
 ├── 使用说明文档.md           # 用户手册
-└── 项目交接文档.md           # 交接文档
+├── 项目交接文档.md           # 交接文档
+└── DATA_BACKUP_GUIDE.md      # 数据备份与恢复指南
 ```
 
 ---
@@ -303,7 +318,15 @@ npm run start
 npm run prisma:studio    # 打开Prisma Studio
 npm run prisma:migrate   # 运行迁移
 npm run prisma:reset     # 重置数据库
+npm run prisma:seed      # 创建初始数据（管理员账号）
+
+# 数据备份与恢复
+npm run backup:db        # 备份数据库
+npm run restore:db -- --list      # 列出所有备份
+npm run restore:db -- <备份文件>  # 恢复数据库
 ```
+
+> 💡 **数据备份**：详细的数据备份与恢复指南请查看 [DATA_BACKUP_GUIDE.md](./DATA_BACKUP_GUIDE.md)
 
 ---
 

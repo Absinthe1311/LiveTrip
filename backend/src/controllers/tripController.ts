@@ -1,10 +1,10 @@
 // 行程管理控制器 - 处理行程的增删改查
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 import { budgetCalculator } from '../services/budgetCalculator';
 import { spotService } from '../services/spotService';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 /**
  * 获取用户的所有行程

@@ -1,9 +1,9 @@
 // 目的地热门景点缓存服务 - 优化版
 // 方案A：优先从数据库获取，高德API获取时保存到数据库
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 import { getAmapService } from './amapService';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 // 缓存过期时间（7天）
 const CACHE_EXPIRY_DAYS = 7;

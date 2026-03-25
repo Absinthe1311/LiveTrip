@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 /**
  * 评价数据接口

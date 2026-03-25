@@ -13,6 +13,8 @@
     "prisma:reset": "prisma migrate reset",
     "prisma:seed": "ts-node prisma/seed.ts",
     "test:db": "ts-node scripts/test-db-connection.ts",
+    "backup:db": "ts-node scripts/backup-db.ts",
+    "restore:db": "ts-node scripts/restore-db.ts",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write src/**/*.ts"
   },

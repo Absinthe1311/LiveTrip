@@ -1,7 +1,7 @@
 // 收藏服务 - 处理景点的收藏功能
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 export interface FavoriteSpot {
   id: string;

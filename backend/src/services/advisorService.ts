@@ -1,8 +1,8 @@
 // 旅行顾问服务 - 使用智谱AI（ChatGLM）提供旅行规划建议
 import https from 'https';
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 // 顾问请求参数
 export interface AdvisorRequest {

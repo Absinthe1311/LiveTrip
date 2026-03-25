@@ -3,10 +3,10 @@
  * 处理行程分享相关的业务逻辑
  */
 
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 import { generateShareToken } from '../utils/tokenGenerator';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 /**
  * 生成分享链接

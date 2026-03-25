@@ -1,9 +1,9 @@
 // 高德地图 POI 缓存服务 - 用于缓存高德地图的景点数据,减少 API 调用
 // 注意：景点数据永久存储，不会过期
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 import { AmapAttraction } from './amapService';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 export class AmapPOICacheService {
   /**

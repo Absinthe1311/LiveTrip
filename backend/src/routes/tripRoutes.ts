@@ -1,6 +1,7 @@
 // 行程管理路由 - 定义行程的增删改查API端点
 import { Router } from 'express';
 import { getUserTrips, getTripById, deleteTrip, saveTrip, updateTripHotel, updateDayRestaurant, calculateRealTimeBudget, completeTrip } from '../controllers/tripController';
+import { PackingController } from '../controllers/packingController';
 import { authenticateToken } from '../controllers/authController';
 
 const router = Router();
@@ -28,5 +29,19 @@ router.put('/:tripId/complete', authenticateToken, completeTrip);
 
 // DELETE /api/trips/:id - 删除行程
 router.delete('/:id', authenticateToken, deleteTrip);
+
+// ==================== 打包清单路由 ====================
+
+// GET /api/trips/:tripId/packing - 获取行程的打包清单
+router.get('/:tripId/packing', authenticateToken, PackingController.getPackingList);
+
+// POST /api/trips/:tripId/packing/initialize - 初始化打包清单（添加默认预设物品）
+router.post('/:tripId/packing/initialize', authenticateToken, PackingController.initializePackingList);
+
+// POST /api/trips/:tripId/packing - 添加打包物品
+router.post('/:tripId/packing', authenticateToken, PackingController.addPackingItem);
+
+// GET /api/trips/:tripId/packing/progress - 获取打包进度
+router.get('/:tripId/packing/progress', authenticateToken, PackingController.getPackingProgress);
 
 export default router;

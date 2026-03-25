@@ -1,7 +1,7 @@
 // 行程详情页面 - 新UI设计
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, PenLine, List, MapPin, ChevronRight, Navigation, Route, Search as SearchIcon, ChevronDown, Calendar, DollarSign, Clock, Share2, FileText, CheckCircle, Camera, Map, X } from "lucide-react";
+import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, PenLine, List, MapPin, ChevronRight, Navigation, Route, Search as SearchIcon, ChevronDown, Calendar, DollarSign, Clock, Share2, FileText, CheckCircle, Camera, Map, X, Briefcase } from "lucide-react";
 import { Sidebar } from '../components/SharedSidebar';
 import { getTripById, completeTrip, getIoTData, updateAlternativeRelations, getSpotCoverImage } from '../api/client';
 import { FullItinerary, AttractionItem } from '../api/client';
@@ -12,6 +12,7 @@ import PDFExportButton from '../components/PDFExportButton';
 import SpotImageUploadModal from '../components/SpotImageUploadModal';
 import AlternativeAttractions from '../components/AlternativeAttractions';
 import BudgetChart from '../components/BudgetChart';
+import PackingListDrawer from '../components/trip/PackingListDrawer';
 import {
   DndContext,
   closestCenter,
@@ -476,6 +477,7 @@ export default function TripDetailPage() {
   const [loadingAlternatives, setLoadingAlternatives] = useState<Record<string, boolean>>({});
   
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
+    const [packingListVisible, setPackingListVisible] = useState(false);
   const [selectedSpot, setSelectedSpot] = useState<AttractionItem | null>(null);
 
   useEffect(() => {
@@ -1058,6 +1060,13 @@ export default function TripDetailPage() {
         onSuccess={() => {
           console.log('图片上传成功，等待审核');
         }}
+      />
+
+      {/* Packing List Drawer */}
+      <PackingListDrawer
+        visible={packingListVisible}
+        onClose={() => setPackingListVisible(false)}
+        tripId={id || ''}
       />
     </div>
   );

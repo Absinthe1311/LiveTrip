@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 import { cloudinaryService } from './cloudinaryService';
 import { generateFileHash } from '../utils/hashGenerator';
 import { checkDuplicateImage, generateUniqueFileName, getImageExtension } from '../utils/imageValidator';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 /**
  * Unsplash图片接口

@@ -1,10 +1,10 @@
 // 用户认证控制器 - 处理注册、登录等认证相关请求
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
 
-const prisma: PrismaClient = new PrismaClient();
+const prisma = getPrismaClient();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'livetrip-secret-key-2024';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';

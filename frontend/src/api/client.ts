@@ -741,6 +741,110 @@ export const getHotDestinations = async () => {
   return response.data;
 };
 
+// ==================== 打包清单 API ====================
+
+/**
+ * 打包物品接口
+ */
+export interface PackingItem {
+  id: string;
+  tripId: string;
+  itemName: string;
+  category: string;
+  isPacked: boolean;
+  isSuggested: boolean;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * 打包进度接口
+ */
+export interface PackingProgress {
+  total: number;
+  packed: number;
+  percentage: number;
+}
+
+/**
+ * 获取行程的打包清单
+ * @param tripId 行程ID
+ * @returns 打包清单
+ */
+export const getPackingList = async (tripId: string) => {
+  const response = await apiClient.get(`/trips/${tripId}/packing`);
+  return response.data;
+};
+
+/**
+ * 初始化打包清单（添加默认预设物品）
+ * @param tripId 行程ID
+ * @returns 初始化后的打包清单
+ */
+export const initializePackingList = async (tripId: string) => {
+  const response = await apiClient.post(`/trips/${tripId}/packing/initialize`);
+  return response.data;
+};
+
+/**
+ * 添加打包物品
+ * @param tripId 行程ID
+ * @param itemName 物品名称
+ * @param category 分类
+ * @returns 添加的物品
+ */
+export const addPackingItem = async (tripId: string, itemName: string, category: string) => {
+  const response = await apiClient.post(`/trips/${tripId}/packing`, {
+    itemName,
+    category,
+  });
+  return response.data;
+};
+
+/**
+ * 更新打包物品状态
+ * @param itemId 物品ID
+ * @param updates 更新内容
+ * @returns 更新后的物品
+ */
+export const updatePackingItem = async (itemId: string, updates: {
+  isPacked?: boolean;
+  itemName?: string;
+}) => {
+  const response = await apiClient.patch(`/packing/${itemId}`, updates);
+  return response.data;
+};
+
+/**
+ * 删除打包物品
+ * @param itemId 物品ID
+ * @returns 删除结果
+ */
+export const deletePackingItem = async (itemId: string) => {
+  const response = await apiClient.delete(`/packing/${itemId}`);
+  return response.data;
+};
+
+/**
+ * 获取所有分类
+ * @returns 分类列表
+ */
+export const getPackingCategories = async () => {
+  const response = await apiClient.get('/packing/categories');
+  return response.data;
+};
+
+/**
+ * 获取打包进度
+ * @param tripId 行程ID
+ * @returns 打包进度
+ */
+export const getPackingProgress = async (tripId: string) => {
+  const response = await apiClient.get(`/trips/${tripId}/packing/progress`);
+  return response.data;
+};
+
 // ==================== 导出 ====================
 
 export default apiClient;

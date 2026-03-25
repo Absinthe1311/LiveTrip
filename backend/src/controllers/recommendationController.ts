@@ -1,10 +1,10 @@
 // 推荐控制器 - 处理酒店和餐厅推荐请求
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 import { hotelRecommender, HotelRecommendRequest } from '../services/hotelRecommender';
 import { restaurantRecommender, RestaurantRecommendRequest } from '../services/restaurantRecommender';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 /**
  * 获取酒店推荐

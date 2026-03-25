@@ -1,8 +1,8 @@
 // 餐厅缓存服务 - 用于缓存高德地图的餐厅数据
 // 注意：餐厅数据永久存储，不会过期
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 export interface RestaurantCache {
   name: string;

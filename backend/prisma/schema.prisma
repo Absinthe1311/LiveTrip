@@ -90,8 +90,28 @@ model Trip {
   updatedAt DateTime @updatedAt
 
   // Relations
-  days   Day[]
-  budget Budget?
+  days         Day[]
+  budget       Budget?
+  packingItems PackingItem[]
+}
+
+// Packing Item Table - 打包清单表
+model PackingItem {
+  id          String   @id @default(cuid())
+  tripId      String
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  itemName    String   // 物品名称
+  category    String   // 分类：clothing, electronics, documents, toiletries, medicine, other
+  isPacked    Boolean  @default(false)  // 是否已打包
+  isSuggested Boolean  @default(false)  // 是否为AI建议
+  isDefault   Boolean  @default(false)  // 是否为默认预设项
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tripId])
+  @@index([category])
 }
 
 // Day Table

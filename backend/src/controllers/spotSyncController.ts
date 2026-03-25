@@ -1,9 +1,9 @@
 // 景点同步控制器 - 处理从前端同步景点数据到数据库
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 import { spotService } from '../services/spotService';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 /**
  * 同步景点到数据库

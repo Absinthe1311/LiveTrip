@@ -17,6 +17,8 @@ import reviewRoutes from './reviewRoutes';
 import blogRoutes from './blogRoutes';
 import adminRoutes from './adminRoutes';
 import hotSpotRoutes from './hotSpotRoutes';
+import { PackingController } from '../controllers/packingController';
+import { authenticateToken } from '../controllers/authController';
 
 const router = Router();
 
@@ -38,5 +40,15 @@ router.use('/reviews', reviewRoutes);
 router.use('/blogs', blogRoutes);
 router.use('/admin', adminRoutes);
 router.use('/hot-spots', hotSpotRoutes);
+
+// ==================== 打包清单独立路由 ====================
+// PATCH /api/packing/:itemId - 更新打包物品状态
+router.patch('/packing/:itemId', authenticateToken, PackingController.updatePackingItem);
+
+// DELETE /api/packing/:itemId - 删除打包物品
+router.delete('/packing/:itemId', authenticateToken, PackingController.deletePackingItem);
+
+// GET /api/packing/categories - 获取所有分类
+router.get('/packing/categories', PackingController.getCategories);
 
 export default router;

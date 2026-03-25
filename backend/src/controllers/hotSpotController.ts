@@ -1,8 +1,8 @@
 // 热门景点控制器
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 /**
  * 获取热门景点

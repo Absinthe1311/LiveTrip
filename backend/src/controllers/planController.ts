@@ -6,10 +6,10 @@ import { aiRecommender } from '../services/aiRecommender';
 import { routeOptimizer } from '../services/routeOptimizer';
 import { itineraryAdjustService } from '../services/itineraryAdjustService';
 import { AdjustItineraryRequest } from '../services/itineraryAdjustService';
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 import { spotService } from '../services/spotService';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 /**
  * 创建行程计划

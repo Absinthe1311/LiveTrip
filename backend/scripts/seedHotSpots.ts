@@ -1,8 +1,8 @@
 // 预热热门景点数据脚本
 // 将前端硬编码的热门景点数据存入数据库，标记为isHot
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../src/lib/prisma';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 // 热门景点数据（从前端destinationsData.ts提取）
 const hotSpotsData = [

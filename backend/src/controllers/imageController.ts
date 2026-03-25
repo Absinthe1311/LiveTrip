@@ -6,9 +6,9 @@
 import { Request, Response } from 'express';
 import { imageService } from '../services/imageService';
 import { cloudinaryService } from '../services/cloudinaryService';
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 /**
  * 上传图片响应接口

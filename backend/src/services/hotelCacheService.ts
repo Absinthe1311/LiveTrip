@@ -1,8 +1,8 @@
 // 酒店缓存服务 - 用于缓存高德地图的酒店数据
 // 注意：酒店数据永久存储，不会过期
-import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../lib/prisma';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 export interface HotelCache {
   name: string;
