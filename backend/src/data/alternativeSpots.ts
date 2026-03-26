@@ -1,5 +1,5 @@
 // 备选景点数据 - 用于行程调整时的替换推荐
-import { RecommendedAttraction } from '../services/aiRecommender';
+import { RecommendedAttraction } from '../types';
 
 // 备选景点列表
 export const ALTERNATIVE_SPOTS: Array<{

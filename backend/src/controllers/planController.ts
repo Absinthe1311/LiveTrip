@@ -42,6 +42,10 @@ export const createPlan = async (req: Request, res: Response) => {
 
     console.log(`📅 行程天数: ${days} 天`);
     console.log(`📍 出发地: ${planData.origin || '未指定'}`);
+    console.log(`👥 群体类型: ${planData.groupType || 'solo'}`);
+    console.log(`👶 携带儿童: ${planData.hasChildren || false}`);
+    console.log(`👴 携带老人: ${planData.hasElderly || false}`);
+    console.log(`🎯 用户偏好: ${planData.preferences?.categories?.join(', ') || '无'}`);
 
     // 步骤 1: 调用 spotService 获取景点（同时存储到数据库）
     console.log('\n步骤 1: 获取景点数据并存储到数据库...');
@@ -74,10 +78,13 @@ export const createPlan = async (req: Request, res: Response) => {
     const itinerary = await aiRecommender().recommendItinerary({
       attractions,
       destination: planData.destination,
-      preferences: planData.preferences || {},
+      preferences: planData.preferences || { pace: 'moderate', energy_level: 'medium', categories: [] },
       budget: planData.budget || 5000,
       days,
-      groupSize: 1, // 默认为1人
+      groupSize: planData.groupSize || 1,
+      groupType: planData.groupType || 'solo',
+      hasChildren: planData.hasChildren || false,
+      hasElderly: planData.hasElderly || false,
       startDate: planData.start_date,
       endDate: planData.end_date,
     });

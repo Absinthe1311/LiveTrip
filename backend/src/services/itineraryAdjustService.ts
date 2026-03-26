@@ -1,5 +1,5 @@
 // 行程调整服务 - 根据物联网数据和调整原因动态调整行程
-import { RecommendedAttraction, DailyItinerary, FullItinerary } from './aiRecommender';
+import { RecommendedAttraction, DailyItinerary, FullItinerary } from '../types';
 import { getAlternativeSpots, filterAlternativeSpots, convertToItineraryAttraction } from '../data/alternativeSpots';
 
 // 调整请求接口

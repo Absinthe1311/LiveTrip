@@ -6,6 +6,18 @@ interface PreferenceInputProps {
   onChange: (preferences: string[]) => void;
 }
 
+// 映射前端偏好ID到后端CategoryTag
+const PREFERENCE_TO_CATEGORY: Record<string, string> = {
+  'culture': 'history',
+  'nature': 'nature',
+  'food': 'food',
+  'shopping': 'shopping',
+  'photography': 'city',
+  'relax': 'beach',
+  'art': 'art',
+  'nightlife': 'theme_park',
+};
+
 const PREFERENCES = [
   { id: 'culture', label: '文化历史', icon: Building, desc: '博物馆、古迹、文化景点' },
   { id: 'nature', label: '自然风光', icon: Mountain, desc: '山水、公园、自然景观' },
@@ -99,6 +111,30 @@ export default function PreferenceInput({
           </div>
         )}
       </div>
+
+      {/* 调试信息 - 显示映射后的CategoryTag */}
+      {value.length > 0 && (
+        <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
+          <div className="font-semibold mb-1">后端接收的类别标签：</div>
+          <div className="flex flex-wrap gap-2">
+            {value.map(id => {
+              const categoryTag = PREFERENCE_TO_CATEGORY[id];
+              return categoryTag ? (
+                <span key={id} className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                  {categoryTag}
+                </span>
+              ) : null;
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+// 导出映射函数供外部使用
+export const mapPreferencesToCategories = (preferences: string[]): string[] => {
+  return preferences
+    .map(pref => PREFERENCE_TO_CATEGORY[pref])
+    .filter((cat): cat is string => cat !== undefined);
+};

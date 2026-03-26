@@ -8,7 +8,8 @@ import { useAppStore } from '../store';
 import LocationInput from '../components/LocationInput';
 import DateRangeInput from '../components/DateRangeInput';
 import BudgetRangeInput from '../components/BudgetRangeInput';
-import PreferenceInput from '../components/PreferenceInput';
+import PreferenceInput, { mapPreferencesToCategories } from '../components/PreferenceInput';
+import GroupInput from '../components/GroupInput';
 import AIAdvisor from '../components/AIAdvisor';
 
 const steps = [
@@ -16,7 +17,8 @@ const steps = [
   { id: 2, label: "目的地", icon: "🎯" },
   { id: 3, label: "行程日期", icon: "📅" },
   { id: 4, label: "预算范围", icon: "💰" },
-  { id: 5, label: "兴趣偏好", icon: "🎨" },
+  { id: 5, label: "群体类型", icon: "👥" },
+  { id: 6, label: "兴趣偏好", icon: "🎨" },
 ];
 
 export default function Plan() {
@@ -38,6 +40,13 @@ export default function Plan() {
     preferences: [],
     minBudget: 5000,
     maxBudget: 20000,
+    // 新增字段
+    groupSize: 1,
+    groupType: 'solo',
+    hasChildren: false,
+    hasElderly: false,
+    pace: 'moderate',
+    energy_level: 'medium',
   });
 
   useEffect(() => {
@@ -118,19 +127,25 @@ export default function Plan() {
       // 计算平均预算
       const avgBudget = Math.round((formData.minBudget + formData.maxBudget) / 2);
 
-      // 构建请求参数
+      // 构建请求参数（修复后的格式）
       const request = {
         origin: formData.origin,
         destination: formData.destination,
         start_date: formData.startDate,
         end_date: formData.endDate,
         budget: avgBudget,
+        groupSize: formData.groupSize || 1,
+        groupType: formData.groupType || 'solo',
+        hasChildren: formData.hasChildren || false,
+        hasElderly: formData.hasElderly || false,
         preferences: {
-          interests: formData.preferences.join(','),
+          pace: formData.pace || 'moderate',
+          energy_level: formData.energy_level || 'medium',
+          categories: mapPreferencesToCategories(formData.preferences || []), // 映射为后端期望的CategoryTag数组
         },
       };
 
-      console.log('📝 发送行程规划请求:', request);
+      console.log('📝 发送行程规划请求:', JSON.stringify(request, null, 2));
 
       // 调用后端 API
       const response = await createPlan(request);
@@ -200,6 +215,18 @@ export default function Plan() {
           />
         );
       case 4:
+        return (
+          <GroupInput
+            groupSize={formData.groupSize}
+            groupType={formData.groupType}
+            hasChildren={formData.hasChildren}
+            hasElderly={formData.hasElderly}
+            pace={formData.pace}
+            energy_level={formData.energy_level}
+            onChange={(updates) => setFormData({ ...formData, ...updates })}
+          />
+        );
+      case 5:
         return (
           <PreferenceInput
             value={formData.preferences}
