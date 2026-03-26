@@ -20,11 +20,14 @@ LiveTrip 是一个基于 **AI + IoT** 的智能旅行规划系统，结合智谱
 
 - 🤖 **AI智能规划**：基于智谱AI的智能行程规划，自动生成最优路线和时间安排
 - 📡 **IoT实时数据**：集成物联网传感器数据，提供景点拥挤度、天气等实时信息
+- 🌤️ **真实天气数据**：接入 OpenWeatherMap API，获取真实的天气信息（温度、湿度、降雨概率）
+- 👥 **智能人流模拟**：基于时段、日期和景点热度系数的人流预测模型
 - 🗺️ **智能推荐**：景点、酒店、餐厅智能推荐，支持备选景点查看和替换
 - 📱 **现代化UI**：采用 Tailwind CSS + shadcn/ui 的现代化界面设计
 - 🔗 **行程分享**：支持行程链接分享和PDF导出
 - 📸 **图片管理**：景点图片上传、审核和管理功能
 - ✍️ **游记撰写**：行程完成后可撰写游记，记录美好时光
+- 🎒 **打包清单**：智能打包建议，支持自定义和管理打包物品
 
 ---
 
@@ -35,7 +38,8 @@ LiveTrip 是一个基于 **AI + IoT** 的智能旅行规划系统，结合智谱
 | 功能模块 | 功能描述 |
 |---------|---------|
 | **AI行程规划** | 输入目的地、日期、预算，AI自动生成完整行程 |
-| **实时数据** | 查看景点拥挤度、天气、开放状态等IoT数据 |
+| **实时天气数据** | 真实天气信息（温度、湿度、天气描述、降雨概率） |
+| **智能人流预测** | 基于时段、日期和热度系数的人流密度预测 |
 | **景点管理** | 拖拽排序、查看备选、替换景点 |
 | **酒店推荐** | 基于位置和预算的智能酒店推荐 |
 | **餐厅推荐** | 每日餐厅推荐，支持选择和跳过 |
@@ -44,6 +48,7 @@ LiveTrip 是一个基于 **AI + IoT** 的智能旅行规划系统，结合智谱
 | **图片上传** | 行程完成后上传景点图片 |
 | **游记撰写** | Markdown编辑器，支持图片和格式化 |
 | **收藏管理** | 收藏喜欢的景点、酒店、餐厅 |
+| **打包清单** | 智能打包建议，支持自定义和管理打包物品 |
 
 ### 管理员功能
 
@@ -95,6 +100,7 @@ LiveTrip 是一个基于 **AI + IoT** 的智能旅行规划系统，结合智谱
 | Cloudinary | - | 图片存储 |
 | 智谱AI | - | AI服务 |
 | 高德地图 | - | 地图服务 |
+| OpenWeatherMap | - | 天气数据服务 |
 
 ---
 
@@ -155,6 +161,10 @@ AMAP_JS_SECRET=your-amap-js-secret
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
+
+# OpenWeatherMap（可选，用于真实天气数据）
+OPENWEATHERMAP_API_KEY=your-openweathermap-api-key
+OPENWEATHERMAP_API_URL=https://api.openweathermap.org/data/2.5
 ```
 
 **前端配置**：
@@ -275,6 +285,13 @@ LiveTrip/
 3. 在Dashboard获取配置信息
 4. 复制到环境变量
 
+### OpenWeatherMap（可选）
+
+1. 访问 [OpenWeatherMap](https://openweathermap.org/api)
+2. 注册账号并登录
+3. 在API Keys页面创建API Key
+4. 复制到环境变量（用于真实天气数据）
+
 ---
 
 ## 📝 开发指南
@@ -327,6 +344,28 @@ npm run restore:db -- <备份文件>  # 恢复数据库
 ```
 
 > 💡 **数据备份**：详细的数据备份与恢复指南请查看 [DATA_BACKUP_GUIDE.md](./DATA_BACKUP_GUIDE.md)
+
+### 故障排查
+
+#### 数据库迁移失败
+
+**问题**：执行 `npm run prisma:migrate` 时出现 "database is locked" 错误
+
+**解决方案**：
+1. 停止所有 Node 进程
+2. 删除 `backend/prisma/dev.db-journal` 文件
+3. 重新运行迁移命令
+
+详细排查步骤请查看项目文档中的数据库锁定问题解决方案。
+
+#### IoT 数据无法加载
+
+**问题**：页面无法显示天气和人流量数据
+
+**解决方案**：
+1. 检查后端环境变量中是否配置了 `OPENWEATHERMAP_API_KEY`
+2. 确认数据库中景点有正确的经纬度坐标
+3. 查看后端日志，确认 API 调用是否成功
 
 ---
 

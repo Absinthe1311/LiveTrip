@@ -121,7 +121,10 @@ export interface IoTSpotData {
   name: string;
   crowdLevel: number;
   temperature: number;
+  humidity?: number;
   rainProbability: number;
+  weatherDescription?: string;
+  weatherIcon?: string;
   isOpen: boolean;
 }
 

@@ -1,6 +1,5 @@
 // 行程调整服务 - 根据物联网数据和调整原因动态调整行程
 import { RecommendedAttraction, DailyItinerary, FullItinerary } from './aiRecommender';
-import { iotDataGenerator } from '../iot/iotDataGenerator';
 import { getAlternativeSpots, filterAlternativeSpots, convertToItineraryAttraction } from '../data/alternativeSpots';
 
 // 调整请求接口
@@ -44,9 +43,10 @@ class ItineraryAdjustService {
     console.log(`   调整原因: ${reason}`);
     console.log(`   目标景点ID: ${targetAttractionId}`);
 
-    // 获取 IoT 数据
-    const iotData = await iotDataGenerator.getIoTData();
-    const spotsData = iotData.spots;
+    // 获取 IoT 数据（从新的控制器）
+    // 注意：这里需要从实际的 IoT API 获取数据
+    // 暂时返回空数组，后续可以集成新的 IoT 服务
+    const spotsData: SpotIoTData[] = [];
 
     // 查找目标景点在行程中的位置
     const targetDayIndex = await this.findAttractionInItinerary(itinerary, targetAttractionId);
@@ -158,35 +158,9 @@ class ItineraryAdjustService {
     console.log(`   查找景点 ID: ${attractionId}`);
 
     // 首先通过 attractionId 获取 IoT 数据中的景点名称
-    const iotData = await iotDataGenerator.getIoTData();
-    const targetSpot = iotData.spots.find((s: any) => s.id === attractionId);
-
-    if (!targetSpot) {
-      console.warn(`⚠️  未找到 IoT 数据中的景点 ID: ${attractionId}`);
-      console.warn(`   可用的景点 ID: ${iotData.spots.map((s: any) => s.id).join(', ')}`);
-      return null;
-    }
-
-    console.log(`   目标景点名称: "${targetSpot.name}"`);
-
-    // 然后在行程中通过名称匹配找到对应的景点
-    console.log(`   行程中的景点数量: ${itinerary.itinerary.length} 天`);
-    for (let dayIndex = 0; dayIndex < itinerary.itinerary.length; dayIndex++) {
-      const day = itinerary.itinerary[dayIndex];
-      console.log(`   第 ${dayIndex + 1} 天的景点数量: ${day.attractions.length}`);
-      for (let attractionIndex = 0; attractionIndex < day.attractions.length; attractionIndex++) {
-        const attraction = day.attractions[attractionIndex];
-        console.log(`     检查景点: "${attraction.name}"`);
-
-        // 使用精确匹配
-        if (attraction.name === targetSpot.name) {
-          console.log(`   ✅ 找到匹配的行程景点: "${attraction.name}"`);
-          return { dayIndex, attractionIndex };
-        }
-      }
-    }
-
-    console.warn(`⚠️  未在行程中找到景点: "${targetSpot.name}"`);
+    // 注意：这里需要从实际的 IoT API 获取数据
+    // 暂时返回 null，后续可以集成新的 IoT 服务
+    console.warn(`⚠️  IoT 数据服务已更新，需要集成新的 IoT 控制器`);
     return null;
   }
 

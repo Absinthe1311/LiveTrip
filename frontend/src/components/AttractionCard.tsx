@@ -13,7 +13,10 @@ interface AttractionCardProps {
   iotData?: {
     crowdLevel: number;
     temperature: number;
+    humidity?: number;
     rainProbability: number;
+    weatherDescription?: string;
+    weatherIcon?: string;
     isOpen: boolean;
   };
   item?: any;
@@ -47,7 +50,17 @@ export default function AttractionCard({ time, name, desc, onShowAlternatives, i
 
   const getWeatherStatus = () => {
     if (!iotData) return null;
-    const { rainProbability, temperature } = iotData;
+    const { rainProbability, temperature, weatherDescription } = iotData;
+
+    // 优先使用真实天气描述
+    if (weatherDescription && weatherDescription !== '未知') {
+      if (rainProbability > 80) return { icon: '⛈️', text: weatherDescription, color: 'red' };
+      if (rainProbability > 50) return { icon: '🌧️', text: weatherDescription, color: 'orange' };
+      if (rainProbability > 20) return { icon: '🌦️', text: weatherDescription, color: 'yellow' };
+      return { icon: '☀️', text: weatherDescription, color: 'green' };
+    }
+
+    // 回退到基于降雨概率的判断
     if (rainProbability > 80) return { icon: '⛈️', text: '暴雨', color: 'red' };
     if (rainProbability > 50) return { icon: '🌧️', text: '中雨', color: 'orange' };
     if (rainProbability > 20) return { icon: '🌦️', text: '小雨', color: 'yellow' };
@@ -145,11 +158,12 @@ export default function AttractionCard({ time, name, desc, onShowAlternatives, i
                 {weather && (
                   <Tag icon={<ThunderboltOutlined />} color={weather.color}>
                     {weather.icon} {weather.text} {iotData.temperature}°C
+                    {iotData.humidity && ` 💧${iotData.humidity}%`}
                   </Tag>
                 )}
                 {crowd && (
                   <Tag icon={<TeamOutlined />} color={crowd.color}>
-                    {crowd.icon} {crowd.text}
+                    {crowd.icon} {crowd.text} {iotData.crowdLevel}%
                   </Tag>
                 )}
                 {open && (

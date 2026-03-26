@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, PenLine, List, MapPin, ChevronRight, Navigation, Route, Search as SearchIcon, ChevronDown, Calendar, DollarSign, Clock, Share2, FileText, CheckCircle, Camera, Map, X, Briefcase } from "lucide-react";
 import { Sidebar } from '../components/SharedSidebar';
+import IoTDataCard from '../components/IoTDataCard';
 import { getTripById, completeTrip, getIoTData, updateAlternativeRelations, getSpotCoverImage } from '../api/client';
 import { FullItinerary, AttractionItem } from '../api/client';
 import { alternativeRecommender } from '../services/alternativeRecommender';
@@ -129,17 +130,20 @@ function getAttractionIoTData(attraction: AttractionItem, iotDataList: any[]): a
   if (!iotDataList || iotDataList.length === 0) {
     return null;
   }
-  
+
   const iotData = iotDataList.find((data: any) => data.name === attraction.name);
-  
+
   if (!iotData) {
     return null;
   }
-  
+
   return {
     crowdLevel: iotData.crowdLevel,
     temperature: iotData.temperature,
+    humidity: iotData.humidity,
     rainProbability: iotData.rainProbability,
+    weatherDescription: iotData.weatherDescription,
+    weatherIcon: iotData.weatherIcon,
     isOpen: iotData.isOpen,
   };
 }
@@ -427,28 +431,29 @@ function SortableAttractionCard({
           {item.description && (
             <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
           )}
-          
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+
+          <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
             {item.estimated_cost > 0 && (
               <span className="flex items-center gap-1">
                 <DollarSign className="h-3 w-3" />
                 ¥{item.estimated_cost}
               </span>
             )}
-            {iotInfo && (
-              <>
-                {iotInfo.crowdLevel !== undefined && (
-                  <span className="flex items-center gap-1">
-                    <span className={`w-2 h-2 rounded-full ${iotInfo.crowdLevel > 70 ? 'bg-red-500' : iotInfo.crowdLevel > 40 ? 'bg-yellow-500' : 'bg-green-500'}`}></span>
-                    拥挤度: {iotInfo.crowdLevel}%
-                  </span>
-                )}
-                {iotInfo.temperature !== undefined && (
-                  <span>{iotInfo.temperature}°C</span>
-                )}
-              </>
-            )}
           </div>
+
+          {/* IoT 数据卡片 */}
+          {iotInfo && (
+            <IoTDataCard
+              temperature={iotInfo.temperature}
+              humidity={iotInfo.humidity}
+              crowdLevel={iotInfo.crowdLevel}
+              rainProbability={iotInfo.rainProbability}
+              weatherDescription={iotInfo.weatherDescription}
+              weatherIcon={iotInfo.weatherIcon}
+              isOpen={iotInfo.isOpen}
+              compact={true}
+            />
+          )}
         </div>
       </div>
     </div>

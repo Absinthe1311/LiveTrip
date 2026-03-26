@@ -311,6 +311,11 @@ model SpotIoTData {
   rainProbability Float
   isOpen          Boolean
 
+  // Weather data (from OpenWeatherMap)
+  weatherDescription String?   @default("")  // 天气状况中文描述
+  weatherIcon       String?   @default("")  // 天气图标代码
+  weatherUpdatedAt  DateTime? // 天气数据最后更新时间
+
   // Metadata
   generatedAt DateTime @default(now())
   updatedAt   DateTime @updatedAt

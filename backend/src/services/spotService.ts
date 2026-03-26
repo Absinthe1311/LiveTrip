@@ -1,7 +1,6 @@
 // 景点数据服务 - 整合高德API和数据库缓存
 import { getPrismaClient } from '../lib/prisma';
 import { AmapAttraction, amapService } from './amapService';
-import { iotDataGenerator } from '../iot/iotDataGenerator';
 import { deduplicateSpots } from '../utils/spotDeduplication';
 
 const prisma = getPrismaClient();

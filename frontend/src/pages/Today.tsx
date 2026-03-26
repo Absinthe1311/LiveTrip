@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, PenLine, List, MapPin, ChevronRight, Navigation, Route, Search as SearchIcon, ChevronDown, Calendar, DollarSign, Clock, Share2, FileText, CheckCircle, Camera, Map, X, Briefcase, Sun, Moon, Cloud, CloudRain, Snowflake, Thermometer, Users, CalendarDays } from "lucide-react";
 import { Sidebar } from '../components/SharedSidebar';
+import IoTDataCard from '../components/IoTDataCard';
 import { getUserTrips, getTripById, getIoTData, getPackingProgress } from '../api/client';
 import PackingListDrawer from '../components/trip/PackingListDrawer';
 
@@ -17,6 +18,7 @@ export default function Today() {
   const [packingListVisible, setPackingListVisible] = useState(false);
   const [packingProgress, setPackingProgress] = useState({ total: 0, packed: 0, percentage: 0 });
   const [currentWeather, setCurrentWeather] = useState<any>(null);
+  const [iotData, setIotData] = useState<any[]>([]);
 
   useEffect(() => {
     const checkScreenSize = () => setIsLargeScreen(window.innerWidth >= 1024);
@@ -64,24 +66,16 @@ export default function Today() {
           const response = await getTripById(planningTrips[0].id);
           if (response.success && response.data) {
             setTrip(response.data);
-            setCurrentWeather({
-              temperature: 22,
-              condition: 'sunny',
-              humidity: 65,
-              wind: 12
-            });
+            // 加载 IoT 数据
+            loadIoTData();
           }
         } else {
           setError('暂无行程，请先创建行程');
         }
       } else {
         setTrip(currentTrip);
-        setCurrentWeather({
-          temperature: 22,
-          condition: 'sunny',
-          humidity: 65,
-          wind: 12
-        });
+        // 加载 IoT 数据
+        loadIoTData();
         loadPackingProgress(currentTrip.id);
       }
     } catch (error: any) {
@@ -93,6 +87,26 @@ export default function Today() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadIoTData = async () => {
+    try {
+      const response = await getIoTData();
+      if (response.success && response.data) {
+        setIotData(response.data.spots);
+        // 设置当前天气为第一个景点的天气
+        if (response.data.spots.length > 0) {
+          setCurrentWeather({
+            temperature: response.data.spots[0].temperature,
+            condition: response.data.spots[0].weatherDescription || 'sunny',
+            humidity: response.data.spots[0].humidity,
+            wind: 12
+          });
+        }
+      }
+    } catch (error) {
+      console.error('加载 IoT 数据失败:', error);
     }
   };
 
@@ -245,37 +259,19 @@ export default function Today() {
             <p className="text-[13px] text-muted-foreground">{formatDate(trip.startDate)}</p>
           </div>
 
-          {/* Weather Card */}
-          <div className="bg-card border border-border rounded-lg p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-                <CalendarDays className="w-5 h-5 text-livetrip-primary" />
-                今日天气
-              </h3>
-              <span className="text-sm text-muted-foreground">{trip.destination}</span>
-            </div>
-            <div className="flex items-center gap-6">
-              {getWeatherIcon(currentWeather?.condition)}
-              <div>
-                <div className="text-3xl font-bold text-foreground">{currentWeather?.temperature}°C</div>
-                <div className="text-sm text-muted-foreground">湿度 {currentWeather?.humidity}%</div>
-              </div>
-              <div className="flex-1 grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-sm font-medium text-foreground">12 km/h</div>
-                  <div className="text-xs text-muted-foreground">风速</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-foreground">优</div>
-                  <div className="text-xs text-muted-foreground">空气</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-foreground">适宜</div>
-                  <div className="text-xs text-muted-foreground">出行</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Weather Card - 使用完整的 IoT 数据 */}
+          {iotData.length > 0 && (
+            <IoTDataCard
+              temperature={iotData[0].temperature}
+              humidity={iotData[0].humidity}
+              crowdLevel={iotData[0].crowdLevel}
+              rainProbability={iotData[0].rainProbability}
+              weatherDescription={iotData[0].weatherDescription}
+              weatherIcon={iotData[0].weatherIcon}
+              isOpen={iotData[0].isOpen}
+              compact={false}
+            />
+          )}
 
           {/* Packing Progress Card */}
           <div className="bg-card border border-border rounded-lg p-6 mb-6">
