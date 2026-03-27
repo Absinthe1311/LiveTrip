@@ -1,15 +1,17 @@
-// AI 咨询组件 - 简单的旅行建议
+// AI 咨询组件 - 支持问答助手和智能助手两种模式
 import { useState } from 'react';
-import { Sparkles, Send, ChevronDown, ChevronUp } from 'lucide-react';
+import { Sparkles, Send, ChevronDown, ChevronUp, MessageCircle, Bot } from 'lucide-react';
+import { aiService, ChatMode } from '../services/aiService';
 
 interface AIAdvisorProps {
   destination?: string;
   startDate?: string;
   endDate?: string;
   budget?: number;
+  defaultMode?: ChatMode;
 }
 
-const QUICK_QUESTIONS = [
+const ADVISOR_QUICK_QUESTIONS = [
   '这个目的地有什么特色？',
   '最佳旅行时间是什么时候？',
   '有什么必去的景点？',
@@ -17,42 +19,97 @@ const QUICK_QUESTIONS = [
   '需要注意什么？',
 ];
 
+const AGENT_QUICK_QUESTIONS = [
+  '帮我创建一个行程',
+  '查看我的行程列表',
+  '生成旅行博客',
+];
+
 export default function AIAdvisor({
   destination,
   startDate,
   endDate,
   budget,
+  defaultMode = 'advisor',
 }: AIAdvisorProps) {
   const [expanded, setExpanded] = useState(false);
+  const [mode, setMode] = useState<ChatMode>(defaultMode);
   const [inputValue, setInputValue] = useState('');
-  const [messages, setMessages] = useState<Array<{ role: 'user' | 'ai'; content: string }>>([
+  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([
     {
-      role: 'ai',
+      role: 'assistant',
       content: destination 
         ? `您好！我是您的 AI 旅行顾问。关于 ${destination} 的旅行，有什么我可以帮助您的吗？`
         : '您好！我是您的 AI 旅行顾问。请先选择目的地，我将为您提供专业的旅行建议。',
     },
   ]);
+  const [loading, setLoading] = useState(false);
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  const handleSend = async () => {
+    if (!inputValue.trim() || loading) return;
 
     const userMessage = { role: 'user' as const, content: inputValue };
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
+    setLoading(true);
 
-    // 模拟 AI 回复
-    setTimeout(() => {
-      const aiResponse = {
-        role: 'ai' as const,
-        content: getAIResponse(inputValue, destination),
+    try {
+      let data;
+      if (mode === 'advisor') {
+        data = await aiService.sendAdvisorMessage(inputValue, {
+          destination,
+          startDate,
+          endDate,
+          budget,
+        });
+      } else {
+        data = await aiService.sendAgentMessage(inputValue);
+      }
+
+      if (data.success && data.data?.answer) {
+        const aiResponse = {
+          role: 'assistant' as const,
+          content: data.data.answer,
+        };
+        setMessages(prev => [...prev, aiResponse]);
+      } else {
+        throw new Error(data.error || '获取回答失败');
+      }
+    } catch (error: any) {
+      console.error('❌ AI请求失败:', error);
+      const errorMessage = {
+        role: 'assistant' as const,
+        content: `抱歉，AI暂时无法使用。错误信息：${error.message || '请稍后再试'}`,
       };
-      setMessages(prev => [...prev, aiResponse]);
-    }, 500);
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleQuickQuestion = (question: string) => {
     setInputValue(question);
+  };
+
+  const handleModeChange = (newMode: ChatMode) => {
+    setMode(newMode);
+    // 切换模式时重置消息
+    const welcomeMessage = newMode === 'advisor'
+      ? destination 
+        ? `您好！我是您的 AI 旅行顾问。关于 ${destination} 的旅行，有什么我可以帮助您的吗？`
+        : '您好！我是您的 AI 旅行顾问。请先选择目的地，我将为您提供专业的旅行建议。'
+      : '您好！我是您的智能旅行助手。我可以帮您创建行程、查看行程列表、生成旅行博客。';
+    
+    setMessages([
+      {
+        role: 'assistant',
+        content: welcomeMessage,
+      },
+    ]);
+  };
+
+  const getQuickQuestions = () => {
+    return mode === 'advisor' ? ADVISOR_QUICK_QUESTIONS : AGENT_QUICK_QUESTIONS;
   };
 
   return (
@@ -64,11 +121,19 @@ export default function AIAdvisor({
       >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Sparkles className="h-5 w-5 text-primary" />
+            {mode === 'advisor' ? (
+              <MessageCircle className="h-5 w-5 text-primary" />
+            ) : (
+              <Bot className="h-5 w-5 text-primary" />
+            )}
           </div>
           <div className="text-left">
-            <h4 className="text-[15px] font-semibold text-foreground">AI 旅行顾问</h4>
-            <p className="text-[12px] text-muted-foreground">获取专业的旅行建议</p>
+            <h4 className="text-[15px] font-semibold text-foreground">
+              {mode === 'advisor' ? 'AI 旅行顾问' : '智能旅行助手'}
+            </h4>
+            <p className="text-[12px] text-muted-foreground">
+              {mode === 'advisor' ? '获取专业的旅行建议' : '创建行程、生成博客'}
+            </p>
           </div>
         </div>
         {expanded ? (
@@ -81,6 +146,34 @@ export default function AIAdvisor({
       {/* Content */}
       {expanded && (
         <div className="border-t border-border">
+          {/* Mode Switcher */}
+          <div className="p-3 border-b border-border">
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleModeChange('advisor')}
+                className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  mode === 'advisor'
+                    ? 'bg-livetrip-primary text-white'
+                    : 'bg-gray-100 text-foreground hover:bg-gray-200'
+                }`}
+              >
+                <MessageCircle className="w-3 h-3 inline mr-1" />
+                问答助手
+              </button>
+              <button
+                onClick={() => handleModeChange('agent')}
+                className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  mode === 'agent'
+                    ? 'bg-livetrip-primary text-white'
+                    : 'bg-gray-100 text-foreground hover:bg-gray-200'
+                }`}
+              >
+                <Bot className="w-3 h-3 inline mr-1" />
+                智能助手
+              </button>
+            </div>
+          </div>
+
           {/* Messages */}
           <div className="h-[200px] overflow-y-auto p-4 space-y-3">
             {messages.map((msg, index) => (
@@ -104,7 +197,7 @@ export default function AIAdvisor({
           {/* Quick Questions */}
           <div className="px-4 pb-3">
             <div className="flex flex-wrap gap-2">
-              {QUICK_QUESTIONS.map((q, i) => (
+              {getQuickQuestions().map((q, i) => (
                 <button
                   key={i}
                   onClick={() => handleQuickQuestion(q)}
@@ -124,15 +217,20 @@ export default function AIAdvisor({
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="输入您的问题..."
-                className="flex-1 h-10 px-3 rounded-lg border border-border bg-background text-[13px] focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder={mode === 'advisor' ? "输入您的问题..." : "告诉我您的需求..."}
+                disabled={loading}
+                className="flex-1 h-10 px-3 rounded-lg border border-border bg-background text-[13px] focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
               />
               <button
                 onClick={handleSend}
-                disabled={!inputValue.trim()}
+                disabled={!inputValue.trim() || loading}
                 className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Send className="h-4 w-4" />
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </button>
             </div>
           </div>
@@ -140,35 +238,4 @@ export default function AIAdvisor({
       )}
     </div>
   );
-}
-
-// 简单的 AI 回复逻辑
-function getAIResponse(question: string, destination?: string): string {
-  const q = question.toLowerCase();
-  
-  if (q.includes('特色') || q.includes('特点')) {
-    return destination 
-      ? `${destination}是一个充满魅力的目的地，拥有独特的文化、美食和自然风光。建议您深入了解当地的历史文化，品尝特色美食。`
-      : '请先选择目的地，我将为您介绍其特色。';
-  }
-  
-  if (q.includes('时间') || q.includes('季节')) {
-    return '最佳旅行时间通常是春秋两季，气候宜人，适合户外活动。建议避开当地的雨季和极端天气时期。';
-  }
-  
-  if (q.includes('景点') || q.includes('必去')) {
-    return destination
-      ? `${destination}有很多值得一去的景点。建议您提前规划路线，合理安排时间，避免错过精华景点。`
-      : '请先选择目的地，我将为您推荐必去景点。';
-  }
-  
-  if (q.includes('美食') || q.includes('吃')) {
-    return '当地美食是旅行的重要部分。建议尝试当地特色菜肴，体验地道的饮食文化。可以参考美食攻略或询问当地人推荐。';
-  }
-  
-  if (q.includes('注意') || q.includes('提醒')) {
-    return '出行前请准备好必要的证件和物品，了解当地的风俗习惯，注意人身和财产安全。建议购买旅行保险。';
-  }
-  
-  return '感谢您的提问！我会尽力为您提供有用的旅行建议。如有具体问题，请随时询问。';
 }

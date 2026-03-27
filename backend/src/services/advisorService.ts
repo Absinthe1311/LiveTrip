@@ -1,6 +1,7 @@
 // 旅行顾问服务 - 使用智谱AI（ChatGLM）提供旅行规划建议
 import https from 'https';
 import { getPrismaClient } from '../lib/prisma';
+import { chatHistoryService } from './chatHistoryService';
 
 const prisma = getPrismaClient();
 
@@ -244,7 +245,7 @@ class AdvisorService {
   /**
    * 回答用户问题
    */
-  async answerQuestion(request: AdvisorRequest): Promise<AdvisorResponse> {
+  async answerQuestion(request: AdvisorRequest, userId?: string): Promise<AdvisorResponse> {
     const { question, planContext } = request;
 
     console.log('🤖 收到顾问请求');
@@ -252,8 +253,44 @@ class AdvisorService {
     console.log('   规划信息:', JSON.stringify(planContext, null, 2));
 
     try {
-      const systemPrompt = this.buildSystemPrompt();
-      let userPrompt = this.buildUserPrompt(question, planContext);
+      // 获取或创建对话会话
+      const session = await chatHistoryService.getOrCreateAdvisorSession(userId);
+      console.log(`   会话ID: ${session.id}`);
+
+      // 保存用户消息
+      await chatHistoryService.createMessage({
+        sessionId: session.id,
+        role: 'user',
+        content: question,
+      });
+
+      // 获取历史消息（最近 10 条）
+      const messageHistory = await chatHistoryService.getMessages({
+        sessionId: session.id,
+        limit: 10,
+      });
+
+      // 构建对话上下文
+      const messages: any[] = [
+        {
+          role: 'system',
+          content: this.buildSystemPrompt(),
+        },
+      ];
+
+      // 添加历史消息到上下文
+      messageHistory.forEach(msg => {
+        messages.push({
+          role: msg.role,
+          content: msg.content,
+        });
+      });
+
+      // 添加当前用户消息
+      messages.push({
+        role: 'user',
+        content: this.buildUserPrompt(question, planContext),
+      });
 
       // 判断是否需要获取景点数据
       if (this.needsSpotData(question) && planContext?.destination) {
@@ -267,27 +304,25 @@ class AdvisorService {
         );
 
         if (spots.length > 0) {
-          // 将景点数据添加到提示词中
+          // 将景点数据添加到最后一条用户消息
           const spotsInfo = this.formatSpotsForPrompt(spots);
-          userPrompt += spotsInfo;
-          console.log(`✅ 已添加 ${spots.length} 个景点信息到提示词`);
+          messages[messages.length - 1].content += spotsInfo;
+          console.log(`✅ 已添加 ${spots.length} 个景点信息到上下文`);
         } else {
           console.log('⚠️ 数据库中没有找到该城市的景点数据');
         }
       }
 
-      const result = await this.callZhipuAI([
-        {
-          role: 'system',
-          content: systemPrompt,
-        },
-        {
-          role: 'user',
-          content: userPrompt,
-        },
-      ]);
+      const result = await this.callZhipuAI(messages);
 
       const answer = result.choices[0]?.message?.content || '抱歉，我暂时无法回答这个问题。';
+
+      // 保存 AI 回复
+      await chatHistoryService.createMessage({
+        sessionId: session.id,
+        role: 'assistant',
+        content: answer,
+      });
 
       console.log('✅ AI顾问回答完成');
       console.log('   回答:', answer);
@@ -303,39 +338,36 @@ class AdvisorService {
    * 构建系统提示词
    */
   private buildSystemPrompt(): string {
-    return `你是一位专业的旅行规划顾问，服务于一款智能旅行规划平台。你的职责是帮助用户在规划旅行时解答疑问、提供建议，辅助他们做出更好的决策。
+    return `你是一位专业的旅行规划顾问，为 LiveTrip 智能旅行平台的用户提供旅行咨询服务。
 
-## 你的能力范围
+【能力范围】
+✅ 目的地介绍、景点推荐、最佳游览季节、当地文化习俗、注意事项
+✅ 行程建议、景点组合、游览顺序、每天行程安排的合理性
+✅ 预算参考、省钱技巧、费用分配建议
+✅ 交通方式、住宿类型、餐饮方向建议
+✅ 根据用户描述的兴趣推荐合适的目的地或景点类型
 
-- 目的地介绍：景点特色、最佳游览季节、当地文化习俗、注意事项
-- 行程建议：景点组合、游览顺序、每天行程安排的合理性
-- 预算参考：各类目的地的大致花费区间、省钱技巧、预算分配建议
-- 出行建议：交通方式、住宿选择、餐饮推荐方向
-- 偏好匹配：根据用户描述的兴趣推荐合适的目的地或景点类型
+【边界约束】
+❌ 不直接创建或修改任何行程数据
+❌ 不访问用户的个人行程信息
+❌ 不处理与旅行无关的问题，友好说明只能提供旅行相关帮助
+❌ 不要主动询问用户是否需要帮忙修改表单，你的职责是建议而非操作
+❌ 对于需要实时数据的问题（如今日天气、实时票价），说明你无法获取实时信息，并给出参考区间或建议用户查询官方渠道
 
-## 回答规范
-
+【回答规范】
 - 语气：亲切自然，像朋友之间的对话，避免过于正式或说教
-- 长度：简洁为主，核心建议控制在200字以内，用户追问时再展开细节
+- 长度：简洁为主，核心建议控制在 200 字以内，用户追问时再展开细节
 - 格式：优先用自然语言表达，必要时使用简短的列表，避免大段堆砌
 - 立场：给出明确的建议和倾向，不要模棱两可，用户需要的是决策支持而不是"各有优劣，看个人喜好"这类无效回答
 
-## 景点推荐要求（重要）
-
+【景点推荐要求（重要）】
 当用户询问景点推荐时：
 1. **必须给出具体的景点名称**，不要只说"有很多历史博物馆"
 2. **基于提供的景点信息进行推荐**，不要编造不存在的景点
-3. **推荐3-5个最合适的景点**，而不是列出所有景点
+3. **推荐 3-5 个最合适的景点**，而不是列出所有景点
 4. **说明推荐理由**，如"评分高"、"免费"、"符合您的兴趣"等
 5. **如果用户有特定偏好**（如历史文化），优先推荐符合偏好的景点
-6. **如果用户询问预算相关**，考虑景点的票价因素
-
-## 边界约束
-
-- 只回答与旅行规划直接相关的问题
-- 对于无关话题，友好地说明你只能提供旅行相关的帮助
-- 不要主动询问用户是否需要帮忙修改表单，你的职责是建议而非操作
-- 对于需要实时数据的问题（如今日天气、实时票价），说明你无法获取实时信息，并给出参考区间或建议用户查询官方渠道`;
+6. **如果用户询问预算相关**，考虑景点的票价因素`;
   }
 
   /**
