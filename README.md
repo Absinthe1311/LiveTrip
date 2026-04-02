@@ -18,7 +18,8 @@ LiveTrip 是一个基于 **AI + IoT** 的智能旅行规划系统，采用自主
 
 ### 核心亮点
 
-- 🤖 **自主研发AI算法**：多因素评分引擎 + K-means聚类 + 多样性约束
+- 🤖 **智能AI助手**：基于智谱AI GLM-4的智能对话助手,支持自然语言创建行程
+- 🧠 **自主规划算法**：多因素评分引擎 + K-means聚类 + 多样性约束
 - 📡 **IoT实时数据**：集成物联网传感器数据，提供景点拥挤度、天气等实时信息
 - 🌤️ **真实天气数据**：接入 OpenWeatherMap API，获取真实的天气信息
 - 👥 **智能人流模拟**：基于时段、日期和景点热度系数的人流预测模型
@@ -37,6 +38,7 @@ LiveTrip 是一个基于 **AI + IoT** 的智能旅行规划系统，采用自主
 
 | 功能模块 | 功能描述 |
 |---------|---------|
+| **AI智能助手** | 自然语言对话创建行程,支持"我想去北京玩三天"等自然表达 |
 | **AI行程规划** | 输入目的地、日期、预算，AI自动生成完整行程 |
 | **实时天气数据** | 真实天气信息（温度、湿度、天气描述、降雨概率） |
 | **智能人流预测** | 基于时段、日期和热度系数的人流密度预测 |
@@ -186,6 +188,7 @@ npm run dev
 
 | 服务 | 用途 |
 |------|------|
+| 智谱AI GLM-4 | AI对话助手,自然语言理解和行程创建 |
 | 高德地图API | 景点数据、地理编码、路径规划 |
 | OpenWeatherMap | 实时天气数据 |
 | Cloudinary | 图片存储（可选） |
@@ -199,14 +202,19 @@ LiveTrip/
 ├── backend/                 # 后端项目
 │   ├── src/
 │   │   ├── controllers/     # 控制器
+│   │   │   ├── agentController.ts     # AI Agent控制器
+│   │   │   └── advisorController.ts   # 对话管理控制器
 │   │   ├── services/        # 业务逻辑
+│   │   │   ├── agentService.ts        # AI Agent核心服务
 │   │   │   ├── scoringEngine.ts      # 多因素评分引擎
 │   │   │   ├── clusteringService.ts  # K-means聚类
 │   │   │   ├── diversityService.ts   # 多样性约束
 │   │   │   ├── routeOptimizer.ts      # 2-opt路径优化
 │   │   │   ├── budgetOptimizer.ts     # 动态预算计算
 │   │   │   ├── iotCheckService.ts     # IoT实时检查
-│   │   │   └── aiRecommender.ts       # AI推荐服务
+│   │   │   ├── mustVisitSpotExtractor.ts  # 必选景点提取
+│   │   │   ├── constraintAwarePlanner.ts  # 约束感知规划
+│   │   │   └── chatHistoryService.ts      # 对话历史管理
 │   │   ├── routes/          # 路由
 │   │   ├── middleware/      # 中间件
 │   │   ├── types/           # 类型定义
@@ -216,12 +224,15 @@ LiveTrip/
 ├── frontend/               # 前端项目
 │   ├── src/
 │   │   ├── components/     # 组件
+│   │   │   ├── AIFeatures.tsx         # AI对话界面
+│   │   │   └── TripPlanningForm.tsx   # 行程规划表单
 │   │   ├── pages/          # 页面
 │   │   ├── api/            # API调用
 │   │   └── store/          # 状态管理
 │   └── public/             # 静态资源
 ├── README.md               # 项目说明
 ├── 使用说明文档.md          # 详细使用说明
+├── 项目交接文档.md          # 项目交接文档
 └── 算法分析报告.md          # 算法文档
 ```
 

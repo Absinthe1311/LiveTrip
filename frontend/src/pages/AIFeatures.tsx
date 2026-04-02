@@ -2,8 +2,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, Search, Bell, Heart, Send, Sparkles, MessageCircle, Bot, Trash2, Clock } from "lucide-react";
+import { toast } from "sonner"; // ✅ 任务C: 导入toast
 import { Sidebar } from '../components/SharedSidebar';
 import { aiService, ChatMode, Message as AIMessage, ChatSession } from '../services/aiService';
+import { getUserId } from '../utils/auth'; // ✅ 问题1: 导入getUserId
 
 const ADVISOR_QUICK_QUESTIONS = [
   "北京有哪些必去景点？",
@@ -130,6 +132,13 @@ export default function AIFeatures() {
     const text = message || inputValue.trim();
     if (!text) return;
 
+    // ✅ 问题1: 前端userId验证
+    const userId = getUserId();
+    console.log('\n🔍 [前端认证] 当前用户:', userId || '未登录');
+    if (!userId) {
+      console.warn('   ⚠️  用户未登录,部分功能可能受限');
+    }
+
     const userMessage: AIMessage = {
       id: `user_${Date.now()}`,
       role: 'user',
@@ -147,6 +156,18 @@ export default function AIFeatures() {
         data = await aiService.sendAgentMessage(text);
       }
 
+      // ✅ 问题4: 前端调试输出
+      console.log('\n📊 [AI响应] 接收到响应:');
+      console.log('   success:', data.success);
+      if (data.data?.toolCalls) {
+        console.log('   工具调用次数:', data.data.toolCalls.length);
+        data.data.toolCalls.forEach((tc: any, index: number) => {
+          console.log(`   工具${index + 1}:`, tc.name);
+          console.log('   参数:', JSON.stringify(tc.args, null, 2));
+          console.log('   结果:', tc.result?.success ? '成功' : '失败');
+        });
+      }
+
       if (data.success && data.data?.answer) {
         const aiResponse: AIMessage = {
           id: `assistant_${Date.now()}`,
@@ -154,6 +175,28 @@ export default function AIFeatures() {
           content: data.data.answer,
         };
         setMessages(prev => [...prev, aiResponse]);
+        
+        // ✅ 任务C: 检测行程创建成功并显示Toast通知
+        if (mode === 'agent' && data.data?.toolCalls) {
+          const createTripCall = data.data.toolCalls.find(
+            (tc: any) => tc.name === 'create_trip' || tc.name === 'create_trip_with_constraints'
+          );
+          
+          if (createTripCall && createTripCall.result?.success) {
+            const tripData = createTripCall.result.data;
+            
+            // 显示成功通知
+            toast.success('行程创建成功！', {
+              description: `${tripData.title} - ${tripData.destination} ${tripData.days}天行程`,
+              action: {
+                label: '查看行程',
+                onClick: () => navigate(`/trip/${tripData.id}`),
+              },
+            });
+            
+            console.log('✅ 行程创建成功,已显示Toast通知');
+          }
+        }
         
         // 刷新会话列表
         loadSessions();

@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import { CreatePlanRequest } from '../types';
 import { amapService } from '../services/amapService';
-import { aiRecommender } from '../services/aiRecommender';
+import { traditionalRecommender } from '../services/traditionalRecommender';
 import { routeOptimizer } from '../services/routeOptimizer';
 import { itineraryAdjustService } from '../services/itineraryAdjustService';
 import { AdjustItineraryRequest } from '../services/itineraryAdjustService';
@@ -73,9 +73,9 @@ export const createPlan = async (req: Request, res: Response) => {
 
     console.log(`✅ 获取并存储了 ${spots.length} 个景点到数据库`);
 
-    // 步骤 2: 调用 AI 推荐行程
-    console.log('\n步骤 2: AI 推荐行程...');
-    const itinerary = await aiRecommender().recommendItinerary({
+    // 步骤 2: 调用传统推荐算法推荐行程
+    console.log('\n步骤 2: 传统推荐算法推荐行程...');
+    const itinerary = await traditionalRecommender().recommendItinerary({
       attractions,
       destination: planData.destination,
       preferences: planData.preferences || { pace: 'moderate', energy_level: 'medium', categories: [] },

@@ -2,6 +2,7 @@
 import https from 'https';
 import { getPrismaClient } from '../lib/prisma';
 import { chatHistoryService } from './chatHistoryService';
+import { httpsRequestWithRetry } from '../utils/retry';
 
 const prisma = getPrismaClient();
 
@@ -40,68 +41,35 @@ class AdvisorService {
   }
 
   /**
-   * 调用智谱AI API
+   * 调用智谱AI API（带重试机制）
    */
   private async callZhipuAI(messages: any[]): Promise<any> {
-    return new Promise((resolve, reject) => {
-      if (!this.apiKey) {
-        reject(new Error('AI服务未配置'));
-        return;
-      }
+    if (!this.apiKey) {
+      throw new Error('AI服务未配置');
+    }
 
-      const data = JSON.stringify({
-        model: this.model,
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 1000,
-      });
-
-      const options = {
-        hostname: this.apiUrl,
-        port: 443,
-        path: this.apiPath,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Length': Buffer.byteLength(data),
-        },
-        timeout: 15000,
-      };
-
-      const req = https.request(options, (res) => {
-        let responseData = '';
-
-        res.on('data', (chunk) => {
-          responseData += chunk;
-        });
-
-        res.on('end', () => {
-          try {
-            const json = JSON.parse(responseData);
-            if (res.statusCode === 200) {
-              resolve(json);
-            } else {
-              reject(new Error(`HTTP ${res.statusCode}: ${JSON.stringify(json)}`));
-            }
-          } catch (e) {
-            reject(new Error(`解析响应失败: ${responseData}`));
-          }
-        });
-      });
-
-      req.on('error', (error) => {
-        reject(error);
-      });
-
-      req.on('timeout', () => {
-        req.destroy();
-        reject(new Error('请求超时'));
-      });
-
-      req.write(data);
-      req.end();
+    const data = JSON.stringify({
+      model: this.model,
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 1000,
     });
+
+    const options = {
+      hostname: this.apiUrl,
+      port: 443,
+      path: this.apiPath,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Length': Buffer.byteLength(data),
+      },
+      timeout: 15000,
+    };
+
+    // 使用重试机制调用 API
+    return await httpsRequestWithRetry(options, data, 2);
   }
 
   /**

@@ -118,18 +118,44 @@ export const deleteSession = async (req: Request, res: Response) => {
     const userIdHeader = req.headers['x-user-id'];
     const userId = Array.isArray(userIdHeader) ? userIdHeader[0] : userIdHeader;
 
-    // 验证会话所有权（如果 userId 存在）
+    console.log('\n🗑️  [删除会话] 开始删除:', sessionId);
+    console.log('   userId:', userId || '未提供');
+
+    // ✅ 问题8: 修复会话所有权验证逻辑
     if (userId) {
-      const session = await chatHistoryService.getOrCreateAdvisorSession(userId);
-      if (session.id !== sessionId) {
+      // 直接查询会话,而不是获取或创建
+      const { getPrismaClient } = await import('../lib/prisma');
+      const prisma = getPrismaClient();
+      
+      const session = await prisma.chatSession.findUnique({
+        where: { id: sessionId },
+        select: { id: true, userId: true, mode: true }
+      });
+      
+      if (!session) {
+        console.error('   ❌ 会话不存在');
+        return res.status(404).json({
+          success: false,
+          error: '会话不存在',
+        });
+      }
+      
+      console.log('   会话信息:', { id: session.id, userId: session.userId, mode: session.mode });
+      
+      // 验证会话所有权
+      if (session.userId && session.userId !== userId) {
+        console.error('   ❌ 无权删除: 会话属于其他用户');
         return res.status(403).json({
           success: false,
           error: '无权删除此会话',
         });
       }
+      
+      console.log('   ✅ 权限验证通过');
     }
 
     await chatHistoryService.deleteSession(sessionId);
+    console.log('   ✅ 会话已删除');
 
     res.json({
       success: true,
