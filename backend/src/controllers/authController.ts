@@ -263,6 +263,90 @@ export const getCurrentUser = async (req: Request, res: Response) => {
 };
 
 /**
+ * 更新用户信息
+ * PUT /api/auth/profile
+ */
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+    const { username, email, avatar } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: '未授权，请先登录',
+      });
+    }
+
+    // 检查用户名是否被其他用户使用
+    if (username) {
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          username,
+          id: { not: userId },
+        },
+      });
+
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          error: '用户名已被使用',
+        });
+      }
+    }
+
+    // 检查邮箱是否被其他用户使用
+    if (email) {
+      const existingEmail = await prisma.user.findFirst({
+        where: {
+          email,
+          id: { not: userId },
+        },
+      });
+
+      if (existingEmail) {
+        return res.status(400).json({
+          success: false,
+          error: '邮箱已被使用',
+        });
+      }
+    }
+
+    // 更新用户信息
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(username && { username }),
+        ...(email && { email }),
+        ...(avatar !== undefined && { avatar }),
+      },
+    });
+
+    console.log('✅ 用户信息更新成功:', updatedUser.username);
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: updatedUser.id,
+          username: updatedUser.username,
+          email: updatedUser.email,
+          avatar: updatedUser.avatar,
+          role: updatedUser.role,
+          createdAt: updatedUser.createdAt,
+        },
+      },
+    });
+  } catch (error: any) {
+    console.error('❌ 更新用户信息失败:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || '更新用户信息失败',
+    });
+  }
+};
+
+/**
  * 中间件：验证 Token
  */
 export const authenticateToken = (req: Request, res: Response, next: any) => {

@@ -423,22 +423,34 @@ function WorkspaceView() {
                   </span>
                 </button>
               </li>
+              <li>
+                <button
+                  onClick={() => { navigate('/collab/join'); setSidebarOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:bg-gray-50 transition-colors"
+                >
+                  <Users className="h-4 w-4" />
+                  <span>加入协同</span>
+                </button>
+              </li>
             </ul>
           </div>
         </nav>
 
         {/* Sidebar Footer */}
         <div className="p-3 border-t border-border">
-          <button className="w-full flex items-center gap-3 p-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+          <button 
+            onClick={() => navigate('/profile')}
+            className="w-full flex items-center gap-3 p-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+          >
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center text-white text-sm font-medium">
-              ZL
+              {JSON.parse(localStorage.getItem('user') || '{}').username?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="flex-1 text-left">
               <p className="text-sm font-medium text-foreground">
-                Zhang Lei
+                {JSON.parse(localStorage.getItem('user') || '{}').username || '用户'}
               </p>
               <p className="text-[11px] text-muted-foreground">
-                旅行达人 · Lv.4
+                点击编辑个人信息
               </p>
             </div>
             <ChevronRight className="h-4 w-4 text-muted-foreground" />

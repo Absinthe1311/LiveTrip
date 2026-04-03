@@ -10,6 +10,7 @@ import {
   upsertDraft,
   submitDraft,
   getUserDrafts,
+  getAllDrafts,
   sendMessage,
   getMessages,
 } from '../controllers/collabController';
@@ -35,6 +36,9 @@ router.post('/rooms/:roomId/lock', authenticateToken, lockRoom);
 
 // GET /api/collab/rooms/:roomId/drafts - 获取用户的草案列表
 router.get('/rooms/:roomId/drafts', authenticateToken, getUserDrafts);
+
+// GET /api/collab/rooms/:roomId/drafts/all - 获取所有成员的草案
+router.get('/rooms/:roomId/drafts/all', authenticateToken, getAllDrafts);
 
 // ==================== 草案相关路由 ====================
 

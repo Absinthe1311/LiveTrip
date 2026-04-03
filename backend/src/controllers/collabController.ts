@@ -327,6 +327,65 @@ export const getUserDrafts = async (req: Request, res: Response) => {
 };
 
 /**
+ * 获取所有成员的草案
+ * GET /api/collab/rooms/:roomId/drafts/all
+ */
+export const getAllDrafts = async (req: Request, res: Response) => {
+  try {
+    const roomId = req.params.roomId as string;
+    const userId = (req as any).user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: '未授权，请先登录',
+      });
+    }
+
+    // 检查用户是否是房间成员
+    const isMember = await collabService.isMember(roomId, userId);
+    if (!isMember) {
+      return res.status(403).json({
+        success: false,
+        error: '您不是该房间的成员',
+      });
+    }
+
+    // 获取房间信息
+    const room = await collabService.getRoomInfo(roomId);
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        error: '房间不存在',
+      });
+    }
+
+    // 获取所有成员的草案
+    const allDrafts = await Promise.all(
+      room.members.map(async (member) => {
+        const drafts = await collabService.getUserDrafts(roomId, member.userId);
+        return {
+          userId: member.userId,
+          username: member.user.username,
+          drafts: drafts,
+        };
+      })
+    );
+
+    res.json({
+      success: true,
+      data: allDrafts,
+    });
+  } catch (error: any) {
+    console.error('❌ 获取所有草案失败:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || '获取所有草案失败',
+    });
+  }
+};
+
+/**
  * 发送消息
  * POST /api/collab/messages
  */

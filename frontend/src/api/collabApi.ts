@@ -120,6 +120,16 @@ export const getUserDrafts = async (roomId: string) => {
   return response.data as { success: boolean; data: DraftRoute[] };
 };
 
+/**
+ * 获取所有成员的草案
+ * @param roomId 房间ID
+ * @returns 所有成员的草案
+ */
+export const getAllDrafts = async (roomId: string) => {
+  const response = await apiClient.get(`/collab/rooms/${roomId}/drafts/all`);
+  return response.data;
+};
+
 // ==================== 消息API ====================
 
 /**

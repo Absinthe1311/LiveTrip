@@ -1,18 +1,19 @@
 // 加入协同房间页面 - 通过邀请链接加入协同规划
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Menu, Users, AlertCircle, Loader } from 'lucide-react';
+import { Menu, Users, AlertCircle, Loader, Link, ArrowRight } from 'lucide-react';
 import { joinCollabRoom } from '../../api/collabApi';
 import { Sidebar } from '../../components/SharedSidebar';
 
 export default function JoinCollabRoom() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
+  const urlToken = searchParams.get('token');
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [roomId, setRoomId] = useState<string>('');
+  const [inviteLink, setInviteLink] = useState<string>('');
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
@@ -29,14 +30,16 @@ export default function JoinCollabRoom() {
   }, []);
 
   useEffect(() => {
-    if (token) {
-      handleJoinRoom();
+    if (urlToken) {
+      handleJoinRoom(urlToken);
     }
-  }, [token]);
+  }, [urlToken]);
 
-  const handleJoinRoom = async () => {
-    if (!token) {
-      setError('缺少邀请token');
+  const handleJoinRoom = async (token?: string) => {
+    const joinToken = token || extractTokenFromLink(inviteLink);
+    
+    if (!joinToken) {
+      setError('请输入有效的邀请链接');
       return;
     }
 
@@ -44,7 +47,7 @@ export default function JoinCollabRoom() {
     setError(null);
     
     try {
-      const response = await joinCollabRoom(token);
+      const response = await joinCollabRoom(joinToken);
       
       if (response.success) {
         setRoomId(response.data.id);
@@ -57,9 +60,20 @@ export default function JoinCollabRoom() {
       }
     } catch (err: any) {
       console.error('加入协同房间失败:', err);
-      setError(err.message || '加入房间失败');
+      setError(err.response?.data?.error || err.message || '加入房间失败');
     } finally {
       setLoading(false);
+    }
+  };
+  
+  // 从链接中提取token
+  const extractTokenFromLink = (link: string): string | null => {
+    try {
+      const url = new URL(link);
+      return url.searchParams.get('token');
+    } catch {
+      // 如果不是完整URL，尝试直接作为token
+      return link || null;
     }
   };
 
@@ -120,14 +134,48 @@ export default function JoinCollabRoom() {
 
             {!loading && !error && roomId && (
               <div className="text-center py-8">
-                <p className="text-green-600 mb-4">成功加入协同房间！</p>
+                <p className="text-green-600 mb-4">✓ 成功加入协同房间！</p>
                 <p className="text-gray-600">正在跳转到协同房间...</p>
               </div>
             )}
 
-            {!token && !loading && (
-              <div className="text-center py-8">
-                <p className="text-gray-600">无效的邀请链接</p>
+            {!urlToken && !loading && !roomId && (
+              <div className="space-y-4">
+                <p className="text-gray-600 mb-4">
+                  请输入或粘贴邀请链接以加入协同规划房间
+                </p>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Link className="inline h-4 w-4 mr-1" />
+                    邀请链接
+                  </label>
+                  <input
+                    type="text"
+                    value={inviteLink}
+                    onChange={(e) => setInviteLink(e.target.value)}
+                    placeholder="例如: http://localhost:5173/collab/join?token=xxx"
+                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-livetrip-primary/20"
+                  />
+                </div>
+                
+                <button
+                  onClick={() => handleJoinRoom()}
+                  disabled={!inviteLink.trim()}
+                  className="w-full py-3 bg-livetrip-primary text-white rounded-lg font-medium hover:bg-livetrip-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  加入房间
+                  <ArrowRight className="h-5 w-5" />
+                </button>
+                
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h3 className="font-medium text-blue-900 mb-2">💡 使用说明</h3>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• 从房主处获取邀请链接</li>
+                    <li>• 粘贴完整链接或仅粘贴token部分</li>
+                    <li>• 点击"加入房间"即可参与协同规划</li>
+                  </ul>
+                </div>
               </div>
             )}
           </div>

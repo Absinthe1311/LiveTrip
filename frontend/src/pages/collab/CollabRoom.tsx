@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Menu, Users, MessageCircle, MapPin, Send, Lock, Eye, Loader, Copy, Check, Share2 } from 'lucide-react';
 import { Sidebar } from '../../components/SharedSidebar';
 import { useCollabStore } from '../../store/collabStore';
-import { getCollabRoomInfo, getUserDrafts, getCollabMessages, getSpotStats, lockCollabRoom, sendCollabMessage, upsertDraft, submitDraft, getCitySpots } from '../../api/collabApi';
+import { getCollabRoomInfo, getUserDrafts, getCollabMessages, getSpotStats, lockCollabRoom, sendCollabMessage, upsertDraft, submitDraft, getCitySpots, getAllDrafts } from '../../api/collabApi';
 import { connectSocket, disconnectSocket, joinRoom, leaveRoom, updateDraft } from '../../services/collabSocket';
 import { useCollabMap, Spot, RoutePoint } from '../../hooks/useCollabMap';
 import LayerControl from '../../components/collab/LayerControl';
@@ -25,6 +25,9 @@ export default function CollabRoom() {
   const [showStats, setShowStats] = useState(false);
   const [copied, setCopied] = useState(false);
   const [statsData, setStatsData] = useState<any[]>([]);
+  const [destination, setDestination] = useState<string>('');
+  const [allMemberDrafts, setAllMemberDrafts] = useState<any[]>([]);
+  const [showAllRoutes, setShowAllRoutes] = useState(false);
   
   const {
     currentRoom,
@@ -127,6 +130,17 @@ export default function CollabRoom() {
     }
   }, [isMapLoaded, citySpots, clearAllMarkers, addSpotMarker]);
 
+  // 当地图加载完成且有目的地时，定位到城市
+  useEffect(() => {
+    if (isMapLoaded && destination) {
+      // 延迟一点确保地图完全初始化
+      const timer = setTimeout(() => {
+        setCityWithBoundary(destination);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isMapLoaded, destination, setCityWithBoundary]);
+
   // 当路线改变时，重新绘制
   useEffect(() => {
     if (isMapLoaded && routeSpots.length > 0) {
@@ -157,12 +171,10 @@ export default function CollabRoom() {
         
         // 加载城市景点
         if (roomResponse.data.trip?.destination) {
-          const destination = roomResponse.data.trip.destination;
+          const dest = roomResponse.data.trip.destination;
+          setDestination(dest);
           
-          // 定位到城市并显示边界
-          setCityWithBoundary(destination);
-          
-          const spotsResponse = await getCitySpots(destination, 50);
+          const spotsResponse = await getCitySpots(dest, 50);
           if (spotsResponse.success && spotsResponse.data) {
             const spots: Spot[] = spotsResponse.data.map((s: any) => ({
               id: s.id,
@@ -377,9 +389,56 @@ export default function CollabRoom() {
           ...currentRoom!,
           phase: 'LOCKED',
         });
+        
+        // 锁定后显示所有成员的路线
+        await showAllMemberRoutes();
       }
     } catch (err) {
       console.error('锁定房间失败:', err);
+    }
+  };
+
+  // 显示所有成员的路线
+  const showAllMemberRoutes = async () => {
+    if (!roomId || !isMapLoaded) return;
+    
+    try {
+      const response = await getAllDrafts(roomId);
+      if (response.success && response.data) {
+        // 保存所有草案数据
+        setAllMemberDrafts(response.data);
+        setShowAllRoutes(true);
+        
+        // 清除现有路线
+        clearRoute();
+        
+        // 定义颜色数组
+        const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
+        
+        // 为每个成员绘制所有天的路线
+        response.data.forEach((memberDrafts: any, index: number) => {
+          const color = colors[index % colors.length];
+          
+          // 绘制该成员的所有天的路线
+          memberDrafts.drafts.forEach((draft: any) => {
+            const spotIds: string[] = JSON.parse(draft.spotSequence);
+            const points: RoutePoint[] = spotIds.map((id, order) => {
+              const spot = citySpots.find(s => s.id === id);
+              if (spot) {
+                const [lng, lat] = spot.location.split(',').map(Number);
+                return { spotId: id, lng, lat, order: order + 1 };
+              }
+              return null;
+            }).filter(Boolean) as RoutePoint[];
+            
+            if (points.length > 1) {
+              drawRoute(points, color);
+            }
+          });
+        });
+      }
+    } catch (err) {
+      console.error('加载所有路线失败:', err);
     }
   };
 
@@ -699,6 +758,51 @@ export default function CollabRoom() {
                     <Lock className="h-4 w-4" />
                     锁定行程
                   </button>
+                )}
+                
+                {/* 锁定后显示所有路线和最终路线绘制 */}
+                {isLocked && (
+                  <>
+                    <button
+                      onClick={showAllRoutes ? () => {
+                        setShowAllRoutes(false);
+                        clearRoute();
+                      } : showAllMemberRoutes}
+                      className="w-full py-2.5 bg-purple-500 text-white rounded-lg font-medium hover:bg-purple-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      {showAllRoutes ? '隐藏所有路线' : '查看所有路线'}
+                    </button>
+                    
+                    {/* 路线图例 */}
+                    {showAllRoutes && allMemberDrafts.length > 0 && (
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <h4 className="text-xs font-semibold text-gray-700 mb-2">路线图例</h4>
+                        <div className="space-y-1">
+                          {allMemberDrafts.map((member: any, index: number) => {
+                            const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
+                            return (
+                              <div key={member.userId} className="flex items-center gap-2">
+                                <div 
+                                  className="w-4 h-1 rounded"
+                                  style={{ backgroundColor: colors[index % colors.length] }}
+                                />
+                                <span className="text-xs text-gray-600">{member.username}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <button
+                      onClick={() => alert('最终路线保存功能开发中...\n\n房主可以基于所有成员的建议，在地图上绘制最终路线，然后保存为正式行程。')}
+                      className="w-full py-2.5 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <MapPin className="h-4 w-4" />
+                      绘制最终路线
+                    </button>
+                  </>
                 )}
               </>
             )}

@@ -7,6 +7,7 @@ import Itinerary from './pages/Itinerary';
 import TripDetail from './pages/TripDetail';
 import MyTrips from './pages/MyTrips';
 import Auth from './pages/Auth';
+import Profile from './pages/Profile';
 import DestinationDetail from './pages/DestinationDetail';
 import Favorites from './pages/Favorites';
 import Destinations from './pages/Destinations';
@@ -64,6 +65,14 @@ function AppContent() {
           element={
             <AuthGuard>
               <MyTrips />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <AuthGuard>
+              <Profile />
             </AuthGuard>
           }
         />
