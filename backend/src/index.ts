@@ -4,9 +4,11 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
 import apiRoutes from './routes';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { initCloudinary } from './config/cloudinary';
+import { initSocketIO } from './socket/socketService';
 
 // 加载环境变量
 dotenv.config();
@@ -16,6 +18,12 @@ initCloudinary();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// 创建HTTP服务器
+const httpServer = createServer(app);
+
+// 初始化Socket.io
+initSocketIO(httpServer);
 
 // 测试 Cloudinary 配置
 app.get('/test/cloudinary', (req, res) => {
@@ -62,11 +70,12 @@ app.use(notFound);
 // 错误处理
 app.use(errorHandler);
 
-// 启动服务器
-app.listen(PORT, () => {
+// 启动服务器（使用HTTP服务器而非Express app）
+httpServer.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
   console.log(`API Documentation: http://localhost:${PORT}/api-docs`);
+  console.log(`Socket.io is ready for WebSocket connections`);
 });
 
 export default app;

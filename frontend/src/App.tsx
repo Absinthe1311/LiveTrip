@@ -21,6 +21,11 @@ import AdminGuard from './components/admin/AdminGuard';
 import AdminLayout from './components/admin/AdminLayout';
 import SpotManagePage from './pages/admin/SpotManagePage';
 import ReviewPage from './pages/admin/ReviewPage';
+// 协同规划页面
+import CollabEntry from './pages/collab/CollabEntry';
+import CreateCollabRoom from './pages/collab/CreateCollabRoom';
+import JoinCollabRoom from './pages/collab/JoinCollabRoom';
+import CollabRoom from './pages/collab/CollabRoom';
 
 function AppContent() {
   return (
@@ -136,6 +141,39 @@ function AppContent() {
         <Route
           path="/admin"
           element={<Navigate to="/admin/spots" replace />}
+        />
+        {/* 协同规划路由 */}
+        <Route
+          path="/collab"
+          element={
+            <AuthGuard>
+              <CollabEntry />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/collab/create/:tripId"
+          element={
+            <AuthGuard>
+              <CreateCollabRoom />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/collab/join"
+          element={
+            <AuthGuard>
+              <JoinCollabRoom />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/collab/room/:roomId"
+          element={
+            <AuthGuard>
+              <CollabRoom />
+            </AuthGuard>
+          }
         />
       </Routes>
     </Router>

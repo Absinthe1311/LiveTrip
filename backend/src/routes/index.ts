@@ -19,6 +19,7 @@ import adminRoutes from './adminRoutes';
 import hotSpotRoutes from './hotSpotRoutes';
 import agentRoutes from './agentRoutes';
 import testRoutes from './testRoutes';
+import collabRoutes from './collabRoutes';
 import { PackingController } from '../controllers/packingController';
 import { authenticateToken } from '../controllers/authController';
 
@@ -44,6 +45,7 @@ router.use('/admin', adminRoutes);
 router.use('/hot-spots', hotSpotRoutes);
 router.use('/agent', agentRoutes);
 router.use('/test', testRoutes);
+router.use('/collab', collabRoutes);
 
 // ==================== 打包清单独立路由 ====================
 // PATCH /api/packing/:itemId - 更新打包物品状态

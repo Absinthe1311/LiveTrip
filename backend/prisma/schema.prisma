@@ -25,6 +25,12 @@ model User {
   uploadedImages  SpotImage[] @relation("ImageUploader")
   reviewedImages  SpotImage[] @relation("ImageReviewer")
   reviewedBlogs   BlogPost[] @relation("BlogReviewer")
+  
+  // 协同规划关系
+  collabRoomsAsHost  CollabRoom[] @relation("HostRooms")
+  collabRoomsAsMember TripMember[]
+  draftRoutes        DraftRoute[]
+  collabMessages     CollabMessage[]
 }
 
 // User Preferences Table
@@ -93,6 +99,9 @@ model Trip {
   days         Day[]
   budget       Budget?
   packingItems PackingItem[]
+  
+  // 协同规划关系
+  collabRoom CollabRoom?
 }
 
 // Packing Item Table - 打包清单表
@@ -620,5 +629,100 @@ model ChatMessage {
 
   @@index([sessionId])
   @@index([role])
+  @@index([createdAt])
+}
+
+// ==================== 协同规划模块 ====================
+
+// CollabRoom - 协同房间表
+model CollabRoom {
+  id     String @id @default(cuid())
+  tripId String @unique // 关联的行程ID（一对一关系）
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  hostId String // 房间创建者（Host）的用户ID
+  host   User   @relation("HostRooms", fields: [hostId], references: [id], onDelete: Cascade)
+
+  // 房间状态
+  phase String @default("EDITING") // EDITING: 编辑中, LOCKED: 已锁定
+
+  // 邀请信息
+  inviteToken    String   @unique // 邀请token（UUID）
+  inviteExpiresAt DateTime // 邀请过期时间（72小时）
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  members  TripMember[]
+  drafts   DraftRoute[]
+  messages CollabMessage[]
+
+  @@index([hostId])
+  @@index([inviteToken])
+}
+
+// TripMember - 协同成员表
+model TripMember {
+  id     String @id @default(cuid())
+  roomId String // 关联的协同房间ID
+  room   CollabRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId String // 用户ID
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 成员角色
+  role String @default("COLLABORATOR") // HOST: 主持人, COLLABORATOR: 协作者
+
+  // 负责的天数（JSON数组，如 [1,2,3] 表示负责第1、2、3天的规划）
+  assignedDays String @default("[]") // 空数组表示不限制
+
+  joinedAt DateTime @default(now())
+
+  @@unique([roomId, userId]) // 一个用户在一个房间中只能有一条记录
+  @@index([roomId])
+  @@index([userId])
+}
+
+// DraftRoute - 草案路线表
+model DraftRoute {
+  id     String @id @default(cuid())
+  roomId String // 关联的协同房间ID
+  room   CollabRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId String // 用户ID
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 路线信息
+  dayNumber    Int    // 第几天（从1开始）
+  spotSequence String // 景点ID有序列表（JSON数组）
+  polylineData String // 高德地图Polyline坐标点数组（JSON）
+
+  // 提交状态
+  isSubmitted Boolean @default(false) // 是否已提交（提交后不可修改）
+
+  // 乐观锁
+  version Int @default(1) // 版本号，每次更新+1
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([roomId, userId, dayNumber]) // 一个用户在一个房间的某一天只能有一条草案
+  @@index([roomId])
+  @@index([userId])
+  @@index([dayNumber])
+}
+
+// CollabMessage - 协同消息表
+model CollabMessage {
+  id     String @id @default(cuid())
+  roomId String // 关联的协同房间ID
+  room   CollabRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId String // 用户ID
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 消息内容
+  content String // 文字建议内容
+
+  createdAt DateTime @default(now())
+
+  @@index([roomId])
+  @@index([userId])
   @@index([createdAt])
 }

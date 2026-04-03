@@ -1,7 +1,7 @@
 // 首页 - LiveTrip 智能旅行规划（基于 V0 设计重构）
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, ArrowRight, Star, TrendingUp, Menu, Search, Bell, Heart, Home as HomeIcon, Sparkles, Globe, PenLine, List, MapPin, ChevronRight } from "lucide-react";
+import { Plus, ArrowRight, Star, TrendingUp, Menu, Search, Bell, Heart, Home as HomeIcon, Sparkles, Globe, PenLine, List, MapPin, ChevronRight, Users } from "lucide-react";
 import { getUserTrips, getFavoriteCount } from '../api/client';
 import { popularDestinations } from '../data/popularDestinations';
 
@@ -408,6 +408,18 @@ function WorkspaceView() {
                   <span>当前行程</span>
                   <span className="ml-auto bg-accent text-white text-[10px] px-1.5 py-0.5 rounded-full">
                     今
+                  </span>
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => { navigate('/collab'); setSidebarOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:bg-gray-50 transition-colors"
+                >
+                  <Users className="h-4 w-4" />
+                  <span>协同规划</span>
+                  <span className="ml-auto bg-livetrip-primary text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                    新
                   </span>
                 </button>
               </li>
