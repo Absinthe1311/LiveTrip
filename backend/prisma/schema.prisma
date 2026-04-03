@@ -72,6 +72,9 @@ model Trip {
 
   // AI generation info
   aiGenerated Boolean @default(true)
+  
+  // Source info (行程来源)
+  source String @default("personal") // personal, collaborative
 
   // Hotel info (选中的酒店)
   hotelName     String?

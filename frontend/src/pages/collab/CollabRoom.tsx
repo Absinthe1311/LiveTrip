@@ -10,6 +10,7 @@ import { useCollabMap, Spot, RoutePoint } from '../../hooks/useCollabMap';
 import LayerControl from '../../components/collab/LayerControl';
 import RouteEditor, { RouteSpot } from '../../components/collab/RouteEditor';
 import SpotStatsPanel from '../../components/collab/SpotStatsPanel';
+import DayRoutePlanner from '../../components/collab/DayRoutePlanner';
 
 export default function CollabRoom() {
   const navigate = useNavigate();
@@ -409,37 +410,46 @@ export default function CollabRoom() {
         setAllMemberDrafts(response.data);
         setShowAllRoutes(true);
         
-        // 清除现有路线
-        clearRoute();
-        
-        // 定义颜色数组
-        const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
-        
-        // 为每个成员绘制所有天的路线
-        response.data.forEach((memberDrafts: any, index: number) => {
-          const color = colors[index % colors.length];
-          
-          // 绘制该成员的所有天的路线
-          memberDrafts.drafts.forEach((draft: any) => {
-            const spotIds: string[] = JSON.parse(draft.spotSequence);
-            const points: RoutePoint[] = spotIds.map((id, order) => {
-              const spot = citySpots.find(s => s.id === id);
-              if (spot) {
-                const [lng, lat] = spot.location.split(',').map(Number);
-                return { spotId: id, lng, lat, order: order + 1 };
-              }
-              return null;
-            }).filter(Boolean) as RoutePoint[];
-            
-            if (points.length > 1) {
-              drawRoute(points, color);
-            }
-          });
-        });
+        // 绘制当前天的路线
+        drawRoutesForDay(currentDay);
       }
     } catch (err) {
       console.error('加载所有路线失败:', err);
     }
+  };
+  
+  // 绘制指定天的所有成员路线
+  const drawRoutesForDay = (day: number) => {
+    if (!isMapLoaded || allMemberDrafts.length === 0) return;
+    
+    // 清除现有路线
+    clearRoute();
+    
+    // 定义颜色数组
+    const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
+    
+    // 为每个成员绘制指定天的路线
+    allMemberDrafts.forEach((memberDrafts: any, index: number) => {
+      const color = colors[index % colors.length];
+      
+      // 找到该天的草案
+      const draft = memberDrafts.drafts.find((d: any) => d.dayNumber === day);
+      if (draft) {
+        const spotIds: string[] = JSON.parse(draft.spotSequence);
+        const points: RoutePoint[] = spotIds.map((id, order) => {
+          const spot = citySpots.find(s => s.id === id);
+          if (spot) {
+            const [lng, lat] = spot.location.split(',').map(Number);
+            return { spotId: id, lng, lat, order: order + 1 };
+          }
+          return null;
+        }).filter(Boolean) as RoutePoint[];
+        
+        if (points.length > 1) {
+          drawRoute(points, color);
+        }
+      }
+    });
   };
 
   const handleSendMessage = async (e?: React.FormEvent) => {
@@ -466,6 +476,13 @@ export default function CollabRoom() {
 
   const handleHideAllLayers = () => {
     setVisibleLayers(new Set());
+  };
+  
+  // 保存最终路线
+  const handleSaveFinalRoute = async (route: any[]) => {
+    // TODO: 调用后端API保存
+    console.log('保存最终路线:', route);
+    alert('最终路线已保存！\n\n后续将实现：\n1. 保存到数据库\n2. 通知所有成员\n3. 在"我的行程"中查看');
   };
 
   const isHost = currentRoom?.hostId === currentUser.id;
@@ -535,7 +552,13 @@ export default function CollabRoom() {
             {Array.from({ length: totalDays }, (_, i) => i + 1).map((day) => (
               <button
                 key={day}
-                onClick={() => setCurrentDay(day)}
+                onClick={() => {
+                  setCurrentDay(day);
+                  // 如果正在显示所有路线，重新绘制该天的路线
+                  if (showAllRoutes) {
+                    drawRoutesForDay(day);
+                  }
+                }}
                 className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                   currentDay === day
                     ? 'bg-livetrip-primary text-white'
@@ -794,14 +817,6 @@ export default function CollabRoom() {
                         </div>
                       </div>
                     )}
-                    
-                    <button
-                      onClick={() => alert('最终路线保存功能开发中...\n\n房主可以基于所有成员的建议，在地图上绘制最终路线，然后保存为正式行程。')}
-                      className="w-full py-2.5 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <MapPin className="h-4 w-4" />
-                      绘制最终路线
-                    </button>
                   </>
                 )}
               </>
@@ -815,6 +830,16 @@ export default function CollabRoom() {
         <SpotStatsPanel
           stats={statsData}
           onClose={handleHideSpotStats}
+        />
+      )}
+      
+      {/* 按天绘制最终路线（锁定后且房主可见） */}
+      {isLocked && isHost && allMemberDrafts.length > 0 && (
+        <DayRoutePlanner
+          day={currentDay}
+          allMemberDrafts={allMemberDrafts}
+          citySpots={citySpots}
+          onSave={handleSaveFinalRoute}
         />
       )}
     </div>

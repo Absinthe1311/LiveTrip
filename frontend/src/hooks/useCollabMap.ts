@@ -42,6 +42,7 @@ interface UseCollabMapReturn {
   setCityWithBoundary: (cityName: string) => void;
   showSpotStats: (stats: Map<string, number>) => void;
   hideSpotStats: () => void;
+  highlightSpots: (spotIds: string[], hotSpotIds: string[]) => void;
   isLoaded: boolean;
 }
 
@@ -381,6 +382,40 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
       marker.setContent(markerContent);
     });
   }, []);
+  
+  // 高亮指定景点（用于最终路线绘制）
+  const highlightSpots = useCallback((spotIds: string[], hotSpotIds: string[]) => {
+    if (!mapRef.current) return;
+    
+    markersRef.current.forEach((marker, spotId) => {
+      const isHighlighted = spotIds.includes(spotId);
+      const isHot = hotSpotIds.includes(spotId);
+      
+      if (isHighlighted) {
+        // 高亮显示
+        marker.setOpacity(1);
+        
+        // 如果是热门景点，添加特殊样式
+        if (isHot) {
+          const icon = new window.AMap.Icon({
+            size: new window.AMap.Size(40, 50),
+            image: 'data:image/svg+xml;base64,' + btoa(`
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="50" viewBox="0 0 40 50">
+                <path d="M20 0C8.95 0 0 8.95 0 20c0 15 20 30 20 30s20-15 20-30C40 8.95 31.05 0 20 0z" fill="#EF4444"/>
+                <circle cx="20" cy="18" r="10" fill="white"/>
+                <text x="20" y="22" text-anchor="middle" font-size="12" font-weight="bold" fill="#EF4444">🔥</text>
+              </svg>
+            `),
+            imageSize: new window.AMap.Size(40, 50),
+          });
+          marker.setIcon(icon);
+        }
+      } else {
+        // 非高亮景点，降低透明度
+        marker.setOpacity(0.3);
+      }
+    });
+  }, []);
 
   return {
     map: mapRef.current,
@@ -394,6 +429,7 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
     setCityWithBoundary,
     showSpotStats,
     hideSpotStats,
+    highlightSpots,
     isLoaded,
   };
 }
