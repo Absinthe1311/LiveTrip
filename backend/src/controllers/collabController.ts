@@ -465,3 +465,169 @@ export const getMessages = async (req: Request, res: Response) => {
     });
   }
 };
+
+/**
+ * 保存最终协同行程
+ * POST /api/collab/finalize
+ */
+export const saveFinalTrip = async (req: Request, res: Response) => {
+  try {
+    const { roomId, finalRoute } = req.body;
+    const userId = (req as any).user?.userId;
+
+    console.log('📝 保存最终行程请求:', { roomId, finalRoute, userId });
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: '未授权，请先登录',
+      });
+    }
+
+    if (!roomId || !finalRoute || !Array.isArray(finalRoute)) {
+      return res.status(400).json({
+        success: false,
+        error: '缺少必要参数或参数格式错误',
+      });
+    }
+
+    // 检查用户是否是Host
+    const isHost = await collabService.isHost(roomId, userId);
+    if (!isHost) {
+      return res.status(403).json({
+        success: false,
+        error: '仅Host可保存最终行程',
+      });
+    }
+
+    // 获取房间信息
+    const room = await collabService.getRoomInfo(roomId);
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        error: '房间不存在',
+      });
+    }
+
+    // 更新Trip的行程数据
+    const { getPrismaClient } = require('../lib/prisma');
+    const prisma = getPrismaClient();
+
+    // finalRoute是景点数组，需要转换为行程数据格式
+    // 假设finalRoute就是当前天的景点列表
+    const itineraryData = [{
+      day: 1, // 当前只保存第1天
+      date: new Date(room.trip.startDate).toISOString().split('T')[0],
+      attractions: finalRoute.map((spot: any) => ({
+        id: spot.id,
+        name: spot.name,
+        location: spot.location,
+        arrivalTime: spot.arrivalTime || '09:00',
+        duration: spot.duration || 120,
+        departureTime: spot.departureTime || '11:00',
+      })),
+    }];
+
+    console.log('📅 行程数据:', itineraryData);
+
+    // 更新Trip
+    const updatedTrip = await prisma.trip.update({
+      where: { id: room.tripId },
+      data: {
+        source: 'collaborative',
+        status: 'finalized',
+        description: `协同规划完成 - ${room.members.length}人参与`,
+      },
+    });
+
+    console.log('✅ Trip已更新:', updatedTrip.id);
+
+    // 更新或创建Day和ItineraryItem
+    for (const dayData of itineraryData) {
+      const dayDate = new Date(dayData.date);
+      
+      // 查找或创建Day
+      let day = await prisma.day.findFirst({
+        where: {
+          tripId: room.tripId,
+          dayNumber: dayData.day,
+        },
+      });
+
+      if (!day) {
+        day = await prisma.day.create({
+          data: {
+            tripId: room.tripId,
+            dayNumber: dayData.day,
+            date: dayDate,
+          },
+        });
+        console.log('✅ Day已创建:', day.id);
+      } else {
+        console.log('✅ Day已存在:', day.id);
+      }
+
+      // 删除旧的ItineraryItem
+      await prisma.itineraryItem.deleteMany({
+        where: { dayId: day.id },
+      });
+
+      // 创建新的ItineraryItem
+      for (let i = 0; i < dayData.attractions.length; i++) {
+        const attraction = dayData.attractions[i];
+        
+        // 解析location
+        let lng = 0;
+        let lat = 0;
+        if (attraction.location && typeof attraction.location === 'string') {
+          const parts = attraction.location.split(',');
+          if (parts.length === 2) {
+            lng = parseFloat(parts[0]) || 0;
+            lat = parseFloat(parts[1]) || 0;
+          }
+        }
+
+        // 解析时间
+        const startTime = new Date(`${dayData.date}T${attraction.arrivalTime}:00`);
+        const endTime = new Date(`${dayData.date}T${attraction.departureTime}:00`);
+        
+        await prisma.itineraryItem.create({
+          data: {
+            dayId: day.id,
+            name: attraction.name,
+            type: 'attraction',
+            spotId: attraction.id,
+            startTime,
+            endTime,
+            latitude: lat,
+            longitude: lng,
+          },
+        });
+      }
+      
+      console.log(`✅ Day ${dayData.day} 的 ${dayData.attractions.length} 个景点已保存`);
+    }
+
+    // 锁定房间
+    await collabService.lockRoom(roomId);
+
+    // 广播房间锁定事件
+    broadcastToRoom(roomId, 'room:lock', {
+      timestamp: new Date(),
+    });
+
+    res.json({
+      success: true,
+      data: {
+        tripId: room.tripId,
+        message: '协同行程已保存',
+      },
+    });
+  } catch (error: any) {
+    console.error('❌ 保存最终行程失败:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || '保存最终行程失败',
+    });
+  }
+};

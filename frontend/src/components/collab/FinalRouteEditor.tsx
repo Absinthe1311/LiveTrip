@@ -1,5 +1,5 @@
 // 最终路线编辑器 - 房主绘制最终路线
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapPin, Trash2, GripVertical, Save, X } from 'lucide-react';
 
 interface Spot {
@@ -24,6 +24,7 @@ interface FinalRouteEditorProps {
   initialRoute: RouteSpotWithTime[];
   onSave: (route: RouteSpotWithTime[]) => void;
   onCancel: () => void;
+  onRouteChange?: (route: RouteSpotWithTime[]) => void; // 新增：路线变化回调
 }
 
 export default function FinalRouteEditor({
@@ -31,9 +32,17 @@ export default function FinalRouteEditor({
   initialRoute,
   onSave,
   onCancel,
+  onRouteChange,
 }: FinalRouteEditorProps) {
   const [routeSpots, setRouteSpots] = useState<RouteSpotWithTime[]>(initialRoute);
   const [selectedSpotId, setSelectedSpotId] = useState<string>('');
+  
+  // 当路线变化时，通知父组件
+  useEffect(() => {
+    if (onRouteChange) {
+      onRouteChange(routeSpots);
+    }
+  }, [routeSpots, onRouteChange]);
   
   // 添加景点到路线
   const handleAddSpot = () => {

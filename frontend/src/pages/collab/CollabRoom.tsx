@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Menu, Users, MessageCircle, MapPin, Send, Lock, Eye, Loader, Copy, Check, Share2 } from 'lucide-react';
 import { Sidebar } from '../../components/SharedSidebar';
 import { useCollabStore } from '../../store/collabStore';
-import { getCollabRoomInfo, getUserDrafts, getCollabMessages, getSpotStats, lockCollabRoom, sendCollabMessage, upsertDraft, submitDraft, getCitySpots, getAllDrafts } from '../../api/collabApi';
+import { getCollabRoomInfo, getUserDrafts, getCollabMessages, getSpotStats, lockCollabRoom, sendCollabMessage, upsertDraft, submitDraft, getCitySpots, getAllDrafts, saveFinalTrip } from '../../api/collabApi';
 import { connectSocket, disconnectSocket, joinRoom, leaveRoom, updateDraft } from '../../services/collabSocket';
 import { useCollabMap, Spot, RoutePoint } from '../../hooks/useCollabMap';
 import LayerControl from '../../components/collab/LayerControl';
@@ -29,6 +29,7 @@ export default function CollabRoom() {
   const [destination, setDestination] = useState<string>('');
   const [allMemberDrafts, setAllMemberDrafts] = useState<any[]>([]);
   const [showAllRoutes, setShowAllRoutes] = useState(false);
+  const [rightPanelOpen, setRightPanelOpen] = useState(true); // 右侧面板显示状态
   
   const {
     currentRoom,
@@ -43,7 +44,6 @@ export default function CollabRoom() {
     setMyDrafts,
     setCurrentDay,
     setSpotStats,
-    toggleLayer,
     setVisibleLayers,
     reset,
   } = useCollabStore();
@@ -220,8 +220,18 @@ export default function CollabRoom() {
       connectSocket(token);
       
       // 加入房间
-      setTimeout(() => {
+      setTimeout(async () => {
         joinRoom(roomId!, currentUser.id);
+        
+        // 加入后立即获取最新的成员列表
+        try {
+          const roomResponse = await getCollabRoomInfo(roomId!);
+          if (roomResponse.success) {
+            setMembers(roomResponse.data.members || []);
+          }
+        } catch (error) {
+          console.error('获取成员列表失败:', error);
+        }
       }, 500);
       
     } catch (err: any) {
@@ -235,6 +245,9 @@ export default function CollabRoom() {
   // 当天数切换时，加载对应的草案
   useEffect(() => {
     if (!roomId || !currentRoom) return;
+    
+    // 如果房间已锁定，不加载草案（避免覆盖最终路线）
+    if (currentRoom.phase === 'LOCKED') return;
     
     const loadDayDraft = async () => {
       try {
@@ -287,6 +300,11 @@ export default function CollabRoom() {
 
   // 处理景点点击
   function handleSpotClick(spot: Spot) {
+    // 检查房间是否已锁定
+    if (currentRoom?.phase === 'LOCKED') {
+      return; // 锁定后不允许操作
+    }
+    
     // 检查是否已在路线中
     const exists = routeSpots.find((s) => s.id === spot.id);
     if (exists) {
@@ -410,6 +428,9 @@ export default function CollabRoom() {
         setAllMemberDrafts(response.data);
         setShowAllRoutes(true);
         
+        // 设置所有成员为可见
+        setVisibleLayers(new Set(response.data.map((d: any) => d.userId)));
+        
         // 绘制当前天的路线
         drawRoutesForDay(currentDay);
       }
@@ -419,8 +440,11 @@ export default function CollabRoom() {
   };
   
   // 绘制指定天的所有成员路线
-  const drawRoutesForDay = (day: number) => {
+  const drawRoutesForDay = (day: number, layersToDraw?: Set<string>) => {
     if (!isMapLoaded || allMemberDrafts.length === 0) return;
+    
+    // 使用传入的图层或当前store中的图层
+    const layers = layersToDraw || visibleLayers;
     
     // 清除现有路线
     clearRoute();
@@ -430,6 +454,9 @@ export default function CollabRoom() {
     
     // 为每个成员绘制指定天的路线
     allMemberDrafts.forEach((memberDrafts: any, index: number) => {
+      // 只绘制可见成员的路线
+      if (!layers.has(memberDrafts.userId)) return;
+      
       const color = colors[index % colors.length];
       
       // 找到该天的草案
@@ -471,18 +498,92 @@ export default function CollabRoom() {
   };
 
   const handleShowAllLayers = () => {
-    setVisibleLayers(new Set(members.map((m) => m.userId)));
+    // 设置所有成员为可见
+    const allUserIds = new Set(members.map((m) => m.userId));
+    setVisibleLayers(allUserIds);
+    
+    // 如果还没有加载所有草案，先加载
+    if (allMemberDrafts.length === 0) {
+      showAllMemberRoutes();
+    } else {
+      // 已经有数据，直接绘制（传入新的图层集合）
+      drawRoutesForDay(currentDay, allUserIds);
+    }
   };
 
   const handleHideAllLayers = () => {
+    // 清除所有可见状态
     setVisibleLayers(new Set());
+    // 清除地图上的路线
+    clearRoute();
+  };
+  
+  // 切换单个成员的路线显示
+  const handleToggleLayer = (userId: string) => {
+    const newSet = new Set(visibleLayers);
+    const isCurrentlyVisible = newSet.has(userId);
+    
+    if (isCurrentlyVisible) {
+      // 当前可见，切换为隐藏
+      newSet.delete(userId);
+    } else {
+      // 当前隐藏，切换为显示
+      newSet.add(userId);
+    }
+    
+    setVisibleLayers(newSet);
+    
+    // 重新绘制路线（传入新的图层集合）
+    if (newSet.size > 0 && allMemberDrafts.length > 0) {
+      drawRoutesForDay(currentDay, newSet);
+    } else {
+      clearRoute();
+    }
   };
   
   // 保存最终路线
   const handleSaveFinalRoute = async (route: any[]) => {
-    // TODO: 调用后端API保存
-    console.log('保存最终路线:', route);
-    alert('最终路线已保存！\n\n后续将实现：\n1. 保存到数据库\n2. 通知所有成员\n3. 在"我的行程"中查看');
+    if (!roomId) return;
+    
+    try {
+      // 调用后端API保存最终行程
+      const response = await saveFinalTrip(roomId, route);
+      
+      if (response.success) {
+        alert('✅ 危同行程已保存！\n\n您可以在"我的行程"中查看协同行程。');
+        // 跳转到我的行程页面
+        navigate('/my-trips');
+      } else {
+        throw new Error(response.error || '保存失败');
+      }
+    } catch (err: any) {
+      console.error('保存最终路线失败:', err);
+      alert('❌ 保存失败：' + (err.message || '请重试'));
+    }
+  };
+  
+  // 处理最终路线变化（实时在地图上显示）
+  const handleFinalRouteChange = (route: any[]) => {
+    if (!isMapLoaded || route.length === 0) {
+      clearRoute();
+      return;
+    }
+    
+    // 清除现有路线
+    clearRoute();
+    
+    // 绘制最终路线（使用橙色）
+    const points: RoutePoint[] = route.map((spot, index) => {
+      const [lng, lat] = spot.location.split(',').map(Number);
+      return {
+        spotId: spot.id,
+        lng,
+        lat,
+        order: index + 1,
+      };
+    });
+    
+    drawRoute(points, '#F59E0B'); // 橙色
   };
 
   const isHost = currentRoom?.hostId === currentUser.id;
@@ -592,6 +693,13 @@ export default function CollabRoom() {
                   第 {currentDay} 天路线规划
                 </h3>
                 <div className="flex items-center gap-2">
+                  {/* 右侧面板切换按钮 */}
+                  <button
+                    onClick={() => setRightPanelOpen(!rightPanelOpen)}
+                    className="px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors flex items-center gap-1"
+                  >
+                    {rightPanelOpen ? '隐藏面板' : '显示面板'}
+                  </button>
                   {showStats && (
                     <button
                       onClick={handleHideSpotStats}
@@ -630,17 +738,18 @@ export default function CollabRoom() {
         </div>
 
         {/* 右侧：信息区域 */}
-        <div className="w-[360px] border-l border-border bg-white flex flex-col">
-          {/* 图层控制 */}
-          <div className="p-4 border-b border-border">
-            <LayerControl
-              members={members}
-              visibleLayers={visibleLayers}
-              onToggleLayer={toggleLayer}
-              onShowAll={handleShowAllLayers}
-              onHideAll={handleHideAllLayers}
-            />
-          </div>
+        {rightPanelOpen && (
+          <div className="w-[400px] border-l border-border bg-white flex flex-col">
+            {/* 图层控制 */}
+            <div className="p-4 border-b border-border">
+              <LayerControl
+                members={members}
+                visibleLayers={visibleLayers}
+                onToggleLayer={handleToggleLayer}
+                onShowAll={handleShowAllLayers}
+                onHideAll={handleHideAllLayers}
+              />
+            </div>
 
           {/* 成员列表 */}
           <div className="p-4 border-b border-border">
@@ -823,6 +932,7 @@ export default function CollabRoom() {
             )}
           </div>
         </div>
+        )}
       </main>
       
       {/* 景点统计面板 */}
@@ -840,6 +950,7 @@ export default function CollabRoom() {
           allMemberDrafts={allMemberDrafts}
           citySpots={citySpots}
           onSave={handleSaveFinalRoute}
+          onRouteChange={handleFinalRouteChange}
         />
       )}
     </div>

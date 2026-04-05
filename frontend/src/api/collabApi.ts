@@ -152,3 +152,16 @@ export const getCollabMessages = async (roomId: string) => {
   const response = await apiClient.get(`/collab/messages/${roomId}`);
   return response.data as { success: boolean; data: CollabMessage[] };
 };
+
+// ==================== 最终行程API ====================
+
+/**
+ * 保存最终协同行程
+ * @param roomId 房间ID
+ * @param finalRoute 最终路线数据
+ * @returns 保存结果
+ */
+export const saveFinalTrip = async (roomId: string, finalRoute: any[]) => {
+  const response = await apiClient.post('/collab/finalize', { roomId, finalRoute });
+  return response.data;
+};

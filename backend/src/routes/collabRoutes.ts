@@ -13,6 +13,7 @@ import {
   getAllDrafts,
   sendMessage,
   getMessages,
+  saveFinalTrip,
 } from '../controllers/collabController';
 
 const router = Router();
@@ -55,5 +56,10 @@ router.post('/messages', authenticateToken, sendMessage);
 
 // GET /api/collab/messages/:roomId - 获取房间消息列表
 router.get('/messages/:roomId', authenticateToken, getMessages);
+
+// ==================== 最终行程相关路由 ====================
+
+// POST /api/collab/finalize - 保存最终协同行程
+router.post('/finalize', authenticateToken, saveFinalTrip);
 
 export default router;

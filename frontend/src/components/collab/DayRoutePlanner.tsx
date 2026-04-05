@@ -1,6 +1,6 @@
-// 按天绘制最终路线 - 内嵌在CollabRoom页面中
+// 按天绘制最终路线 - 优化版
 import { useState, useEffect } from 'react';
-import { MapPin, Plus, Trash2, ChevronDown, ChevronUp, Users, Utensils, AlertCircle } from 'lucide-react';
+import { MapPin, Plus, Trash2, ChevronDown, ChevronUp, Users, Utensils, AlertCircle, TrendingUp } from 'lucide-react';
 
 interface Spot {
   id: string;
@@ -29,6 +29,7 @@ interface DayRoutePlannerProps {
   allMemberDrafts: any[]; // 所有成员的草案
   citySpots: Spot[]; // 城市所有景点
   onSave: (route: RouteSpotWithTime[]) => void;
+  onRouteChange?: (route: RouteSpotWithTime[]) => void; // 新增：路线变化回调
 }
 
 export default function DayRoutePlanner({
@@ -36,39 +37,19 @@ export default function DayRoutePlanner({
   allMemberDrafts,
   citySpots,
   onSave,
+  onRouteChange,
 }: DayRoutePlannerProps) {
   const [daySpots, setDaySpots] = useState<SpotWithStats[]>([]);
   const [selectedSpots, setSelectedSpots] = useState<RouteSpotWithTime[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
   const [mealReminders, setMealReminders] = useState<{time: string, type: string}[]>([]);
   
-  // 检测用餐时间提醒
+  // 当路线变化时，通知父组件
   useEffect(() => {
-    const reminders: {time: string, type: string}[] = [];
-    
-    selectedSpots.forEach(spot => {
-      const [hours] = spot.arrivalTime.split(':').map(Number);
-      const [departHours] = spot.departureTime.split(':').map(Number);
-      
-      // 检测是否跨越午餐时间（11:30-13:30）
-      if (hours < 11.5 && departHours >= 11.5 && departHours <= 13.5) {
-        reminders.push({
-          time: spot.arrivalTime,
-          type: '午餐',
-        });
-      }
-      
-      // 检测是否跨越晚餐时间（17:30-19:30）
-      if (hours < 17.5 && departHours >= 17.5 && departHours <= 19.5) {
-        reminders.push({
-          time: spot.arrivalTime,
-          type: '晚餐',
-        });
-      }
-    });
-    
-    setMealReminders(reminders);
-  }, [selectedSpots]);
+    if (onRouteChange) {
+      onRouteChange(selectedSpots);
+    }
+  }, [selectedSpots, onRouteChange]);
   
   // 计算该天被选择的景点及统计
   useEffect(() => {
@@ -102,6 +83,34 @@ export default function DayRoutePlanner({
     const sortedSpots = Array.from(spotMap.values()).sort((a, b) => b.selectedCount - a.selectedCount);
     setDaySpots(sortedSpots);
   }, [day, allMemberDrafts, citySpots]);
+  
+  // 检测用餐时间提醒
+  useEffect(() => {
+    const reminders: {time: string, type: string}[] = [];
+    
+    selectedSpots.forEach(spot => {
+      const [hours] = spot.arrivalTime.split(':').map(Number);
+      const [departHours] = spot.departureTime.split(':').map(Number);
+      
+      // 检测是否跨越午餐时间（11:30-13:30）
+      if (hours < 11.5 && departHours >= 11.5 && departHours <= 13.5) {
+        reminders.push({
+          time: spot.arrivalTime,
+          type: '午餐',
+        });
+      }
+      
+      // 检测是否跨越晚餐时间（17:30-19:30）
+      if (hours < 17.5 && departHours >= 17.5 && departHours <= 19.5) {
+        reminders.push({
+          time: spot.arrivalTime,
+          type: '晚餐',
+        });
+      }
+    });
+    
+    setMealReminders(reminders);
+  }, [selectedSpots]);
   
   // 添加景点到最终路线
   const handleAddSpot = (spot: SpotWithStats) => {
@@ -141,29 +150,28 @@ export default function DayRoutePlanner({
     if (!category) return 120; // 默认2小时
     
     const categoryMap: Record<string, number> = {
-      '博物馆': 180,      // 3小时
+      '博物馆': 180,
       '博物馆馆': 180,
-      '美术馆': 150,      // 2.5小时
-      '公园': 120,        // 2小时
-      '景点': 90,         // 1.5小时
-      '古迹': 120,        // 2小时
-      '寺庙': 90,         // 1.5小时
-      '游乐场': 240,      // 4小时
-      '主题公园': 300,    // 5小时
-      '自然风光': 150,    // 2.5小时
-      '海滩': 180,        // 3小时
-      '购物中心': 120,    // 2小时
-      '市场': 90,         // 1.5小时
+      '美术馆': 150,
+      '公园': 120,
+      '景点': 90,
+      '古迹': 120,
+      '寺庙': 90,
+      '游乐场': 240,
+      '主题公园': 300,
+      '自然风光': 150,
+      '海滩': 180,
+      '购物中心': 120,
+      '市场': 90,
     };
     
-    // 模糊匹配
     for (const [key, value] of Object.entries(categoryMap)) {
       if (category.includes(key)) {
         return value;
       }
     }
     
-    return 120; // 默认2小时
+    return 120;
   };
   
   // 更新时间
@@ -281,141 +289,160 @@ export default function DayRoutePlanner({
           )}
           
           <div className="grid grid-cols-2 gap-4">
-            {/* 左侧：可选景点 */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-sm font-semibold text-gray-700">可选景点</h4>
-              <button
-                onClick={handleAddAllHotSpots}
-                className="text-xs text-amber-600 hover:text-amber-700"
-              >
-                一键添加热门景点
-              </button>
-            </div>
-            <div className="space-y-2 max-h-80 overflow-y-auto">
-              {daySpots.map(spot => {
-                const isSelected = selectedSpots.find(s => s.id === spot.id);
-                const isHot = spot.selectedCount >= 2;
-                
-                return (
-                  <div
-                    key={spot.id}
-                    className={`p-2 border rounded-lg ${
-                      isSelected ? 'bg-gray-100 opacity-50' : 'bg-white hover:bg-gray-50 cursor-pointer'
-                    }`}
-                    onClick={() => !isSelected && handleAddSpot(spot)}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{spot.name}</span>
-                          {isHot && (
-                            <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs rounded">
-                              热门
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-                          <Users className="h-3 w-3" />
-                          <span>{spot.selectedCount}人选择</span>
-                          <span className="text-gray-400">({spot.selectedBy.join(', ')})</span>
-                        </div>
-                      </div>
-                      {!isSelected && (
-                        <Plus className="h-4 w-4 text-amber-500" />
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-              
-              {daySpots.length === 0 && (
-                <div className="text-center text-gray-500 py-8 text-sm">
-                  该天暂无成员选择景点
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* 右侧：已选路线 */}
-          <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">最终路线</h4>
-            <div className="space-y-2 max-h-80 overflow-y-auto">
-              {selectedSpots.map((spot, index) => (
-                <div key={spot.id} className="p-2 border border-amber-200 rounded-lg bg-amber-50">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-amber-900">
-                        {index + 1}. {spot.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {index > 0 && (
-                        <button
-                          onClick={() => handleMoveSpot(index, 'up')}
-                          className="p-1 hover:bg-amber-200 rounded text-xs"
-                        >
-                          ↑
-                        </button>
-                      )}
-                      {index < selectedSpots.length - 1 && (
-                        <button
-                          onClick={() => handleMoveSpot(index, 'down')}
-                          className="p-1 hover:bg-amber-200 rounded text-xs"
-                        >
-                          ↓
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleRemoveSpot(index)}
-                        className="p-1 hover:bg-red-100 rounded text-red-600"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
+            {/* 左侧：成员路线统计 */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  景点选择统计
+                </h4>
+                <button
+                  onClick={handleAddAllHotSpots}
+                  className="text-xs text-amber-600 hover:text-amber-700"
+                >
+                  一键添加热门景点
+                </button>
+              </div>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {daySpots.map(spot => {
+                  const isSelected = selectedSpots.find(s => s.id === spot.id);
+                  const isHot = spot.selectedCount >= 2;
                   
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-0.5">到达</label>
-                      <input
-                        type="time"
-                        value={spot.arrivalTime}
-                        onChange={(e) => handleUpdateTime(index, 'arrivalTime', e.target.value)}
-                        className="w-full px-1.5 py-1 border border-gray-300 rounded text-xs"
-                      />
+                  return (
+                    <div
+                      key={spot.id}
+                      className={`p-2 border rounded-lg ${
+                        isSelected ? 'bg-amber-100 border-amber-300' : 'bg-white hover:bg-gray-50 cursor-pointer'
+                      }`}
+                      onClick={() => !isSelected && handleAddSpot(spot)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">{spot.name}</span>
+                            {isHot && (
+                              <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs rounded">
+                                热门
+                              </span>
+                            )}
+                            {isSelected && (
+                              <span className="px-1.5 py-0.5 bg-amber-200 text-amber-700 text-xs rounded">
+                                已选
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-center gap-1 text-xs text-gray-500">
+                              <Users className="h-3 w-3" />
+                              <span>{spot.selectedCount}人选择</span>
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              ({spot.selectedBy.join(', ')})
+                            </div>
+                          </div>
+                          {/* 频率条 */}
+                          <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-amber-500 rounded-full"
+                              style={{ width: `${(spot.selectedCount / allMemberDrafts.length) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                        {!isSelected && (
+                          <Plus className="h-4 w-4 text-amber-500" />
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-0.5">时长(分)</label>
-                      <input
-                        type="number"
-                        value={spot.duration}
-                        onChange={(e) => handleUpdateTime(index, 'duration', Number(e.target.value))}
-                        min={15}
-                        step={15}
-                        className="w-full px-1.5 py-1 border border-gray-300 rounded text-xs"
-                      />
+                  );
+                })}
+                
+                {daySpots.length === 0 && (
+                  <div className="text-center text-gray-500 py-8 text-sm">
+                    该天暂无成员选择景点
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* 右侧：最终路线编辑 */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">最终路线</h4>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {selectedSpots.map((spot, index) => (
+                  <div key={spot.id} className="p-2 border border-amber-200 rounded-lg bg-amber-50">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-amber-900">
+                          {index + 1}. {spot.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {index > 0 && (
+                          <button
+                            onClick={() => handleMoveSpot(index, 'up')}
+                            className="p-1 hover:bg-amber-200 rounded text-xs"
+                          >
+                            ↑
+                          </button>
+                        )}
+                        {index < selectedSpots.length - 1 && (
+                          <button
+                            onClick={() => handleMoveSpot(index, 'down')}
+                            className="p-1 hover:bg-amber-200 rounded text-xs"
+                          >
+                            ↓
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleRemoveSpot(index)}
+                          className="p-1 hover:bg-red-100 rounded text-red-600"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-0.5">离开</label>
-                      <input
-                        type="time"
-                        value={spot.departureTime}
-                        readOnly
-                        className="w-full px-1.5 py-1 border border-gray-300 rounded text-xs bg-gray-100"
-                      />
+                    
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-0.5">到达</label>
+                        <input
+                          type="time"
+                          value={spot.arrivalTime}
+                          onChange={(e) => handleUpdateTime(index, 'arrivalTime', e.target.value)}
+                          className="w-full px-1.5 py-1 border border-gray-300 rounded text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-0.5">时长(分)</label>
+                        <input
+                          type="number"
+                          value={spot.duration}
+                          onChange={(e) => handleUpdateTime(index, 'duration', Number(e.target.value))}
+                          min={15}
+                          step={15}
+                          className="w-full px-1.5 py-1 border border-gray-300 rounded text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-0.5">离开</label>
+                        <input
+                          type="time"
+                          value={spot.departureTime}
+                          readOnly
+                          className="w-full px-1.5 py-1 border border-gray-300 rounded text-xs bg-gray-100"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              
-              {selectedSpots.length === 0 && (
-                <div className="text-center text-gray-500 py-8 text-sm">
-                  点击左侧景点添加到路线
-                </div>
-              )}
+                ))}
+                
+                {selectedSpots.length === 0 && (
+                  <div className="text-center text-gray-500 py-8 text-sm">
+                    点击左侧景点添加到路线
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
           </div>
         </div>
       )}

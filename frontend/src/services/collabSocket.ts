@@ -38,20 +38,54 @@ export const connectSocket = (token: string) => {
   /**
    * 成员加入
    */
-  socket.on('member:join', (data: { userId: string; username: string; timestamp: Date }) => {
+  socket.on('member:join', async (data: { userId: string; username: string; timestamp: Date }) => {
     console.log('👤 成员加入:', data);
     const store = useCollabStore.getState();
     store.addOnlineUser(data.userId);
+    
+    // 重新获取房间信息（包含成员列表）
+    if (store.currentRoom) {
+      try {
+        const response = await fetch(`http://localhost:3003/api/collab/rooms/${store.currentRoom.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const roomData = await response.json();
+          store.setMembers(roomData.data.members || []);
+        }
+      } catch (error) {
+        console.error('获取成员列表失败:', error);
+      }
+    }
   });
 
   /**
    * 成员离开
    */
-  socket.on('member:leave', (data: { userId: string; username: string; timestamp: Date }) => {
+  socket.on('member:leave', async (data: { userId: string; username: string; timestamp: Date }) => {
     console.log('👋 成员离开:', data);
     const store = useCollabStore.getState();
     store.removeOnlineUser(data.userId);
     store.removeCursor(data.userId);
+    
+    // 重新获取房间信息（包含成员列表）
+    if (store.currentRoom) {
+      try {
+        const response = await fetch(`http://localhost:3003/api/collab/rooms/${store.currentRoom.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const roomData = await response.json();
+          store.setMembers(roomData.data.members || []);
+        }
+      } catch (error) {
+        console.error('获取成员列表失败:', error);
+      }
+    }
   });
 
   // ==================== 光标事件 ====================
