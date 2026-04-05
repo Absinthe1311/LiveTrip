@@ -605,8 +605,87 @@ export const saveFinalTrip = async (req: Request, res: Response) => {
         });
       }
       
-      console.log(`✅ Day ${dayData.day} 的 ${dayData.attractions.length} 个景点已保存`);
+    console.log(`✅ Day ${dayData.day} 的 ${dayData.attractions.length} 个景点已保存`);
     }
+
+    // 为所有成员创建行程副本
+    console.log('👥 开始为所有成员创建行程副本...');
+    
+    for (const member of room.members) {
+      // 跳过房主（房主的行程已经更新）
+      if (member.userId === room.hostId) {
+        console.log(`⏭️ 跳过房主 ${member.user.username}`);
+        continue;
+      }
+      
+      // 为成员创建新的Trip
+      const memberTrip = await prisma.trip.create({
+        data: {
+          userId: member.userId,
+          title: `${room.trip.title} (协同)`,
+          description: `协同规划完成 - ${room.members.length}人参与`,
+          destination: room.trip.destination,
+          startDate: room.trip.startDate,
+          endDate: room.trip.endDate,
+          totalBudget: room.trip.totalBudget,
+          source: 'collaborative',
+          status: 'finalized',
+          aiGenerated: false,
+        },
+      });
+      
+      console.log(`✅ 为成员 ${member.user.username} 创建Trip: ${memberTrip.id}`);
+      
+      // 为成员创建Day和ItineraryItem
+      for (const dayData of itineraryData) {
+        const dayDate = new Date(dayData.date);
+        
+        const memberDay = await prisma.day.create({
+          data: {
+            tripId: memberTrip.id,
+            dayNumber: dayData.day,
+            date: dayDate,
+          },
+        });
+        
+        // 创建ItineraryItem
+        for (let i = 0; i < dayData.attractions.length; i++) {
+          const attraction = dayData.attractions[i];
+          
+          // 解析location
+          let lng = 0;
+          let lat = 0;
+          if (attraction.location && typeof attraction.location === 'string') {
+            const parts = attraction.location.split(',');
+            if (parts.length === 2) {
+              lng = parseFloat(parts[0]) || 0;
+              lat = parseFloat(parts[1]) || 0;
+            }
+          }
+          
+          // 解析时间
+          const startTime = new Date(`${dayData.date}T${attraction.arrivalTime}:00`);
+          const endTime = new Date(`${dayData.date}T${attraction.departureTime}:00`);
+          
+          await prisma.itineraryItem.create({
+            data: {
+              dayId: memberDay.id,
+              name: attraction.name,
+              type: 'attraction',
+              spotId: attraction.id,
+              startTime,
+              endTime,
+              latitude: lat,
+              longitude: lng,
+            },
+          });
+        }
+      }
+      
+      console.log(`✅ 成员 ${member.user.username} 的行程已保存`);
+    }
+    
+    console.log(`✅ 所有 ${room.members.length} 个成员的行程已保存`);
 
     // 锁定房间
     await collabService.lockRoom(roomId);
