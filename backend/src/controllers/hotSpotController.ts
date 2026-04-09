@@ -36,17 +36,19 @@ export const getHotSpots = async (req: Request, res: Response) => {
         },
         iotData: true,
       },
+      // 按城市排序，确保每个城市都能获取到景点
       orderBy: {
-        rating: 'desc',
+        city: 'asc',
       },
-      take: 20,
+      // 不限制数量，返回所有热门景点
     });
 
     // 转换为前端需要的格式
     const result = hotSpots.map(spot => ({
       id: spot.id,
       name: spot.name,
-      image: spot.images.length > 0 ? spot.images[0].url : '',
+      // 优先使用images表中的图片，其次使用coverImage
+      image: spot.images.length > 0 ? spot.images[0].url : (spot.coverImage || ''),
       rating: spot.rating || 4.5,
       description: spot.description || '',
       openTime: spot.openTime || '全天开放',

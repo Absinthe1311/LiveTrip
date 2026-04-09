@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { App as AntdApp } from 'antd';
 import Home from './pages/Home';
 import PlanGlass from './pages/PlanGlass';
-import Itinerary from './pages/Itinerary';
+import ItineraryGlass from './pages/ItineraryGlass';
 import TripDetail from './pages/TripDetail';
 import MyTripsGlass from './pages/MyTripsGlass';
 import Auth from './pages/Auth';
@@ -46,7 +46,7 @@ function AppContent() {
           path="/itinerary"
           element={
             <AuthGuard>
-              <Itinerary />
+              <ItineraryGlass />
             </AuthGuard>
           }
         />

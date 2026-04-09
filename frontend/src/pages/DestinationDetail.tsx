@@ -438,7 +438,7 @@ export default function DestinationDetail() {
           </Space>
         </div>
 
-        {/* 景点列表 */}
+        {/* 景点列表 - 固定3x3布局 */}
         <Row gutter={[24, 24]}>
           {filteredAttractions.map((attraction) => {
             // 检查是否已收藏（通过景点名称匹配）
@@ -447,7 +447,7 @@ export default function DestinationDetail() {
             );
 
             return (
-              <Col xs={24} sm={12} lg={8} xl={6} key={attraction.id}>
+              <Col span={8} key={attraction.id}>
                 <DestinationAttractionCard
                   attraction={attraction}
                   isFavorite={isFavorited}

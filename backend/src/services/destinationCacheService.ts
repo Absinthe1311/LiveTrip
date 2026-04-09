@@ -5,8 +5,8 @@ import { getAmapService } from './amapService';
 
 const prisma = getPrismaClient();
 
-// 缓存过期时间（7天）
-const CACHE_EXPIRY_DAYS = 7;
+// 缓存过期时间（设置为100年，相当于永不过期）
+const CACHE_EXPIRY_DAYS = 365 * 100; // 100年
 
 // 城市列表
 const CITIES = [
@@ -54,14 +54,42 @@ class DestinationCacheService {
     try {
       console.log(`🔍 获取 ${city} 的热门景点...`);
 
-      // 1. 检查缓存
-      const cachedData = await prisma.destinationCache.findUnique({
+      // 处理城市名称，支持带"市"和不带"市"的查询
+      const cityWithSuffix = city.endsWith('市') ? city : `${city}市`;
+      const cityWithoutSuffix = city.endsWith('市') ? city.slice(0, -1) : city;
+
+      // 1. 检查缓存（尝试多种城市名称格式）
+      let cachedData = await prisma.destinationCache.findUnique({
         where: { city },
       });
 
+      // 如果没找到，尝试带"市"的格式
+      if (!cachedData) {
+        cachedData = await prisma.destinationCache.findUnique({
+          where: { city: cityWithSuffix },
+        });
+      }
+
+      // 如果还没找到，尝试不带"市"的格式
+      if (!cachedData) {
+        cachedData = await prisma.destinationCache.findUnique({
+          where: { city: cityWithoutSuffix },
+        });
+      }
+
+      // 定义最小景点数量要求
+      const MIN_ATTRACTIONS = 9;
+
       if (cachedData && cachedData.expiresAt > new Date()) {
-        console.log(`✅ 使用缓存数据: ${city}`);
-        return JSON.parse(cachedData.attractions);
+        const cachedAttractions = JSON.parse(cachedData.attractions);
+
+        // 检查缓存中的景点数量是否足够
+        if (cachedAttractions.length >= MIN_ATTRACTIONS) {
+          console.log(`✅ 使用缓存数据: ${city}, 景点数量: ${cachedAttractions.length}`);
+          return cachedAttractions;
+        } else {
+          console.log(`⚠️  缓存景点数量不足 (${cachedAttractions.length}/${MIN_ATTRACTIONS})，重新获取数据`);
+        }
       }
 
       console.log(`🔄 缓存不存在或已过期，开始获取数据: ${city}`);
@@ -69,6 +97,7 @@ class DestinationCacheService {
       // 2. 优先从数据库获取该城市的景点
       const attractionsFromDB = await this.getAttractionsFromDatabase(city);
 
+      // 如果数据库中有数据，直接返回（优先使用数据库数据）
       if (attractionsFromDB.length > 0) {
         console.log(`✅ 从数据库获取到 ${attractionsFromDB.length} 个景点`);
 
@@ -94,13 +123,22 @@ class DestinationCacheService {
     } catch (error: any) {
       console.error(`❌ 获取 ${city} 的热门景点失败:`, error);
 
-      // 如果API调用失败，尝试返回过期缓存
+      // 如果API调用失败，尝试从数据库获取数据
+      console.log(`⚠️  API调用失败，尝试从数据库获取数据: ${city}`);
+      const attractionsFromDB = await this.getAttractionsFromDatabase(city);
+
+      if (attractionsFromDB.length > 0) {
+        console.log(`✅ 从数据库获取到 ${attractionsFromDB.length} 个景点作为fallback`);
+        return attractionsFromDB;
+      }
+
+      // 如果数据库也没有，尝试返回过期缓存
       const cachedData = await prisma.destinationCache.findUnique({
         where: { city },
       });
 
       if (cachedData) {
-        console.log(`⚠️  API调用失败，使用过期缓存: ${city}`);
+        console.log(`⚠️  使用过期缓存: ${city}`);
         return JSON.parse(cachedData.attractions);
       }
 
@@ -115,15 +153,23 @@ class DestinationCacheService {
    */
   private async getAttractionsFromDatabase(city: string): Promise<any[]> {
     try {
+      // 处理城市名称，支持带"市"和不带"市"的查询
+      const cityWithSuffix = city.endsWith('市') ? city : `${city}市`;
+      const cityWithoutSuffix = city.endsWith('市') ? city.slice(0, -1) : city;
+
       const spots = await prisma.spot.findMany({
         where: {
-          city: city,
+          OR: [
+            { city: city },
+            { city: cityWithSuffix },
+            { city: cityWithoutSuffix },
+          ],
           isHot: true, // 只获取热门景点
         },
         orderBy: {
           rating: 'desc', // 按评分排序
         },
-        take: 50, // 最多50个
+        take: 100, // 增加到100个，确保有足够的数据
       });
 
       // 转换为前端需要的格式
@@ -176,8 +222,8 @@ class DestinationCacheService {
         (attr) => attr.location && attr.location !== '0,0'
       );
 
-      // 限制返回数量（最多50个）
-      const limitedAttractions = validAttractions.slice(0, 50);
+      // 限制返回数量（最多100个）
+      const limitedAttractions = validAttractions.slice(0, 100);
 
       console.log(`✅ 从高德地图API获取到 ${limitedAttractions.length} 个有效景点`);
 

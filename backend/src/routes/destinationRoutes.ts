@@ -1,43 +1,25 @@
-// 目的地路由
+// 热门目的地路由 - 优化版本
 import { Router } from 'express';
-import {
-  getCityAttractions,
-  getSupportedCities,
-  warmupCache,
-  cleanExpiredCache,
-  clearAllCache,
-} from '../controllers/destinationController';
+import { getHotCities, getCitySpots, getCityAllSpots } from '../controllers/destinationController';
 
 const router = Router();
 
 /**
- * 获取所有支持的城市列表
- * GET /api/destinations
+ * 获取热门城市列表
+ * GET /api/destinations/cities
  */
-router.get('/', getSupportedCities);
+router.get('/cities', getHotCities);
 
 /**
- * 预热所有城市的缓存
- * POST /api/destinations/warmup
+ * 获取指定城市的热门景点（用于首页展示）
+ * GET /api/destinations/cities/:city/spots?limit=9
  */
-router.post('/warmup', warmupCache);
+router.get('/cities/:city/spots', getCitySpots);
 
 /**
- * 清理过期缓存
- * POST /api/destinations/cleanup
+ * 获取指定城市的所有热门景点（用于城市详情页）
+ * GET /api/destinations/cities/:city/all?page=1&pageSize=12
  */
-router.post('/cleanup', cleanExpiredCache);
-
-/**
- * 清理所有缓存（强制刷新）
- * POST /api/destinations/clear-all
- */
-router.post('/clear-all', clearAllCache);
-
-/**
- * 获取城市的热门景点列表
- * GET /api/destinations/:city
- */
-router.get('/:city', getCityAttractions);
+router.get('/cities/:city/all', getCityAllSpots);
 
 export default router;

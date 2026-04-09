@@ -744,6 +744,73 @@ export const getHotDestinations = async () => {
   return response.data;
 };
 
+// ==================== 热门目的地 API (优化版本) ====================
+
+/**
+ * 热门城市接口
+ */
+export interface HotCity {
+  name: string;
+  coverImage: string;
+  description: string;
+  spotCount: number;
+  avgRating: number;
+  categories: string[];
+}
+
+/**
+ * 热门景点接口
+ */
+export interface HotSpot {
+  id: string;
+  name: string;
+  image: string;
+  rating: number;
+  description: string;
+  openTime: string;
+  ticketPrice: number;
+  category: string;
+  city: string;
+  location?: string;
+  address?: string;
+}
+
+/**
+ * 获取热门城市列表
+ * @returns 热门城市列表
+ */
+export const getHotCities = async () => {
+  const response = await apiClient.get('/destinations/cities');
+  return response.data;
+};
+
+/**
+ * 获取指定城市的热门景点（用于首页展示）
+ * @param city 城市名称
+ * @param limit 限制数量，默认9个
+ * @returns 热门景点列表
+ */
+export const getCitySpots = async (city: string, limit: number = 9) => {
+  const response = await apiClient.get(`/destinations/cities/${encodeURIComponent(city)}/spots`, {
+    params: { limit },
+  });
+  return response.data;
+};
+
+/**
+ * 获取指定城市的所有热门景点（用于城市详情页）
+ * @param city 城市名称
+ * @param page 页码
+ * @param pageSize 每页数量
+ * @returns 热门景点列表（分页）
+ */
+export const getCityAllSpots = async (city: string, page: number = 1, pageSize: number = 12) => {
+  const response = await apiClient.get(`/destinations/cities/${encodeURIComponent(city)}/all`, {
+    params: { page, pageSize },
+  });
+  return response.data;
+};
+
 // ==================== 打包清单 API ====================
 
 /**
