@@ -153,7 +153,7 @@ export default function LocationInput({
                 <span className="text-[15px] font-medium text-foreground">{city.value}</span>
               </div>
               <p className="text-[12px] text-muted-foreground">
-                {'desc' in city ? city.desc : city.province}
+                {'desc' in city ? (city as any).desc : city.province}
               </p>
             </button>
           ))}

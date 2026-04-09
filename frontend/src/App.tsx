@@ -2,28 +2,27 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { App as AntdApp } from 'antd';
 import Home from './pages/Home';
-import Plan from './pages/Plan';
+import PlanGlass from './pages/PlanGlass';
 import Itinerary from './pages/Itinerary';
 import TripDetail from './pages/TripDetail';
-import MyTrips from './pages/MyTrips';
+import MyTripsGlass from './pages/MyTripsGlass';
 import Auth from './pages/Auth';
 import Profile from './pages/Profile';
 import DestinationDetail from './pages/DestinationDetail';
-import Favorites from './pages/Favorites';
-import Destinations from './pages/Destinations';
+import FavoritesGlass from './pages/FavoritesGlass';
+import DestinationsGlass from './pages/DestinationsGlass';
 import SharedTrip from './pages/SharedTrip';
-import Blogs from './pages/Blogs';
+import BlogsGlass from './pages/BlogsGlass';
 import CreateBlog from './pages/CreateBlog';
 import BlogDetailPage from './pages/BlogDetailPage';
-import AIFeatures from './pages/AIFeatures';
-import Today from './pages/Today';
+import AIFeaturesGlass from './pages/AIFeaturesGlass';
+import TodayGlass from './pages/TodayGlass';
 import AuthGuard from './components/AuthGuard';
 import AdminGuard from './components/admin/AdminGuard';
-import AdminLayout from './components/admin/AdminLayout';
 import SpotManagePage from './pages/admin/SpotManagePage';
 import ReviewPage from './pages/admin/ReviewPage';
 // 协同规划页面
-import CollabEntry from './pages/collab/CollabEntry';
+import CollabEntryGlass from './pages/CollabEntryGlass';
 import CreateCollabRoom from './pages/collab/CreateCollabRoom';
 import JoinCollabRoom from './pages/collab/JoinCollabRoom';
 import CollabRoom from './pages/collab/CollabRoom';
@@ -39,7 +38,7 @@ function AppContent() {
           path="/plan"
           element={
             <AuthGuard>
-              <Plan />
+              <PlanGlass />
             </AuthGuard>
           }
         />
@@ -64,7 +63,7 @@ function AppContent() {
           path="/my-trips"
           element={
             <AuthGuard>
-              <MyTrips />
+              <MyTripsGlass />
             </AuthGuard>
           }
         />
@@ -81,17 +80,17 @@ function AppContent() {
           path="/favorites"
           element={
             <AuthGuard>
-              <Favorites />
+              <FavoritesGlass />
             </AuthGuard>
           }
         />
-        <Route path="/destinations" element={<Destinations />} />
+        <Route path="/destinations" element={<DestinationsGlass />} />
         <Route path="/shared/:token" element={<SharedTrip />} />
         <Route
           path="/blogs"
           element={
             <AuthGuard>
-              <Blogs />
+              <BlogsGlass />
             </AuthGuard>
           }
         />
@@ -116,7 +115,7 @@ function AppContent() {
           path="/ai-features"
           element={
             <AuthGuard>
-              <AIFeatures />
+              <AIFeaturesGlass />
             </AuthGuard>
           }
         />
@@ -125,7 +124,7 @@ function AppContent() {
           path="/today"
           element={
             <AuthGuard>
-              <Today />
+              <TodayGlass />
             </AuthGuard>
           }
         />
@@ -156,7 +155,7 @@ function AppContent() {
           path="/collab"
           element={
             <AuthGuard>
-              <CollabEntry />
+              <CollabEntryGlass />
             </AuthGuard>
           }
         />

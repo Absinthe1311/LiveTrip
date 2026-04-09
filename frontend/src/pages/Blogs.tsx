@@ -242,7 +242,7 @@ export default function Blogs() {
                   {/* Left Image */}
                   <div className="relative w-[100px] flex-shrink-0 bg-gray-200">
                     {blog.coverImage || extractFirstImage(blog.content) ? (
-                      <img src={blog.coverImage || extractFirstImage(blog.content)} alt={blog.title} className="w-full h-full object-cover" />
+                      <img src={blog.coverImage || extractFirstImage(blog.content) || undefined} alt={blog.title} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-muted flex items-center justify-center text-3xl">📝</div>
                     )}

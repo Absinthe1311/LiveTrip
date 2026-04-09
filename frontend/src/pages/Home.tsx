@@ -112,7 +112,7 @@ function WorkspaceView() {
       <div
         className="fixed inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1920&q=80')",
+          backgroundImage: "url('/homepage-bg.jpg')",
         }}
       />
 
@@ -133,7 +133,7 @@ function WorkspaceView() {
               <img
                 src="/logo.png"
                 alt="LiveTrip Logo"
-                className="h-16 w-auto object-contain"
+                className="h-20 w-auto object-contain"
               />
             </div>
           </div>
@@ -171,9 +171,6 @@ function WorkspaceView() {
                   >
                     <Sparkles className="h-4 w-4" />
                     <span>AI 功能</span>
-                    <span className="ml-auto bg-livetrip-primary text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                      新
-                    </span>
                   </button>
                 </li>
                 <li>
@@ -237,9 +234,6 @@ function WorkspaceView() {
                   >
                     <MapPin className="h-4 w-4" />
                     <span>当前行程</span>
-                    <span className="ml-auto bg-livetrip-accent text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                      今
-                    </span>
                   </button>
                 </li>
                 <li>

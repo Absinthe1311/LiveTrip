@@ -18,7 +18,7 @@ apiClient.interceptors.request.use(
     // 添加 token 到请求头
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = Bearer ;
+      config.headers.Authorization = `Bearer ${token}`;
     }
     
     // 添加 userId 到请求头 (用于权限验证)

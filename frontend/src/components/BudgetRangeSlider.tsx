@@ -134,7 +134,7 @@ export default function BudgetRangeSlider({
           max={50000}
           step={1000}
           value={budgetRange}
-          onChange={handleSliderChange}
+          onChange={handleSliderChange as any}
           marks={BUDGET_MARKS}
           tooltip={{
             formatter: (value) => `¥${value?.toLocaleString()}`

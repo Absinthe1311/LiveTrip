@@ -87,7 +87,7 @@ export default function DateRangePicker({
       <div style={{ marginBottom: '24px' }}>
         <RangePicker
           value={dates}
-          onChange={handleDateChange}
+          onChange={handleDateChange as any}
           style={{ width: '100%' }}
           size="large"
           format="YYYY-MM-DD"

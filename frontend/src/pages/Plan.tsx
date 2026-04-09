@@ -139,9 +139,7 @@ export default function Plan() {
         hasChildren: formData.hasChildren || false,
         hasElderly: formData.hasElderly || false,
         preferences: {
-          pace: formData.pace || 'moderate',
-          energy_level: formData.energy_level || 'medium',
-          categories: mapPreferencesToCategories(formData.preferences || []), // 映射为后端期望的CategoryTag数组
+          interests: mapPreferencesToCategories(formData.preferences || []).join(','),
         },
       };
 

@@ -96,7 +96,7 @@ const AdminDashboard: React.FC = () => {
     customRequest: async (options) => {
       const { file, onSuccess, onError } = options;
       if (!selectedSpot) {
-        onError(new Error('未选择景点'));
+        onError?.(new Error('未选择景点'));
         return;
       }
 

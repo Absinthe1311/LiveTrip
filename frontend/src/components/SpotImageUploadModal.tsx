@@ -35,7 +35,7 @@ export default function SpotImageUploadModal({
       uid: `${Date.now()}-${file.name}`,
       name: file.name,
       status: 'done' as const,
-      originFileObj: file,
+      originFileObj: file as any,
       thumbUrl: URL.createObjectURL(file),
     }));
 

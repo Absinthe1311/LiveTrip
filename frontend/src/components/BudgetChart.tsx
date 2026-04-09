@@ -50,15 +50,18 @@ export default function BudgetChart({
 
   // 预算状态
   let budgetStatus: 'success' | 'warning' | 'error' = 'success';
+  let progressStatus: 'normal' | 'success' | 'active' | 'exception' = 'success';
   let statusIcon = <CheckCircleOutlined />;
   let statusText = '预算充足';
 
   if (usageRate > 100) {
     budgetStatus = 'error';
+    progressStatus = 'exception';
     statusIcon = <CloseCircleOutlined />;
     statusText = '预算超支';
   } else if (usageRate > 95) {
     budgetStatus = 'warning';
+    progressStatus = 'active';
     statusIcon = <WarningOutlined />;
     statusText = '预算紧张';
   }
@@ -200,7 +203,7 @@ export default function BudgetChart({
               </div>
               <Progress
                 percent={Math.min(usageRate, 100)}
-                status={budgetStatus}
+                status={progressStatus}
                 strokeColor={getWarningColor(warningLevel) || undefined}
                 showInfo={false}
                 style={{ marginTop: '8px' }}

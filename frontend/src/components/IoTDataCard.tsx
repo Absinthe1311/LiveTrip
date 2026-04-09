@@ -45,10 +45,10 @@ export default function IoTDataCard({
 
   // 获取天气状态
   const getWeatherStatus = () => {
-    if (rainProbability > 80) return { label: '暴雨', color: 'bg-red-500', bgColor: 'bg-red-50' };
-    if (rainProbability > 50) return { label: '中雨', color: 'bg-orange-500', bgColor: 'bg-orange-50' };
-    if (rainProbability > 20) return { label: '小雨', color: 'bg-yellow-500', bgColor: 'bg-yellow-50' };
-    return { label: '晴朗', color: 'bg-green-500', bgColor: 'bg-green-50' };
+    if (rainProbability > 80) return { label: '暴雨', color: 'bg-red-500', bgColor: 'bg-red-50', textColor: 'text-red-700' };
+    if (rainProbability > 50) return { label: '中雨', color: 'bg-orange-500', bgColor: 'bg-orange-50', textColor: 'text-orange-700' };
+    if (rainProbability > 20) return { label: '小雨', color: 'bg-yellow-500', bgColor: 'bg-yellow-50', textColor: 'text-yellow-700' };
+    return { label: '晴朗', color: 'bg-green-500', bgColor: 'bg-green-50', textColor: 'text-green-700' };
   };
 
   const crowdStatus = getCrowdStatus();

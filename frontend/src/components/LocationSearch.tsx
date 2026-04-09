@@ -22,7 +22,7 @@ interface LocationSearchProps {
   showPopularDestinations?: boolean;
 }
 
-const POPULAR_CITIES = [
+const POPULAR_CITIES: CityOption[] = [
   { value: '北京', label: '北京', icon: '🏛️', province: '北京', rating: 4.8 },
   { value: '上海', label: '上海', icon: '🌃', province: '上海', rating: 4.8 },
   { value: '广州', label: '广州', icon: '🌸', province: '广东', rating: 4.7 },

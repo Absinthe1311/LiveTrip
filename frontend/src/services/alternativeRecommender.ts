@@ -12,18 +12,6 @@ interface IoTData {
   isOpen: boolean;
 }
 
-// 备选景点评分接口
-interface AlternativeScore {
-  attraction: any;
-  score: number;
-  details: {
-    iotScore: number;
-    typeScore: number;
-    distanceScore: number;
-    durationScore: number;
-  };
-}
-
 /**
  * 备选景点推荐服务
  * 基于IoT数据、景点相似度、距离等因素推荐备选景点
@@ -48,7 +36,7 @@ export class AlternativeRecommender {
 
     // 如果没有提供城市信息，尝试从行程中提取
     if (!city) {
-      city = this.extractCityFromItinerary(originalAttraction);
+      city = this.extractCityFromItinerary(originalAttraction) || undefined;
       console.log('   提取的城市:', city || '未提取到');
     }
 
@@ -86,11 +74,11 @@ export class AlternativeRecommender {
     console.log('🔄 使用fallback方案获取备选景点');
 
     // 使用景点名称查找备选景点（解决替换后无法再次查找的问题）
-    const alternatives = getAlternativeSpotsByName(originalAttraction.name);
+    const alternatives: any[] = getAlternativeSpotsByName();
 
     if (alternatives.length === 0) {
       console.warn('⚠️ 未找到该景点的备选景点');
-      return [];
+      return Promise.resolve([]);
     }
 
     console.log(`✅ 找到 ${alternatives.length} 个备选景点`);
@@ -109,10 +97,9 @@ export class AlternativeRecommender {
         isOpen: true,
       };
 
-      return {
-        ...alternative,
+      return Object.assign({}, alternative, {
         iotData: simulatedIoTData,
-      };
+      });
     });
 
     // 根据IoT数据筛选和排序
@@ -137,7 +124,7 @@ export class AlternativeRecommender {
     });
 
     // 只返回前5个最佳备选
-    return sortedAlternatives.slice(0, 5);
+    return Promise.resolve(sortedAlternatives.slice(0, 5));
   }
 
   /**

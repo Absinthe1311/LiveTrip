@@ -20,13 +20,14 @@ export interface ChatSession {
 
 export interface AIResponse {
   success: boolean;
-  data: {
+  data?: {
     answer: string;
     toolCalls?: Array<{
       name: string;
       result: any;
     }>;
   };
+  error?: string;
 }
 
 /**
@@ -39,12 +40,17 @@ class AIService {
    * 发送消息（问答助手模式）
    */
   async sendAdvisorMessage(question: string, context?: any): Promise<AIResponse> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    const userId = getUserId();
+    if (userId) {
+      headers['x-user-id'] = userId;
+    }
+
     const response = await fetch(`${this.baseUrl}/advisor/chat`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-id': getUserId() || undefined,
-      },
+      headers,
       body: JSON.stringify({
         question,
         planContext: context,
@@ -62,12 +68,17 @@ class AIService {
    * 发送消息（智能助手模式）
    */
   async sendAgentMessage(question: string): Promise<AIResponse> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    const userId = getUserId();
+    if (userId) {
+      headers['x-user-id'] = userId;
+    }
+
     const response = await fetch(`${this.baseUrl}/agent/chat`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-id': getUserId() || undefined,
-      },
+      headers,
       body: JSON.stringify({
         question,
       }),
@@ -84,13 +95,17 @@ class AIService {
    * 获取用户会话列表
    */
   async getUserSessions(mode?: ChatMode): Promise<ChatSession[]> {
+    const headers: Record<string, string> = {};
+    const userId = getUserId();
+    if (userId) {
+      headers['x-user-id'] = userId;
+    }
+
     const response = await fetch(
       `${this.baseUrl}/advisor/sessions${mode ? `?mode=${mode}` : ''}`,
       {
         method: 'GET',
-        headers: {
-          'x-user-id': getUserId() || undefined,
-        },
+        headers,
       }
     );
 
@@ -125,11 +140,15 @@ class AIService {
    * 删除会话
    */
   async deleteSession(sessionId: string): Promise<void> {
+    const headers: Record<string, string> = {};
+    const userId = getUserId();
+    if (userId) {
+      headers['x-user-id'] = userId;
+    }
+
     const response = await fetch(`${this.baseUrl}/advisor/sessions/${sessionId}`, {
       method: 'DELETE',
-      headers: {
-        'x-user-id': getUserId() || undefined,
-      },
+      headers,
     });
 
     if (!response.ok) {

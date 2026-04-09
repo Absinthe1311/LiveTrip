@@ -100,7 +100,7 @@ export default function Destinations() {
 
       // 处理收藏数据
       if (favoritesResponse?.success && favoritesResponse.data) {
-        const favoriteIds = new Set(favoritesResponse.data.map((f: any) => f.spotId || f.id));
+        const favoriteIds = new Set<string>(favoritesResponse.data.map((f: any) => f.spotId || f.id));
         setFavorites(favoriteIds);
       }
     } catch (error) {
