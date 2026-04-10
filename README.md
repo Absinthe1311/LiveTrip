@@ -27,6 +27,9 @@ LiveTrip 是一个基于 **AI + IoT** 的智能旅行规划系统，采用自主
 - 🏙️ **热门目的地**：6个热门城市展示，每个城市9个精选景点，支持分页浏览
 - 📱 **现代化UI**：采用 Tailwind CSS + 毛玻璃设计风格的沉浸式界面
 - 🎨 **Glass-morphism设计**：半透明卡片、动态光影、琥珀金配色
+- 📍 **智能定位**：支持浏览器定位和高德地图逆地理编码
+- 📅 **双月日历**：直观的日期选择器，支持日期范围选择
+- ❤️ **收藏管理**：景点收藏功能，支持数据库持久化存储
 - 🔗 **行程分享**：支持行程链接分享和PDF导出
 - 📸 **图片管理**：景点图片上传、审核和管理功能，支持Cloudinary云存储
 - ✍️ **游记撰写**：行程完成后可撰写游记，记录美好时光
@@ -44,17 +47,19 @@ LiveTrip 是一个基于 **AI + IoT** 的智能旅行规划系统，采用自主
 |---------|---------|
 | **AI智能助手** | 自然语言对话创建行程,支持"我想去北京玩三天"等自然表达 |
 | **AI行程规划** | 输入目的地、日期、预算，AI自动生成完整行程 |
+| **智能定位** | 支持浏览器定位，自动获取当前位置作为出发地 |
+| **日期选择** | 双月日历组件，直观选择开始和结束日期 |
 | **热门目的地** | 6个热门城市（北京、上海、厦门、成都、杭州、西安），每个城市展示9个精选景点 |
 | **实时天气数据** | 真实天气信息（温度、湿度、天气描述、降雨概率） |
 | **智能人流预测** | 基于时段、日期和热度系数的人流密度预测 |
 | **景点管理** | 拖拽排序、查看备选、替换景点 |
+| **景点收藏** | 收藏喜欢的景点，支持数据库持久化 |
 | **酒店推荐** | 基于位置和预算的智能酒店推荐 |
 | **餐厅推荐** | 每日餐厅推荐，支持选择和跳过 |
 | **行程分享** | 生成分享链接，好友可查看行程 |
 | **PDF导出** | 导出精美PDF行程单 |
 | **图片上传** | 行程完成后上传景点图片，支持Cloudinary云存储 |
 | **游记撰写** | Markdown编辑器，支持图片和格式化 |
-| **收藏管理** | 收藏喜欢的景点、酒店、餐厅 |
 | **协同规划** | 多人协同编辑行程，实时同步和沟通 |
 
 ### 管理后台
@@ -97,8 +102,9 @@ cp .env.example .env
 
 # 编辑 .env 文件，填入真实的API密钥
 # 需要配置的API：
-# - 高德地图 API Key
+# - 高德地图 API Key（Web服务API Key + JS API Key）
 # - OpenWeatherMap API Key
+# - 智谱AI API Key
 # - Cloudinary 配置（可选）
 ```
 
@@ -121,16 +127,28 @@ npm run dev
 
 6. **安装前端依赖**
 ```bash
-cd frontend
+cd ../frontend
 npm install
 ```
 
-7. **启动前端服务**
+7. **配置前端环境变量**
+```bash
+# 复制环境变量示例文件
+cp .env.example .env
+
+# 编辑 .env 文件，配置：
+# - VITE_AMAP_WS_KEY：高德地图Web服务API Key
+# - VITE_AMAP_JS_KEY：高德地图JS API Key
+# - VITE_AMAP_JS_SECRET：高德地图JS API安全密钥
+# - VITE_API_BASE_URL：后端API地址
+```
+
+8. **启动前端服务**
 ```bash
 npm run dev
 ```
 
-8. **访问应用**
+9. **访问应用**
 - 前端地址：http://localhost:5173
 - 后端API：http://localhost:3003
 - API文档：http://localhost:3003/api-docs
@@ -146,10 +164,13 @@ npm run dev
 | React | 18.3.1 | 前端框架 |
 | TypeScript | 5.7.3 | 类型安全 |
 | Vite | 6.0.7 | 构建工具 |
-| Tailwind CSS | latest | 样式框架 |
+| Tailwind CSS | 3.4.19 | 样式框架 |
 | shadcn/ui | latest | UI组件库 |
-| React Router | latest | 路由管理 |
-| Zustand | latest | 状态管理 |
+| Ant Design | 5.22.5 | UI组件库 |
+| React Router | 7.1.1 | 路由管理 |
+| Zustand | 5.0.2 | 状态管理 |
+| Axios | 1.7.9 | HTTP客户端 |
+| Socket.io Client | 4.8.3 | 实时通信 |
 
 ### 后端技术栈
 
@@ -160,6 +181,8 @@ npm run dev
 | TypeScript | 5.7.3 | 类型安全 |
 | Prisma | 6.1.0 | ORM |
 | SQLite | 3.x | 数据库 |
+| Socket.io | 4.8.3 | 实时通信 |
+| Cloudinary | 2.9.0 | 图片存储 |
 
 ### 核心算法
 
@@ -195,7 +218,7 @@ npm run dev
 | 服务 | 用途 |
 |------|------|
 | 智谱AI GLM-4 | AI对话助手,自然语言理解和行程创建 |
-| 高德地图API | 景点数据、地理编码、路径规划 |
+| 高德地图API | 景点数据、地理编码、路径规划、逆地理编码 |
 | OpenWeatherMap | 实时天气数据 |
 | Cloudinary | 图片存储（可选） |
 
@@ -209,7 +232,9 @@ LiveTrip/
 │   ├── src/
 │   │   ├── controllers/     # 控制器
 │   │   │   ├── agentController.ts     # AI Agent控制器
-│   │   │   └── advisorController.ts   # 对话管理控制器
+│   │   │   ├── advisorController.ts   # 对话管理控制器
+│   │   │   ├── favoriteController.ts  # 收藏控制器
+│   │   │   └── ...
 │   │   ├── services/        # 业务逻辑
 │   │   │   ├── agentService.ts        # AI Agent核心服务
 │   │   │   ├── scoringEngine.ts      # 多因素评分引擎
@@ -218,9 +243,8 @@ LiveTrip/
 │   │   │   ├── routeOptimizer.ts      # 2-opt路径优化
 │   │   │   ├── budgetOptimizer.ts     # 动态预算计算
 │   │   │   ├── iotCheckService.ts     # IoT实时检查
-│   │   │   ├── mustVisitSpotExtractor.ts  # 必选景点提取
-│   │   │   ├── constraintAwarePlanner.ts  # 约束感知规划
-│   │   │   └── chatHistoryService.ts      # 对话历史管理
+│   │   │   ├── favoriteService.ts     # 收藏服务
+│   │   │   └── ...
 │   │   ├── routes/          # 路由
 │   │   ├── middleware/      # 中间件
 │   │   ├── types/           # 类型定义
@@ -230,16 +254,26 @@ LiveTrip/
 ├── frontend/               # 前端项目
 │   ├── src/
 │   │   ├── components/     # 组件
-│   │   │   ├── AIFeatures.tsx         # AI对话界面
-│   │   │   └── TripPlanningForm.tsx   # 行程规划表单
+│   │   │   ├── GlassLayout.tsx        # 毛玻璃布局
+│   │   │   ├── DoubleCalendar.tsx     # 双月日历
+│   │   │   ├── SpotCard.tsx           # 景点卡片
+│   │   │   └── ...
 │   │   ├── pages/          # 页面
+│   │   │   ├── Home.tsx              # 首页
+│   │   │   ├── PlanGlass.tsx         # 创建行程
+│   │   │   ├── FavoritesGlass.tsx    # 我的收藏
+│   │   │   └── ...
 │   │   ├── api/            # API调用
-│   │   └── store/          # 状态管理
+│   │   ├── store/          # 状态管理
+│   │   └── data/           # 静态数据
 │   └── public/             # 静态资源
+│       ├── homepage-bg.jpg           # 背景图
+│       └── logo.png                  # Logo
+├── image_processed/        # 处理后的图片资源
 ├── README.md               # 项目说明
 ├── 使用说明文档.md          # 详细使用说明
 ├── 项目交接文档.md          # 项目交接文档
-└── 算法分析报告.md          # 算法文档
+└── UI设计指导文档.md        # UI设计规范
 ```
 
 ---
@@ -273,6 +307,27 @@ npm run prisma:reset
 ### API文档
 
 启动后端服务后，访问 http://localhost:3003/api-docs 查看完整的API文档。
+
+---
+
+## 📝 最近更新 (2026-04-10)
+
+### UI/UX 改进
+- ✅ 优化背景图模糊度，提高清晰度（从 `backdrop-blur-xl` 改为 `backdrop-blur-sm`）
+- ✅ 改进日历组件，添加独立的开始/结束日期显示区域
+- ✅ 移除今日日期高亮，保持简洁的视觉效果
+- ✅ 优化收藏页面景点卡片显示，支持图片和完整信息展示
+
+### 功能改进
+- ✅ 修复自动定位功能，支持HTTPS环境检查和API Key验证
+- ✅ 修复日历选择逻辑，正确处理开始/结束日期选择流程
+- ✅ 修复收藏功能，支持数据库持久化和图片显示
+- ✅ 改进SpotCard组件，支持外部传入收藏状态
+
+### 代码优化
+- ✅ 清理冗余脚本文件（过时的迁移脚本）
+- ✅ 删除未使用的图片资源目录（images/）
+- ✅ 更新项目文档，反映最新功能和改进
 
 ---
 
@@ -345,6 +400,7 @@ npm run prisma:reset
 - Prisma
 - Tailwind CSS
 - shadcn/ui
+- Ant Design
 
 ---
 

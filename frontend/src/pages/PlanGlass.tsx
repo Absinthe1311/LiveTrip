@@ -1,6 +1,7 @@
 // 创建行程页面 - 毛玻璃风格版本（优化版）
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { message } from 'antd';
 import { Check, Sparkles, ChevronLeft, ChevronRight, MapPin, Navigation, Calendar, Wallet, Users, Heart, ArrowRight, ArrowLeft, User, HeartHandshake, UsersRound, Mountain, Utensils, Camera, Building, TreePine, Waves, ShoppingBag, Dumbbell, Droplets, Moon, Sun, Palette, Landmark, Ticket, Coffee, Store, ChefHat, CreditCard, Gem, Crown, Briefcase, Building2, Locate, X } from "lucide-react";
 import GlassLayout from '../components/GlassLayout';
 import { GlassCard } from '../components/home';
@@ -8,6 +9,7 @@ import { createPlan } from '../api/client';
 import { useAppStore } from '../store';
 import AIAdvisorGlass from '../components/AIAdvisorGlass';
 import { popularDestinations } from '../data/popularDestinations';
+import { DoubleCalendar } from '../components/DoubleCalendar';
 
 const steps = [
   { id: 1, label: "出发地", icon: MapPin },
@@ -108,23 +110,82 @@ export default function PlanGlass() {
               <button
                 onClick={async () => {
                   try {
-                    if ('geolocation' in navigator) {
-                      navigator.geolocation.getCurrentPosition(async (position) => {
-                        const { latitude, longitude } = position.coords;
-                        // 使用高德地图逆地理编码获取城市名
-                        const response = await fetch(
-                          `https://restapi.amap.com/v3/geocode/regeo?key=${import.meta.env.VITE_AMAP_KEY || 'YOUR_AMAP_KEY'}&location=${longitude},${latitude}`
-                        );
-                        const data = await response.json();
-                        if (data.regeocode?.addressComponent?.city) {
-                          setFormData({ ...formData, origin: data.regeocode.addressComponent.city });
-                        } else if (data.regeocode?.addressComponent?.province) {
-                          setFormData({ ...formData, origin: data.regeocode.addressComponent.province });
-                        }
-                      });
+                    // 检查浏览器是否支持地理位置API
+                    if (!('geolocation' in navigator)) {
+                      message.error('您的浏览器不支持地理位置功能');
+                      return;
                     }
+
+                    // 检查是否为HTTPS或localhost
+                    const isSecureContext = window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+                    if (!isSecureContext) {
+                      message.warning('定位功能需要HTTPS环境，请使用手动输入');
+                      return;
+                    }
+
+                    message.loading({ content: '正在获取位置...', key: 'location' });
+
+                    navigator.geolocation.getCurrentPosition(
+                      async (position) => {
+                        try {
+                          const { latitude, longitude } = position.coords;
+                          console.log('📍 获取到坐标:', { latitude, longitude });
+
+                          // 检查高德地图API Key是否配置
+                          const amapKey = import.meta.env.VITE_AMAP_WS_KEY;
+                          if (!amapKey) {
+                            message.warning({ content: '高德地图API未配置，请手动输入城市', key: 'location' });
+                            return;
+                          }
+
+                          // 使用高德地图逆地理编码获取城市名
+                          const response = await fetch(
+                            `https://restapi.amap.com/v3/geocode/regeo?key=${amapKey}&location=${longitude},${latitude}`
+                          );
+                          const data = await response.json();
+                          console.log('🗺️ 高德地图返回:', data);
+
+                          if (data.regeocode?.addressComponent?.city) {
+                            const city = data.regeocode.addressComponent.city;
+                            setFormData({ ...formData, origin: city });
+                            message.success({ content: `已定位到: ${city}`, key: 'location' });
+                          } else if (data.regeocode?.addressComponent?.province) {
+                            const province = data.regeocode.addressComponent.province;
+                            setFormData({ ...formData, origin: province });
+                            message.success({ content: `已定位到: ${province}`, key: 'location' });
+                          } else {
+                            message.error({ content: '无法获取城市信息，请手动输入', key: 'location' });
+                          }
+                        } catch (error) {
+                          console.error('❌ 逆地理编码失败:', error);
+                          message.error({ content: '获取城市信息失败，请手动输入', key: 'location' });
+                        }
+                      },
+                      (error) => {
+                        console.error('❌ 获取位置失败:', error);
+                        let errorMsg = '获取位置失败';
+                        switch (error.code) {
+                          case error.PERMISSION_DENIED:
+                            errorMsg = '您拒绝了位置请求，请在浏览器设置中允许位置访问';
+                            break;
+                          case error.POSITION_UNAVAILABLE:
+                            errorMsg = '位置信息不可用，请检查设备定位功能';
+                            break;
+                          case error.TIMEOUT:
+                            errorMsg = '获取位置超时，请重试或手动输入';
+                            break;
+                        }
+                        message.error({ content: errorMsg, key: 'location', duration: 5 });
+                      },
+                      {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                      }
+                    );
                   } catch (error) {
-                    console.error('自动定位失败:', error);
+                    console.error('❌ 自动定位失败:', error);
+                    message.error('自动定位失败，请手动输入出发地');
                   }
                 }}
                 className="flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-400/30 text-amber-400 hover:bg-amber-500/20 transition-all duration-300"
@@ -155,21 +216,26 @@ export default function PlanGlass() {
               <div>
                 <p className="text-sm text-white/60 mb-4 font-medium">热门目的地</p>
                 <div className="grid grid-cols-3 gap-3">
-                  {popularDestinations.slice(0, 9).map((dest) => (
-                    <button
-                      key={dest.id}
-                      onClick={() => setFormData({ ...formData, destination: dest.name })}
-                      className={`p-3 rounded-xl border transition-all duration-300 text-left ${
-                        formData.destination === dest.name
-                          ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 border-amber-400/50 shadow-lg shadow-amber-500/20'
-                          : 'bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/30'
-                      }`}
-                    >
-                      <div className="text-lg mb-1">{dest.icon}</div>
-                      <div className="text-sm font-medium text-white">{dest.name}</div>
-                      <div className="text-xs text-white/60">{dest.days}</div>
-                    </button>
-                  ))}
+                  {popularDestinations.slice(0, 9).map((dest) => {
+                    const IconComponent = dest.icon;
+                    return (
+                      <button
+                        key={dest.id}
+                        onClick={() => setFormData({ ...formData, destination: dest.name })}
+                        className={`p-4 rounded-xl border transition-all duration-300 text-left ${
+                          formData.destination === dest.name
+                            ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 border-amber-400/50 shadow-lg shadow-amber-500/20'
+                            : 'bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/30'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <IconComponent className="w-5 h-5 text-amber-400" />
+                          <div className="text-sm font-medium text-white">{dest.name}</div>
+                        </div>
+                        <div className="text-xs text-white/60">{dest.days}</div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -179,40 +245,12 @@ export default function PlanGlass() {
         return (
           <GlassCard className="p-8">
             <h3 className="text-2xl font-bold text-white mb-6">选择行程日期</h3>
-            <div className="space-y-4">
-              {/* 日期输入框 */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="relative group">
-                  <label className="block text-sm text-white/60 mb-3 font-medium">开始日期</label>
-                  <input
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none"
-                    style={{ colorScheme: 'dark' }}
-                  />
-                </div>
-                <div className="relative group">
-                  <label className="block text-sm text-white/60 mb-3 font-medium">结束日期</label>
-                  <input
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                    min={formData.startDate || new Date().toISOString().split('T')[0]}
-                    className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none"
-                    style={{ colorScheme: 'dark' }}
-                  />
-                </div>
-              </div>
-              {formData.startDate && formData.endDate && (
-                <div className="text-center py-4 rounded-xl bg-amber-500/10 border border-amber-400/20">
-                  <span className="text-amber-400 font-medium text-lg">
-                    共 {Math.ceil((new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1} 天行程
-                  </span>
-                </div>
-              )}
-            </div>
+            <DoubleCalendar
+              startDate={formData.startDate}
+              endDate={formData.endDate}
+              onStartDateChange={(date) => setFormData({ ...formData, startDate: date })}
+              onEndDateChange={(date) => setFormData({ ...formData, endDate: date })}
+            />
           </GlassCard>
         );
       case 3:

@@ -1,149 +1,194 @@
-// 景点卡片组件 - 支持显示图片和来源标注
+// 景点卡片组件 - 带展开描述功能
 import { useState, useEffect } from 'react';
-import { Star, MapPin, Heart, Image as ImageIcon } from 'lucide-react';
-import { getSpotCoverImage } from '../api/client';
+import { Heart, Star, ChevronRight, ChevronLeft, Image as ImageIcon } from 'lucide-react';
+import GlassCard from './home/GlassCard';
+import { addFavorite, removeFavorite, checkFavorite } from '../api/client';
+import { message } from 'antd';
 
 interface SpotCardProps {
-  id: string;
-  name: string;
-  city: string;
-  rating?: number;
-  description?: string;
-  category?: string;
-  ticketPrice?: number;
-  isFavorite?: boolean;
+  spot: {
+    id: string;
+    name: string;
+    image: string;
+    rating: number;
+    description?: string;
+    openTime?: string;
+    ticketPrice?: number;
+    category?: string;
+    city?: string;
+    location?: string;
+    address?: string;
+  };
   onClick?: () => void;
-  onFavoriteToggle?: () => void;
+  getTagColor: (category: string) => string;
+  generateDescription: (name: string, category?: string, city?: string) => string;
+  isFavorited?: boolean; // 外部传入的收藏状态
 }
 
-export default function SpotCard({
-  id,
-  name,
-  city,
-  rating = 4.5,
-  description,
-  category,
-  ticketPrice,
-  isFavorite = false,
-  onClick,
-  onFavoriteToggle,
-}: SpotCardProps) {
-  const [imageUrl, setImageUrl] = useState<string>('');
-  const [imageSource, setImageSource] = useState<string>('');
-  const [imageLoading, setImageLoading] = useState(true);
+export function SpotCard({ spot, getTagColor, generateDescription, isFavorited }: Omit<SpotCardProps, 'onClick'>) {
+  const [isLiked, setIsLiked] = useState(isFavorited || false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
+  // 检查是否已收藏（仅当没有外部传入状态时才检查）
   useEffect(() => {
-    loadSpotImage();
-  }, [name, city]);
+    if (isFavorited !== undefined) {
+      // 如果外部传入了收藏状态，直接使用
+      setIsLiked(isFavorited);
+      return;
+    }
 
-  const loadSpotImage = async () => {
-    try {
-      setImageLoading(true);
-      const response = await getSpotCoverImage(name, city);
-      if (response.success && response.data) {
-        setImageUrl(response.data.imageUrl || '');
-        setImageSource(response.data.source || '');
+    const checkFavoriteStatus = async () => {
+      try {
+        const response = await checkFavorite(spot.id);
+        if (response.success && response.data) {
+          setIsLiked(response.data.isFavorite);
+        }
+      } catch (error) {
+        // 静默失败，不影响用户体验
+        console.warn('检查收藏状态失败:', error);
       }
-    } catch (error) {
-      console.error('加载景点图片失败:', error);
-    } finally {
-      setImageLoading(false);
+    };
+
+    if (spot.id) {
+      checkFavoriteStatus();
+    }
+  }, [spot.id, isFavorited]);
+
+  // 处理收藏/取消收藏
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      if (isLiked) {
+        // 取消收藏
+        await removeFavorite(spot.id);
+        setIsLiked(false);
+        message.success('已取消收藏');
+      } else {
+        // 添加收藏
+        await addFavorite(spot.id, spot.description);
+        setIsLiked(true);
+        message.success('收藏成功');
+      }
+      // 触发收藏更新事件
+      window.dispatchEvent(new Event('favoritesUpdated'));
+    } catch (error: any) {
+      console.error('收藏操作失败:', error);
+      message.error(error.message || '操作失败');
     }
   };
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onFavoriteToggle?.();
-  };
+  const fullDescription = spot.description || generateDescription(spot.name, spot.category, spot.city);
+  const shortDescription = fullDescription.length > 100 
+    ? fullDescription.substring(0, 100) + '...' 
+    : fullDescription;
+  const shouldShowReadMore = fullDescription.length > 100;
 
   return (
-    <div
-      onClick={onClick}
-      className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden group"
-    >
-      {/* 图片区域 */}
-      <div className="relative h-48 bg-gray-100 overflow-hidden">
-        {imageLoading ? (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-livetrip-primary"></div>
-          </div>
-        ) : imageUrl ? (
-          <>
-            <img
-              src={imageUrl}
-              alt={name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={() => {
-                setImageUrl('');
-                setImageLoading(false);
-              }}
-            />
-            {/* 图片来源标注 */}
-            {imageSource === 'unsplash' && (
-              <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-                Unsplash
-              </div>
-            )}
-          </>
+    <GlassCard className="p-0 overflow-hidden" hover={false}>
+      {/* 景点图片 */}
+      <div className="relative h-40 bg-gradient-to-br from-amber-500/20 to-amber-600/20">
+        {spot.image ? (
+          <img
+            src={spot.image}
+            alt={spot.name}
+            className="w-full h-full object-cover"
+          />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-200">
-            <ImageIcon className="w-12 h-12 text-gray-400" />
+          <div className="flex items-center justify-center h-full">
+            <ImageIcon className="w-10 h-10 text-white/20" />
           </div>
         )}
-      </div>
-
-      {/* 内容区域 */}
-      <div className="p-4">
-        {/* 标题和评分 */}
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="text-base font-semibold text-gray-900 line-clamp-1 flex-1">{name}</h3>
-          {rating > 0 && (
-            <div className="flex items-center gap-1 ml-2 shrink-0">
-              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <span className="text-sm font-medium text-gray-700">{rating.toFixed(1)}</span>
-            </div>
-          )}
-        </div>
-
-        {/* 位置 */}
-        <div className="flex items-center gap-1 text-sm text-gray-500 mb-2">
-          <MapPin className="w-4 h-4" />
-          <span className="line-clamp-1">{city}</span>
-        </div>
-
-        {/* 描述 */}
-        {description && (
-          <p className="text-sm text-gray-600 line-clamp-2 mb-2">{description}</p>
-        )}
-
-        {/* 分类和价格 */}
-        <div className="flex items-center justify-between">
-          {category && (
-            <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-              {category}
-            </span>
-          )}
-          {ticketPrice !== undefined && ticketPrice > 0 && (
-            <span className="text-sm font-medium text-livetrip-primary">
-              ¥{ticketPrice}
-            </span>
-          )}
-        </div>
-
+        
         {/* 收藏按钮 */}
-        {onFavoriteToggle && (
-          <button
-            onClick={handleFavoriteClick}
-            className={`absolute top-3 right-3 p-2 rounded-full transition-colors ${
-              isFavorite
-                ? 'bg-red-500 text-white'
-                : 'bg-white/80 text-gray-600 hover:bg-white'
-            } backdrop-blur-sm`}
-          >
-            <Heart className={`w-5 h-5 ${isFavorite ? 'fill-white' : ''}`} />
-          </button>
-        )}
+        <button
+          onClick={handleToggleFavorite}
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 backdrop-blur-sm hover:bg-red-500/80 transition-colors group"
+        >
+          <Heart
+            className={`w-4 h-4 transition-colors ${
+              isLiked
+                ? 'text-red-500 fill-red-500'
+                : 'text-white/80 group-hover:text-white'
+            }`}
+          />
+        </button>
+
+        {/* 图片底部渐变遮罩 */}
+        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/60 to-transparent" />
       </div>
-    </div>
+
+      {/* 景点信息 */}
+      <div className="p-3 space-y-2">
+        {/* 标题 */}
+        <h3 className="text-sm font-bold text-white truncate">
+          {spot.name}
+        </h3>
+
+        {/* 分类标签 - 多色系，去重 */}
+        {spot.category && (
+          <div className="flex flex-wrap gap-1.5">
+            {Array.from(new Set(spot.category.split(';').map(c => c.trim()).filter(c => c))).slice(0, 2).map((cat, index) => (
+              <span
+                key={index}
+                className={`px-2 py-0.5 rounded-full text-xs font-medium ${getTagColor(cat)}`}
+              >
+                {cat}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* 描述文字 - 可展开 */}
+        <div className="text-xs text-white/70 leading-relaxed">
+          <p>{showFullDescription ? fullDescription : shortDescription}</p>
+          {shouldShowReadMore && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowFullDescription(!showFullDescription);
+              }}
+              className="text-amber-400 hover:text-amber-300 text-xs mt-1 inline-flex items-center gap-1 transition-colors"
+            >
+              {showFullDescription ? (
+                <>
+                  <span>Show Less</span>
+                  <ChevronLeft className="w-3 h-3" />
+                </>
+              ) : (
+                <>
+                  <span>Read More</span>
+                  <ChevronRight className="w-3 h-3" />
+                </>
+              )}
+            </button>
+          )}
+        </div>
+
+        {/* 信息行：评分、价格、开放时间 */}
+        <div className="flex items-center gap-2 text-xs pt-2 border-t border-white/10">
+          {/* 评分 */}
+          <div className="flex items-center gap-1">
+            <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+            <span className="text-white font-medium">{spot.rating}</span>
+          </div>
+
+          <span className="text-white/30">•</span>
+
+          {/* 价格 */}
+          {spot.ticketPrice && spot.ticketPrice > 0 ? (
+            <span className="text-amber-400 font-medium">¥{spot.ticketPrice}</span>
+          ) : (
+            <span className="text-green-400 font-medium">免费</span>
+          )}
+
+          {spot.openTime && (
+            <>
+              <span className="text-white/30">•</span>
+              <span className="text-white/60 truncate max-w-[80px]">{spot.openTime}</span>
+            </>
+          )}
+        </div>
+      </div>
+    </GlassCard>
   );
 }

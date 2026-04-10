@@ -1,4 +1,3 @@
-// LiveTrip Database Schema - Optimized Version
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,386 +7,274 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User Table
 model User {
-  id           String   @id @default(cuid())
-  username     String   @unique
-  email        String?  @unique
-  passwordHash String
-  avatar       String?  @default("")
-  role         String   @default("user") // 'admin', 'user'
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // Relations
-  trips           Trip[]
-  preferences     UserPreferences?
-  uploadedImages  SpotImage[] @relation("ImageUploader")
-  reviewedImages  SpotImage[] @relation("ImageReviewer")
-  reviewedBlogs   BlogPost[] @relation("BlogReviewer")
-  
-  // 协同规划关系
-  collabRoomsAsHost  CollabRoom[] @relation("HostRooms")
+  id                  String           @id @default(cuid())
+  username            String           @unique
+  email               String?          @unique
+  passwordHash        String
+  avatar              String?          @default("")
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  role                String           @default("user")
+  reviewedBlogs       BlogPost[]       @relation("BlogReviewer")
+  collabMessages      CollabMessage[]
+  collabRoomsAsHost   CollabRoom[]     @relation("HostRooms")
+  draftRoutes         DraftRoute[]
+  reviewedImages      SpotImage[]      @relation("ImageReviewer")
+  uploadedImages      SpotImage[]      @relation("ImageUploader")
+  trips               Trip[]
   collabRoomsAsMember TripMember[]
-  draftRoutes        DraftRoute[]
-  collabMessages     CollabMessage[]
+  preferences         UserPreferences?
 }
 
-// User Preferences Table
 model UserPreferences {
-  id     String @id @default(cuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Travel preferences
-  travelStyle    String @default("balanced")
-  budgetRange    String @default("medium")
-  accommodation  String @default("hotel")
-  transportation String @default("mixed")
-
-  // Dietary preferences
-  dietaryPrefs String @default("")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  travelStyle    String   @default("balanced")
+  budgetRange    String   @default("medium")
+  accommodation  String   @default("hotel")
+  transportation String   @default("mixed")
+  dietaryPrefs   String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Trip Table
 model Trip {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Basic info
-  title       String
-  description String?  @default("")
-  destination String
-  startDate   DateTime
-  endDate     DateTime
-  status      String   @default("planning")
-  completedAt DateTime? // 行程完成时间
-
-  // Budget info
-  totalBudget Float @default(0)
-
-  // AI generation info
-  aiGenerated Boolean @default(true)
-  
-  // Source info (行程来源)
-  source String @default("personal") // personal, collaborative
-
-  // Hotel info (选中的酒店)
-  hotelName     String?
-  hotelAddress  String?
-  hotelLocation String?
-  hotelTel      String?
-  hotelType     String?
-  hotelRating   Float?
-
-  // Budget tracking
-  actualBudget Float  @default(0) // 实际总开销
-  budgetStatus String @default("under_budget") // under_budget, on_budget, over_budget
-
-  // Share info (分享相关字段)
-  isPublic   Boolean @default(false) // 是否公开分享
-  shareToken String? @unique // 分享token(8-12位随机字符串)
-
-  // Hotel recommendations cache (酒店推荐缓存)
-  hotelRecommendationsCache String? @default("") // JSON字符串,存储推荐的酒店列表
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  days         Day[]
-  budget       Budget?
-  packingItems PackingItem[]
-  
-  // 协同规划关系
-  collabRoom CollabRoom?
+  id                        String        @id @default(cuid())
+  userId                    String
+  title                     String
+  description               String?       @default("")
+  destination               String
+  startDate                 DateTime
+  endDate                   DateTime
+  status                    String        @default("planning")
+  completedAt               DateTime?
+  totalBudget               Float         @default(0)
+  aiGenerated               Boolean       @default(true)
+  source                    String        @default("personal")
+  hotelName                 String?
+  hotelAddress              String?
+  hotelLocation             String?
+  hotelTel                  String?
+  hotelType                 String?
+  hotelRating               Float?
+  actualBudget              Float         @default(0)
+  budgetStatus              String        @default("under_budget")
+  isPublic                  Boolean       @default(false)
+  shareToken                String?       @unique
+  hotelRecommendationsCache String?       @default("")
+  createdAt                 DateTime      @default(now())
+  updatedAt                 DateTime      @updatedAt
+  budget                    Budget?
+  collabRoom                CollabRoom?
+  days                      Day[]
+  packingItems              PackingItem[]
+  user                      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Packing Item Table - 打包清单表
 model PackingItem {
   id          String   @id @default(cuid())
   tripId      String
-  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
-
-  itemName    String   // 物品名称
-  category    String   // 分类：clothing, electronics, documents, toiletries, medicine, other
-  isPacked    Boolean  @default(false)  // 是否已打包
-  isSuggested Boolean  @default(false)  // 是否为AI建议
-  isDefault   Boolean  @default(false)  // 是否为默认预设项
-
+  itemName    String
+  category    String
+  isPacked    Boolean  @default(false)
+  isSuggested Boolean  @default(false)
+  isDefault   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
   @@index([tripId])
   @@index([category])
 }
 
-// Day Table
 model Day {
-  id     String @id @default(cuid())
-  tripId String
-  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
-
-  dayNumber Int
-  date      DateTime
-  notes     String?  @default("")
-
-  // Restaurant info (选中的餐厅 - 午餐)
-  restaurantName     String?
-  restaurantAddress  String?
-  restaurantLocation String?
-  restaurantTel      String?
-  restaurantType     String?
-  restaurantRating   Float?
-
-  // Restaurant recommendations cache (餐厅推荐缓存)
-  restaurantRecommendationsCache String? @default("") // JSON字符串,存储推荐的餐厅列表
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  itineraryItems ItineraryItem[]
+  id                             String          @id @default(cuid())
+  tripId                         String
+  dayNumber                      Int
+  date                           DateTime
+  notes                          String?         @default("")
+  createdAt                      DateTime        @default(now())
+  updatedAt                      DateTime        @updatedAt
+  restaurantAddress              String?
+  restaurantLocation             String?
+  restaurantName                 String?
+  restaurantRating               Float?
+  restaurantTel                  String?
+  restaurantType                 String?
+  restaurantRecommendationsCache String?         @default("")
+  trip                           Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  itineraryItems                 ItineraryItem[]
 }
 
-// Itinerary Item Table
 model ItineraryItem {
-  id    String @id @default(cuid())
-  dayId String
-  day   Day    @relation(fields: [dayId], references: [id], onDelete: Cascade)
-
-  // Basic info
+  id          String   @id @default(cuid())
+  dayId       String
   name        String
   type        String
-  category    String? @default("")
-  description String? @default("")
-
-  // Time info
-  startTime DateTime
-  endTime   DateTime
-
-  // Location info
-  address   String? @default("")
-  latitude  Float?
-  longitude Float?
-
-  // Cost info
-  cost Float @default(0)
-
-  // Spot relation (optional, for image upload)
-  spotId String?
-  spot   Spot?  @relation(fields: [spotId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  category    String?  @default("")
+  description String?  @default("")
+  startTime   DateTime
+  endTime     DateTime
+  address     String?  @default("")
+  latitude    Float?
+  longitude   Float?
+  cost        Float    @default(0)
+  spotId      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  spot        Spot?    @relation(fields: [spotId], references: [id])
+  day         Day      @relation(fields: [dayId], references: [id], onDelete: Cascade)
 
   @@index([spotId])
 }
 
-// Budget Table
 model Budget {
-  id     String @id @default(cuid())
-  tripId String @unique
-  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
-
-  // Budget items
-  transportation Float @default(0)
-  accommodation  Float @default(0)
-  food           Float @default(0)
-  tickets        Float @default(0)
-  shopping       Float @default(0)
-  other          Float @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(cuid())
+  tripId         String   @unique
+  transportation Float    @default(0)
+  accommodation  Float    @default(0)
+  food           Float    @default(0)
+  tickets        Float    @default(0)
+  shopping       Float    @default(0)
+  other          Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  trip           Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
 }
 
-// Amap POI Cache Table - 用于缓存高德地图的景点数据
 model AmapPOICache {
-  id String @id @default(cuid())
-
-  // POI info from Amap
-  poiId    String  @unique
-  name     String
-  type     String
-  typecode String
-  address  String?
-  location String // 经纬度 "116.397428,39.90923"
-  tel      String?
-  distance String?
-
-  // Extended info
-  rating Float?
-  cost   String?
-
-  // City info (for grouping and caching)
-  city String
-
-  // Cache info
+  id         String   @id @default(cuid())
+  poiId      String   @unique
+  name       String
+  type       String
+  typecode   String
+  address    String?
+  location   String
+  tel        String?
+  distance   String?
+  rating     Float?
+  cost       String?
+  city       String
   cacheTime  DateTime @default(now())
   expireTime DateTime
-
-  // Usage statistics
-  hitCount Int @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  hitCount   Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
-// Location Cache Table - 用于缓存用户搜索过的地点
 model LocationCache {
-  id String @id @default(cuid())
-
-  // Location info
-  name     String
-  type     String  @default("location")
-  category String?
-  address  String?
-  city     String?
-  province String?
-
-  // Location coordinates
-  latitude  Float?
-  longitude Float?
-
-  // Search info
-  keywords    String // 用户搜索的关键词
-  searchCount Int    @default(1) // 搜索次数
-
-  // Cache info
-  cacheTime  DateTime @default(now())
-  expireTime DateTime @default(now()) // 默认7天后过期
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  name        String
+  type        String   @default("location")
+  category    String?
+  address     String?
+  city        String?
+  province    String?
+  latitude    Float?
+  longitude   Float?
+  keywords    String
+  searchCount Int      @default(1)
+  cacheTime   DateTime @default(now())
+  expireTime  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([keywords])
   @@index([name])
 }
 
-// Spot Table - 景点表（从高德API获取并存储）
 model Spot {
-  id String @id @default(cuid())
-
-  // POI info from Amap
-  amapId   String  @unique
-  name     String
-  location String // 经纬度 "116.397428,39.90923"
-  address  String?
-  city     String
-  category String? // 景点分类
-
-  // Extended info
-  ticketPrice Float?   @default(0)
-  openTime    String?
-  rating      Float?
-  description String?
-  isOutdoor   Boolean? @default(true)
-  isHot       Boolean  @default(false) // 是否为热门景点
-
-  // 图片相关字段
-  coverImage  String?  // 主要图片URL
-  avgRating   Float?   // 平均评分
-  reviewCount Int      @default(0) // 评价数量
-
-  // Metadata
-  source    String   @default("amap") // 'amap', 'user_contributed'
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  iotData        SpotIoTData?
+  id             String          @id @default(cuid())
+  amapId         String          @unique
+  name           String
+  location       String
+  address        String?
+  city           String
+  category       String?
+  ticketPrice    Float?          @default(0)
+  openTime       String?
+  rating         Float?
+  description    String?
+  isOutdoor      Boolean?        @default(true)
+  isHot          Boolean         @default(false)
+  coverImage     String?
+  avgRating      Float?
+  reviewCount    Int             @default(0)
+  source         String          @default("amap")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   favorites      Favorite[]
-  images         SpotImage[]
-  reviews        Review[]
   itineraryItems ItineraryItem[]
+  reviews        Review[]
+  images         SpotImage[]
+  iotData        SpotIoTData?
 
   @@index([city])
   @@index([category])
   @@index([amapId])
 }
 
-// Spot IoT Data Table - IoT数据表
 model SpotIoTData {
-  id     String @id @default(cuid())
-  spotId String @unique
-  spot   Spot   @relation(fields: [spotId], references: [id], onDelete: Cascade)
-
-  // IoT data
-  crowdLevel      Float
-  temperature     Float
-  rainProbability Float
-  isOpen          Boolean
-
-  // Weather data (from OpenWeatherMap)
-  weatherDescription String?   @default("")  // 天气状况中文描述
-  weatherIcon       String?   @default("")  // 天气图标代码
-  weatherUpdatedAt  DateTime? // 天气数据最后更新时间
-
-  // Metadata
-  generatedAt DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                 String    @id @default(cuid())
+  spotId             String    @unique
+  crowdLevel         Float
+  temperature        Float
+  rainProbability    Float
+  isOpen             Boolean
+  generatedAt        DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  weatherDescription String?   @default("")
+  weatherIcon        String?   @default("")
+  weatherUpdatedAt   DateTime?
+  spot               Spot      @relation(fields: [spotId], references: [id], onDelete: Cascade)
 
   @@index([spotId])
   @@index([generatedAt])
 }
 
-// Spot Image Table - 景点图片表（完整版）
 model SpotImage {
-  id         String   @id @default(cuid())
-  spotId     String
-  spot       Spot     @relation(fields: [spotId], references: [id], onDelete: Cascade)
-
-  // 图片信息
-  url        String?  @default("") // 图片URL (可为空，用于迁移现有数据)
-  source     String   @default("unsplash") // 'admin', 'user_upload', 'community', 'unsplash'
-  status     String   @default("approved") // 'pending', 'approved', 'rejected' (默认approved用于现有数据)
-  priority   Int      @default(1) // admin=10, user=5, unsplash=1
-  isPrimary  Boolean  @default(false) // 是否为主图
-  fileHash   String   @default("") // 文件hash，用于去重 (默认空字符串用于迁移)
-
-  // 审核信息
-  uploadedBy String   @default("system") // 上传者ID (默认system用于迁移)
-  uploader   User     @relation("ImageUploader", fields: [uploadedBy], references: [id])
-  reviewedBy String?
-  reviewer   User?    @relation("ImageReviewer", fields: [reviewedBy], references: [id])
-  reviewedAt DateTime?
-  reviewNote String?
-
-  // 统计信息
-  viewCount  Int      @default(0)
-  likeCount  Int      @default(0)
-  reportCount Int     @default(0)
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) // 使用默认值而非@updatedAt
+  id          String    @id @default(cuid())
+  spotId      String
+  url         String?   @default("")
+  source      String    @default("unsplash")
+  status      String    @default("approved")
+  priority    Int       @default(1)
+  isPrimary   Boolean   @default(false)
+  fileHash    String    @default("")
+  uploadedBy  String    @default("system")
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  reviewNote  String?
+  viewCount   Int       @default(0)
+  likeCount   Int       @default(0)
+  reportCount Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+  reviewer    User?     @relation("ImageReviewer", fields: [reviewedBy], references: [id])
+  uploader    User      @relation("ImageUploader", fields: [uploadedBy], references: [id])
+  spot        Spot      @relation(fields: [spotId], references: [id], onDelete: Cascade)
 
   @@index([spotId])
   @@index([source])
   @@index([status])
   @@index([priority])
   @@index([uploadedBy])
-  // 注意：唯一索引暂时移除，因为现有数据的fileHash都是空字符串
-  // @@unique([spotId, fileHash]) // 防止同一景点上传重复图片
 }
 
-// Review Table - 评价表
 model Review {
-  id         String   @id @default(cuid())
-  spotId     String
-  spot       Spot     @relation(fields: [spotId], references: [id], onDelete: Cascade)
-  userId     String   // 用户ID（暂时使用固定ID）
-  rating     Float    // 评分 1-5
-  comment    String?  // 评论内容
-  likeCount  Int      @default(0) // 点赞数
-  images     ReviewImage[] // 评论图片
-  likes      ReviewLike[] // 点赞记录
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String        @id @default(cuid())
+  spotId    String
+  userId    String
+  rating    Float
+  comment   String?
+  likeCount Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  spot      Spot          @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  images    ReviewImage[]
+  likes     ReviewLike[]
 
   @@index([spotId])
   @@index([userId])
@@ -395,40 +282,36 @@ model Review {
   @@index([likeCount])
 }
 
-// Review Image Table - 评价图片表
 model ReviewImage {
-  id       String @id @default(cuid())
-  reviewId String
-  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  imageUrl String // 图片URL
-  altText  String? // 图片描述
+  id        String   @id @default(cuid())
+  reviewId  String
+  imageUrl  String
+  altText   String?
   createdAt DateTime @default(now())
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 
   @@index([reviewId])
 }
 
-// Review Like Table - 评价点赞表
 model ReviewLike {
   id        String   @id @default(cuid())
   reviewId  String
-  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  userId    String   // 用户ID
+  userId    String
   createdAt DateTime @default(now())
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 
   @@unique([reviewId, userId])
   @@index([reviewId])
   @@index([userId])
 }
 
-// Spot Alternatives Table - 备选景点关系表
 model SpotAlternative {
-  id                String @id @default(cuid())
-  originalSpotId    String // 原景点ID
-  alternativeSpotId String // 备选景点ID
-  city              String // 城市
-  priority          Int    @default(0) // 优先级（用于排序）
-
-  createdAt DateTime @default(now())
+  id                String   @id @default(cuid())
+  originalSpotId    String
+  alternativeSpotId String
+  city              String
+  priority          Int      @default(0)
+  createdAt         DateTime @default(now())
 
   @@unique([originalSpotId, alternativeSpotId])
   @@index([originalSpotId])
@@ -436,33 +319,25 @@ model SpotAlternative {
   @@index([city])
 }
 
-// Favorites Table - 收藏表
 model Favorite {
-  id     String @id @default(cuid())
-  spotId String // 景点ID
-  spot   Spot   @relation(fields: [spotId], references: [id], onDelete: Cascade)
-
-  // 用户标识（暂时使用固定ID，后续可以改为真实用户系统）
-  userId String @default("default-user")
-
-  // 收藏备注
-  notes String? @default("")
-
-  // 收藏时间
+  id        String   @id @default(cuid())
+  spotId    String
+  userId    String   @default("default-user")
+  notes     String?  @default("")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  spot      Spot     @relation(fields: [spotId], references: [id], onDelete: Cascade)
 
   @@unique([spotId, userId])
   @@index([userId])
   @@index([spotId])
 }
 
-// Destination Cache Table - 目的地热门景点缓存表
 model DestinationCache {
   id          String   @id @default(cuid())
-  city        String   @unique // 城市名称
-  attractions String // 景点列表JSON字符串
-  expiresAt   DateTime // 过期时间
+  city        String   @unique
+  attractions String
+  expiresAt   DateTime
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -470,36 +345,30 @@ model DestinationCache {
   @@index([expiresAt])
 }
 
-// Blog Post Table - 博客文章表
 model BlogPost {
-  id          String   @id @default(cuid())
-  userId      String   // 用户ID
-  title       String   // 标题
-  content     String   // 内容（富文本）
-  coverImage  String?  // 封面图片
-  tags        String   // 标签（逗号分隔）
-  city        String?  // 相关城市
-  spotIds     String?  // 相关景点ID（逗号分隔）
-  imageIds    String?  // 图片ID列表（逗号分隔）
-  viewCount   Int      @default(0) // 浏览量
-  likeCount   Int      @default(0) // 点赞数
-  commentCount Int     @default(0) // 评论数
-  isPublished Boolean  @default(false) // 是否发布
-  publishedAt DateTime? // 发布时间
-
-  // 审核字段
-  status      String   @default("pending") // 'pending', 'approved', 'rejected'
-  reviewedBy  String?
-  reviewer    User?    @relation("BlogReviewer", fields: [reviewedBy], references: [id])
-  reviewedAt  DateTime?
-  reviewNote  String?
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  comments    BlogComment[]
-  likes       BlogLike[]
+  id           String        @id @default(cuid())
+  userId       String
+  title        String
+  content      String
+  coverImage   String?
+  tags         String
+  city         String?
+  spotIds      String?
+  imageIds     String?
+  viewCount    Int           @default(0)
+  likeCount    Int           @default(0)
+  commentCount Int           @default(0)
+  isPublished  Boolean       @default(false)
+  publishedAt  DateTime?
+  status       String        @default("pending")
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  reviewNote   String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  comments     BlogComment[]
+  likes        BlogLike[]
+  reviewer     User?         @relation("BlogReviewer", fields: [reviewedBy], references: [id])
 
   @@index([userId])
   @@index([city])
@@ -508,17 +377,16 @@ model BlogPost {
   @@index([status])
 }
 
-// Blog Comment Table - 博客评论表
 model BlogComment {
-  id        String   @id @default(cuid())
+  id        String            @id @default(cuid())
   postId    String
-  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId    String   // 用户ID
-  content   String   // 评论内容
-  likeCount Int      @default(0) // 点赞数
-  likes     BlogCommentLike[] // 点赞记录
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  userId    String
+  content   String
+  likeCount Int               @default(0)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  post      BlogPost          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  likes     BlogCommentLike[]
 
   @@index([postId])
   @@index([userId])
@@ -526,204 +394,154 @@ model BlogComment {
   @@index([likeCount])
 }
 
-// Blog Comment Like Table - 博客评论点赞表
 model BlogCommentLike {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   commentId String
+  userId    String
+  createdAt DateTime    @default(now())
   comment   BlogComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  userId    String   // 用户ID
-  createdAt DateTime @default(now())
 
   @@unique([commentId, userId])
   @@index([commentId])
   @@index([userId])
 }
 
-// Blog Like Table - 博客点赞表
 model BlogLike {
   id        String   @id @default(cuid())
   postId    String
-  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId    String   // 用户ID
+  userId    String
   createdAt DateTime @default(now())
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
   @@index([postId])
   @@index([userId])
 }
 
-// Hotel Table - 酒店表（永久存储）
 model Hotel {
-  id String @id @default(cuid())
-
-  // 酒店基本信息
-  amapId       String  @unique // 高德地图POI ID
-  name         String
-  address      String?
-  location     String  // 经纬度 "116.397428,39.90923"
-  tel          String?
-  type         String  // 酒店类型/档次
-  rating       Float?
-
-  // 地理信息
-  city         String  // 所属城市
-
-  // 统计信息
-  hitCount     Int     @default(0) // 使用次数
-
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([city])
-  @@index([location])
-}
-
-// Restaurant Table - 餐厅表（永久存储）
-model Restaurant {
-  id String @id @default(cuid())
-
-  // 餐厅基本信息
-  amapId       String  @unique // 高德地图POI ID
-  name         String
-  address      String?
-  location     String  // 经纬度 "116.397428,39.90923"
-  tel          String?
-  type         String  // 菜系/类型
-  rating       Float?
-
-  // 地理信息
-  city         String  // 所属城市
-
-  // 统计信息
-  hitCount     Int     @default(0) // 使用次数
-
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([city])
-  @@index([location])
-}
-
-// Chat Session Table - 对话会话表
-model ChatSession {
   id        String   @id @default(cuid())
-  userId    String?  // 用户 ID（可选，未登录用户为 null）
-  mode      String   // 模式：advisor / agent
+  amapId    String   @unique
+  name      String
+  address   String?
+  location  String
+  tel       String?
+  type      String
+  rating    Float?
+  city      String
+  hitCount  Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  messages ChatMessage[]
+  @@index([city])
+  @@index([location])
+}
+
+model Restaurant {
+  id        String   @id @default(cuid())
+  amapId    String   @unique
+  name      String
+  address   String?
+  location  String
+  tel       String?
+  type      String
+  rating    Float?
+  city      String
+  hitCount  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([city])
+  @@index([location])
+}
+
+model ChatSession {
+  id        String        @id @default(cuid())
+  userId    String?
+  mode      String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  messages  ChatMessage[]
 
   @@index([userId])
   @@index([mode])
   @@index([createdAt])
 }
 
-// Chat Message Table - 对话消息表
 model ChatMessage {
-  id        String   @id @default(cuid())
-  sessionId String   // 关联会话 ID
+  id        String      @id @default(cuid())
+  sessionId String
+  role      String
+  content   String
+  toolCall  String?     @default("")
+  createdAt DateTime    @default(now())
   session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  role      String   // 角色：user / assistant
-  content   String   // 消息内容（文本）
-  toolCall  String?  @default("") // Agent 模式下的工具调用记录（JSON，可选）
-  createdAt DateTime @default(now())
 
   @@index([sessionId])
   @@index([role])
   @@index([createdAt])
 }
 
-// ==================== 协同规划模块 ====================
-
-// CollabRoom - 协同房间表
 model CollabRoom {
-  id     String @id @default(cuid())
-  tripId String @unique // 关联的行程ID（一对一关系）
-  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  hostId String // 房间创建者（Host）的用户ID
-  host   User   @relation("HostRooms", fields: [hostId], references: [id], onDelete: Cascade)
-
-  // 房间状态
-  phase String @default("EDITING") // EDITING: 编辑中, LOCKED: 已锁定
-
-  // 邀请信息
-  inviteToken    String   @unique // 邀请token（UUID）
-  inviteExpiresAt DateTime // 邀请过期时间（72小时）
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  members  TripMember[]
-  drafts   DraftRoute[]
-  messages CollabMessage[]
+  id              String          @id @default(cuid())
+  tripId          String          @unique
+  hostId          String
+  phase           String          @default("EDITING")
+  inviteToken     String          @unique
+  inviteExpiresAt DateTime
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  messages        CollabMessage[]
+  host            User            @relation("HostRooms", fields: [hostId], references: [id], onDelete: Cascade)
+  trip            Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  drafts          DraftRoute[]
+  members         TripMember[]
 
   @@index([hostId])
   @@index([inviteToken])
 }
 
-// TripMember - 协同成员表
 model TripMember {
-  id     String @id @default(cuid())
-  roomId String // 关联的协同房间ID
-  room   CollabRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  userId String // 用户ID
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String     @id @default(cuid())
+  roomId       String
+  userId       String
+  role         String     @default("COLLABORATOR")
+  assignedDays String     @default("[]")
+  joinedAt     DateTime   @default(now())
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room         CollabRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
-  // 成员角色
-  role String @default("COLLABORATOR") // HOST: 主持人, COLLABORATOR: 协作者
-
-  // 负责的天数（JSON数组，如 [1,2,3] 表示负责第1、2、3天的规划）
-  assignedDays String @default("[]") // 空数组表示不限制
-
-  joinedAt DateTime @default(now())
-
-  @@unique([roomId, userId]) // 一个用户在一个房间中只能有一条记录
+  @@unique([roomId, userId])
   @@index([roomId])
   @@index([userId])
 }
 
-// DraftRoute - 草案路线表
 model DraftRoute {
-  id     String @id @default(cuid())
-  roomId String // 关联的协同房间ID
-  room   CollabRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  userId String // 用户ID
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String     @id @default(cuid())
+  roomId       String
+  userId       String
+  dayNumber    Int
+  spotSequence String
+  polylineData String
+  isSubmitted  Boolean    @default(false)
+  version      Int        @default(1)
+  updatedAt    DateTime   @updatedAt
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room         CollabRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
-  // 路线信息
-  dayNumber    Int    // 第几天（从1开始）
-  spotSequence String // 景点ID有序列表（JSON数组）
-  polylineData String // 高德地图Polyline坐标点数组（JSON）
-
-  // 提交状态
-  isSubmitted Boolean @default(false) // 是否已提交（提交后不可修改）
-
-  // 乐观锁
-  version Int @default(1) // 版本号，每次更新+1
-
-  updatedAt DateTime @updatedAt
-
-  @@unique([roomId, userId, dayNumber]) // 一个用户在一个房间的某一天只能有一条草案
+  @@unique([roomId, userId, dayNumber])
   @@index([roomId])
   @@index([userId])
   @@index([dayNumber])
 }
 
-// CollabMessage - 协同消息表
 model CollabMessage {
-  id     String @id @default(cuid())
-  roomId String // 关联的协同房间ID
-  room   CollabRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  userId String // 用户ID
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // 消息内容
-  content String // 文字建议内容
-
-  createdAt DateTime @default(now())
+  id        String     @id @default(cuid())
+  roomId    String
+  userId    String
+  content   String
+  createdAt DateTime   @default(now())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room      CollabRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   @@index([roomId])
   @@index([userId])

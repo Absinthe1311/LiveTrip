@@ -1,11 +1,43 @@
 // 热门目的地页面 - 优化版本
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Star, ChevronRight, Image as ImageIcon } from 'lucide-react';
+import { MapPin, Star, ChevronRight } from 'lucide-react';
 import GlassLayout from '../components/GlassLayout';
 import { GlassCard } from '../components/home';
+import { SpotCard } from '../components/SpotCard';
 import { getHotCities, getCitySpots, getCityAllSpots, HotCity, HotSpot } from '../api/client';
 import { message } from 'antd';
+
+// 根据分类生成标签颜色
+const getTagColor = (category: string) => {
+  const categoryLower = category.toLowerCase();
+  if (categoryLower.includes('博物馆') || categoryLower.includes('museum')) {
+    return 'bg-purple-500/20 text-purple-300';
+  }
+  if (categoryLower.includes('公园') || categoryLower.includes('park')) {
+    return 'bg-green-500/20 text-green-300';
+  }
+  if (categoryLower.includes('风景名胜') || categoryLower.includes('scenic')) {
+    return 'bg-blue-500/20 text-blue-300';
+  }
+  if (categoryLower.includes('寺庙') || categoryLower.includes('temple')) {
+    return 'bg-orange-500/20 text-orange-300';
+  }
+  if (categoryLower.includes('广场') || categoryLower.includes('plaza')) {
+    return 'bg-cyan-500/20 text-cyan-300';
+  }
+  return 'bg-amber-500/20 text-amber-300';
+};
+
+// 生成描述文字
+const generateDescription = (name: string, category?: string, city?: string) => {
+  const descriptions: Record<string, string> = {
+    '巧克巧蔻·巧克力博物馆(北京馆)': 
+      '探索巧克力的奇妙世界，了解巧克力制作工艺与文化历史。这里展示了来自世界各地的珍贵巧克力藏品，是巧克力爱好者的天堂。您可以参与互动体验，亲手制作属于自己的巧克力作品，感受甜蜜与创意的完美结合。',
+  };
+  
+  return descriptions[name] || `${name}是一处值得探访的${category || '景点'}，位于${city || '北京'}，为游客提供独特的游览体验。`;
+};
 
 export default function DestinationsGlass() {
   const navigate = useNavigate();
@@ -145,58 +177,12 @@ export default function DestinationsGlass() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {cityAllSpots.map((spot) => (
-                  <GlassCard
+                  <SpotCard
                     key={spot.id}
-                    className="p-0 overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform"
-                    onClick={() => navigate(`/destination/${spot.id}`)}
-                  >
-                    {/* 景点图片 */}
-                    <div className="relative h-48 bg-gradient-to-br from-amber-500/20 to-amber-600/20">
-                      {spot.image ? (
-                        <img
-                          src={spot.image}
-                          alt={spot.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center h-full">
-                          <ImageIcon className="w-12 h-12 text-white/20" />
-                        </div>
-                      )}
-                      {/* 分类标签 */}
-                      <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm text-sm text-white">
-                        {spot.category || '景点'}
-                      </div>
-                      {/* 评分 */}
-                      <div className="absolute top-3 right-3 flex items-center gap-1 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm">
-                        <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                        <span className="text-sm text-white">{spot.rating}</span>
-                      </div>
-                    </div>
-
-                    {/* 景点信息 */}
-                    <div className="p-5">
-                      <h3 className="text-lg font-semibold text-white mb-2">{spot.name}</h3>
-
-                      <div className="flex items-center gap-3 text-sm text-white/60 mb-3">
-                        {spot.ticketPrice > 0 ? (
-                          <span className="text-amber-400 font-medium">¥{spot.ticketPrice}</span>
-                        ) : (
-                          <span className="text-green-400">免费</span>
-                        )}
-                        {spot.openTime && (
-                          <>
-                            <span className="text-white/40">•</span>
-                            <span>{spot.openTime}</span>
-                          </>
-                        )}
-                      </div>
-
-                      <p className="text-sm text-white/60 line-clamp-2">
-                        {spot.description || '暂无描述'}
-                      </p>
-                    </div>
-                  </GlassCard>
+                    spot={spot}
+                    getTagColor={getTagColor}
+                    generateDescription={generateDescription}
+                  />
                 ))}
               </div>
 
@@ -300,62 +286,12 @@ export default function DestinationsGlass() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {spots.length > 0 ? (
                       spots.map((spot) => (
-                        <GlassCard
+                        <SpotCard
                           key={spot.id}
-                          className="p-0 overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform"
-                          onClick={() => navigate(`/destination/${spot.id}`)}
-                        >
-                          {/* 景点图片 */}
-                          <div className="relative h-40 bg-gradient-to-br from-amber-500/20 to-amber-600/20">
-                            {spot.image ? (
-                              <img
-                                src={spot.image}
-                                alt={spot.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex items-center justify-center h-full">
-                                <ImageIcon className="w-10 h-10 text-white/20" />
-                              </div>
-                            )}
-                            {/* 分类标签 */}
-                            <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm text-xs text-white">
-                              {spot.category || '景点'}
-                            </div>
-                            {/* 评分 */}
-                            <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm">
-                              <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                              <span className="text-xs text-white">{spot.rating}</span>
-                            </div>
-                          </div>
-
-                          {/* 景点信息 */}
-                          <div className="p-3">
-                            <h3 className="text-sm font-semibold text-white mb-1.5 truncate">
-                              {spot.name}
-                            </h3>
-
-                            <div className="flex items-center gap-2 text-xs text-white/60 mb-1.5">
-                              {spot.ticketPrice > 0 ? (
-                                <span className="text-amber-400 font-medium">
-                                  ¥{spot.ticketPrice}
-                                </span>
-                              ) : (
-                                <span className="text-green-400">免费</span>
-                              )}
-                              {spot.openTime && (
-                                <>
-                                  <span className="text-white/40">•</span>
-                                  <span className="truncate max-w-[100px]">{spot.openTime}</span>
-                                </>
-                              )}
-                            </div>
-
-                            <p className="text-xs text-white/50 line-clamp-2">
-                              {spot.description || '暂无描述'}
-                            </p>
-                          </div>
-                        </GlassCard>
+                          spot={spot}
+                          getTagColor={getTagColor}
+                          generateDescription={generateDescription}
+                        />
                       ))
                     ) : (
                       <div className="col-span-3">

@@ -1,9 +1,11 @@
 // 热门目的地数据 - 城市级别
+import { Landmark, Building2, Heart, Palmtree, Mountain, Waves, Sun, Coffee } from 'lucide-react';
+
 export const popularDestinations = [
   {
     id: '1',
     name: '北京',
-    icon: '🏛️',
+    icon: Landmark,
     rating: 4.8,
     days: '3-5天推荐',
     description: '千年古都，历史文化名城',
@@ -13,7 +15,7 @@ export const popularDestinations = [
   {
     id: '2',
     name: '上海',
-    icon: '🌃',
+    icon: Building2,
     rating: 4.8,
     days: '3-4天推荐',
     description: '国际化大都市，现代与历史交融',
@@ -23,7 +25,7 @@ export const popularDestinations = [
   {
     id: '3',
     name: '成都',
-    icon: '🐼',
+    icon: Heart,
     rating: 4.7,
     days: '3-4天推荐',
     description: '美食之都，休闲之都',
@@ -33,7 +35,7 @@ export const popularDestinations = [
   {
     id: '4',
     name: '三亚',
-    icon: '🏖️',
+    icon: Palmtree,
     rating: 4.7,
     days: '4-6天推荐',
     description: '热带海滨城市，度假胜地',
@@ -43,7 +45,7 @@ export const popularDestinations = [
   {
     id: '5',
     name: '西安',
-    icon: '🏔️',
+    icon: Mountain,
     rating: 4.6,
     days: '3-4天推荐',
     description: '古都长安，丝绸之路起点',
@@ -53,7 +55,7 @@ export const popularDestinations = [
   {
     id: '6',
     name: '丽江',
-    icon: '🏔️',
+    icon: Mountain,
     rating: 4.6,
     days: '4-5天推荐',
     description: '古城风情，纳西文化',
@@ -63,7 +65,7 @@ export const popularDestinations = [
   {
     id: '7',
     name: '桂林',
-    icon: '⛰️',
+    icon: Mountain,
     rating: 4.5,
     days: '4-5天推荐',
     description: '山水甲天下',
@@ -73,7 +75,7 @@ export const popularDestinations = [
   {
     id: '8',
     name: '厦门',
-    icon: '🌊',
+    icon: Waves,
     rating: 4.6,
     days: '3-4天推荐',
     description: '海上花园城市',
@@ -83,7 +85,7 @@ export const popularDestinations = [
   {
     id: '9',
     name: '青岛',
-    icon: '🌊',
+    icon: Sun,
     rating: 4.5,
     days: '3-4天推荐',
     description: '红瓦绿树，碧海蓝天',

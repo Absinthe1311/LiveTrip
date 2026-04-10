@@ -26,6 +26,8 @@ import CollabEntryGlass from './pages/CollabEntryGlass';
 import CreateCollabRoom from './pages/collab/CreateCollabRoom';
 import JoinCollabRoom from './pages/collab/JoinCollabRoom';
 import CollabRoom from './pages/collab/CollabRoom';
+// 测试页面
+import TestOptimizedCard from './pages/TestOptimizedCard';
 
 function AppContent() {
   return (
@@ -128,6 +130,8 @@ function AppContent() {
             </AuthGuard>
           }
         />
+        {/* 测试优化卡片页面 */}
+        <Route path="/test-card" element={<TestOptimizedCard />} />
         {/* 管理员路由 - 直接访问页面，不使用嵌套布局 */}
         <Route
           path="/admin/spots"

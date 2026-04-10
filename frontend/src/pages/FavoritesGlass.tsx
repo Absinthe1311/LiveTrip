@@ -1,21 +1,64 @@
 // 我的收藏页面 - 毛玻璃风格版本
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Star, Heart, Trash2 } from 'lucide-react';
+import { Heart, Trash2 } from 'lucide-react';
 import GlassLayout from '../components/GlassLayout';
 import { GlassCard } from '../components/home';
+import { SpotCard } from '../components/SpotCard';
 import { getFavorites, removeFavorite } from '../api/client';
 import { message } from 'antd';
 
 interface FavoriteItem {
   id: string;
   spotId: string;
-  name: string;
-  city: string;
-  category: string;
-  rating: number;
-  imageUrl?: string;
+  userId: string;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  spot: {
+    id: string;
+    amapId: string;
+    name: string;
+    location: string;
+    address: string | null;
+    city: string;
+    category: string | null;
+    ticketPrice: number | null;
+    openTime: string | null;
+    rating: number | null;
+    description: string | null;
+    isOutdoor: boolean | null;
+    source: string;
+    coverImage?: string | null;
+    images?: Array<{ url: string }>;
+  };
 }
+
+// 根据分类生成标签颜色
+const getTagColor = (category: string) => {
+  const categoryLower = category.toLowerCase();
+  if (categoryLower.includes('博物馆') || categoryLower.includes('museum')) {
+    return 'bg-purple-500/20 text-purple-300';
+  }
+  if (categoryLower.includes('公园') || categoryLower.includes('park')) {
+    return 'bg-green-500/20 text-green-300';
+  }
+  if (categoryLower.includes('风景名胜') || categoryLower.includes('scenic')) {
+    return 'bg-blue-500/20 text-blue-300';
+  }
+  if (categoryLower.includes('寺庙') || categoryLower.includes('temple')) {
+    return 'bg-orange-500/20 text-orange-300';
+  }
+  if (categoryLower.includes('广场') || categoryLower.includes('plaza')) {
+    return 'bg-cyan-500/20 text-cyan-300';
+  }
+  return 'bg-amber-500/20 text-amber-300';
+};
+
+// 生成描述文字
+const generateDescription = (name: string, category?: string, city?: string) => {
+  return `${name}是一处值得探访的${category || '景点'}，位于${city || '中国'}，为游客提供独特的游览体验。`;
+};
 
 export default function FavoritesGlass() {
   const navigate = useNavigate();
@@ -29,6 +72,7 @@ export default function FavoritesGlass() {
   const loadFavorites = async () => {
     try {
       const response = await getFavorites();
+      console.log('📦 收藏数据:', response);
       if (response && response.data) {
         setFavorites(Array.isArray(response.data) ? response.data : []);
       } else if (Array.isArray(response)) {
@@ -42,12 +86,12 @@ export default function FavoritesGlass() {
     }
   };
 
-  const handleRemove = async (id: string, e: React.MouseEvent) => {
+  const handleRemove = async (spotId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await removeFavorite(id);
+      await removeFavorite(spotId);
       message.success('已取消收藏');
-      setFavorites(favorites.filter((item) => item.id !== id));
+      setFavorites(favorites.filter((item) => item.spotId !== spotId));
     } catch (error) {
       message.error('操作失败');
     }
@@ -82,49 +126,42 @@ export default function FavoritesGlass() {
             </div>
           </GlassCard>
         ) : (
-          <div className="grid grid-cols-3 gap-6">
-            {favorites.map((item) => (
-              <GlassCard
-                key={item.id}
-                className="p-0 overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform"
-                onClick={() => navigate(`/destination/${item.spotId}`)}
-              >
-                {/* 图片 */}
-                <div className="relative h-48 bg-gradient-to-br from-livetrip-primary to-livetrip-accent">
-                  {item.imageUrl && (
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {favorites.map((item) => {
+              // 获取图片URL
+              const imageUrl = item.spot.coverImage ||
+                (item.spot.images && item.spot.images.length > 0 ? item.spot.images[0].url : '') ||
+                '';
+
+              return (
+                <div key={item.id} className="relative group">
+                  <SpotCard
+                    spot={{
+                      id: item.spot.id,
+                      name: item.spot.name,
+                      image: imageUrl,
+                      rating: item.spot.rating || 4.5,
+                      description: item.spot.description || '',
+                      openTime: item.spot.openTime || '全天开放',
+                      ticketPrice: item.spot.ticketPrice || 0,
+                      category: item.spot.category || '',
+                      city: item.spot.city,
+                      address: item.spot.address || '',
+                    }}
+                    getTagColor={getTagColor}
+                    generateDescription={generateDescription}
+                    isFavorited={true} // 在收藏页面中，始终显示为已收藏
+                  />
+                  {/* 删除按钮 */}
                   <button
-                    onClick={(e) => handleRemove(item.id, e)}
-                    className="absolute top-4 right-4 p-2 rounded-full bg-red-500/80 backdrop-blur-sm hover:bg-red-500 transition-colors"
+                    onClick={(e) => handleRemove(item.spotId, e)}
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500/80 backdrop-blur-sm hover:bg-red-500 transition-colors z-10"
                   >
-                    <Trash2 className="h-5 w-5 text-white" />
+                    <Trash2 className="h-4 w-4 text-white" />
                   </button>
                 </div>
-
-                {/* 信息 */}
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-xl font-bold text-white">{item.name}</h3>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                      <span className="text-sm text-white/80">{item.rating}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-white/60">
-                    <MapPin className="h-4 w-4" />
-                    <span className="text-sm">{item.city}</span>
-                    <span className="text-white/40">•</span>
-                    <span className="text-sm">{item.category}</span>
-                  </div>
-                </div>
-              </GlassCard>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

@@ -116,8 +116,8 @@ function WorkspaceView() {
         }}
       />
 
-      {/* 背景遮罩 */}
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-xl" />
+      {/* 背景遮罩 - 降低模糊度以提高清晰度 */}
+      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
 
       {/* 主容器 */}
       <div className="relative min-h-screen flex">
