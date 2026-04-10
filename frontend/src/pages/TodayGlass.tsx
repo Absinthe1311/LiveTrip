@@ -1,45 +1,70 @@
 // 当前行程页面 - 毛玻璃风格版本
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Clock, Users, Navigation, CheckCircle } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Calendar, MapPin, Clock, Users, Navigation, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import GlassLayout from '../components/GlassLayout';
 import { GlassCard } from '../components/home';
-import { getTripById } from '../api/client';
+import { getTripById, completeTrip, getUserTrips } from '../api/client';
 import { message } from 'antd';
+import { FullItinerary } from '../api/client';
 
-interface ItineraryItem {
+interface TripListItem {
   id: string;
-  name: string;
-  location: string;
-  startTime: string;
-  endTime: string;
-  type: string;
-  completed: boolean;
-}
-
-interface DaySchedule {
-  dayNumber: number;
-  date: string;
-  items: ItineraryItem[];
+  title: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  totalCost: number;
+  status: string;
 }
 
 export default function TodayGlass() {
   const navigate = useNavigate();
-  const [currentTrip, setCurrentTrip] = useState<any>(null);
+  const [searchParams] = useSearchParams();
+  const tripId = searchParams.get('tripId');
+  
+  const [itineraryData, setItineraryData] = useState<FullItinerary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentDay, setCurrentDay] = useState(0);
+  const [tripsList, setTripsList] = useState<TripListItem[]>([]);
+  const [currentTripIndex, setCurrentTripIndex] = useState(0);
 
   useEffect(() => {
-    loadCurrentTrip();
+    loadUserTrips();
   }, []);
 
-  const loadCurrentTrip = async () => {
+  useEffect(() => {
+    if (tripId) {
+      loadTripData(tripId);
+    } else if (tripsList.length > 0 && currentTripIndex < tripsList.length) {
+      loadTripData(tripsList[currentTripIndex].id);
+    }
+  }, [tripId, tripsList, currentTripIndex]);
+
+  const loadUserTrips = async () => {
     try {
-      // 从 localStorage 获取当前行程
-      const tripData = localStorage.getItem('currentItinerary');
-      if (tripData) {
-        const trip = JSON.parse(tripData);
-        setCurrentTrip(trip);
+      const response = await getUserTrips();
+      if (response.success && response.data) {
+        setTripsList(response.data);
+        // 默认加载第一个行程
+        if (response.data.length > 0 && !tripId) {
+          loadTripData(response.data[0].id);
+        }
+      }
+    } catch (error) {
+      console.error('加载行程列表失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadTripData = async (id: string) => {
+    try {
+      setLoading(true);
+      const data = await getTripById(id);
+      if (data.success && data.data) {
+        setItineraryData(data.data);
+      } else {
+        message.error('加载行程失败');
       }
     } catch (error) {
       console.error('加载行程失败:', error);
@@ -49,12 +74,42 @@ export default function TodayGlass() {
     }
   };
 
+  const handlePreviousTrip = () => {
+    if (currentTripIndex > 0) {
+      setCurrentTripIndex(currentTripIndex - 1);
+    }
+  };
+
+  const handleNextTrip = () => {
+    if (currentTripIndex < tripsList.length - 1) {
+      setCurrentTripIndex(currentTripIndex + 1);
+    }
+  };
+
+  const handleTripSelect = (index: number) => {
+    setCurrentTripIndex(index);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('zh-CN', {
       month: 'long',
       day: 'numeric',
       weekday: 'short',
     });
+  };
+
+  const handleCompleteTrip = async () => {
+    if (!tripId) {
+      message.warning('请先创建行程');
+      return;
+    }
+    try {
+      await completeTrip(tripId);
+      message.success('行程已完成');
+    } catch (error) {
+      console.error('完成行程失败:', error);
+      message.error('完成行程失败');
+    }
   };
 
   return (
@@ -66,12 +121,16 @@ export default function TodayGlass() {
             <h1 className="text-3xl font-bold text-white">当前行程</h1>
             <p className="text-white/60 mt-1">查看和管理您的旅行计划</p>
           </div>
-          {currentTrip && (
+          {itineraryData && (
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-white/60">
-                <Calendar className="h-5 w-5" />
-                <span>{currentTrip.data?.summary?.startDate} - {currentTrip.data?.summary?.endDate}</span>
-              </div>
+              {tripId && (
+                <button
+                  onClick={handleCompleteTrip}
+                  className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+                >
+                  完成行程
+                </button>
+              )}
               <button
                 onClick={() => navigate('/plan')}
                 className="px-6 py-3 rounded-lg bg-livetrip-primary text-white font-medium hover:bg-livetrip-primary/90 transition-colors"
@@ -82,11 +141,63 @@ export default function TodayGlass() {
           )}
         </div>
 
+        {/* 行程选择器 */}
+        {tripsList.length > 0 && (
+          <GlassCard className="p-4">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={handlePreviousTrip}
+                disabled={currentTripIndex === 0}
+                className={`p-2 rounded-lg transition-colors ${
+                  currentTripIndex === 0
+                    ? 'text-white/30 cursor-not-allowed'
+                    : 'text-white hover:bg-white/10'
+                }`}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              
+              <div className="flex items-center gap-2">
+                {tripsList.map((trip, index) => (
+                  <button
+                    key={trip.id}
+                    onClick={() => handleTripSelect(index)}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      index === currentTripIndex
+                        ? 'bg-livetrip-primary text-white'
+                        : 'bg-white/10 text-white/80 hover:bg-white/20'
+                    }`}
+                  >
+                    <div className="text-sm font-medium">
+                      {trip.destination || trip.title}
+                    </div>
+                    <div className="text-xs text-white/60">
+                      {formatDate(trip.startDate)}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              
+              <button
+                onClick={handleNextTrip}
+                disabled={currentTripIndex === tripsList.length - 1}
+                className={`p-2 rounded-lg transition-colors ${
+                  currentTripIndex === tripsList.length - 1
+                    ? 'text-white/30 cursor-not-allowed'
+                    : 'text-white hover:bg-white/10'
+                }`}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          </GlassCard>
+        )}
+
         {loading ? (
           <GlassCard className="p-8">
             <div className="text-center text-white/60">加载中...</div>
           </GlassCard>
-        ) : !currentTrip ? (
+        ) : !itineraryData ? (
           <GlassCard className="p-8">
             <div className="text-center">
               <div className="text-6xl mb-4">📅</div>
@@ -101,52 +212,57 @@ export default function TodayGlass() {
             </div>
           </GlassCard>
         ) : (
-          <div className="grid grid-cols-4 gap-6">
-            {/* 左侧：日期选择 */}
-            <div className="col-span-1">
-              <GlassCard className="p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">行程日期</h3>
-                <div className="space-y-2">
-                  {currentTrip.data?.days?.map((day: any, index: number) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentDay(index)}
-                      className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
-                        currentDay === index
-                          ? 'bg-livetrip-primary text-white'
-                          : 'bg-white/5 text-white/80 hover:bg-white/10'
-                      }`}
-                    >
-                      <div className="font-medium">第 {index + 1} 天</div>
-                      <div className="text-sm text-white/60">{formatDate(day.date)}</div>
-                    </button>
-                  ))}
+          <>
+            {/* 行程信息卡片 */}
+            <GlassCard className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">行程概览</h2>
+                {tripId && (
+                  <div className="flex items-center gap-2 text-white/60">
+                    <Calendar className="h-5 w-5" />
+                    <span>{formatDate(itineraryData.summary?.start_date || '')} - {formatDate(itineraryData.summary?.end_date || '')}</span>
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-4 gap-4">
+                <div>
+                  <div className="text-sm text-white/60 mb-1">目的地</div>
+                  <div className="text-lg font-semibold text-white">{itineraryData.summary?.destination || '未知'}</div>
                 </div>
-              </GlassCard>
-            </div>
+                <div>
+                  <div className="text-sm text-white/60 mb-1">天数</div>
+                  <div className="text-lg font-semibold text-white">{itineraryData.itinerary?.length || 0} 天</div>
+                </div>
+                <div>
+                  <div className="text-sm text-white/60 mb-1">总费用</div>
+                  <div className="text-lg font-semibold text-white">¥{itineraryData.total_cost?.toFixed(0) || 0}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-white/60 mb-1">状态</div>
+                  <div className="text-lg font-semibold text-green-400">进行中</div>
+                </div>
+              </div>
+            </GlassCard>
 
-            {/* 右侧：行程详情 */}
-            <div className="col-span-3">
-              <GlassCard className="p-6">
+            {/* 每天的行程 */}
+            {itineraryData.itinerary && itineraryData.itinerary.map((day, dayIndex) => (
+              <GlassCard key={dayIndex} className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-white">
-                      第 {currentDay + 1} 天行程
-                    </h2>
+                    <h2 className="text-2xl font-bold text-white">第 {dayIndex + 1} 天行程</h2>
                     <p className="text-white/60 mt-1">
-                      {currentTrip.data?.days?.[currentDay]?.date &&
-                        formatDate(currentTrip.data.days[currentDay].date)}
+                      {day.date && formatDate(day.date)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 text-white/60">
                     <MapPin className="h-5 w-5" />
-                    <span>{currentTrip.data?.summary?.destination}</span>
+                    <span>{itineraryData.summary?.destination}</span>
                   </div>
                 </div>
 
                 {/* 景点列表 */}
                 <div className="space-y-4">
-                  {currentTrip.data?.days?.[currentDay]?.attractions?.map((attraction: any, index: number) => (
+                  {day.attractions && day.attractions.map((attraction: any, index: number) => (
                     <div
                       key={index}
                       className="flex items-start gap-4 p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
@@ -170,40 +286,12 @@ export default function TodayGlass() {
                           <p className="text-sm text-white/60 mt-2">{attraction.description}</p>
                         )}
                       </div>
-                      <button className="flex-shrink-0 p-2 rounded-lg hover:bg-white/10 transition-colors">
-                        <Navigation className="h-5 w-5 text-white/60" />
-                      </button>
                     </div>
                   ))}
                 </div>
-
-                {/* 餐厅推荐 */}
-                {currentTrip.data?.days?.[currentDay]?.restaurant && (
-                  <div className="mt-6 pt-6 border-t border-white/10">
-                    <h3 className="text-lg font-semibold text-white mb-4">餐厅推荐</h3>
-                    <div className="p-4 rounded-lg bg-white/5 border border-white/10">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-semibold text-white">
-                            {currentTrip.data.days[currentDay].restaurant.name}
-                          </h4>
-                          <p className="text-sm text-white/60 mt-1">
-                            {currentTrip.data.days[currentDay].restaurant.type}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-yellow-500">⭐</span>
-                          <span className="text-white/80">
-                            {currentTrip.data.days[currentDay].restaurant.rating}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </GlassCard>
-            </div>
-          </div>
+            ))}
+          </>
         )}
       </div>
     </GlassLayout>
