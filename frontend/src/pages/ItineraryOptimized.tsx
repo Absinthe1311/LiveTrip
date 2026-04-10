@@ -11,10 +11,12 @@ import LinearStepNavigation, { PlanningStep } from '../components/itinerary/Line
 import FullscreenMap from '../components/itinerary/FullscreenMap';
 import ImprovedBudgetBar from '../components/itinerary/ImprovedBudgetBar';
 import ActionButton from '../components/itinerary/ActionButton';
+import OptimizedDayMap from '../components/itinerary/OptimizedDayMap';
 import { useAppStore } from '../store';
 import { FullItinerary, AttractionItem, calculateRealTimeBudget, completeTrip } from '../api/client';
 import { getIoTData, saveTrip, getSpotCoverImage, batchGetSpotImagesByIds } from '../api/client';
 import { Hotel, Restaurant, getHotelRecommendations, getRestaurantRecommendations } from '../api/recommendationApi';
+import { alternativeRecommender } from '../services/alternativeRecommender';
 import AMapLoader from '@amap/amap-jsapi-loader';
 
 // 高德地图类型定义
@@ -167,6 +169,10 @@ export default function ItineraryOptimized() {
   const [restaurantRecommendations, setRestaurantRecommendations] = useState<Record<number, Restaurant[]>>({}); // 餐厅推荐
   const [hotelRecommendations, setHotelRecommendations] = useState<Hotel[]>([]); // 酒店推荐
   const [realTimeBudget, setRealTimeBudget] = useState<any>(null); // 实时预算
+
+  // 地图优化相关状态
+  const [showAllRestaurants, setShowAllRestaurants] = useState(false); // 是否显示所有餐厅
+  const [showAllDays, setShowAllDays] = useState(false); // 是否显示所有天数
 
   // 步骤导航状态
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -344,6 +350,9 @@ export default function ItineraryOptimized() {
 
         setRestaurantRecommendations(restaurantsMap);
         console.log(`✅ 成功加载餐厅推荐`);
+        
+        // 加载餐厅推荐后，显示所有餐厅供用户选择
+        setShowAllRestaurants(true);
       }
     } catch (error) {
       console.error('加载餐厅推荐失败:', error);
@@ -519,22 +528,46 @@ export default function ItineraryOptimized() {
 
   // 处理显示备选景点
   const handleShowAlternatives = async (item: AttractionItem, city?: string) => {
-    const key = `${item.name}-${item.time}`;
-    setLoadingAlternatives(prev => ({ ...prev, [key]: true }));
+    console.log('🔍 查看备选景点:', item.name);
+    console.log('   城市:', city || '未指定');
+
+    const attractionKey = `${item.name}-${item.time}`;
+
+    // 如果已经展开，则收起
+    if (expandedAlternatives[attractionKey]) {
+      handleCloseAlternatives(item);
+      return;
+    }
+
+    setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: true }));
 
     try {
-      // 模拟备选景点数据
-      const alternatives = [
-        { id: '1', name: '备选景点1', rating: 4.5, type: '景点', time: item.time },
-        { id: '2', name: '备选景点2', rating: 4.3, type: '景点', time: item.time },
-      ];
+      // 获取行程中所有景点的名称（用于排除）
+      const allSpotNames = itineraryData!.itinerary.flatMap(day =>
+        day.attractions.map(attr => attr.name)
+      );
 
-      setExpandedAlternatives(prev => ({ ...prev, [key]: alternatives }));
-    } catch (error) {
-      console.error('获取备选景点失败:', error);
-      message.error('获取备选景点失败');
+      console.log('   行程中的景点:', allSpotNames.join(', '));
+
+      // 使用推荐服务获取备选景点
+      const recommendations = await alternativeRecommender.getRecommendations(
+        item,
+        iotData,
+        city,
+        allSpotNames
+      );
+
+      console.log('✅ 获取到备选景点:', recommendations.length);
+
+      setExpandedAlternatives(prev => ({
+        ...prev,
+        [attractionKey]: recommendations
+      }));
+    } catch (error: any) {
+      console.error('❌ 获取备选景点失败:', error);
+      message.error('获取备选景点失败，请稍后重试');
     } finally {
-      setLoadingAlternatives(prev => ({ ...prev, [key]: false }));
+      setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: false }));
     }
   };
 
@@ -695,7 +728,21 @@ export default function ItineraryOptimized() {
                   loadingAlternatives={loadingAlternatives}
                   handleCloseAlternatives={handleCloseAlternatives}
                   handleReplaceAttraction={(newItem: any) => {
+                    const newItinerary = { ...itineraryData };
+                    newItinerary.itinerary[currentDayIndex].attractions = newItinerary.itinerary[currentDayIndex].attractions.map((attr: any, idx: number) => {
+                      if (attr.id === newItem.id || attr.name === newItem.name) {
+                        return { ...newItem, time: attr.time }; // 保持原有的时间
+                      }
+                      return attr;
+                    });
+                    setItineraryData(newItinerary);
                     message.success(`已替换为 ${newItem.name}`);
+                  }}
+                  onAttractionsReorder={(newAttractions) => {
+                    const newItinerary = { ...itineraryData };
+                    newItinerary.itinerary[currentDayIndex].attractions = newAttractions;
+                    setItineraryData(newItinerary);
+                    message.success('行程顺序已调整');
                   }}
                 />
               )}
@@ -712,10 +759,14 @@ export default function ItineraryOptimized() {
                 fullscreenWidth="w-full"
               >
                 {itineraryData.itinerary[currentDayIndex] && (
-                  <DayMap
+                  <OptimizedDayMap
                     day={itineraryData.itinerary[currentDayIndex]}
                     hotel={selectedHotel}
                     restaurant={selectedRestaurants[itineraryData.itinerary[currentDayIndex].day]}
+                    showAllRestaurants={showAllRestaurants}
+                    showAllDays={showAllDays}
+                    allDays={itineraryData.itinerary}
+                    restaurantRecommendations={restaurantRecommendations[itineraryData.itinerary[currentDayIndex].day]}
                   />
                 )}
               </FullscreenMap>
@@ -737,17 +788,20 @@ export default function ItineraryOptimized() {
 
         {currentStep?.type === 'restaurants' && (
           <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-8 border border-white/30 shadow-lg">
-            <div className="text-center">
+            <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-white mb-4">第{currentStep.day}天 · 餐厅选择</h2>
-              <p className="text-white/60 mb-6">
+              <p className="text-white/60">
                 基于当天行程景点位置推荐的餐厅
                 {restaurantRecommendations[currentStep.day || 0]?.length > 0 && 
                   ` · 共找到 ${restaurantRecommendations[currentStep.day || 0].length} 家餐厅`
                 }
               </p>
+            </div>
               
-              {restaurantRecommendations[currentStep.day || 0]?.length > 0 ? (
-                <div className="grid grid-cols-2 gap-4">
+            {restaurantRecommendations[currentStep.day || 0]?.length > 0 ? (
+              <div className="grid grid-cols-2 gap-6">
+                {/* 左侧：餐厅列表 */}
+                <div className="space-y-4">
                   {restaurantRecommendations[currentStep.day || 0].map((restaurant, idx) => (
                     <button
                       key={idx}
@@ -756,6 +810,7 @@ export default function ItineraryOptimized() {
                           ...prev,
                           [currentStep.day || 0]: restaurant
                         }));
+                        setShowAllRestaurants(false); // 选择后关闭显示所有餐厅
                         message.success(`已选择 ${restaurant.name}`);
                         // 重新计算实时预算
                         calculateRealTimeBudgetData();
@@ -782,34 +837,53 @@ export default function ItineraryOptimized() {
                     </button>
                   ))}
                 </div>
-              ) : (
-                <div className="text-white/60 py-8">
-                  <div className="mb-4">正在加载餐厅推荐...</div>
-                  <div className="text-sm text-white/40">系统会根据当天行程景点的位置智能推荐周边餐厅</div>
+
+                {/* 右侧：地图 */}
+                <div className="bg-white/20 rounded-xl overflow-hidden h-[500px]">
+                  {currentStep.day && itineraryData.itinerary[currentStep.day - 1] && (
+                    <OptimizedDayMap
+                      day={itineraryData.itinerary[currentStep.day - 1]}
+                      hotel={null}
+                      restaurant={null}
+                      showAllRestaurants={true}
+                      showAllDays={false}
+                      allDays={[]}
+                      restaurantRecommendations={restaurantRecommendations[currentStep.day || 0]}
+                    />
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="text-white/60 py-8">
+                <div className="mb-4">正在加载餐厅推荐...</div>
+                <div className="text-sm text-white/40">系统会根据当天行程景点的位置智能推荐周边餐厅</div>
+              </div>
+            )}
           </div>
         )}
 
         {currentStep?.type === 'hotels' && (
           <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-8 border border-white/30 shadow-lg">
-            <div className="text-center">
+            <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-white mb-4">选择酒店</h2>
-              <p className="text-white/60 mb-6">
+              <p className="text-white/60">
                 基于所有行程景点位置推荐的酒店
                 {hotelRecommendations?.length > 0 && 
                   ` · 共找到 ${hotelRecommendations.length} 家酒店`
                 }
               </p>
+            </div>
               
-              {hotelRecommendations?.length > 0 ? (
-                <div className="grid grid-cols-2 gap-4">
+            {hotelRecommendations?.length > 0 ? (
+              <div className="grid grid-cols-2 gap-6">
+                {/* 左侧：酒店列表 */}
+                <div className="space-y-4">
                   {hotelRecommendations.map((hotel, idx) => (
                     <button
                       key={idx}
                       onClick={() => {
                         setSelectedHotel(hotel);
+                        setShowAllDays(true); // 确定酒店后显示所有天数路线
                         message.success(`已选择 ${hotel.name}`);
                         // 重新计算实时预算
                         calculateRealTimeBudgetData();
@@ -836,13 +910,28 @@ export default function ItineraryOptimized() {
                     </button>
                   ))}
                 </div>
-              ) : (
-                <div className="text-white/60 py-8">
-                  <div className="mb-4">正在加载酒店推荐...</div>
-                  <div className="text-sm text-white/40">系统会根据所有行程景点的位置智能推荐周边酒店</div>
+
+                {/* 右侧：地图 */}
+                <div className="bg-white/20 rounded-xl overflow-hidden h-[500px]">
+                  {itineraryData.itinerary.length > 0 && (
+                    <OptimizedDayMap
+                      day={null}
+                      hotel={null}
+                      restaurant={null}
+                      showAllRestaurants={false}
+                      showAllDays={true}
+                      allDays={itineraryData.itinerary}
+                      restaurantRecommendations={[]}
+                    />
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="text-white/60 py-8">
+                <div className="mb-4">正在加载酒店推荐...</div>
+                <div className="text-sm text-white/40">系统会根据所有行程景点的位置智能推荐周边酒店</div>
+              </div>
+            )}
           </div>
         )}
       </div>
