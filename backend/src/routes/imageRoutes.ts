@@ -41,6 +41,12 @@ router.get('/search/:keyword', ImageController.searchUnsplashImages);
 router.post('/batch', ImageController.batchGetSpotImages);
 
 /**
+ * 根据景点ID批量获取图片（从数据库查询）
+ * POST /images/batch-by-ids
+ */
+router.post('/batch-by-ids', ImageController.batchGetSpotImagesByIds);
+
+/**
  * 获取景点的所有图片
  * GET /images/spot/:spotId
  */

@@ -32,6 +32,13 @@ import DayNavigationPanel from '../components/itinerary/DayNavigationPanel';
 import DailyExpenseDistribution from '../components/itinerary/DailyExpenseDistribution';
 import CompactAttractionCard from '../components/itinerary/CompactAttractionCard';
 import InlineAlternativeAttractions from '../components/itinerary/InlineAlternativeAttractions';
+import LargeAttractionCard from '../components/itinerary/LargeAttractionCard';
+import DetailedAlternativeAttractions from '../components/itinerary/DetailedAlternativeAttractions';
+import EditableTimeSlot from '../components/itinerary/EditableTimeSlot';
+import TwoStageAttractionCard from '../components/itinerary/TwoStageAttractionCard';
+import RestaurantSuggestionPlaceholder from '../components/itinerary/RestaurantSuggestionPlaceholder';
+import HorizontalRestaurantRecommendations from '../components/itinerary/HorizontalRestaurantRecommendations';
+import HotelDrawer from '../components/itinerary/HotelDrawer';
 import AttractionCard from '../components/AttractionCard';
 import GlassAlternativeAttractions from '../components/GlassAlternativeAttractions';
 import BudgetChart from '../components/BudgetChart';
@@ -1029,68 +1036,78 @@ export default function ItineraryGlass() {
             </div>
           </div>
 
-          {/* Tab切换栏 */}
-          <div className="flex gap-3 mb-6">
-            {[
-              { key: 'itinerary', label: '行程', icon: MapPin },
-              { key: 'hotel', label: '酒店', icon: Building2 },
-              { key: 'restaurant', label: '餐厅', icon: UtensilsCrossed },
-              { key: 'budget', label: '费用', icon: Wallet },
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as any)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-                  activeTab === tab.key
-                    ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 border-2 border-amber-400/50 shadow-lg shadow-amber-500/20 text-amber-400'
-                    : 'bg-white/5 border border-white/20 text-white/60 hover:bg-white/10 hover:text-white'
-                }`}
-              >
-                <tab.icon className="w-5 h-5" />
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
+          {/* Tab切换栏 - 已移除，简化界面 */}
         </div>
 
         {/* 主内容区 - 根据Tab显示不同内容 */}
         {activeTab === 'itinerary' && (
-          <div className="flex gap-4">
-            {/* 左栏：日程导航面板 */}
-            <DayNavigationPanel
-              days={itineraryData.itinerary.map(day => ({
-                dayNumber: day.day,
-                date: day.date,
-                attractionCount: day.attractions.length
-              }))}
-              selectedDayIndex={selectedDayIndex}
-              onDaySelect={setSelectedDayIndex}
-              totalBudget={itineraryData.summary?.budget || itineraryData.total_cost || 0}
-              usedBudget={budgetInfo?.totalSpent || 0}
-            />
+          <div className="space-y-6">
+            {/* 顶部日期切换栏 */}
+            <div className="flex items-center gap-3 overflow-x-auto pb-2">
+              {itineraryData.itinerary.map((day, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedDayIndex(index)}
+                  className={`flex-shrink-0 flex items-center gap-3 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                    selectedDayIndex === index
+                      ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 border-2 border-amber-400/50 shadow-lg shadow-amber-500/20 text-amber-400'
+                      : 'bg-white/5 border border-white/20 text-white/60 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <Calendar className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="text-sm font-semibold">第{day.day}天</div>
+                    <div className="text-xs opacity-70">{day.date}</div>
+                  </div>
+                  <div className="bg-white/10 rounded-full px-2 py-0.5 text-xs">
+                    {day.attractions.length}景点
+                  </div>
+                </button>
+              ))}
+            </div>
 
-            {/* 中栏：当日行程时间线 */}
-            <div className="flex-1 min-w-0">
-              {itineraryData.itinerary[selectedDayIndex] && (
-                <div className="space-y-4">
-                  {/* 时间线 */}
+            {/* 当日行程内容 */}
+            <div className="flex gap-4">
+              {/* 左栏：时间轴 */}
+              <div className="w-20 flex-shrink-0">
+                {itineraryData.itinerary[selectedDayIndex] && (
                   <div className="relative">
-                    {/* 竖线 */}
-                    <div className="absolute left-[7px] top-0 bottom-0 w-0.5 bg-amber-400/40" />
+                    {/* 渐变竖线 */}
+                    <div className="absolute left-[50%] top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 via-green-500 to-green-600 opacity-40 rounded-full" />
                     
-                    {/* 景点列表 */}
-                    {itineraryData.itinerary[selectedDayIndex].attractions.map((item, index) => {
+                    {/* 时间节点 */}
+                    <div className="space-y-32 pt-4">
+                      {itineraryData.itinerary[selectedDayIndex].attractions.map((item, index) => (
+                        <EditableTimeSlot
+                          key={index}
+                          time={item.time}
+                          index={index}
+                          onTimeChange={(newTime) => handleTimeChange(selectedDayIndex, index, newTime)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 中栏：景点卡片列表 */}
+              <div className="flex-1 min-w-0">
+                {itineraryData.itinerary[selectedDayIndex] && (
+                  <div className="space-y-4">
+                    {itineraryData.itinerary[selectedDayIndex].attractions.map((item, index, array) => {
                       const attractionKey = `${item.name}-${item.time}`;
                       const alternatives = expandedAlternatives[attractionKey];
                       const isLoading = loadingAlternatives[attractionKey];
+                      const itemIoTData = getAttractionIoTData(item, iotData);
+
+                      // 判断是否需要显示餐厅建议（在11:00-13:00之间）
+                      const showRestaurantSuggestion = index < array.length - 1 && 
+                        item.time.includes('11:') || item.time.includes('12:');
 
                       return (
-                        <div key={index} className="relative pl-8">
-                          {/* 时间线节点 */}
-                          <div className="absolute left-0 top-4 w-4 h-4 rounded-full bg-amber-500 ring-2 ring-amber-400/30 z-10" />
-                          
-                          {/* 景点卡片 */}
-                          <CompactAttractionCard
+                        <div key={index}>
+                          {/* 两段式景点卡片 */}
+                          <TwoStageAttractionCard
                             item={item}
                             index={index}
                             city={itineraryData.summary?.destination}
@@ -1102,11 +1119,13 @@ export default function ItineraryGlass() {
                               }
                             }}
                             showAlternatives={!!expandedAlternatives[attractionKey]}
+                            iotData={itemIoTData}
+                            onTimeEdit={(newTime) => handleTimeChange(selectedDayIndex, index, newTime)}
                           />
 
-                          {/* 内联备选景点 */}
+                          {/* 详细备选景点 */}
                           {expandedAlternatives[attractionKey] && (
-                            <InlineAlternativeAttractions
+                            <DetailedAlternativeAttractions
                               alternatives={alternatives || []}
                               onClose={() => handleCloseAlternatives(item)}
                               onReplace={(params) => {
@@ -1117,49 +1136,73 @@ export default function ItineraryGlass() {
                                   newItem: params
                                 });
                               }}
+                              city={itineraryData.summary?.destination}
+                            />
+                          )}
+
+                          {/* 餐厅建议占位符 */}
+                          {showRestaurantSuggestion && (
+                            <RestaurantSuggestionPlaceholder
+                              time="12:00-13:00"
+                              onClick={() => {
+                                // 触发右侧餐厅推荐显示
+                                message.info('正在加载周边餐厅...');
+                              }}
                             />
                           )}
                         </div>
                       );
                     })}
                   </div>
-                </div>
-              )}
-            </div>
-
-            {/* 右栏：地图 + 费用 */}
-            <div className="w-80 flex-shrink-0 space-y-3 sticky top-4 h-fit">
-              {/* 地图常驻显示 */}
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl overflow-hidden">
-                {/* 地图标题条 */}
-                <div className="absolute top-0 left-0 right-0 z-10 bg-black/30 backdrop-blur-sm px-3 py-2">
-                  <span className="text-sm text-white">
-                    {itineraryData.itinerary[selectedDayIndex]?.date || ''}
-                  </span>
-                </div>
-                {/* 地图容器 */}
-                <div className="h-72 relative">
-                  {itineraryData.itinerary[selectedDayIndex] && (
-                    <DayMap
-                      day={itineraryData.itinerary[selectedDayIndex]}
-                      hotel={selectedHotel}
-                      restaurant={selectedRestaurants[itineraryData.itinerary[selectedDayIndex].day]}
-                    />
-                  )}
-                </div>
+                )}
               </div>
 
-              {/* 当日费用分布 */}
-              <DailyExpenseDistribution
-                items={[
-                  { category: '交通', amount: itineraryData.budget_breakdown.transportation, percentage: 25 },
-                  { category: '住宿', amount: itineraryData.budget_breakdown.accommodation, percentage: 35 },
-                  { category: '餐饮', amount: itineraryData.budget_breakdown.dining, percentage: 20 },
-                  { category: '门票', amount: itineraryData.budget_breakdown.tickets, percentage: 20 },
-                ]}
-                totalBudget={itineraryData.summary?.budget || itineraryData.total_cost || 0}
-                usedBudget={budgetInfo?.totalSpent || 0}
-              />
+              {/* 右栏：大地图 + 预算 */}
+              <div className="w-[60%] flex-shrink-0 space-y-4 sticky top-4 h-fit">
+                {/* 交互式大地图 */}
+                <div className="bg-white/40 backdrop-blur-xl border border-white/30 rounded-2xl overflow-hidden shadow-xl">
+                  {/* 地图标题条 */}
+                  <div className="bg-black/30 backdrop-blur-sm px-4 py-2 border-b border-white/20">
+                    <span className="text-sm text-white font-medium">
+                      {itineraryData.itinerary[selectedDayIndex]?.date || ''} · 路线地图
+                    </span>
+                  </div>
+                  {/* 地图容器 - 放大 */}
+                  <div className="h-[500px] relative">
+                    {itineraryData.itinerary[selectedDayIndex] && (
+                      <DayMap
+                        day={itineraryData.itinerary[selectedDayIndex]}
+                        hotel={selectedHotel}
+                        restaurant={selectedRestaurants[itineraryData.itinerary[selectedDayIndex].day]}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* 紧凑预算分布 */}
+                <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-4 border border-white/30 shadow-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-semibold text-white">预算分布</span>
+                    <span className="text-xs text-white/50">
+                      ¥{budgetInfo?.totalSpent || 0} / ¥{itineraryData.summary?.budget || itineraryData.total_cost || 0}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    {[
+                      { label: '交通', value: itineraryData.budget_breakdown.transportation, color: 'bg-blue-500' },
+                      { label: '住宿', value: itineraryData.budget_breakdown.accommodation, color: 'bg-purple-500' },
+                      { label: '餐饮', value: itineraryData.budget_breakdown.dining, color: 'bg-amber-500' },
+                      { label: '门票', value: itineraryData.budget_breakdown.tickets, color: 'bg-green-500' },
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex-1 text-center">
+                        <div className={`${item.color} h-2 rounded-full mb-1`} style={{ opacity: 0.6 }} />
+                        <div className="text-xs text-white/60">{item.label}</div>
+                        <div className="text-sm font-semibold text-white">¥{item.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -1243,67 +1286,57 @@ export default function ItineraryGlass() {
           </div>
         )}
 
-        {/* 底部操作按钮 */}
-        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-xl mt-8">
-          <p className="text-center text-white/60 mb-4">
-            {isSavedTrip ? (
-              tripStatus === 'completed' ? '✅ 行程已完成，可以上传图片和写游记了' : '查看行程详情'
-            ) : '💡 确认后行程将保存到数据库'}
-          </p>
+        {/* 底部操作按钮 - 简化设计 */}
+        <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3">
+          {/* 状态提示 */}
+          {isSavedTrip && (
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 text-sm text-white/60">
+              {tripStatus === 'completed' ? '✅ 已完成' : '📝 规划中'}
+            </div>
+          )}
 
-          <div className="flex justify-center gap-4 flex-wrap">
-            {/* 已完成行程显示写游记按钮 */}
-            {tripStatus === 'completed' && (
-              <button
-                onClick={handleWriteBlog}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300"
-              >
-                <PenLine className="h-5 w-5" />
-                <span>写游记</span>
-              </button>
-            )}
-
-            {/* 规划中行程显示完成按钮 */}
-            {isSavedTrip && tripStatus === 'planning' && (
-              <button
-                onClick={() => {
-                  Modal.confirm({
-                    title: '确认完成行程？',
-                    content: '完成后将无法再修改行程，但可以上传图片和写游记',
-                    okText: '确认完成',
-                    cancelText: '取消',
-                    onOk: handleCompleteTrip,
-                  });
-                }}
-                disabled={completing}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50"
-              >
-                <CheckCircle className="h-5 w-5" />
-                <span>{completing ? '处理中...' : '完成行程'}</span>
-              </button>
-            )}
-
-            {/* 返回首页按钮 */}
+          {/* 主要操作按钮 */}
+          {!isSavedTrip && (
             <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2 px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-medium hover:bg-white/15 transition-all duration-300"
+              onClick={handleConfirmItinerary}
+              disabled={confirming}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium shadow-lg shadow-amber-500/30 hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50"
             >
-              <HomeIcon className="h-5 w-5" />
-              <span>返回首页</span>
+              <Check className="h-5 w-5" />
+              <span>{confirming ? '保存中...' : '保存行程'}</span>
             </button>
+          )}
 
-            {/* 确认并保存按钮（仅未保存时显示） */}
-            {!isSavedTrip && (
-              <button
-                onClick={handleConfirmItinerary}
-                disabled={confirming}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50"
-              >
-                <Check className="h-5 w-5" />
-                <span>{confirming ? '保存中...' : '确认并保存'}</span>
-              </button>
-            )}
-          </div>
+          {/* 完成行程按钮 */}
+          {isSavedTrip && tripStatus === 'planning' && (
+            <button
+              onClick={() => {
+                Modal.confirm({
+                  title: '确认完成行程？',
+                  content: '完成后将无法再修改行程，但可以上传图片和写游记',
+                  okText: '确认完成',
+                  cancelText: '取消',
+                  onOk: handleCompleteTrip,
+                });
+              }}
+              disabled={completing}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium shadow-lg shadow-green-500/30 hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50"
+            >
+              <CheckCircle className="h-5 w-5" />
+              <span>{completing ? '处理中...' : '完成行程'}</span>
+            </button>
+          )}
+
+          {/* 写游记按钮 */}
+          {tripStatus === 'completed' && (
+            <button
+              onClick={handleWriteBlog}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-medium shadow-lg shadow-purple-500/30 hover:shadow-xl hover:scale-105 transition-all duration-300"
+            >
+              <PenLine className="h-5 w-5" />
+              <span>写游记</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -1349,6 +1382,16 @@ export default function ItineraryGlass() {
       >
         <Sparkles className="w-7 h-7 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
       </button>
+
+      {/* 酒店选择抽屉 */}
+      <HotelDrawer
+        selectedHotel={selectedHotel}
+        onHotelSelect={(hotel) => setSelectedHotel(hotel)}
+        onHotelRemove={() => {
+          setSelectedHotel(null);
+          message.info('已取消酒店选择');
+        }}
+      />
     </GlassLayout>
   );
 }

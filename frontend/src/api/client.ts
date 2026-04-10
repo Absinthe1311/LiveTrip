@@ -508,6 +508,16 @@ export const batchGetSpotImages = async (spots: Array<{ name: string; city?: str
   return response.data;
 };
 
+/**
+ * 根据景点ID批量获取图片（从数据库查询）
+ * @param spotIds 景点ID列表
+ * @returns 图片映射 { spotId: imageUrl }
+ */
+export const batchGetSpotImagesByIds = async (spotIds: string[]) => {
+  const response = await apiClient.post('/images/batch-by-ids', { spotIds });
+  return response.data;
+};
+
 // ==================== 评价相关 ====================
 
 /**

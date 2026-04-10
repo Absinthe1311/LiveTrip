@@ -4,8 +4,8 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// 天气缓存时间（30分钟）
-const WEATHER_CACHE_DURATION = 30 * 60 * 1000; // 30分钟，单位：毫秒
+// 天气缓存时间（1小时）
+const WEATHER_CACHE_DURATION = 60 * 60 * 1000; // 1小时，单位：毫秒
 
 // OpenWeatherMap 天气响应接口
 interface OpenWeatherCurrentResponse {
@@ -160,13 +160,13 @@ export async function getSpotWeatherData(spotId: string): Promise<WeatherData> {
     },
   });
 
-  // 检查缓存是否有效（30分钟内）
+  // 检查缓存是否有效（1小时内）
   if (
     cachedData &&
     cachedData.weatherUpdatedAt &&
     new Date().getTime() - cachedData.weatherUpdatedAt.getTime() < WEATHER_CACHE_DURATION
   ) {
-    console.log(`✅ 使用缓存的天气数据: ${spotId}`);
+    // 移除日志输出
     return {
       temperature: cachedData.temperature,
       humidity: 0, // 缓存中没有湿度，使用0
@@ -178,7 +178,7 @@ export async function getSpotWeatherData(spotId: string): Promise<WeatherData> {
   }
 
   // 缓存失效或不存在，从 OpenWeatherMap 获取新数据
-  console.log(`🌤️  从 OpenWeatherMap 获取天气数据: ${spotId}`);
+  // 移除日志输出
 
   const coordinates = await getSpotCoordinates(spotId);
   if (!coordinates) {

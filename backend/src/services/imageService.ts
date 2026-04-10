@@ -594,6 +594,53 @@ export class ImageService {
 
     return imageMap;
   }
+
+  /**
+   * 根据景点ID批量获取图片（从数据库查询）
+   */
+  async batchGetSpotImagesByIds(spotIds: string[]): Promise<Record<string, string>> {
+    const prisma = await import('../lib/prisma').then(m => m.getPrismaClient());
+    const imageMap: Record<string, string> = {};
+
+    try {
+      // 批量查询景点的图片
+      const spots = await prisma.spot.findMany({
+        where: {
+          id: { in: spotIds }
+        },
+        include: {
+          images: {
+            where: {
+              status: 'approved'
+            },
+            take: 1,
+            orderBy: {
+              priority: 'desc'
+            }
+          }
+        }
+      });
+
+      // 构建图片映射
+      spots.forEach(spot => {
+        if (spot.images && spot.images.length > 0 && spot.images[0].url) {
+          imageMap[spot.id] = spot.images[0].url;
+        } else {
+          imageMap[spot.id] = spot.coverImage || '';
+        }
+      });
+
+      console.log(`✅ 批量获取 ${spots.length} 个景点的图片成功`);
+      return imageMap;
+    } catch (error) {
+      console.error('批量获取景点图片失败:', error);
+      // 返回空图片映射，避免阻塞前端
+      spotIds.forEach(id => {
+        imageMap[id] = '';
+      });
+      return imageMap;
+    }
+  }
 }
 
 // 导出单例实例

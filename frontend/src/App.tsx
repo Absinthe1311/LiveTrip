@@ -4,6 +4,7 @@ import { App as AntdApp } from 'antd';
 import Home from './pages/Home';
 import PlanGlass from './pages/PlanGlass';
 import ItineraryGlass from './pages/ItineraryGlass';
+import ItineraryOptimized from './pages/ItineraryOptimized';
 import TripDetail from './pages/TripDetail';
 import MyTripsGlass from './pages/MyTripsGlass';
 import Auth from './pages/Auth';
@@ -48,7 +49,7 @@ function AppContent() {
           path="/itinerary"
           element={
             <AuthGuard>
-              <ItineraryGlass />
+              <ItineraryOptimized />
             </AuthGuard>
           }
         />

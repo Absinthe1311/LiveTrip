@@ -1,0 +1,1398 @@
+<!DOCTYPE html><html><head>
+      <title>技术说明</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:///c:\Users\Absinthe\.vscode\extensions\shd101wyy.markdown-preview-enhanced-0.8.22\crossnote\dependencies\katex\katex.min.css">
+      
+      
+      <script type="text/javascript" src="file:///c:\Users\Absinthe\.vscode\extensions\shd101wyy.markdown-preview-enhanced-0.8.22\crossnote\dependencies\mermaid\mermaid.min.js" charset="UTF-8"></script>
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script>
+    </head>
+    <body for="html-export">
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="livetrip-项目技术说明文档">LiveTrip 项目技术说明文档 </h1>
+<h2 id="模块一传统行程推荐算法">模块一：传统行程推荐算法 </h2>
+<h3 id="功能描述">功能描述 </h3>
+<p>传统行程推荐算法是LiveTrip的核心推荐引擎，用于用户通过表单创建行程的场景。该算法完全基于规则和数学模型，不依赖AI大语言模型，通过多因素评分、地理聚类、多样性约束、路径优化等算法，为用户生成最优的行程安排。</p>
+<h3 id="技术实现">技术实现 </h3>
+<ul>
+<li><strong>多因素评分引擎</strong>: 综合考虑偏好、质量、IoT数据、人群特征</li>
+<li><strong>K-means聚类</strong>: 按地理位置将景点分组，减少交通时间</li>
+<li><strong>多样性约束</strong>: 防止行程同质化，保证景点类型多样性</li>
+<li><strong>2-opt路径优化</strong>: 优化每天的景点游览顺序</li>
+<li><strong>IoT实时检查</strong>: 根据实时数据调整行程</li>
+<li><strong>动态预算计算</strong>: 根据城市等级、季节、群体类型动态计算费用</li>
+</ul>
+<h3 id="核心算法逻辑">核心算法/逻辑 </h3>
+<h4 id="1-多因素评分引擎">1. 多因素评分引擎 </h4>
+<p>算法位置: <code>scoringEngine.ts:62-135</code></p>
+<p>为每个景点计算综合评分，评分维度及权重:</p>
+<ul>
+<li><strong>偏好匹配分 (35%)</strong>: 使用Jaccard相似度计算景点类别与用户偏好的匹配度<pre data-role="codeBlock" data-info="" class="language-text"><code>Jaccard = |A ∩ B| / |A ∪ B|
+</code></pre></li>
+<li><strong>质量评分分 (25%)</strong>: 基于高德评分（80%）和收藏数量（20%）</li>
+<li><strong>IoT实时分 (25%)</strong>: 根据拥挤度、降雨概率、开放状态实时调整</li>
+<li><strong>人群适配分 (15%)</strong>: 根据群体类型（独行、情侣、家庭、朋友）调整</li>
+</ul>
+<h4 id="2-k-means地理聚类">2. K-means地理聚类 </h4>
+<p>算法位置: <code>clusteringService.ts:13-63</code></p>
+<p>按地理位置将景点分组，减少每日交通时间:</p>
+<ul>
+<li><strong>特征向量</strong>: 景点的经纬度坐标 (lng, lat)</li>
+<li><strong>初始中心点</strong>: 选择评分最高的K个点</li>
+<li><strong>迭代优化</strong>: 最多100次迭代，收敛阈值0.001公里</li>
+<li><strong>平衡策略</strong>: 处理景点数量不均，从相邻聚类借调或移除低分景点</li>
+<li><strong>距离计算</strong>: 使用Haversine公式计算两点间距离</li>
+</ul>
+<h4 id="3-多样性约束">3. 多样性约束 </h4>
+<p>算法位置: <code>diversityService.ts:8-45</code></p>
+<p>防止行程同质化:</p>
+<ul>
+<li><strong>规则1</strong>: 每天相同CategoryTag的景点不超过2个</li>
+<li><strong>规则2</strong>: 整个行程中同一CategoryTag占比不超过50%</li>
+<li><strong>规则3</strong>: 每天必须包含至少2种不同CategoryTag</li>
+</ul>
+<h4 id="4-2-opt路径优化">4. 2-opt路径优化 </h4>
+<p>算法位置: <code>routeOptimizer.ts:34-59</code></p>
+<p>优化每天的景点游览顺序:</p>
+<ul>
+<li><strong>初始路线</strong>: 使用贪心算法生成（从第一个景点开始，每次选择最近未访问景点）</li>
+<li><strong>局部优化</strong>: 2-opt算法交换边，遍历所有可能的两条边交换</li>
+<li><strong>优化目标</strong>: 最小化总行程距离</li>
+<li><strong>最大迭代</strong>: 100次</li>
+</ul>
+<h4 id="5-动态预算计算">5. 动态预算计算 </h4>
+<p>算法位置: <code>budgetOptimizer.ts</code></p>
+<p>根据城市等级、季节性、群体类型动态计算:</p>
+<ul>
+<li><strong>城市等级</strong>: 一线城市（北京、上海）价格×1.2，二线城市×1.0</li>
+<li><strong>季节性</strong>: 旺季（7-8月、国庆、春节）价格×1.3，淡季×0.8</li>
+<li><strong>群体类型</strong>: 家庭（4人）价格×1.5，情侣（2人）×1.0</li>
+</ul>
+<h3 id="数据流说明">数据流说明 </h3>
+<div class="mermaid">flowchart TD
+    A[用户表单提交] --&gt; B[traditionalRecommender.recommendItinerary&lt;br/&gt;传统推荐算法]
+    B --&gt; C[获取IoT数据&lt;br/&gt;spotService.getBatchIoTData]
+    C --&gt; D[scoringEngine.scoreAllSpots&lt;br/&gt;多因素评分]
+    D --&gt; E[clusteringService.kMeansClustering&lt;br/&gt;K-means聚类]
+    E --&gt; F[diversityService.applyDiversityConstraints&lt;br/&gt;多样性约束]
+    F --&gt; G[routeOptimizer.optimizeRoute&lt;br/&gt;2-opt路径优化]
+    G --&gt; H[budgetOptimizer.calculateBudget&lt;br/&gt;动态预算计算]
+    H --&gt; I[iotCheckService.checkItinerary&lt;br/&gt;IoT实时检查]
+    I --&gt; J{有问题景点?}
+    J --&gt;|是| K[从备选景点池替换]
+    J --&gt;|否| L[返回最终行程]
+    K --&gt; L
+</div><h3 id="涉及的核心文件">涉及的核心文件 </h3>
+<ul>
+<li><strong>后端</strong>: <code>backend/src/services/traditionalRecommender.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/scoringEngine.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/clusteringService.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/diversityService.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/routeOptimizer.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/budgetOptimizer.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/iotCheckService.ts</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/PlanGlass.tsx</code></li>
+</ul>
+<hr>
+<h2 id="模块二ai智能行程生成">模块二：AI智能行程生成 </h2>
+<h3 id="功能描述-1">功能描述 </h3>
+<p>AI智能行程生成模块通过自然语言处理技术将用户的旅行需求转化为结构化的行程安排。用户可以用自然语言描述旅行计划，系统自动识别目的地、时间、预算、人数、偏好等关键信息，并调用智谱AI GLM-4大语言模型生成最优行程。</p>
+<p><strong>重要说明</strong>: AI推荐算法与传统推荐算法是<strong>完全独立</strong>的两种方案，AI推荐不使用多因素评分引擎、K-means聚类等传统算法，完全依赖GLM-4大语言模型的自然语言理解能力。</p>
+<h3 id="技术实现-1">技术实现 </h3>
+<ul>
+<li><strong>AI模型</strong>: 智谱AI GLM-4大语言模型</li>
+<li><strong>Function Calling</strong>: 使用智谱AI的Function Calling功能实现工具调用</li>
+<li><strong>自然语言处理</strong>: 自研参数提取算法，支持多种日期格式（相对日期、绝对日期）</li>
+<li><strong>用户画像</strong>: 基于历史行程数据构建用户画像</li>
+<li><strong>数据库</strong>: Prisma ORM + SQLite</li>
+</ul>
+<h3 id="核心算法逻辑-1">核心算法/逻辑 </h3>
+<h4 id="1-自然语言参数提取">1. 自然语言参数提取 </h4>
+<p>算法位置: <code>agentService.ts:520-645</code></p>
+<p>从用户输入中智能提取关键参数:</p>
+<ul>
+<li><strong>目的地</strong>: 匹配城市名称（北京、上海、武汉等16个热门城市）</li>
+<li><strong>日期</strong>: 支持相对日期（明天、后天、下周三）和绝对日期（5月1日、2024-05-01）</li>
+<li><strong>天数</strong>: 识别"三天"、"两天"等表述，默认3天</li>
+<li><strong>预算</strong>: 提取"预算一万"、"5000元"等，默认5000元</li>
+<li><strong>人数</strong>: 识别"两个人"、"全家"、"独自"等，默认2人</li>
+<li><strong>偏好</strong>: 匹配"历史文化"、"自然风光"、"美食之旅"等关键词</li>
+</ul>
+<h4 id="2-glm-4-function-calling">2. GLM-4 Function Calling </h4>
+<p>算法位置: <code>agentService.ts:76-114</code></p>
+<p>调用智谱AI API实现工具调用:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> data <span class="token operator">=</span> <span class="token punctuation">{</span>
+  model<span class="token operator">:</span> <span class="token string">'glm-4'</span><span class="token punctuation">,</span>
+  messages<span class="token operator">:</span> messages<span class="token punctuation">,</span>
+  temperature<span class="token operator">:</span> <span class="token number">0.7</span><span class="token punctuation">,</span>
+  max_tokens<span class="token operator">:</span> <span class="token number">2000</span><span class="token punctuation">,</span>
+  tools<span class="token operator">:</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token function">getTools</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  tool_choice<span class="token operator">:</span> <span class="token string">'auto'</span>
+<span class="token punctuation">}</span>
+</code></pre><p>支持的工具:</p>
+<ul>
+<li><code>create_trip</code>: 创建普通行程</li>
+<li><code>extract_must_visit_spots</code>: 提取必选景点</li>
+<li><code>create_trip_with_constraints</code>: 创建约束感知行程（含必选景点）</li>
+<li><code>list_user_trips</code>: 列出用户行程</li>
+<li><code>generate_blog</code>: 生成旅行博客</li>
+<li><code>publish_blog</code>: 发布博客</li>
+</ul>
+<h4 id="3-ai行程推荐">3. AI行程推荐 </h4>
+<p>算法位置: <code>aiTripRecommender.ts:39-105</code></p>
+<p>使用GLM-4大语言模型生成行程:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// 1. 获取景点数据（包含 IoT 数据）</span>
+<span class="token keyword keyword-const">const</span> spots <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span>spotDataSvc<span class="token punctuation">.</span><span class="token function">getCitySpotsWithIoTData</span><span class="token punctuation">(</span>
+  params<span class="token punctuation">.</span>destination<span class="token punctuation">,</span>
+  <span class="token number">100</span> <span class="token comment">// 获取更多景点供 AI 选择</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 2. 获取用户画像</span>
+<span class="token keyword keyword-const">const</span> userProfile <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span>userProfileSvc<span class="token punctuation">.</span><span class="token function">getUserProfile</span><span class="token punctuation">(</span>params<span class="token punctuation">.</span>userId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 3. 构建 AI 提示词</span>
+<span class="token keyword keyword-const">const</span> prompt <span class="token operator">=</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token function">buildRecommendationPrompt</span><span class="token punctuation">(</span>params<span class="token punctuation">,</span> spots<span class="token punctuation">,</span> userProfile<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 4. 调用智谱 AI</span>
+<span class="token keyword keyword-const">const</span> response <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token function">callZhipuAI</span><span class="token punctuation">(</span>prompt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 5. 解析 AI 返回的结果</span>
+<span class="token keyword keyword-const">const</span> result <span class="token operator">=</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token function">parseAiResponse</span><span class="token punctuation">(</span>response<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p>AI提示词包含:</p>
+<ul>
+<li>用户需求（目的地、天数、预算、偏好、必选景点）</li>
+<li>用户历史数据（过往行程的偏好模式）</li>
+<li>可用景点列表（包含IoT数据：拥挤度、天气、开放状态）</li>
+<li>要求（优先必选景点、考虑IoT数据、每天2-4个景点、地理位置合理）</li>
+</ul>
+<h4 id="4-用户画像分析">4. 用户画像分析 </h4>
+<p>算法位置: <code>userProfileService.ts</code></p>
+<p>基于用户历史行程数据构建画像:</p>
+<ul>
+<li><strong>偏好类别</strong>: 统计用户最常游览的景点类型</li>
+<li><strong>预算习惯</strong>: 分析用户的历史预算范围</li>
+<li><strong>旅行节奏</strong>: 判断用户偏好慢节奏还是快节奏</li>
+<li><strong>群体特征</strong>: 识别用户常与谁一起旅行</li>
+</ul>
+<h3 id="数据流说明-1">数据流说明 </h3>
+<div class="mermaid">flowchart TD
+    A[用户输入自然语言] --&gt; B[agentService.processRequest]
+    B --&gt; C[extractTripParamsFromMessages&lt;br/&gt;参数提取]
+    C --&gt; D{有必选景点?}
+    D --&gt;|是| E[extract_must_visit_spots&lt;br/&gt;提取必选景点]
+    D --&gt;|否| F[create_trip&lt;br/&gt;创建普通行程]
+    E --&gt; G[createTripWithConstraints&lt;br/&gt;创建约束感知行程]
+    F --&gt; H[aiTripRecommender.recommendTrip&lt;br/&gt;AI推荐]
+    G --&gt; H
+    H --&gt; I[获取景点数据&lt;br/&gt;包含IoT数据]
+    I --&gt; J[获取用户画像&lt;br/&gt;userProfileService]
+    J --&gt; K[构建AI提示词&lt;br/&gt;包含景点IoT数据]
+    K --&gt; L[调用智谱AI GLM-4]
+    L --&gt; M[AI生成行程JSON]
+    M --&gt; N[解析AI响应]
+    N --&gt; O[保存到数据库&lt;br/&gt;创建Trip/Day/ItineraryItem]
+    O --&gt; P[返回行程结果]
+</div><h3 id="涉及的核心文件-1">涉及的核心文件 </h3>
+<ul>
+<li><strong>后端</strong>: <code>backend/src/services/agentService.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/aiTripRecommender.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/userProfileService.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/spotDataService.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/mustVisitSpotExtractor.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/constraintAwarePlanner.ts</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/PlanGlass.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/ItineraryOptimized.tsx</code></li>
+</ul>
+<hr>
+<h2 id="模块三iot实时数据接入">模块三：IoT实时数据接入 </h2>
+<h3 id="功能描述-2">功能描述 </h3>
+<p>IoT实时数据接入模块通过集成物联网传感器数据，实时监控景点的拥挤度、天气状况等动态信息，为景点推荐评分提供实时参考，并根据实时数据调整行程安排。</p>
+<h3 id="技术实现-2">技术实现 </h3>
+<ul>
+<li><strong>数据来源</strong>: 模拟IoT传感器数据（可扩展为真实IoT设备）</li>
+<li><strong>数据存储</strong>: SpotIoTData表存储每个景点的实时数据</li>
+<li><strong>实时更新</strong>: 通过定时任务或API调用更新IoT数据</li>
+<li><strong>数据结构</strong>: 拥挤度(crowdLevel)、降雨概率(rainProbability)、开放状态(isOpen)</li>
+</ul>
+<h3 id="核心算法逻辑-2">核心算法/逻辑 </h3>
+<h4 id="1-iot数据结构">1. IoT数据结构 </h4>
+<p>算法位置: <code>spotService.ts</code></p>
+<p>每个景点的IoT数据包含:</p>
+<ul>
+<li><strong>crowdLevel</strong>: 拥挤度 (0-100)，值越大越拥挤</li>
+<li><strong>rainProbability</strong>: 降雨概率 (0-100)，值越大降雨概率越高</li>
+<li><strong>isOpen</strong>: 是否开放 (true/false)</li>
+<li><strong>updatedAt</strong>: 数据更新时间</li>
+</ul>
+<h4 id="2-iot评分计算">2. IoT评分计算 </h4>
+<p>算法位置: <code>scoringEngine.ts:228-265</code></p>
+<p>根据IoT数据计算实时评分:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// 拥挤度惩罚</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>crowdLevel <span class="token operator">&gt;</span> <span class="token number">85</span><span class="token punctuation">)</span> score <span class="token operator">-=</span> <span class="token number">40</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>crowdLevel <span class="token operator">&gt;</span> <span class="token number">70</span><span class="token punctuation">)</span> score <span class="token operator">-=</span> <span class="token number">20</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>crowdLevel <span class="token operator">&gt;</span> <span class="token number">60</span><span class="token punctuation">)</span> score <span class="token operator">-=</span> <span class="token number">10</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 天气惩罚（仅户外景点）</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>rainProbability <span class="token operator">&gt;</span> <span class="token number">70</span><span class="token punctuation">)</span> score <span class="token operator">-=</span> <span class="token number">30</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>rainProbability <span class="token operator">&gt;</span> <span class="token number">50</span><span class="token punctuation">)</span> score <span class="token operator">-=</span> <span class="token number">15</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>rainProbability <span class="token operator">&gt;</span> <span class="token number">30</span><span class="token punctuation">)</span> score <span class="token operator">-=</span> <span class="token number">5</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 开放状态</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>isOpen <span class="token operator">===</span> <span class="token boolean">false</span><span class="token punctuation">)</span> score <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-else">else</span> score <span class="token operator">+=</span> <span class="token number">10</span><span class="token punctuation">;</span>
+</code></pre><h4 id="3-实时检查与替换">3. 实时检查与替换 </h4>
+<p>算法位置: <code>iotCheckService.ts:9-173</code></p>
+<p>实时检查行程中的景点:</p>
+<ul>
+<li><strong>排除阈值</strong>: 拥挤度&gt;90%、降雨概率&gt;80（家庭用户阈值更低）</li>
+<li><strong>保护机制</strong>: 如果所有景点都被排除，保留原行程</li>
+<li><strong>备选替换</strong>: 使用备选景点池替换被排除的景点</li>
+<li><strong>天气调整</strong>: 根据上午降雨概率调整景点顺序（室内优先）</li>
+</ul>
+<h3 id="数据流说明-2">数据流说明 </h3>
+<div class="mermaid">flowchart TD
+    A[IoT传感器数据] --&gt; B[spotService.getSpotIoTData&lt;br/&gt;获取景点IoT数据]
+    B --&gt; C[scoringEngine.calculateIoTScore&lt;br/&gt;计算IoT评分]
+    C --&gt; D[总评分计算&lt;br/&gt;IoT占25%权重]
+    D --&gt; E[行程推荐]
+    E --&gt; F[iotCheckService.checkItinerary&lt;br/&gt;实时检查行程]
+    F --&gt; G{需要排除景点?}
+    G --&gt;|是| H[从备选景点池替换]
+    G --&gt;|否| I[保留原行程]
+    H --&gt; J[iotCheckService.adjustForWeather&lt;br/&gt;根据天气调整顺序]
+    I --&gt; J
+    J --&gt; K[返回最终行程]
+</div><h3 id="涉及的核心文件-2">涉及的核心文件 </h3>
+<ul>
+<li><strong>后端</strong>: <code>backend/src/services/iotCheckService.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/spotService.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/scoringEngine.ts</code></li>
+<li><strong>前端</strong>: <code>frontend/src/components/IoTDataCard.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/Today.tsx</code></li>
+</ul>
+<hr>
+<h2 id="模块四多因素景点推荐引擎">模块四：多因素景点推荐引擎 </h2>
+<h3 id="功能描述-3">功能描述 </h3>
+<p>多因素景点推荐引擎是传统行程推荐算法的核心组件，综合考虑用户偏好、景点质量、实时数据、人群特征等多个维度，为每个景点计算综合评分，实现个性化推荐。</p>
+<p><strong>重要说明</strong>: 本模块仅用于传统推荐算法（表单创建行程），AI推荐算法不使用本模块。</p>
+<h3 id="技术实现-3">技术实现 </h3>
+<ul>
+<li><strong>评分维度</strong>: 偏好匹配、质量评分、IoT实时、人群适配</li>
+<li><strong>权重分配</strong>: 35%、25%、25%、15%</li>
+<li><strong>相似度算法</strong>: Jaccard相似度</li>
+<li><strong>类别映射</strong>: 32个景点类别映射到13个CategoryTag</li>
+<li><strong>人群适配</strong>: 5种群体类型的差异化推荐规则</li>
+</ul>
+<h3 id="核心算法逻辑-3">核心算法/逻辑 </h3>
+<h4 id="1-景点类别映射">1. 景点类别映射 </h4>
+<p>算法位置: <code>scoringEngine.ts:8-32</code></p>
+<p>将景点类别映射到CategoryTag:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> <span class="token constant">CATEGORY_MAPPING</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token string-property property">'博物馆'</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'history'</span><span class="token punctuation">,</span> <span class="token string">'art'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token string-property property">'古迹'</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'history'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token string-property property">'公园'</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'nature'</span><span class="token punctuation">,</span> <span class="token string">'city'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token string-property property">'主题乐园'</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'theme_park'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token string-property property">'餐厅'</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'food'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token comment">// ... 共32个类别映射</span>
+<span class="token punctuation">}</span>
+</code></pre><h4 id="2-偏好匹配评分-35">2. 偏好匹配评分 (35%) </h4>
+<p>算法位置: <code>scoringEngine.ts:169-185</code></p>
+<p>使用Jaccard相似度计算景点类别与用户偏好的匹配度:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> intersection <span class="token operator">=</span> spotCategories<span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span>cat <span class="token operator">=&gt;</span> userCategories<span class="token punctuation">.</span><span class="token function">includes</span><span class="token punctuation">(</span>cat<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-const">const</span> union <span class="token operator">=</span> <span class="token builtin">Array</span><span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> <span class="token class-name">Set</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token operator">...</span>spotCategories<span class="token punctuation">,</span> <span class="token operator">...</span>userCategories<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-const">const</span> jaccard <span class="token operator">=</span> intersection<span class="token punctuation">.</span>length <span class="token operator">/</span> union<span class="token punctuation">.</span>length<span class="token punctuation">;</span>
+<span class="token keyword keyword-return">return</span> jaccard <span class="token operator">*</span> <span class="token number">100</span><span class="token punctuation">;</span>
+</code></pre><h4 id="3-质量评分-25">3. 质量评分 (25%) </h4>
+<p>算法位置: <code>scoringEngine.ts:190-209</code></p>
+<p>基于高德评分和收藏数量:</p>
+<ul>
+<li><strong>高德评分</strong>: (rating / 5) * 80</li>
+<li><strong>收藏数量</strong>: 归一化后 * 20（假设最高收藏数为100）</li>
+</ul>
+<h4 id="4-iot实时评分-25">4. IoT实时评分 (25%) </h4>
+<p>算法位置: <code>scoringEngine.ts:228-265</code></p>
+<p>根据拥挤度、降雨概率、开放状态实时调整（详见模块二）</p>
+<h4 id="5-人群适配评分-15">5. 人群适配评分 (15%) </h4>
+<p>算法位置: <code>scoringEngine.ts:270-303</code></p>
+<p>根据群体类型差异化推荐:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> <span class="token constant">CROWD_ADAPTER_RULES</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
+  solo<span class="token operator">:</span> <span class="token punctuation">{</span> add<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'nature'</span><span class="token punctuation">,</span> <span class="token string">'beach'</span><span class="token punctuation">,</span> <span class="token string">'art'</span><span class="token punctuation">,</span> <span class="token string">'city'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> subtract<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'theme_park'</span><span class="token punctuation">]</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  couple<span class="token operator">:</span> <span class="token punctuation">{</span> add<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'nature'</span><span class="token punctuation">,</span> <span class="token string">'beach'</span><span class="token punctuation">,</span> <span class="token string">'art'</span><span class="token punctuation">,</span> <span class="token string">'city'</span><span class="token punctuation">,</span> <span class="token string">'food'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> subtract<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'theme_park'</span><span class="token punctuation">]</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  family_with_children<span class="token operator">:</span> <span class="token punctuation">{</span> add<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'theme_park'</span><span class="token punctuation">,</span> <span class="token string">'nature'</span><span class="token punctuation">,</span> <span class="token string">'beach'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> subtract<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'religious'</span><span class="token punctuation">,</span> <span class="token string">'history'</span><span class="token punctuation">,</span> <span class="token string">'adventure'</span><span class="token punctuation">]</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token comment">// ... 共5种群体类型</span>
+<span class="token punctuation">}</span>
+</code></pre><h4 id="6-多样性约束">6. 多样性约束 </h4>
+<p>算法位置: <code>diversityService.ts:8-45</code></p>
+<p>防止行程同质化:</p>
+<ul>
+<li><strong>规则1</strong>: 每天相同CategoryTag的景点不超过2个</li>
+<li><strong>规则2</strong>: 整个行程中同一CategoryTag占比不超过50%</li>
+<li><strong>规则3</strong>: 每天必须包含至少2种不同CategoryTag</li>
+</ul>
+<h3 id="数据流说明-3">数据流说明 </h3>
+<div class="mermaid">flowchart TD
+    A[景点数据] --&gt; B[scoringEngine.scoreAllSpots&lt;br/&gt;计算综合评分]
+    B --&gt; C[calculateSpotScore]
+    C --&gt; D[inferSpotCategories&lt;br/&gt;推断景点类别]
+    D --&gt; E[calculatePreferenceScore&lt;br/&gt;偏好匹配35%]
+    D --&gt; F[calculateQualityScore&lt;br/&gt;质量评分25%]
+    D --&gt; G[calculateIoTScore&lt;br/&gt;IoT实时25%]
+    D --&gt; H[calculateCrowdScore&lt;br/&gt;人群适配15%]
+    E --&gt; I[总分计算]
+    F --&gt; I
+    G --&gt; I
+    H --&gt; I
+    I --&gt; J[按总分降序排序]
+    J --&gt; K[diversityService.applyDiversityConstraints&lt;br/&gt;应用多样性约束]
+    K --&gt; L[返回推荐结果]
+</div><h3 id="涉及的核心文件-3">涉及的核心文件 </h3>
+<ul>
+<li><strong>后端</strong>: <code>backend/src/services/scoringEngine.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/diversityService.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/mustVisitSpotExtractor.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/constraintAwarePlanner.ts</code></li>
+</ul>
+<hr>
+<h2 id="模块五行程规划与编辑">模块五：行程规划与编辑 </h2>
+<h3 id="功能描述-4">功能描述 </h3>
+<p>行程规划与编辑模块提供行程的创建、展示、编辑、删除等功能，支持拖拽排序、备选景点替换、预算动态计算等高级功能。</p>
+<h3 id="技术实现-4">技术实现 </h3>
+<ul>
+<li><strong>数据模型</strong>: Trip → Day → ItineraryItem 三层结构</li>
+<li><strong>拖拽排序</strong>: React DnD库实现</li>
+<li><strong>备选替换</strong>: SpotAlternative表存储备选景点</li>
+<li><strong>预算计算</strong>: 动态计算景点费用、交通费用、住宿费用</li>
+<li><strong>状态管理</strong>: Zustand状态管理</li>
+</ul>
+<h3 id="核心算法逻辑-4">核心算法/逻辑 </h3>
+<h4 id="1-行程数据结构">1. 行程数据结构 </h4>
+<p>算法位置: <code>prisma/schema.prisma</code></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>Trip (行程)
+  ├── Day (天)
+  │     ├── ItineraryItem (行程项目)
+  │     │     ├── type: 'spot' | 'hotel' | 'restaurant'
+  │     │     ├── startTime/endTime
+  │     │     ├── cost
+  │     │     └── spotId
+  │     └── notes
+  ├── budget (预算)
+  └── aiGenerated: boolean
+</code></pre><h4 id="2-拖拽排序">2. 拖拽排序 </h4>
+<p>算法位置: <code>frontend/src/pages/ItineraryOptimized.tsx</code></p>
+<p>使用React DnD实现:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token operator">&lt;</span>DndProvider backend<span class="token operator">=</span><span class="token punctuation">{</span>HTML5Backend<span class="token punctuation">}</span><span class="token operator">&gt;</span>
+  <span class="token punctuation">{</span>itineraryItems<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token punctuation">(</span>item<span class="token punctuation">,</span> index<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">(</span>
+    <span class="token operator">&lt;</span>DraggableItem
+      key<span class="token operator">=</span><span class="token punctuation">{</span>item<span class="token punctuation">.</span>id<span class="token punctuation">}</span>
+      index<span class="token operator">=</span><span class="token punctuation">{</span>index<span class="token punctuation">}</span>
+      item<span class="token operator">=</span><span class="token punctuation">{</span>item<span class="token punctuation">}</span>
+      moveItem<span class="token operator">=</span><span class="token punctuation">{</span>handleMoveItem<span class="token punctuation">}</span>
+    <span class="token operator">/</span><span class="token operator">&gt;</span>
+  <span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">}</span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>DndProvider<span class="token operator">&gt;</span>
+</code></pre><h4 id="3-备选景点替换">3. 备选景点替换 </h4>
+<p>算法位置: <code>iotCheckService.ts:188-247</code></p>
+<p>当景点被IoT检查排除时，从备选景点池选择评分最高的备选景点替换:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> alternatives <span class="token operator">=</span> alternativePools<span class="token punctuation">[</span>attraction<span class="token punctuation">.</span>spotId<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>alternatives <span class="token operator">&amp;&amp;</span> alternatives<span class="token punctuation">.</span>length <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> bestAlternative <span class="token operator">=</span> alternatives<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token comment">// 选择评分最高的</span>
+  <span class="token comment">// 创建替换后的行程项目</span>
+<span class="token punctuation">}</span>
+</code></pre><h4 id="4-动态预算计算">4. 动态预算计算 </h4>
+<p>算法位置: <code>budgetOptimizer.ts</code></p>
+<p>根据城市等级、季节性、群体类型动态计算:</p>
+<ul>
+<li><strong>城市等级</strong>: 一线城市（北京、上海）价格×1.2，二线城市×1.0</li>
+<li><strong>季节性</strong>: 旺季（7-8月、国庆、春节）价格×1.3，淡季×0.8</li>
+<li><strong>群体类型</strong>: 家庭（4人）价格×1.5，情侣（2人）×1.0</li>
+</ul>
+<h3 id="数据流说明-4">数据流说明 </h3>
+<div class="mermaid">flowchart TD
+    A[用户创建行程] --&gt; B[tripController.createTrip&lt;br/&gt;创建Trip记录]
+    B --&gt; C[创建Day记录&lt;br/&gt;按天数创建]
+    C --&gt; D[创建ItineraryItem记录&lt;br/&gt;填充景点]
+    D --&gt; E[ItineraryOptimized.tsx&lt;br/&gt;展示行程]
+    E --&gt; F{用户操作}
+    F --&gt;|拖拽排序| G[handleMoveItem&lt;br/&gt;更新排序]
+    F --&gt;|替换景点| H[handleReplaceSpot&lt;br/&gt;从备选池替换]
+    F --&gt;|删除景点| I[handleDeleteItem&lt;br/&gt;删除记录]
+    G --&gt; J[budgetOptimizer.calculateBudget&lt;br/&gt;重新计算预算]
+    H --&gt; J
+    I --&gt; J
+    J --&gt; K[更新数据库]
+    K --&gt; L[刷新UI]
+</div><h3 id="涉及的核心文件-4">涉及的核心文件 </h3>
+<ul>
+<li><strong>前端</strong>: <code>frontend/src/pages/ItineraryOptimized.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/TripDetail.tsx</code></li>
+<li><strong>后端</strong>: <code>backend/src/controllers/tripController.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/budgetOptimizer.ts</code></li>
+</ul>
+<hr>
+<h2 id="模块六地图服务与路线展示">模块六：地图服务与路线展示 </h2>
+<h3 id="功能描述-5">功能描述 </h3>
+<p>地图服务与路线展示模块集成高德地图API，在地图上标记景点、酒店、餐厅等位置，并绘制游览路线，实现可视化的行程规划。</p>
+<h3 id="技术实现-5">技术实现 </h3>
+<ul>
+<li><strong>地图API</strong>: 高德地图JavaScript API</li>
+<li><strong>路线绘制</strong>: AMap.Polyline绘制路线</li>
+<li><strong>标记点</strong>: AMap.Marker标记景点/酒店/餐厅</li>
+<li><strong>路线优化</strong>: 2-opt算法优化路线顺序</li>
+<li><strong>距离计算</strong>: Haversine公式计算距离</li>
+</ul>
+<h3 id="核心算法逻辑-5">核心算法/逻辑 </h3>
+<h4 id="1-高德地图api集成">1. 高德地图API集成 </h4>
+<p>算法位置: <code>frontend/src/lib/amap.ts</code></p>
+<p>初始化地图:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> map <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">AMap</span><span class="token punctuation">.</span><span class="token function">Map</span><span class="token punctuation">(</span><span class="token string">'container'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  zoom<span class="token operator">:</span> <span class="token number">12</span><span class="token punctuation">,</span>
+  center<span class="token operator">:</span> <span class="token punctuation">[</span>lng<span class="token punctuation">,</span> lat<span class="token punctuation">]</span><span class="token punctuation">,</span>
+  mapStyle<span class="token operator">:</span> <span class="token string">'amap://styles/whitesmoke'</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre><h4 id="2-景点标记">2. 景点标记 </h4>
+<p>算法位置: <code>frontend/src/components/ItineraryMap.tsx</code></p>
+<p>为每个景点创建标记:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> marker <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">AMap</span><span class="token punctuation">.</span><span class="token function">Marker</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  position<span class="token operator">:</span> <span class="token punctuation">[</span>lng<span class="token punctuation">,</span> lat<span class="token punctuation">]</span><span class="token punctuation">,</span>
+  title<span class="token operator">:</span> spot<span class="token punctuation">.</span>name<span class="token punctuation">,</span>
+  content<span class="token operator">:</span> <span class="token function">createMarkerContent</span><span class="token punctuation">(</span>spot<span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+map<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>marker<span class="token punctuation">)</span>
+</code></pre><h4 id="3-路线绘制">3. 路线绘制 </h4>
+<p>算法位置: <code>frontend/src/components/ItineraryMap.tsx</code></p>
+<p>使用Polyline绘制路线:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> path <span class="token operator">=</span> spots<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span>spot <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> <span class="token punctuation">[</span>lng<span class="token punctuation">,</span> lat<span class="token punctuation">]</span> <span class="token operator">=</span> spot<span class="token punctuation">.</span>location<span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">','</span><span class="token punctuation">)</span>
+  <span class="token keyword keyword-return">return</span> <span class="token punctuation">[</span>lng<span class="token punctuation">,</span> lat<span class="token punctuation">]</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token keyword keyword-const">const</span> polyline <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">AMap</span><span class="token punctuation">.</span><span class="token function">Polyline</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  path<span class="token operator">:</span> path<span class="token punctuation">,</span>
+  strokeColor<span class="token operator">:</span> <span class="token string">'#f59e0b'</span><span class="token punctuation">,</span>
+  strokeWeight<span class="token operator">:</span> <span class="token number">4</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+map<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>polyline<span class="token punctuation">)</span>
+</code></pre><h4 id="4-距离计算">4. 距离计算 </h4>
+<p>算法位置: <code>amapService.ts:304-326</code></p>
+<p>使用Haversine公式计算两点间距离:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> <span class="token constant">R</span> <span class="token operator">=</span> <span class="token number">6371</span> <span class="token comment">// 地球半径（公里）</span>
+<span class="token keyword keyword-const">const</span> dLat <span class="token operator">=</span> <span class="token function">toRadians</span><span class="token punctuation">(</span>lat2 <span class="token operator">-</span> lat1<span class="token punctuation">)</span>
+<span class="token keyword keyword-const">const</span> dLng <span class="token operator">=</span> <span class="token function">toRadians</span><span class="token punctuation">(</span>lng2 <span class="token operator">-</span> lng1<span class="token punctuation">)</span>
+<span class="token keyword keyword-const">const</span> a <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token function">sin</span><span class="token punctuation">(</span>dLat <span class="token operator">/</span> <span class="token number">2</span><span class="token punctuation">)</span> <span class="token operator">*</span> Math<span class="token punctuation">.</span><span class="token function">sin</span><span class="token punctuation">(</span>dLat <span class="token operator">/</span> <span class="token number">2</span><span class="token punctuation">)</span> <span class="token operator">+</span>
+        Math<span class="token punctuation">.</span><span class="token function">cos</span><span class="token punctuation">(</span><span class="token function">toRadians</span><span class="token punctuation">(</span>lat1<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">*</span> Math<span class="token punctuation">.</span><span class="token function">cos</span><span class="token punctuation">(</span><span class="token function">toRadians</span><span class="token punctuation">(</span>lat2<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">*</span>
+        Math<span class="token punctuation">.</span><span class="token function">sin</span><span class="token punctuation">(</span>dLng <span class="token operator">/</span> <span class="token number">2</span><span class="token punctuation">)</span> <span class="token operator">*</span> Math<span class="token punctuation">.</span><span class="token function">sin</span><span class="token punctuation">(</span>dLng <span class="token operator">/</span> <span class="token number">2</span><span class="token punctuation">)</span>
+<span class="token keyword keyword-const">const</span> c <span class="token operator">=</span> <span class="token number">2</span> <span class="token operator">*</span> Math<span class="token punctuation">.</span><span class="token function">atan2</span><span class="token punctuation">(</span>Math<span class="token punctuation">.</span><span class="token function">sqrt</span><span class="token punctuation">(</span>a<span class="token punctuation">)</span><span class="token punctuation">,</span> Math<span class="token punctuation">.</span><span class="token function">sqrt</span><span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">-</span> a<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword keyword-const">const</span> distance <span class="token operator">=</span> <span class="token constant">R</span> <span class="token operator">*</span> c
+</code></pre><h3 id="数据流说明-5">数据流说明 </h3>
+<div class="mermaid">flowchart TD
+    A[行程数据] --&gt; B[ItineraryMap组件&lt;br/&gt;加载地图]
+    B --&gt; C[AMap.Map&lt;br/&gt;初始化地图]
+    C --&gt; D{景点数据}
+    D --&gt; E[AMap.Marker&lt;br/&gt;创建景点标记]
+    D --&gt; F[AMap.Marker&lt;br/&gt;创建酒店标记]
+    D --&gt; G[AMap.Marker&lt;br/&gt;创建餐厅标记]
+    E --&gt; H[AMap.Polyline&lt;br/&gt;绘制路线]
+    F --&gt; H
+    G --&gt; H
+    H --&gt; I[routeOptimizer.optimizeRoute&lt;br/&gt;2-opt优化]
+    I --&gt; J[更新路线显示]
+    J --&gt; K[用户交互&lt;br/&gt;点击标记查看详情]
+</div><h3 id="涉及的核心文件-5">涉及的核心文件 </h3>
+<ul>
+<li><strong>后端</strong>: <code>backend/src/services/amapService.ts</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/ItineraryOptimized.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/components/ItineraryMap.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/collab/CollabRoom.tsx</code></li>
+</ul>
+<hr>
+<h2 id="模块七多人协同规划">模块七：多人协同规划 </h2>
+<h3 id="功能描述-6">功能描述 </h3>
+<p>多人协同规划模块支持多个用户共同规划行程，通过WebSocket实现实时通信，支持光标同步、草案编辑、消息聊天等功能。</p>
+<h3 id="技术实现-6">技术实现 </h3>
+<ul>
+<li><strong>WebSocket</strong>: Socket.io实现实时通信</li>
+<li><strong>房间管理</strong>: CollabRoom表管理协同房间</li>
+<li><strong>成员管理</strong>: TripMember表管理房间成员</li>
+<li><strong>草案管理</strong>: DraftRoute表管理用户草案</li>
+<li><strong>消息管理</strong>: CollabMessage表管理聊天消息</li>
+<li><strong>权限控制</strong>: Host和Collaborator两种角色</li>
+</ul>
+<h3 id="核心算法逻辑-6">核心算法/逻辑 </h3>
+<h4 id="1-房间创建与加入">1. 房间创建与加入 </h4>
+<p>算法位置: <code>collabService.ts:18-138</code></p>
+<p>创建房间:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> inviteToken <span class="token operator">=</span> <span class="token function">uuidv4</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-const">const</span> inviteExpiresAt <span class="token operator">=</span> <span class="token function">addHours</span><span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">72</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-const">const</span> room <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>collabRoom<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  data<span class="token operator">:</span> <span class="token punctuation">{</span>
+    tripId<span class="token punctuation">,</span>
+    hostId<span class="token punctuation">,</span>
+    inviteToken<span class="token punctuation">,</span>
+    inviteExpiresAt<span class="token punctuation">,</span>
+    phase<span class="token operator">:</span> <span class="token string">'EDITING'</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre><p>加入房间:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> room <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>collabRoom<span class="token punctuation">.</span><span class="token function">findUnique</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span> inviteToken<span class="token operator">:</span> token <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> room<span class="token punctuation">.</span>inviteExpiresAt<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">'邀请链接已过期'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><h4 id="2-websocket通信机制">2. WebSocket通信机制 </h4>
+<p>算法位置: <code>socketService.ts:22-224</code></p>
+<p>Socket.io事件:</p>
+<ul>
+<li><strong>join_room</strong>: 加入房间</li>
+<li><strong>leave_room</strong>: 离开房间</li>
+<li><strong>cursor:move</strong>: 光标移动</li>
+<li><strong>draft:update</strong>: 草案更新</li>
+<li><strong>draft:submitted</strong>: 草案提交</li>
+<li><strong>room:lock</strong>: 房间锁定</li>
+<li><strong>message:new</strong>: 新消息</li>
+</ul>
+<h4 id="3-光标同步">3. 光标同步 </h4>
+<p>算法位置: <code>socketService.ts:126-136</code></p>
+<p>实时同步光标位置:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code>socket<span class="token punctuation">.</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token string">'cursor:move'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>data<span class="token operator">:</span> <span class="token punctuation">{</span> roomId<span class="token punctuation">,</span> userId<span class="token punctuation">,</span> lat<span class="token punctuation">,</span> lng <span class="token punctuation">}</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  socket<span class="token punctuation">.</span><span class="token function">to</span><span class="token punctuation">(</span>roomId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">emit</span><span class="token punctuation">(</span><span class="token string">'cursor:update'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    userId<span class="token punctuation">,</span>
+    lat<span class="token punctuation">,</span>
+    lng<span class="token punctuation">,</span>
+    timestamp<span class="token operator">:</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="4-草案提交与合并">4. 草案提交与合并 </h4>
+<p>算法位置: <code>collabService.ts:257-337</code></p>
+<p>Upsert草案:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> draft <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>draftRoute<span class="token punctuation">.</span><span class="token function">upsert</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span>
+    roomId_userId_dayNumber<span class="token operator">:</span> <span class="token punctuation">{</span> roomId<span class="token punctuation">,</span> userId<span class="token punctuation">,</span> dayNumber <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  update<span class="token operator">:</span> <span class="token punctuation">{</span>
+    spotSequence<span class="token operator">:</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span>spotSequence<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    polylineData<span class="token operator">:</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span>polylineData<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    version<span class="token operator">:</span> <span class="token punctuation">{</span> increment<span class="token operator">:</span> <span class="token number">1</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  create<span class="token operator">:</span> <span class="token punctuation">{</span>
+    roomId<span class="token punctuation">,</span> userId<span class="token punctuation">,</span> dayNumber<span class="token punctuation">,</span>
+    spotSequence<span class="token operator">:</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span>spotSequence<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    polylineData<span class="token operator">:</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span>polylineData<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    isSubmitted<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+    version<span class="token operator">:</span> <span class="token number">1</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="5-房间锁定与最终路线确定">5. 房间锁定与最终路线确定 </h4>
+<p>算法位置: <code>collabService.ts:237-246</code></p>
+<p>Host锁定房间后，所有成员无法再编辑:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> room <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>collabRoom<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span> id<span class="token operator">:</span> roomId <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  data<span class="token operator">:</span> <span class="token punctuation">{</span> phase<span class="token operator">:</span> <span class="token string">'LOCKED'</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h3 id="数据流说明-6">数据流说明 </h3>
+<div class="mermaid">flowchart TD
+    A[Host创建房间] --&gt; B[collabService.createRoom&lt;br/&gt;生成邀请token]
+    B --&gt; C[发送邀请链接]
+    C --&gt; D[成员点击链接]
+    D --&gt; E[collabService.joinRoom&lt;br/&gt;验证并加入]
+    E --&gt; F[Socket.io连接]
+    F --&gt; G[加入Socket.io房间]
+    G --&gt; H[实时同步]
+    H --&gt; I{操作类型}
+    I --&gt;|光标移动| J[cursor:move&lt;br/&gt;广播光标位置]
+    I --&gt;|草案编辑| K[draft:update&lt;br/&gt;广播草案变化]
+    I --&gt;|发送消息| L[message:new&lt;br/&gt;广播消息]
+    J --&gt; M[其他成员UI更新]
+    K --&gt; M
+    L --&gt; M
+    M --&gt; N[Host锁定房间]
+    N --&gt; O[room:lock&lt;br/&gt;广播锁定事件]
+    O --&gt; P[生成最终路线]
+</div><h3 id="涉及的核心文件-6">涉及的核心文件 </h3>
+<ul>
+<li><strong>后端</strong>: <code>backend/src/services/collabService.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/socket/socketService.ts</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/collab/CollabRoom.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/store/collabStore.ts</code></li>
+</ul>
+<hr>
+<h2 id="模块八ai旅行顾问对话">模块八：AI旅行顾问对话 </h2>
+<h3 id="功能描述-7">功能描述 </h3>
+<p>AI旅行顾问对话模块提供智能问答服务，支持两种模式：</p>
+<ol>
+<li><strong>问答助手模式</strong>: 回答旅行相关问题（景点推荐、行程建议、预算参考等）</li>
+<li><strong>智能助手模式</strong>: 使用Function Calling自动创建行程、生成博客等</li>
+</ol>
+<h3 id="技术实现-7">技术实现 </h3>
+<ul>
+<li><strong>AI模型</strong>: 智谱AI GLM-4大语言模型</li>
+<li><strong>对话管理</strong>: ChatSession表管理会话，ChatMessage表管理消息</li>
+<li><strong>上下文管理</strong>: 保留最近10条消息作为上下文</li>
+<li><strong>数据增强</strong>: 从数据库获取景点数据增强AI回答</li>
+<li><strong>重试机制</strong>: API调用失败自动重试2次</li>
+</ul>
+<h3 id="核心算法逻辑-7">核心算法/逻辑 </h3>
+<h4 id="1-对话会话管理">1. 对话会话管理 </h4>
+<p>算法位置: <code>chatHistoryService.ts:47-126</code></p>
+<p>自动创建或复用会话（10分钟内有效）:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> tenMinutesAgo <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span>Date<span class="token punctuation">.</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">10</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">1000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-let">let</span> session <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>chatSession<span class="token punctuation">.</span><span class="token function">findFirst</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span>
+    userId<span class="token operator">:</span> userId <span class="token operator">||</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">,</span>
+    mode<span class="token operator">:</span> <span class="token string">'advisor'</span><span class="token punctuation">,</span>
+    createdAt<span class="token operator">:</span> <span class="token punctuation">{</span> gte<span class="token operator">:</span> tenMinutesAgo <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>session<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  session <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token function">createSession</span><span class="token punctuation">(</span><span class="token punctuation">{</span> userId<span class="token punctuation">,</span> mode<span class="token operator">:</span> <span class="token string">'advisor'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><h4 id="2-问答助手模式">2. 问答助手模式 </h4>
+<p>算法位置: <code>advisorService.ts:216-303</code></p>
+<p>系统提示词定义AI能力范围:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>【能力范围】
+✅ 目的地介绍、景点推荐、最佳游览季节
+✅ 行程建议、景点组合、游览顺序
+✅ 预算参考、省钱技巧、费用分配
+✅ 交通方式、住宿类型、餐饮方向
+
+【边界约束】
+❌ 不直接创建或修改任何行程数据
+❌ 不访问用户的个人行程信息
+❌ 不处理与旅行无关的问题
+</code></pre><h4 id="3-景点数据增强">3. 景点数据增强 </h4>
+<p>算法位置: <code>advisorService.ts:78-211</code></p>
+<p>当用户询问景点推荐时，从数据库获取景点数据:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token function">needsSpotData</span><span class="token punctuation">(</span>question<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> planContext<span class="token operator">?.</span>destination<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> spots <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token function">getSpotsFromDatabase</span><span class="token punctuation">(</span>
+    planContext<span class="token punctuation">.</span>destination<span class="token punctuation">,</span>
+    planContext<span class="token punctuation">.</span>preferences<span class="token punctuation">,</span>
+    <span class="token number">20</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>spots<span class="token punctuation">.</span>length <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-const">const</span> spotsInfo <span class="token operator">=</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token function">formatSpotsForPrompt</span><span class="token punctuation">(</span>spots<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    messages<span class="token punctuation">[</span>messages<span class="token punctuation">.</span>length <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">.</span>content <span class="token operator">+=</span> spotsInfo<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><h4 id="4-智能助手模式">4. 智能助手模式 </h4>
+<p>算法位置: <code>agentService.ts:1434-1615</code></p>
+<p>使用Function Calling自动调用工具:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> result <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token function">callZhipuAI</span><span class="token punctuation">(</span>
+  messages<span class="token punctuation">,</span>
+  <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token function">getTools</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token string">'auto'</span> <span class="token comment">// AI自动决定是否调用工具</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>assistantMessage<span class="token operator">?.</span>tool_calls <span class="token operator">&amp;&amp;</span> assistantMessage<span class="token punctuation">.</span>tool_calls<span class="token punctuation">.</span>length <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> toolCall <span class="token keyword keyword-of">of</span> assistantMessage<span class="token punctuation">.</span>tool_calls<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-const">const</span> toolResult <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token function">executeToolCall</span><span class="token punctuation">(</span>toolCall<span class="token punctuation">,</span> userId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 自动触发下一个工具调用</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>toolName <span class="token operator">===</span> <span class="token string">'extract_must_visit_spots'</span> <span class="token operator">&amp;&amp;</span> toolResult<span class="token punctuation">.</span>success<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword keyword-await">await</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token function">createTripWithConstraints</span><span class="token punctuation">(</span>params<span class="token punctuation">,</span> userId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="数据流说明-7">数据流说明 </h3>
+<div class="mermaid">flowchart TD
+    A[用户提问] --&gt; B{对话模式}
+    B --&gt;|问答助手| C[advisorService.answerQuestion]
+    B --&gt;|智能助手| D[agentService.processRequest]
+    C --&gt; E[获取或创建会话]
+    D --&gt; E
+    E --&gt; F[保存用户消息]
+    F --&gt; G[获取历史消息&lt;br/&gt;最近10条]
+    G --&gt; H[构建对话上下文]
+    H --&gt; I{需要景点数据?}
+    I --&gt;|是| J[从数据库获取景点]
+    I --&gt;|否| K[直接调用AI]
+    J --&gt; L[格式化景点数据]
+    L --&gt; M[添加到上下文]
+    M --&gt; K
+    K --&gt; N[调用智谱AI API]
+    N --&gt; O{有工具调用?}
+    O --&gt;|是| P[执行工具调用]
+    O --&gt;|否| Q[保存AI回复]
+    P --&gt; R{自动触发下一个工具?}
+    R --&gt;|是| S[执行下一个工具]
+    R --&gt;|否| Q
+    S --&gt; T[再次调用AI]
+    T --&gt; Q
+    Q --&gt; U[返回答案]
+</div><h3 id="涉及的核心文件-7">涉及的核心文件 </h3>
+<ul>
+<li><strong>后端</strong>: <code>backend/src/services/advisorService.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/agentService.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/chatHistoryService.ts</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/AIFeaturesGlass.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/components/AIAdvisorGlass.tsx</code></li>
+</ul>
+<hr>
+<h2 id="模块九酒店与餐厅推荐">模块九：酒店与餐厅推荐 </h2>
+<h3 id="功能描述-8">功能描述 </h3>
+<p>酒店与餐厅推荐模块根据用户的目的地、预算、偏好等条件，推荐合适的酒店和餐厅，支持基于位置的周边搜索。</p>
+<h3 id="技术实现-8">技术实现 </h3>
+<ul>
+<li><strong>数据来源</strong>: 高德地图POI API</li>
+<li><strong>推荐策略</strong>: 基于评分、距离、价格综合排序</li>
+<li><strong>周边搜索</strong>: 根据中心点坐标搜索周边POI</li>
+<li><strong>缓存机制</strong>: amapPOICacheService缓存POI数据</li>
+<li><strong>数据去重</strong>: 根据名称和位置去重</li>
+</ul>
+<h3 id="核心算法逻辑-8">核心算法/逻辑 </h3>
+<h4 id="1-酒店推荐">1. 酒店推荐 </h4>
+<p>算法位置: <code>hotelRecommender.ts</code></p>
+<p>推荐策略:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// 1. 从高德API获取酒店数据</span>
+<span class="token keyword keyword-const">const</span> hotels <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> amapService<span class="token punctuation">.</span><span class="token function">searchAround</span><span class="token punctuation">(</span>
+  centerLocation<span class="token punctuation">,</span>
+  <span class="token string">'酒店'</span><span class="token punctuation">,</span>
+  <span class="token keyword keyword-undefined">undefined</span><span class="token punctuation">,</span>
+  <span class="token number">3000</span> <span class="token comment">// 3公里半径</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 2. 综合评分 = 评分权重×0.5 + 距离权重×0.3 + 价格权重×0.2</span>
+hotels<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span>hotel <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> score <span class="token operator">=</span> hotel<span class="token punctuation">.</span>rating <span class="token operator">*</span> <span class="token number">0.5</span> <span class="token operator">+</span>
+                <span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">-</span> hotel<span class="token punctuation">.</span>distance <span class="token operator">/</span> <span class="token number">3000</span><span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">0.3</span> <span class="token operator">+</span>
+                <span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">-</span> hotel<span class="token punctuation">.</span>price <span class="token operator">/</span> maxPrice<span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">0.2</span><span class="token punctuation">;</span>
+  hotel<span class="token punctuation">.</span>totalScore <span class="token operator">=</span> score<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 3. 按评分降序排序</span>
+hotels<span class="token punctuation">.</span><span class="token function">sort</span><span class="token punctuation">(</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> b<span class="token punctuation">.</span>totalScore <span class="token operator">-</span> a<span class="token punctuation">.</span>totalScore<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="2-餐厅推荐">2. 餐厅推荐 </h4>
+<p>算法位置: <code>restaurantRecommender.ts</code></p>
+<p>推荐策略:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// 1. 从高德API获取餐厅数据</span>
+<span class="token keyword keyword-const">const</span> restaurants <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> amapService<span class="token punctuation">.</span><span class="token function">getRestaurants</span><span class="token punctuation">(</span>city<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 2. 根据用户偏好过滤</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>preferences<span class="token punctuation">.</span><span class="token function">includes</span><span class="token punctuation">(</span><span class="token string">'美食'</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  restaurants <span class="token operator">=</span> restaurants<span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span>r <span class="token operator">=&gt;</span> r<span class="token punctuation">.</span>rating <span class="token operator">&gt;=</span> <span class="token number">4.5</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// 3. 综合评分 = 评分权重×0.6 + 价格权重×0.4</span>
+restaurants<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span>restaurant <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> score <span class="token operator">=</span> restaurant<span class="token punctuation">.</span>rating <span class="token operator">*</span> <span class="token number">0.6</span> <span class="token operator">+</span>
+                <span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">-</span> restaurant<span class="token punctuation">.</span>cost <span class="token operator">/</span> maxCost<span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">0.4</span><span class="token punctuation">;</span>
+  restaurant<span class="token punctuation">.</span>totalScore <span class="token operator">=</span> score<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="3-周边搜索">3. 周边搜索 </h4>
+<p>算法位置: <code>amapService.ts:218-271</code></p>
+<p>根据中心点坐标搜索周边POI:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> response <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span>client<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'/place/around'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  params<span class="token operator">:</span> <span class="token punctuation">{</span>
+    location<span class="token operator">:</span> centerLocation<span class="token punctuation">,</span>
+    keywords<span class="token operator">:</span> keywords<span class="token punctuation">,</span>
+    radius<span class="token operator">:</span> radius<span class="token punctuation">,</span>
+    extensions<span class="token operator">:</span> <span class="token string">'all'</span> <span class="token comment">// 获取详细信息</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="4-缓存机制">4. 缓存机制 </h4>
+<p>算法位置: <code>amapPOICacheService.ts</code></p>
+<p>缓存POI数据减少API调用:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// 尝试从缓存获取</span>
+<span class="token keyword keyword-const">const</span> cached <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>amapPOICache<span class="token punctuation">.</span><span class="token function">findUnique</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span> city <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>cached <span class="token operator">&amp;&amp;</span> Date<span class="token punctuation">.</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span> cached<span class="token punctuation">.</span>updatedAt<span class="token punctuation">.</span><span class="token function">getTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">1000</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-return">return</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span>cached<span class="token punctuation">.</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// 缓存失效，调用API</span>
+<span class="token keyword keyword-const">const</span> data <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token function">callAmapAPI</span><span class="token punctuation">(</span>city<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>amapPOICache<span class="token punctuation">.</span><span class="token function">upsert</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span> city <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  update<span class="token operator">:</span> <span class="token punctuation">{</span> data<span class="token operator">:</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">,</span> updatedAt<span class="token operator">:</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  create<span class="token operator">:</span> <span class="token punctuation">{</span> city<span class="token punctuation">,</span> data<span class="token operator">:</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h3 id="数据流说明-8">数据流说明 </h3>
+<div class="mermaid">flowchart TD
+    A[用户请求推荐] --&gt; B{推荐类型}
+    B --&gt;|酒店| C[hotelRecommender.recommendHotels]
+    B --&gt;|餐厅| D[restaurantRecommender.recommendRestaurants]
+    C --&gt; E[获取用户偏好]
+    D --&gt; E
+    E --&gt; F{有缓存?}
+    F --&gt;|是| G[从缓存获取数据]
+    F --&gt;|否| H[调用高德API]
+    G --&gt; I[综合评分计算]
+    H --&gt; I
+    I --&gt; J[按评分排序]
+    J --&gt; K[返回推荐结果]
+    K --&gt; L[前端展示]
+</div><h3 id="涉及的核心文件-8">涉及的核心文件 </h3>
+<ul>
+<li><strong>后端</strong>: <code>backend/src/services/hotelRecommender.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/restaurantRecommender.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/amapService.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/amapPOICacheService.ts</code></li>
+<li><strong>前端</strong>: <code>frontend/src/components/HotelRecommendations.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/components/RestaurantRecommendations.tsx</code></li>
+</ul>
+<hr>
+<h2 id="模块十行程分享与pdf导出">模块十：行程分享与PDF导出 </h2>
+<h3 id="功能描述-9">功能描述 </h3>
+<p>行程分享与PDF导出模块支持用户将行程分享给他人，以及将行程导出为PDF文件，方便离线查看和打印。</p>
+<h3 id="技术实现-9">技术实现 </h3>
+<ul>
+<li><strong>分享机制</strong>: 生成分享token，验证后展示只读视图</li>
+<li><strong>PDF生成</strong>: jspdf + html2canvas将HTML转换为PDF</li>
+<li><strong>只读视图</strong>: 复刻行程数据到SharedTrip表</li>
+<li><strong>Token管理</strong>: ShareToken表管理分享token</li>
+</ul>
+<h3 id="核心算法逻辑-9">核心算法/逻辑 </h3>
+<h4 id="1-分享token生成">1. 分享Token生成 </h4>
+<p>算法位置: <code>shareService.ts:18-45</code></p>
+<p>生成唯一token并设置过期时间:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> token <span class="token operator">=</span> <span class="token function">uuidv4</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-const">const</span> expiresAt <span class="token operator">=</span> <span class="token function">addHours</span><span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">168</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 7天过期</span>
+
+<span class="token keyword keyword-const">const</span> shareToken <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>shareToken<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  data<span class="token operator">:</span> <span class="token punctuation">{</span>
+    tripId<span class="token punctuation">,</span>
+    userId<span class="token punctuation">,</span>
+    token<span class="token punctuation">,</span>
+    expiresAt
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-const">const</span> shareUrl <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>process<span class="token punctuation">.</span>env<span class="token punctuation">.</span><span class="token constant">FRONTEND_URL</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">/shared/</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>token<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+<span class="token keyword keyword-return">return</span> <span class="token punctuation">{</span> shareUrl<span class="token punctuation">,</span> token <span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><h4 id="2-分享验证">2. 分享验证 </h4>
+<p>算法位置: <code>shareService.ts:47-78</code></p>
+<p>验证token有效性:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> shareToken <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>shareToken<span class="token punctuation">.</span><span class="token function">findUnique</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span> token <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  include<span class="token operator">:</span> <span class="token punctuation">{</span> trip<span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>shareToken<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">'分享链接无效'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> shareToken<span class="token punctuation">.</span>expiresAt<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">'分享链接已过期'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword keyword-return">return</span> shareToken<span class="token punctuation">.</span>trip<span class="token punctuation">;</span>
+</code></pre><h4 id="3-pdf生成">3. PDF生成 </h4>
+<p>算法位置: <code>PDFExportButton.tsx</code></p>
+<p>使用jspdf和html2canvas生成PDF:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-import">import</span> jsPDF <span class="token keyword keyword-from">from</span> <span class="token string">'jspdf'</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-import">import</span> html2canvas <span class="token keyword keyword-from">from</span> <span class="token string">'html2canvas'</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-const">const</span> element <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'itinerary-content'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-const">const</span> canvas <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> <span class="token function">html2canvas</span><span class="token punctuation">(</span>element<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-const">const</span> imgData <span class="token operator">=</span> canvas<span class="token punctuation">.</span><span class="token function">toDataURL</span><span class="token punctuation">(</span><span class="token string">'image/png'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-const">const</span> pdf <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">jsPDF</span><span class="token punctuation">(</span><span class="token string">'p'</span><span class="token punctuation">,</span> <span class="token string">'mm'</span><span class="token punctuation">,</span> <span class="token string">'a4'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-const">const</span> imgWidth <span class="token operator">=</span> <span class="token number">210</span><span class="token punctuation">;</span> <span class="token comment">// A4宽度</span>
+<span class="token keyword keyword-const">const</span> imgHeight <span class="token operator">=</span> <span class="token punctuation">(</span>canvas<span class="token punctuation">.</span>height <span class="token operator">*</span> imgWidth<span class="token punctuation">)</span> <span class="token operator">/</span> canvas<span class="token punctuation">.</span>width<span class="token punctuation">;</span>
+
+pdf<span class="token punctuation">.</span><span class="token function">addImage</span><span class="token punctuation">(</span>imgData<span class="token punctuation">,</span> <span class="token string">'PNG'</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> imgWidth<span class="token punctuation">,</span> imgHeight<span class="token punctuation">)</span><span class="token punctuation">;</span>
+pdf<span class="token punctuation">.</span><span class="token function">save</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>trip<span class="token punctuation">.</span>title<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">.pdf</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="4-只读视图复刻">4. 只读视图复刻 </h4>
+<p>算法位置: <code>shareService.ts:80-120</code></p>
+<p>复刻行程数据到SharedTrip表:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> sharedTrip <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>sharedTrip<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  data<span class="token operator">:</span> <span class="token punctuation">{</span>
+    tripId<span class="token operator">:</span> trip<span class="token punctuation">.</span>id<span class="token punctuation">,</span>
+    title<span class="token operator">:</span> trip<span class="token punctuation">.</span>title<span class="token punctuation">,</span>
+    destination<span class="token operator">:</span> trip<span class="token punctuation">.</span>destination<span class="token punctuation">,</span>
+    startDate<span class="token operator">:</span> trip<span class="token punctuation">.</span>startDate<span class="token punctuation">,</span>
+    endDate<span class="token operator">:</span> trip<span class="token punctuation">.</span>endDate<span class="token punctuation">,</span>
+    days<span class="token operator">:</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span>trip<span class="token punctuation">.</span>days<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    budget<span class="token operator">:</span> trip<span class="token punctuation">.</span>budget
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h3 id="数据流说明-9">数据流说明 </h3>
+<div class="mermaid">flowchart TD
+    A[用户点击分享] --&gt; B[shareService.generateShareToken&lt;br/&gt;生成token]
+    B --&gt; C[保存到数据库]
+    C --&gt; D[返回分享链接]
+    D --&gt; E[发送给朋友]
+    E --&gt; F[朋友打开链接]
+    F --&gt; G[shareService.verifyToken&lt;br/&gt;验证token]
+    G --&gt; H{token有效?}
+    H --&gt;|否| I[显示错误页面]
+    H --&gt;|是| J[SharedTripPage&lt;br/&gt;展示只读视图]
+    J --&gt; K[用户点击导出PDF]
+    K --&gt; L[PDFExportButton&lt;br/&gt;生成PDF]
+    L --&gt; M[html2canvas&lt;br/&gt;HTML转图片]
+    M --&gt; N[jsPDF&lt;br/&gt;图片转PDF]
+    N --&gt; O[下载PDF]
+</div><h3 id="涉及的核心文件-9">涉及的核心文件 </h3>
+<ul>
+<li><strong>后端</strong>: <code>backend/src/services/shareService.ts</code></li>
+<li><strong>前端</strong>: <code>frontend/src/components/ShareButton.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/components/PDFExportButton.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/SharedTrip.tsx</code></li>
+</ul>
+<hr>
+<h2 id="模块十一旅行博客社区">模块十一：旅行博客社区 </h2>
+<h3 id="功能描述-10">功能描述 </h3>
+<p>旅行博客社区模块允许用户发布旅行游记、浏览他人游记、点赞评论，支持富文本编辑和图片上传。</p>
+<h3 id="技术实现-10">技术实现 </h3>
+<ul>
+<li><strong>富文本编辑器</strong>: TipTap编辑器</li>
+<li><strong>图片管理</strong>: Cloudinary云存储</li>
+<li><strong>博客审核</strong>: 管理员审核机制</li>
+<li><strong>点赞评论</strong>: BlogLike和BlogComment表</li>
+<li><strong>标签系统</strong>: tags字段存储标签</li>
+</ul>
+<h3 id="核心算法逻辑-10">核心算法/逻辑 </h3>
+<h4 id="1-tiptap富文本编辑器">1. TipTap富文本编辑器 </h4>
+<p>算法位置: <code>TipTapEditor.tsx</code></p>
+<p>初始化编辑器:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> editor <span class="token operator">=</span> <span class="token function">useEditor</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  extensions<span class="token operator">:</span> <span class="token punctuation">[</span>
+    StarterKit<span class="token punctuation">,</span>
+    Image<span class="token punctuation">,</span>
+    Link<span class="token punctuation">.</span><span class="token function">configure</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      openOnClick<span class="token operator">:</span> <span class="token boolean">false</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    Placeholder<span class="token punctuation">.</span><span class="token function">configure</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      placeholder<span class="token operator">:</span> <span class="token string">'写下你的旅行故事...'</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  content<span class="token operator">:</span> initialContent<span class="token punctuation">,</span>
+  <span class="token function-variable function">onUpdate</span><span class="token operator">:</span> <span class="token punctuation">(</span><span class="token punctuation">{</span> editor <span class="token punctuation">}</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+    <span class="token function">setContent</span><span class="token punctuation">(</span>editor<span class="token punctuation">.</span><span class="token function">getHTML</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="2-博客发布流程">2. 博客发布流程 </h4>
+<p>算法位置: <code>blogService.ts:18-65</code></p>
+<p>创建博客草稿:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> blog <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>blogPost<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  data<span class="token operator">:</span> <span class="token punctuation">{</span>
+    userId<span class="token punctuation">,</span>
+    title<span class="token punctuation">,</span>
+    content<span class="token punctuation">,</span>
+    city<span class="token punctuation">,</span>
+    spotIds<span class="token operator">:</span> selectedSpots<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">','</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    tags<span class="token operator">:</span> tags<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">','</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    status<span class="token operator">:</span> <span class="token string">'draft'</span><span class="token punctuation">,</span>
+    isPublished<span class="token operator">:</span> <span class="token boolean">false</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p>审核通过后发布:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>blogPost<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span> id<span class="token operator">:</span> blogId <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  data<span class="token operator">:</span> <span class="token punctuation">{</span>
+    status<span class="token operator">:</span> <span class="token string">'published'</span><span class="token punctuation">,</span>
+    isPublished<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    publishedAt<span class="token operator">:</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="3-图片上传">3. 图片上传 </h4>
+<p>算法位置: <code>imageService.ts:18-55</code></p>
+<p>上传到Cloudinary:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> result <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> cloudinary<span class="token punctuation">.</span>uploader<span class="token punctuation">.</span><span class="token function">upload</span><span class="token punctuation">(</span>file<span class="token punctuation">.</span>path<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  folder<span class="token operator">:</span> <span class="token string">'livetrip/blogs'</span><span class="token punctuation">,</span>
+  public_id<span class="token operator">:</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>userId<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">_</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>Date<span class="token punctuation">.</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span>
+  transformation<span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span> width<span class="token operator">:</span> <span class="token number">1200</span><span class="token punctuation">,</span> height<span class="token operator">:</span> <span class="token number">800</span><span class="token punctuation">,</span> crop<span class="token operator">:</span> <span class="token string">'limit'</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span> quality<span class="token operator">:</span> <span class="token string">'auto'</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-const">const</span> image <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>spotImage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  data<span class="token operator">:</span> <span class="token punctuation">{</span>
+    url<span class="token operator">:</span> result<span class="token punctuation">.</span>secure_url<span class="token punctuation">,</span>
+    publicId<span class="token operator">:</span> result<span class="token punctuation">.</span>public_id<span class="token punctuation">,</span>
+    spotId<span class="token punctuation">,</span>
+    status<span class="token operator">:</span> <span class="token string">'pending'</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="4-点赞与评论">4. 点赞与评论 </h4>
+<p>算法位置: <code>blogService.ts:120-180</code></p>
+<p>点赞:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> existingLike <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>blogLike<span class="token punctuation">.</span><span class="token function">findUnique</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span>
+    blogId_userId<span class="token operator">:</span> <span class="token punctuation">{</span> blogId<span class="token punctuation">,</span> userId <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>existingLike<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>blogLike<span class="token punctuation">.</span><span class="token function">delete</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    where<span class="token operator">:</span> <span class="token punctuation">{</span> id<span class="token operator">:</span> existingLike<span class="token punctuation">.</span>id <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>blogLike<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    data<span class="token operator">:</span> <span class="token punctuation">{</span> blogId<span class="token punctuation">,</span> userId <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><p>评论:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>blogComment<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  data<span class="token operator">:</span> <span class="token punctuation">{</span>
+    blogId<span class="token punctuation">,</span>
+    userId<span class="token punctuation">,</span>
+    content
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h3 id="数据流说明-10">数据流说明 </h3>
+<div class="mermaid">flowchart TD
+    A[用户创建博客] --&gt; B[TipTapEditor&lt;br/&gt;富文本编辑]
+    B --&gt; C[上传图片]
+    C --&gt; D[imageService.uploadImage&lt;br/&gt;上传到Cloudinary]
+    D --&gt; E[保存博客草稿]
+    E --&gt; F[blogService.createBlog&lt;br/&gt;创建BlogPost记录]
+    F --&gt; G[状态: draft]
+    G --&gt; H[管理员审核]
+    H --&gt; I{审核通过?}
+    I --&gt;|是| J[blogService.publishBlog&lt;br/&gt;发布博客]
+    I --&gt;|否| K[驳回并返回修改]
+    J --&gt; L[状态: published]
+    L --&gt; M[Blogs.tsx&lt;br/&gt;展示博客列表]
+    M --&gt; N[用户浏览]
+    N --&gt; O{交互操作}
+    O --&gt;|点赞| P[blogService.toggleLike&lt;br/&gt;切换点赞状态]
+    O --&gt;|评论| Q[blogService.addComment&lt;br/&gt;添加评论]
+    O --&gt;|分享| R[生成分享链接]
+</div><h3 id="涉及的核心文件-10">涉及的核心文件 </h3>
+<ul>
+<li><strong>后端</strong>: <code>backend/src/services/blogService.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/controllers/blogController.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/services/imageService.ts</code></li>
+<li><strong>前端</strong>: <code>frontend/src/components/TipTapEditor.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/BlogsGlass.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/BlogDetailPage.tsx</code></li>
+</ul>
+<hr>
+<h2 id="模块十二景点图片管理与审核">模块十二：景点图片管理与审核 </h2>
+<h3 id="功能描述-11">功能描述 </h3>
+<p>景点图片管理与审核模块支持用户上传景点图片，管理员审核后展示，确保图片质量和内容合规。</p>
+<h3 id="技术实现-11">技术实现 </h3>
+<ul>
+<li><strong>云存储</strong>: Cloudinary云存储</li>
+<li><strong>图片处理</strong>: 自动压缩、裁剪、水印</li>
+<li><strong>审核流程</strong>: pending → approved/rejected状态机</li>
+<li><strong>权限控制</strong>: 仅管理员可审核</li>
+<li><strong>优先级管理</strong>: isPrimary标记主图，priority排序</li>
+</ul>
+<h3 id="核心算法逻辑-11">核心算法/逻辑 </h3>
+<h4 id="1-图片上传流程">1. 图片上传流程 </h4>
+<p>算法位置: <code>imageService.ts:18-55</code></p>
+<p>上传并处理图片:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-const">const</span> result <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> cloudinary<span class="token punctuation">.</span>uploader<span class="token punctuation">.</span><span class="token function">upload</span><span class="token punctuation">(</span>file<span class="token punctuation">.</span>path<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  folder<span class="token operator">:</span> <span class="token string">'livetrip/spots'</span><span class="token punctuation">,</span>
+  public_id<span class="token operator">:</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>spotId<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">_</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>Date<span class="token punctuation">.</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span>
+  transformation<span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span> width<span class="token operator">:</span> <span class="token number">1200</span><span class="token punctuation">,</span> height<span class="token operator">:</span> <span class="token number">800</span><span class="token punctuation">,</span> crop<span class="token operator">:</span> <span class="token string">'limit'</span> <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token comment">// 限制最大尺寸</span>
+    <span class="token punctuation">{</span> quality<span class="token operator">:</span> <span class="token string">'auto'</span> <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token comment">// 自动优化质量</span>
+    <span class="token punctuation">{</span> overlay<span class="token operator">:</span> <span class="token punctuation">{</span> text<span class="token operator">:</span> <span class="token string">'LiveTrip'</span><span class="token punctuation">,</span> <span class="token operator">...</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span> <span class="token comment">// 添加水印</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-const">const</span> image <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>spotImage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  data<span class="token operator">:</span> <span class="token punctuation">{</span>
+    url<span class="token operator">:</span> result<span class="token punctuation">.</span>secure_url<span class="token punctuation">,</span>
+    publicId<span class="token operator">:</span> result<span class="token punctuation">.</span>public_id<span class="token punctuation">,</span>
+    spotId<span class="token punctuation">,</span>
+    status<span class="token operator">:</span> <span class="token string">'pending'</span><span class="token punctuation">,</span> <span class="token comment">// 待审核</span>
+    isPrimary<span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+    priority<span class="token operator">:</span> <span class="token number">0</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="2-审核状态机">2. 审核状态机 </h4>
+<p>算法位置: <code>adminController.ts:120-180</code></p>
+<p>审核流程:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>pending (待审核)
+    ↓
+approved (已通过) ← rejected (已拒绝)
+</code></pre><p>审核通过:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>spotImage<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span> id<span class="token operator">:</span> imageId <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  data<span class="token operator">:</span> <span class="token punctuation">{</span>
+    status<span class="token operator">:</span> <span class="token string">'approved'</span><span class="token punctuation">,</span>
+    reviewedBy<span class="token operator">:</span> adminId<span class="token punctuation">,</span>
+    reviewedAt<span class="token operator">:</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p>审核拒绝:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>spotImage<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span> id<span class="token operator">:</span> imageId <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  data<span class="token operator">:</span> <span class="token punctuation">{</span>
+    status<span class="token operator">:</span> <span class="token string">'rejected'</span><span class="token punctuation">,</span>
+    rejectionReason<span class="token operator">:</span> reason<span class="token punctuation">,</span>
+    reviewedBy<span class="token operator">:</span> adminId<span class="token punctuation">,</span>
+    reviewedAt<span class="token operator">:</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="3-主图管理">3. 主图管理 </h4>
+<p>算法位置: <code>imageService.ts:80-120</code></p>
+<p>设置主图:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// 取消该景点其他图片的主图标记</span>
+<span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>spotImage<span class="token punctuation">.</span><span class="token function">updateMany</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span>
+    spotId<span class="token punctuation">,</span>
+    isPrimary<span class="token operator">:</span> <span class="token boolean">true</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  data<span class="token operator">:</span> <span class="token punctuation">{</span> isPrimary<span class="token operator">:</span> <span class="token boolean">false</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 设置当前图片为主图</span>
+<span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>spotImage<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span> id<span class="token operator">:</span> imageId <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  data<span class="token operator">:</span> <span class="token punctuation">{</span>
+    isPrimary<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    priority<span class="token operator">:</span> <span class="token number">100</span> <span class="token comment">// 主图优先级最高</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="4-图片排序">4. 图片排序 </h4>
+<p>算法位置: <code>imageService.ts:150-180</code></p>
+<p>更新图片优先级:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span><span class="token function">$transaction</span><span class="token punctuation">(</span>
+  imageIds<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token punctuation">(</span>id<span class="token punctuation">,</span> index<span class="token punctuation">)</span> <span class="token operator">=&gt;</span>
+    prisma<span class="token punctuation">.</span>spotImage<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      where<span class="token operator">:</span> <span class="token punctuation">{</span> id <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      data<span class="token operator">:</span> <span class="token punctuation">{</span> priority<span class="token operator">:</span> <span class="token punctuation">(</span>imageIds<span class="token punctuation">.</span>length <span class="token operator">-</span> index<span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">10</span> <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h3 id="数据流说明-11">数据流说明 </h3>
+<div class="mermaid">flowchart TD
+    A[用户上传图片] --&gt; B[imageService.uploadImage&lt;br/&gt;上传到Cloudinary]
+    B --&gt; C[图片处理&lt;br/&gt;压缩/裁剪/水印]
+    C --&gt; D[保存到数据库&lt;br/&gt;status: pending]
+    D --&gt; E[SpotManagePage&lt;br/&gt;管理员审核]
+    E --&gt; F{审核结果}
+    F --&gt;|通过| G[status: approved]
+    F --&gt;|拒绝| H[status: rejected]
+    G --&gt; I[ReviewPage&lt;br/&gt;展示已审核图片]
+    H --&gt; J[通知用户&lt;br/&gt;拒绝原因]
+    I --&gt; K{设置主图?}
+    K --&gt;|是| L[imageService.setPrimaryImage&lt;br/&gt;设置主图]
+    K --&gt;|否| M[imageService.updatePriority&lt;br/&gt;更新优先级]
+    L --&gt; N[前端展示&lt;br/&gt;按优先级排序]
+    M --&gt; N
+</div><h3 id="涉及的核心文件-11">涉及的核心文件 </h3>
+<ul>
+<li><strong>后端</strong>: <code>backend/src/services/imageService.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/controllers/adminController.ts</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/admin/SpotManagePage.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/admin/ReviewPage.tsx</code></li>
+</ul>
+<hr>
+<h2 id="模块十三用户认证与权限控制">模块十三：用户认证与权限控制 </h2>
+<h3 id="功能描述-12">功能描述 </h3>
+<p>用户认证与权限控制模块负责用户注册、登录、权限验证，确保系统安全性。</p>
+<h3 id="技术实现-12">技术实现 </h3>
+<ul>
+<li><strong>认证方式</strong>: JWT Token</li>
+<li><strong>密码加密</strong>: bcrypt哈希</li>
+<li><strong>中间件</strong>: Express中间件验证Token</li>
+<li><strong>路由守卫</strong>: 前端路由守卫 + 后端中间件</li>
+<li><strong>角色管理</strong>: user、admin两种角色</li>
+</ul>
+<h3 id="核心算法逻辑-12">核心算法/逻辑 </h3>
+<h4 id="1-用户注册">1. 用户注册 </h4>
+<p>算法位置: <code>authController.ts:18-55</code></p>
+<p>注册流程:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// 检查用户名是否已存在</span>
+<span class="token keyword keyword-const">const</span> existingUser <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>user<span class="token punctuation">.</span><span class="token function">findUnique</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span> username <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>existingUser<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">'用户名已存在'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// 密码加密</span>
+<span class="token keyword keyword-const">const</span> passwordHash <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> bcrypt<span class="token punctuation">.</span><span class="token function">hash</span><span class="token punctuation">(</span>password<span class="token punctuation">,</span> <span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 创建用户</span>
+<span class="token keyword keyword-const">const</span> user <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>user<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  data<span class="token operator">:</span> <span class="token punctuation">{</span>
+    username<span class="token punctuation">,</span>
+    email<span class="token punctuation">,</span>
+    passwordHash<span class="token punctuation">,</span>
+    role<span class="token operator">:</span> <span class="token string">'user'</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="2-用户登录">2. 用户登录 </h4>
+<p>算法位置: <code>authController.ts:57-95</code></p>
+<p>登录流程:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// 验证用户名和密码</span>
+<span class="token keyword keyword-const">const</span> user <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> prisma<span class="token punctuation">.</span>user<span class="token punctuation">.</span><span class="token function">findUnique</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  where<span class="token operator">:</span> <span class="token punctuation">{</span> username <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>user<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">'用户名或密码错误'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword keyword-const">const</span> isValidPassword <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> bcrypt<span class="token punctuation">.</span><span class="token function">compare</span><span class="token punctuation">(</span>password<span class="token punctuation">,</span> user<span class="token punctuation">.</span>passwordHash<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>isValidPassword<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">'用户名或密码错误'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// 生成JWT Token</span>
+<span class="token keyword keyword-const">const</span> token <span class="token operator">=</span> jwt<span class="token punctuation">.</span><span class="token function">sign</span><span class="token punctuation">(</span>
+  <span class="token punctuation">{</span> userId<span class="token operator">:</span> user<span class="token punctuation">.</span>id<span class="token punctuation">,</span> username<span class="token operator">:</span> user<span class="token punctuation">.</span>username<span class="token punctuation">,</span> role<span class="token operator">:</span> user<span class="token punctuation">.</span>role <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  process<span class="token punctuation">.</span>env<span class="token punctuation">.</span><span class="token constant">JWT_SECRET</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span> expiresIn<span class="token operator">:</span> <span class="token string">'7d'</span> <span class="token punctuation">}</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-return">return</span> <span class="token punctuation">{</span> token<span class="token punctuation">,</span> user <span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><h4 id="3-token验证中间件">3. Token验证中间件 </h4>
+<p>算法位置: <code>middleware/authMiddleware.ts:18-45</code></p>
+<p>验证Token:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-export">export</span> <span class="token keyword keyword-const">const</span> <span class="token function-variable function">authMiddleware</span> <span class="token operator">=</span> <span class="token keyword keyword-async">async</span> <span class="token punctuation">(</span>req<span class="token operator">:</span> <span class="token builtin">any</span><span class="token punctuation">,</span> res<span class="token operator">:</span> <span class="token builtin">any</span><span class="token punctuation">,</span> next<span class="token operator">:</span> <span class="token builtin">any</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-try">try</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-const">const</span> token <span class="token operator">=</span> req<span class="token punctuation">.</span>headers<span class="token punctuation">.</span>authorization<span class="token operator">?.</span><span class="token function">replace</span><span class="token punctuation">(</span><span class="token string">'Bearer '</span><span class="token punctuation">,</span> <span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>token<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword keyword-return">return</span> res<span class="token punctuation">.</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token number">401</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span> error<span class="token operator">:</span> <span class="token string">'未提供认证Token'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword keyword-const">const</span> decoded <span class="token operator">=</span> jwt<span class="token punctuation">.</span><span class="token function">verify</span><span class="token punctuation">(</span>token<span class="token punctuation">,</span> process<span class="token punctuation">.</span>env<span class="token punctuation">.</span><span class="token constant">JWT_SECRET</span><span class="token punctuation">)</span> <span class="token keyword keyword-as">as</span> <span class="token builtin">any</span><span class="token punctuation">;</span>
+    req<span class="token punctuation">.</span>user <span class="token operator">=</span> decoded<span class="token punctuation">;</span>
+    <span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword keyword-catch">catch</span> <span class="token punctuation">(</span>error<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-return">return</span> res<span class="token punctuation">.</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token number">401</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span> error<span class="token operator">:</span> <span class="token string">'Token无效或已过期'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><h4 id="4-管理员权限中间件">4. 管理员权限中间件 </h4>
+<p>算法位置: <code>middleware/adminAuthMiddleware.ts:18-35</code></p>
+<p>验证管理员权限:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-export">export</span> <span class="token keyword keyword-const">const</span> <span class="token function-variable function">adminAuthMiddleware</span> <span class="token operator">=</span> <span class="token keyword keyword-async">async</span> <span class="token punctuation">(</span>req<span class="token operator">:</span> <span class="token builtin">any</span><span class="token punctuation">,</span> res<span class="token operator">:</span> <span class="token builtin">any</span><span class="token punctuation">,</span> next<span class="token operator">:</span> <span class="token builtin">any</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>req<span class="token punctuation">.</span>user<span class="token punctuation">.</span>role <span class="token operator">!==</span> <span class="token string">'admin'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-return">return</span> res<span class="token punctuation">.</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token number">403</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span> error<span class="token operator">:</span> <span class="token string">'需要管理员权限'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><h4 id="5-前端路由守卫">5. 前端路由守卫 </h4>
+<p>算法位置: <code>AuthGuard.tsx</code></p>
+<p>路由守卫组件:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-export">export</span> <span class="token keyword keyword-const">const</span> <span class="token function-variable function">AuthGuard</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">{</span> children <span class="token punctuation">}</span><span class="token operator">:</span> <span class="token punctuation">{</span> children<span class="token operator">:</span> React<span class="token punctuation">.</span>ReactNode <span class="token punctuation">}</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> user <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">useAuthStore</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>user<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-return">return</span> <span class="token operator">&lt;</span>Navigate to<span class="token operator">=</span><span class="token string">"/auth"</span> replace <span class="token operator">/</span><span class="token operator">&gt;</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token keyword keyword-return">return</span> <span class="token operator">&lt;</span><span class="token operator">&gt;</span><span class="token punctuation">{</span>children<span class="token punctuation">}</span><span class="token operator">&lt;</span><span class="token operator">/</span><span class="token operator">&gt;</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-export">export</span> <span class="token keyword keyword-const">const</span> <span class="token function-variable function">AdminGuard</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">{</span> children <span class="token punctuation">}</span><span class="token operator">:</span> <span class="token punctuation">{</span> children<span class="token operator">:</span> React<span class="token punctuation">.</span>ReactNode <span class="token punctuation">}</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> user <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">useAuthStore</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>user <span class="token operator">||</span> user<span class="token punctuation">.</span>role <span class="token operator">!==</span> <span class="token string">'admin'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-return">return</span> <span class="token operator">&lt;</span>Navigate to<span class="token operator">=</span><span class="token string">"/"</span> replace <span class="token operator">/</span><span class="token operator">&gt;</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token keyword keyword-return">return</span> <span class="token operator">&lt;</span><span class="token operator">&gt;</span><span class="token punctuation">{</span>children<span class="token punctuation">}</span><span class="token operator">&lt;</span><span class="token operator">/</span><span class="token operator">&gt;</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><h3 id="数据流说明-12">数据流说明 </h3>
+<div class="mermaid">flowchart TD
+    A[用户注册] --&gt; B[authController.register&lt;br/&gt;检查用户名]
+    B --&gt; C{用户名已存在?}
+    C --&gt;|是| D[返回错误]
+    C --&gt;|否| E[bcrypt加密密码]
+    E --&gt; F[创建User记录]
+    F --&gt; G[返回成功]
+    G --&gt; H[用户登录]
+    H --&gt; I[authController.login&lt;br/&gt;验证用户名密码]
+    I --&gt; J{验证通过?}
+    J --&gt;|否| K[返回错误]
+    J --&gt;|是| L[生成JWT Token]
+    L --&gt; M[返回Token和用户信息]
+    M --&gt; N[前端存储Token]
+    N --&gt; O[发起API请求]
+    O --&gt; P[authMiddleware&lt;br/&gt;验证Token]
+    P --&gt; Q{Token有效?}
+    Q --&gt;|否| R[返回401]
+    Q --&gt;|是| S[继续处理请求]
+    S --&gt; T[管理员接口]
+    T --&gt; U[adminAuthMiddleware&lt;br/&gt;验证管理员权限]
+    U --&gt; V{是管理员?}
+    V --&gt;|否| W[返回403]
+    V --&gt;|是| X[继续处理]
+</div><h3 id="涉及的核心文件-12">涉及的核心文件 </h3>
+<ul>
+<li><strong>后端</strong>: <code>backend/src/controllers/authController.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/middleware/authMiddleware.ts</code></li>
+<li><strong>后端</strong>: <code>backend/src/middleware/adminAuthMiddleware.ts</code></li>
+<li><strong>前端</strong>: <code>frontend/src/components/AuthGuard.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/components/AdminGuard.tsx</code></li>
+<li><strong>前端</strong>: <code>frontend/src/pages/Auth.tsx</code></li>
+</ul>
+<hr>
+<h2 id="总结">总结 </h2>
+<p>LiveTrip是一个功能完善的智能旅行规划平台，采用现代化的技术栈和优雅的设计风格，具有以下技术亮点:</p>
+<ol>
+<li><strong>自主算法</strong>: 多因素评分引擎 + K-means聚类 + 2-opt路径优化</li>
+<li><strong>AI集成</strong>: 智谱AI GLM-4实现Function Calling和智能问答</li>
+<li><strong>实时通信</strong>: Socket.io实现多人协同规划</li>
+<li><strong>现代化UI</strong>: Glass-morphism设计 + Tailwind CSS</li>
+<li><strong>类型安全</strong>: 全栈TypeScript</li>
+<li><strong>数据库管理</strong>: Prisma ORM + SQLite</li>
+<li><strong>云存储</strong>: Cloudinary图片存储</li>
+<li><strong>外部集成</strong>: 高德地图、OpenWeather</li>
+</ol>
+<p>整个系统架构清晰、模块化程度高，具有良好的扩展性和维护性。</p>
+
+      </div>
+      
+      
+    
+    
+    <script type="module">
+// TODO: If ZenUML gets integrated into mermaid in the future,
+//      we can remove the following lines.
+
+
+var MERMAID_CONFIG = ({"startOnLoad":false});
+if (typeof MERMAID_CONFIG !== 'undefined') {
+  MERMAID_CONFIG.startOnLoad = false
+  MERMAID_CONFIG.cloneCssStyles = false
+  MERMAID_CONFIG.theme = "default"
+}
+
+mermaid.initialize(MERMAID_CONFIG || {})
+if (typeof(window['Reveal']) !== 'undefined') {
+  function mermaidRevealHelper(event) {
+    var currentSlide = event.currentSlide
+    var diagrams = currentSlide.querySelectorAll('div.mermaid')
+    for (var i = 0; i < diagrams.length; i++) {
+      var diagram = diagrams[i]
+      if (!diagram.hasAttribute('data-processed')) {
+        mermaid.init(null, diagram, ()=> {
+          Reveal.slide(event.indexh, event.indexv)
+        })
+      }
+    }
+  }
+  Reveal.addEventListener('slidetransitionend', mermaidRevealHelper)
+  Reveal.addEventListener('ready', mermaidRevealHelper)
+  await mermaid.run({
+    nodes: document.querySelectorAll('div.mermaid')
+  })
+} else {
+  await mermaid.run({
+    nodes: document.querySelectorAll('div.mermaid')
+  })
+}
+</script>
+    
+    
+    
+  
+    </body></html>

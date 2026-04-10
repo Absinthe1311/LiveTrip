@@ -316,6 +316,40 @@ export class ImageController {
   }
 
   /**
+   * 根据景点ID批量获取图片（从数据库查询）
+   */
+  static async batchGetSpotImagesByIds(req: Request, res: Response): Promise<void> {
+    try {
+      const { spotIds } = req.body;
+
+      if (!Array.isArray(spotIds) || spotIds.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: '景点ID列表不能为空',
+        });
+        return;
+      }
+
+      const imageMap = await imageService.batchGetSpotImagesByIds(spotIds);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          images: imageMap,
+          count: Object.keys(imageMap).length,
+        },
+      });
+    } catch (error: any) {
+      console.error('批量获取景点图片失败:', error);
+      res.status(500).json({
+        success: false,
+        message: '批量获取景点图片失败',
+        error: error.message,
+      });
+    }
+  }
+
+  /**
    * 获取景点的所有图片
    */
   static async getSpotImages(req: Request, res: Response): Promise<void> {
