@@ -177,18 +177,29 @@ export default function TodayGlass() {
                   </button>
                 ))}
               </div>
-              
-              <button
-                onClick={handleNextTrip}
-                disabled={currentTripIndex === tripsList.length - 1}
-                className={`p-2 rounded-lg transition-colors ${
-                  currentTripIndex === tripsList.length - 1
-                    ? 'text-white/30 cursor-not-allowed'
-                    : 'text-white hover:bg-white/10'
-                }`}
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleNextTrip}
+                  disabled={currentTripIndex === tripsList.length - 1}
+                  className={`p-2 rounded-lg transition-colors ${
+                    currentTripIndex === tripsList.length - 1
+                      ? 'text-white/30 cursor-not-allowed'
+                      : 'text-white hover:bg-white/10'
+                  }`}
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+                {tripsList[currentTripIndex] && (
+                  <button
+                    onClick={() => navigate(`/trip/${tripsList[currentTripIndex].id}`)}
+                    className="px-4 py-2 rounded-lg bg-livetrip-primary text-white hover:bg-livetrip-primary/90 transition-colors text-sm"
+                    title="查看详情"
+                  >
+                    查看详情
+                  </button>
+                )}
+              </div>
             </div>
           </GlassCard>
         )}
