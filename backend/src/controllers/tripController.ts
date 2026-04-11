@@ -33,6 +33,7 @@ export const getUserTrips = async (req: Request, res: Response) => {
       },
       include: {
         budget: true,
+        collabRoom: true, // 包含协同房间信息
         days: {
           include: {
             itineraryItems: true,

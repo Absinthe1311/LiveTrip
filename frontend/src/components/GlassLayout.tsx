@@ -3,6 +3,7 @@ import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home as HomeIcon, Plus, Sparkles, Globe, Heart, PenLine, List, MapPin, Users, Search, Bell, Settings, Sun, Image as ImageIcon } from "lucide-react";
 import { GlassCard, LogoutButton } from './home';
+import ImageCropper from './ImageCropper';
 
 interface GlassLayoutProps {
   children: ReactNode;
@@ -15,6 +16,8 @@ export default function GlassLayout({ children, showSearch = true }: GlassLayout
   const [bgImage, setBgImage] = useState<string>('/homepage-bg.jpg');
   const [showBgInput, setShowBgInput] = useState(false);
   const [bgUrl, setBgUrl] = useState<string>('');
+  const [cropperVisible, setCropperVisible] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // 判断是否在首页
   const isHomePage = location.pathname === '/';
@@ -56,11 +59,25 @@ export default function GlassLayout({ children, showSearch = true }: GlassLayout
       return;
     }
 
+    // 打开裁剪器
+    setSelectedFile(file);
+    setCropperVisible(true);
+    setShowBgInput(false);
+  };
+
+  // 处理裁剪确认
+  const handleCropConfirm = async (croppedImage: string) => {
     try {
+      // 将base64转换为Blob
+      const response = await fetch(croppedImage);
+      const blob = await response.blob();
+      const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
+
+      // 上传裁剪后的图片
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('http://localhost:3003/api/upload/image', {
+      const uploadResponse = await fetch('http://localhost:3003/api/upload/image', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -68,13 +85,14 @@ export default function GlassLayout({ children, showSearch = true }: GlassLayout
         body: formData,
       });
 
-      const result = await response.json();
+      const result = await uploadResponse.json();
 
       if (result.success) {
         const imageUrl = result.data.url;
         setBgImage(imageUrl);
         localStorage.setItem('customBgImage', imageUrl);
-        setShowBgInput(false);
+        setCropperVisible(false);
+        setSelectedFile(null);
       } else {
         alert(result.error || '图片上传失败');
       }
@@ -82,6 +100,12 @@ export default function GlassLayout({ children, showSearch = true }: GlassLayout
       console.error('背景图上传失败:', error);
       alert('图片上传失败，请重试');
     }
+  };
+
+  // 处理裁剪取消
+  const handleCropCancel = () => {
+    setCropperVisible(false);
+    setSelectedFile(null);
   };
 
   // 重置为默认背景
@@ -94,16 +118,23 @@ export default function GlassLayout({ children, showSearch = true }: GlassLayout
 
   return (
     <div className="min-h-screen relative">
-      {/* 全屏背景 - 使用更优化的背景显示方式 */}
+      {/* 全屏背景 - 使用裁剪后的图片，完美铺满屏幕 */}
       <div
-        className="fixed inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url('${bgImage}')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      />
+        className="fixed inset-0"
+      >
+        <img
+          src={bgImage}
+          alt="Background"
+          className="w-full h-full object-cover"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+          }}
+        />
+      </div>
 
       {/* 背景遮罩 - 降低模糊度以提高清晰度 */}
       <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
@@ -356,6 +387,14 @@ export default function GlassLayout({ children, showSearch = true }: GlassLayout
           </div>
         </main>
       </div>
+
+      {/* 图片裁剪器 */}
+      <ImageCropper
+        visible={cropperVisible}
+        imageFile={selectedFile}
+        onConfirm={handleCropConfirm}
+        onCancel={handleCropCancel}
+      />
     </div>
   );
 }

@@ -36,13 +36,9 @@ export const uploadImage = async (req: Request, res: Response) => {
     // 使用 base64 上传
     const base64String = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
 
-    // 上传到 Cloudinary
+    // 上传到 Cloudinary（不进行任何转换，保持原始图片）
     const result = await cloudinary.uploader.upload(base64String, {
       folder: 'livetrip/covers',
-      transformation: [
-        { width: 1200, height: 630, crop: 'fill', quality: 'auto' },
-        { fetch_format: 'auto' },
-      ],
       resource_type: 'image',
     });
 

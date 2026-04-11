@@ -1,7 +1,7 @@
 // 首页 - LiveTrip 智能旅行规划（最终优化版）
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Home as HomeIcon, Plus, Sparkles, Globe, Heart, PenLine, List, MapPin, Users, Search, Bell, Settings, Sun } from "lucide-react";
+import { Menu, Home as HomeIcon, Plus, Sparkles, Globe, Heart, PenLine, List, MapPin, Users, Search, Bell, Settings, Sun, Image as ImageIcon, Upload, X } from "lucide-react";
 import {
   GlassCard,
   PackingList,
@@ -12,6 +12,7 @@ import {
   LogoutButton,
   TotalTravelCard
 } from '../components/home';
+import ImageCropper from '../components/ImageCropper';
 
 // ==================== 未登录态视图 ====================
 function GuestView() {
@@ -94,6 +95,16 @@ function WorkspaceView() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
+  
+  // 背景图更换功能状态
+  const [bgImage, setBgImage] = useState<string>('/homepage-bg.jpg');
+  const [showBgInput, setShowBgInput] = useState(false);
+  const [bgUrl, setBgUrl] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [cropperVisible, setCropperVisible] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -106,15 +117,126 @@ function WorkspaceView() {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
+  // 从 localStorage 读取保存的背景图
+  useEffect(() => {
+    const savedBg = localStorage.getItem('customBgImage');
+    if (savedBg) {
+      setBgImage(savedBg);
+    }
+  }, []);
+
+  // 处理背景图更改
+  const handleBgChange = () => {
+    if (bgUrl.trim()) {
+      setBgImage(bgUrl.trim());
+      localStorage.setItem('customBgImage', bgUrl.trim());
+      setShowBgInput(false);
+      setBgUrl('');
+    }
+  };
+
+  // 处理背景图上传
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 验证文件类型
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('仅支持 JPG、PNG、GIF、WebP 格式的图片');
+      return;
+    }
+
+    // 验证文件大小（10MB）
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert('图片大小不能超过 10MB');
+      return;
+    }
+
+    // 打开裁剪器
+    setSelectedFile(file);
+    setCropperVisible(true);
+    setShowBgInput(false);
+  };
+
+  // 处理裁剪确认
+  const handleCropConfirm = async (croppedImage: string) => {
+    setUploading(true);
+    try {
+      // 将base64转换为Blob
+      const response = await fetch(croppedImage);
+      const blob = await response.blob();
+      const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
+
+      // 上传裁剪后的图片
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const uploadResponse = await fetch('http://localhost:3003/api/upload/image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: formData,
+      });
+
+      const result = await uploadResponse.json();
+
+      if (result.success) {
+        const imageUrl = result.data.url;
+        setBgImage(imageUrl);
+        localStorage.setItem('customBgImage', imageUrl);
+        setPreviewUrl(imageUrl);
+        setCropperVisible(false);
+        setSelectedFile(null);
+        alert('图片上传成功');
+      } else {
+        alert(result.error || '图片上传失败');
+      }
+    } catch (error) {
+      console.error('背景图上传失败:', error);
+      alert('图片上传失败，请重试');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // 处理裁剪取消
+  const handleCropCancel = () => {
+    setCropperVisible(false);
+    setSelectedFile(null);
+  };
+
+  // 删除上传的图片
+  const handleRemoveImage = () => {
+    setBgImage('/homepage-bg.jpg');
+    setPreviewUrl('');
+    localStorage.removeItem('customBgImage');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="min-h-screen relative">
-      {/* 全屏背景 */}
+      {/* 全屏背景 - 使用裁剪后的图片，完美铺满屏幕 */}
       <div
-        className="fixed inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: "url('/homepage-bg.jpg')",
-        }}
-      />
+        className="fixed inset-0"
+      >
+        <img
+          src={bgImage}
+          alt="Background"
+          className="w-full h-full object-cover"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+          }}
+        />
+      </div>
 
       {/* 背景遮罩 - 降低模糊度以提高清晰度 */}
       <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
@@ -248,6 +370,74 @@ function WorkspaceView() {
               </ul>
             </div>
           </nav>
+
+          {/* 背景图更换按钮（左下角） */}
+          <div className="p-3 border-t border-white/10">
+            <button
+              onClick={() => setShowBgInput(!showBgInput)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <ImageIcon className="h-4 w-4" />
+              <span>更换背景</span>
+            </button>
+
+            {/* 背景图输入框 */}
+            {showBgInput && (
+              <div className="mt-2 space-y-2">
+                {/* URL 输入 */}
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={bgUrl}
+                    onChange={(e) => setBgUrl(e.target.value)}
+                    placeholder="输入图片URL..."
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30 transition-all"
+                  />
+                  <button
+                    onClick={handleBgChange}
+                    className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-livetrip-primary text-white hover:bg-livetrip-primary/90 transition-colors"
+                  >
+                    应用 URL
+                  </button>
+                </div>
+
+                {/* 分隔线 */}
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/20"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="px-2 bg-white/5 text-white/50">或</span>
+                  </div>
+                </div>
+
+                {/* 上传按钮 */}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="bg-upload-input-home"
+                  ref={fileInputRef}
+                />
+                <label
+                  htmlFor="bg-upload-input-home"
+                  className="flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-lg bg-white/10 text-white/80 hover:bg-white/20 cursor-pointer transition-colors"
+                >
+                  <Upload className="w-3 h-3" />
+                  上传本地图片
+                </label>
+
+                {/* 重置按钮 */}
+                <button
+                  onClick={handleRemoveImage}
+                  className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-white/5 text-white/60 hover:bg-white/10 transition-colors"
+                >
+                  重置为默认背景
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* 退出按钮（左下角） */}
           <div className="p-3 border-t border-white/10">
@@ -406,6 +596,14 @@ function WorkspaceView() {
             onClick={() => setSidebarOpen(false)}
           />
         )}
+
+        {/* 图片裁剪器 */}
+        <ImageCropper
+          visible={cropperVisible}
+          imageFile={selectedFile}
+          onConfirm={handleCropConfirm}
+          onCancel={handleCropCancel}
+        />
       </div>
     </div>
   );

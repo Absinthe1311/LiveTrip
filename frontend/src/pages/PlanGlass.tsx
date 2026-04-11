@@ -10,6 +10,7 @@ import { useAppStore } from '../store';
 import AIAdvisorGlass from '../components/AIAdvisorGlass';
 import { popularDestinations } from '../data/popularDestinations';
 import { DoubleCalendar } from '../components/DoubleCalendar';
+import ImageCropper from '../components/ImageCropper';
 
 const steps = [
   { id: 1, label: "出发地", icon: MapPin },
@@ -54,6 +55,8 @@ export default function PlanGlass() {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cropperVisible, setCropperVisible] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -94,26 +97,40 @@ export default function PlanGlass() {
       return;
     }
 
+    // 打开裁剪器
+    setSelectedFile(file);
+    setCropperVisible(true);
+  };
+
+  // 处理裁剪确认
+  const handleCropConfirm = async (croppedImage: string) => {
     setUploading(true);
-
     try {
-      const uploadFormData = new FormData();
-      uploadFormData.append('image', file);
+      // 将base64转换为Blob
+      const response = await fetch(croppedImage);
+      const blob = await response.blob();
+      const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
 
-      const response = await fetch('http://localhost:3003/api/upload/image', {
+      // 上传裁剪后的图片
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const uploadResponse = await fetch('http://localhost:3003/api/upload/image', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
-        body: uploadFormData,
+        body: formData,
       });
 
-      const result = await response.json();
+      const result = await uploadResponse.json();
 
       if (result.success) {
         const imageUrl = result.data.url;
         setFormData((prevFormData) => ({ ...prevFormData, coverImage: imageUrl }));
         setPreviewUrl(imageUrl);
+        setCropperVisible(false);
+        setSelectedFile(null);
         message.success('图片上传成功');
       } else {
         message.error(result.error || '图片上传失败');
@@ -124,6 +141,12 @@ export default function PlanGlass() {
     } finally {
       setUploading(false);
     }
+  };
+
+  // 处理裁剪取消
+  const handleCropCancel = () => {
+    setCropperVisible(false);
+    setSelectedFile(null);
   };
 
   // 删除上传的图片
@@ -964,6 +987,14 @@ export default function PlanGlass() {
           </span>
         )}
       </button>
+
+      {/* 图片裁剪器 */}
+      <ImageCropper
+        visible={cropperVisible}
+        imageFile={selectedFile}
+        onConfirm={handleCropConfirm}
+        onCancel={handleCropCancel}
+      />
     </GlassLayout>
   );
 }
