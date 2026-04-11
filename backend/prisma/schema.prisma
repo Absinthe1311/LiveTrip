@@ -45,6 +45,7 @@ model Trip {
   userId                    String
   title                     String
   description               String?       @default("")
+  coverImage                String?       @default("")
   destination               String
   startDate                 DateTime
   endDate                   DateTime

@@ -24,6 +24,7 @@ import SpotManagePage from './pages/admin/SpotManagePage';
 import ReviewPage from './pages/admin/ReviewPage';
 // 协同规划页面
 import CollabEntryGlass from './pages/CollabEntryGlass';
+import CollabSetup from './pages/collab/CollabSetup';
 import CreateCollabRoom from './pages/collab/CreateCollabRoom';
 import JoinCollabRoom from './pages/collab/JoinCollabRoom';
 import CollabRoom from './pages/collab/CollabRoom';
@@ -161,6 +162,14 @@ function AppContent() {
           element={
             <AuthGuard>
               <CollabEntryGlass />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/collab/setup"
+          element={
+            <AuthGuard>
+              <CollabSetup />
             </AuthGuard>
           }
         />

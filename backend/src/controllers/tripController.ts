@@ -203,8 +203,9 @@ export const saveTrip = async (req: Request, res: Response) => {
     const trip = await prisma.trip.create({
       data: {
         userId,
-        title: `${summary.origin || '出发地'} → ${summary.destination} (${days}天)`,
-        description: `从${summary.origin || '出发地'}到${summary.destination}的${days}天行程`,
+        title: tripData.customization?.tripName || `${summary.origin || '出发地'} → ${summary.destination} (${days}天)`,
+        description: tripData.customization?.tripDescription || `从${summary.origin || '出发地'}到${summary.destination}的${days}天行程`,
+        coverImage: tripData.customization?.coverImage || '',
         destination: summary.destination,
         startDate: new Date(summary.start_date),
         endDate: new Date(summary.end_date),

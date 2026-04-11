@@ -1,7 +1,7 @@
 // 沉浸式毛玻璃布局组件 - 用于所有页面
-import { ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Home as HomeIcon, Plus, Sparkles, Globe, Heart, PenLine, List, MapPin, Users, Search, Bell, Settings, Sun } from "lucide-react";
+import { ReactNode, useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Home as HomeIcon, Plus, Sparkles, Globe, Heart, PenLine, List, MapPin, Users, Search, Bell, Settings, Sun, Image as ImageIcon } from "lucide-react";
 import { GlassCard, LogoutButton } from './home';
 
 interface GlassLayoutProps {
@@ -11,14 +11,97 @@ interface GlassLayoutProps {
 
 export default function GlassLayout({ children, showSearch = true }: GlassLayoutProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [bgImage, setBgImage] = useState<string>('/homepage-bg.jpg');
+  const [showBgInput, setShowBgInput] = useState(false);
+  const [bgUrl, setBgUrl] = useState<string>('');
+
+  // 判断是否在首页
+  const isHomePage = location.pathname === '/';
+
+  // 从 localStorage 读取保存的背景图
+  useEffect(() => {
+    const savedBg = localStorage.getItem('customBgImage');
+    if (savedBg) {
+      setBgImage(savedBg);
+    }
+  }, []);
+
+  // 处理背景图更改
+  const handleBgChange = () => {
+    if (bgUrl.trim()) {
+      setBgImage(bgUrl.trim());
+      localStorage.setItem('customBgImage', bgUrl.trim());
+      setShowBgInput(false);
+      setBgUrl('');
+    }
+  };
+
+  // 处理背景图上传
+  const handleBgUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 验证文件类型
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('仅支持 JPG、PNG、GIF、WebP 格式的图片');
+      return;
+    }
+
+    // 验证文件大小（10MB）
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert('图片大小不能超过 10MB');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('http://localhost:3003/api/upload/image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const imageUrl = result.data.url;
+        setBgImage(imageUrl);
+        localStorage.setItem('customBgImage', imageUrl);
+        setShowBgInput(false);
+      } else {
+        alert(result.error || '图片上传失败');
+      }
+    } catch (error) {
+      console.error('背景图上传失败:', error);
+      alert('图片上传失败，请重试');
+    }
+  };
+
+  // 重置为默认背景
+  const handleResetBg = () => {
+    setBgImage('/homepage-bg.jpg');
+    localStorage.removeItem('customBgImage');
+    setShowBgInput(false);
+    setBgUrl('');
+  };
 
   return (
     <div className="min-h-screen relative">
-      {/* 全屏背景 */}
+      {/* 全屏背景 - 使用更优化的背景显示方式 */}
       <div
         className="fixed inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: "url('/homepage-bg.jpg')",
+          backgroundImage: `url('${bgImage}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          backgroundRepeat: 'no-repeat',
         }}
       />
 
@@ -155,6 +238,75 @@ export default function GlassLayout({ children, showSearch = true }: GlassLayout
           <div className="p-3 border-t border-white/10">
             <LogoutButton />
           </div>
+
+          {/* 背景图替换按钮 - 只在首页显示 */}
+          {isHomePage && (
+            <div className="p-3 border-t border-white/10">
+              <button
+                onClick={() => setShowBgInput(!showBgInput)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <ImageIcon className="h-4 w-4" />
+                <span>更换背景</span>
+              </button>
+
+              {/* 背景图输入框 */}
+              {showBgInput && (
+                <div className="mt-2 space-y-2">
+                  {/* URL 输入 */}
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={bgUrl}
+                      onChange={(e) => setBgUrl(e.target.value)}
+                      placeholder="输入图片URL..."
+                      className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30 transition-all"
+                    />
+                    <button
+                      onClick={handleBgChange}
+                      className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-livetrip-primary text-white hover:bg-livetrip-primary/90 transition-colors"
+                    >
+                      应用 URL
+                    </button>
+                  </div>
+
+                  {/* 分隔线 */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-white/20"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="px-2 bg-white/5 text-white/50">或</span>
+                    </div>
+                  </div>
+
+                  {/* 上传按钮 */}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleBgUpload}
+                    className="hidden"
+                    id="bg-upload-input"
+                  />
+                  <label
+                    htmlFor="bg-upload-input"
+                    className="flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-lg bg-white/10 text-white/80 hover:bg-white/20 cursor-pointer transition-colors"
+                  >
+                    <ImageIcon className="h-3 w-3" />
+                    上传本地图片
+                  </label>
+
+                  {/* 重置按钮 */}
+                  <button
+                    onClick={handleResetBg}
+                    className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-white/5 text-white/60 hover:bg-white/10 transition-colors"
+                  >
+                    重置为默认背景
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </aside>
 
         {/* 主内容区 */}

@@ -591,10 +591,26 @@ export default function CollabRoom() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-livetrip-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader className="h-12 w-12 animate-spin mx-auto mb-4 text-livetrip-primary" />
-          <p className="text-gray-600">加载中...</p>
+      <div className="min-h-screen relative">
+        {/* 全屏背景 */}
+        <div className="fixed inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/homepage-bg.jpg')" }} />
+        
+        {/* 背景模糊层 */}
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xl" />
+        
+        {/* 动态光影效果 */}
+        <div className="fixed inset-0 pointer-events-none z-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-amber-600/5 animate-pulse" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl animate-pulse" />
+        </div>
+        
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <Loader className="h-12 w-12 animate-spin mx-auto mb-4 text-amber-400" />
+            <p className="text-white/70">加载中...</p>
+          </div>
         </div>
       </div>
     );
@@ -602,46 +618,76 @@ export default function CollabRoom() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-livetrip-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button
-            onClick={() => navigate('/my-trips')}
-            className="px-4 py-2 bg-livetrip-primary text-white rounded-lg"
-          >
-            返回我的行程
-          </button>
+      <div className="min-h-screen relative">
+        {/* 全屏背景 */}
+        <div className="fixed inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/homepage-bg.jpg')" }} />
+        
+        {/* 背景模糊层 */}
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xl" />
+        
+        {/* 动态光影效果 */}
+        <div className="fixed inset-0 pointer-events-none z-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-amber-600/5 animate-pulse" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl animate-pulse" />
+        </div>
+        
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-8">
+            <p className="text-red-400 mb-6">{error}</p>
+            <button
+              onClick={() => navigate('/my-trips')}
+              className="px-8 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-amber-500/40 hover:scale-105 active:scale-95 transition-all duration-300 border border-white/20"
+            >
+              返回我的行程
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-livetrip-background">
+    <div className="min-h-screen relative">
+      {/* 全屏背景 */}
+      <div className="fixed inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/homepage-bg.jpg')" }} />
+      
+      {/* 背景模糊层 */}
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-xl" />
+      
+      {/* 动态光影效果 */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-amber-600/5 animate-pulse" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl animate-pulse" />
+      </div>
+
       {/* Top Navbar */}
-      <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-border z-50 flex items-center shadow-subtle">
-        <div className="w-[220px] h-full flex items-center px-4 border-r border-border shrink-0">
+      <header className="fixed top-0 left-0 right-0 h-14 bg-white/5 backdrop-blur-md border-b border-white/10 z-50 flex items-center">
+        <div className="w-[220px] h-full flex items-center px-4 border-r border-white/10 shrink-0">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className={`p-2 rounded-lg hover:bg-gray-100 transition-colors mr-2 ${isLargeScreen ? 'hidden' : 'block'}`}
+            className={`p-2 rounded-lg hover:bg-white/10 transition-colors mr-2 ${isLargeScreen ? 'hidden' : 'block'}`}
           >
-            <Menu className="h-5 w-5 text-gray-700" />
+            <Menu className="h-5 w-5 text-white" />
           </button>
           <div 
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => navigate('/')}
           >
-            <span className="text-xl font-bold text-livetrip-primary">LiveTrip</span>
+            <span className="text-xl font-bold text-white">LiveTrip</span>
           </div>
         </div>
         
         <div className="flex-1 flex items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <h1 className="text-lg font-semibold text-gray-900">
+            <h1 className="text-lg font-semibold text-white">
               {currentRoom?.trip?.title || '协同规划'}
             </h1>
             {isLocked && (
-              <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded flex items-center gap-1">
+              <span className="px-2 py-1 bg-white/10 text-white/80 text-xs rounded flex items-center gap-1 border border-white/20">
                 <Lock className="h-3 w-3" />
                 已锁定
               </span>
@@ -660,10 +706,10 @@ export default function CollabRoom() {
                     drawRoutesForDay(day);
                   }
                 }}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                   currentDay === day
-                    ? 'bg-livetrip-primary text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30 border border-white/20'
+                    : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white border border-white/20'
                 }`}
               >
                 Day {day}
@@ -682,28 +728,28 @@ export default function CollabRoom() {
       />
 
       {/* Main Content */}
-      <main className={`pt-14 ${isLargeScreen ? 'pl-[240px]' : ''} min-h-screen flex`}>
+      <main className={`pt-14 ${isLargeScreen ? 'pl-[240px]' : ''} min-h-screen flex relative z-10`}>
         {/* 左侧：地图区域 */}
         <div className="flex-1 p-4 flex flex-col">
-          <div className="bg-white rounded-lg border border-border shadow-sm flex-1 flex flex-col overflow-hidden">
-            <div className="p-4 border-b border-border">
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl flex-1 flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-white/10">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-livetrip-primary" />
+                <h3 className="font-semibold flex items-center gap-2 text-white">
+                  <MapPin className="h-5 w-5 text-amber-400" />
                   第 {currentDay} 天路线规划
                 </h3>
                 <div className="flex items-center gap-2">
                   {/* 右侧面板切换按钮 */}
                   <button
                     onClick={() => setRightPanelOpen(!rightPanelOpen)}
-                    className="px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors flex items-center gap-1"
+                    className="px-3 py-1.5 text-xs bg-white/10 text-white/80 rounded-lg hover:bg-white/20 transition-colors flex items-center gap-1 border border-white/20"
                   >
                     {rightPanelOpen ? '隐藏面板' : '显示面板'}
                   </button>
                   {showStats && (
                     <button
                       onClick={handleHideSpotStats}
-                      className="px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                      className="px-3 py-1.5 text-xs bg-white/10 text-white/80 rounded-lg hover:bg-white/20 transition-colors border border-white/20"
                     >
                       隐藏统计
                     </button>
@@ -715,17 +761,17 @@ export default function CollabRoom() {
             {/* 地图容器 */}
             <div id="collab-map" className="flex-1 relative">
               {!isMapLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-                  <Loader className="h-8 w-8 animate-spin text-livetrip-primary" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                  <Loader className="h-8 w-8 animate-spin text-amber-400" />
                 </div>
               )}
             </div>
           </div>
           
           {/* 路线编辑器 */}
-          <div className="mt-4 bg-white rounded-lg border border-border shadow-sm p-4">
-            <h4 className="font-medium mb-3 flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-livetrip-primary" />
+          <div className="mt-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-4">
+            <h4 className="font-medium mb-3 flex items-center gap-2 text-white">
+              <MapPin className="h-4 w-4 text-amber-400" />
               路线顺序
             </h4>
             <RouteEditor
@@ -739,9 +785,9 @@ export default function CollabRoom() {
 
         {/* 右侧：信息区域 */}
         {rightPanelOpen && (
-          <div className="w-[400px] border-l border-border bg-white flex flex-col">
+          <div className="w-[400px] border-l border-white/10 bg-white/5 backdrop-blur-md flex flex-col">
             {/* 图层控制 */}
-            <div className="p-4 border-b border-border">
+            <div className="p-4 border-b border-white/10">
               <LayerControl
                 members={members}
                 visibleLayers={visibleLayers}
@@ -752,25 +798,25 @@ export default function CollabRoom() {
             </div>
 
           {/* 成员列表 */}
-          <div className="p-4 border-b border-border">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <Users className="h-5 w-5 text-livetrip-primary" />
+          <div className="p-4 border-b border-white/10">
+            <h3 className="font-semibold mb-3 flex items-center gap-2 text-white">
+              <Users className="h-5 w-5 text-amber-400" />
               成员 ({members.length})
             </h3>
             <div className="space-y-2 max-h-[150px] overflow-y-auto">
               {members.map((member) => (
-                <div key={member.id} className="flex items-center gap-2 p-2 rounded hover:bg-gray-50">
-                  <div className="w-8 h-8 rounded-full bg-livetrip-primary/10 flex items-center justify-center">
+                <div key={member.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500/20 to-amber-600/20 flex items-center justify-center border border-white/20">
                     {member.user.username.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">{member.user.username}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-sm font-medium text-white">{member.user.username}</p>
+                    <p className="text-xs text-white/60">
                       {member.role === 'HOST' ? '主持人' : '协作者'}
                     </p>
                   </div>
                   {onlineUsers.has(member.userId) && (
-                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span className="w-2 h-2 rounded-full bg-green-400 shadow-lg shadow-green-400/50"></span>
                   )}
                 </div>
               ))}
@@ -778,17 +824,17 @@ export default function CollabRoom() {
           </div>
 
           {/* 消息频道 */}
-          <div className="flex-1 flex flex-col border-b border-border min-h-0">
-            <div className="p-4 border-b border-border">
-              <h3 className="font-semibold flex items-center gap-2">
-                <MessageCircle className="h-5 w-5 text-livetrip-primary" />
+          <div className="flex-1 flex flex-col border-b border-white/10 min-h-0">
+            <div className="p-4 border-b border-white/10">
+              <h3 className="font-semibold flex items-center gap-2 text-white">
+                <MessageCircle className="h-5 w-5 text-amber-400" />
                 建议频道
               </h3>
             </div>
             
             <div ref={messageListRef} className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.length === 0 ? (
-                <p className="text-center text-gray-500 text-sm py-8">暂无消息</p>
+                <p className="text-center text-white/60 text-sm py-8">暂无消息</p>
               ) : (
                 messages.map((msg) => (
                   <div
@@ -797,13 +843,13 @@ export default function CollabRoom() {
                   >
                     <div className={`max-w-[80%] ${msg.userId === currentUser.id ? 'order-2' : ''}`}>
                       {msg.userId !== currentUser.id && (
-                        <p className="text-xs text-gray-500 mb-1">{msg.user.username}</p>
+                        <p className="text-xs text-white/60 mb-1">{msg.user.username}</p>
                       )}
                       <div
-                        className={`px-3 py-2 rounded-lg text-sm ${
+                        className={`px-3 py-2 rounded-xl text-sm backdrop-blur-md border ${
                           msg.userId === currentUser.id
-                            ? 'bg-livetrip-primary text-white'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-white border-amber-500/30'
+                            : 'bg-white/10 text-white/80 border-white/20'
                         }`}
                       >
                         {msg.content}
@@ -814,18 +860,18 @@ export default function CollabRoom() {
               )}
             </div>
 
-            <div className="p-4 border-t border-border">
+            <div className="p-4 border-t border-white/10">
               <form onSubmit={handleSendMessage} className="flex gap-2">
                 <input
                   type="text"
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
                   placeholder="输入建议..."
-                  className="flex-1 px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-livetrip-primary/20"
+                  className="flex-1 px-4 py-2 border border-white/20 rounded-xl bg-white/10 backdrop-blur-md text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] text-sm transition-all duration-300"
                 />
                 <button
                   type="submit"
-                  className="p-2 bg-livetrip-primary text-white rounded-lg hover:bg-livetrip-primary/90"
+                  className="p-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/40 hover:scale-105 active:scale-95 transition-all duration-300 border border-white/20"
                 >
                   <Send className="h-4 w-4" />
                 </button>
@@ -834,24 +880,24 @@ export default function CollabRoom() {
           </div>
 
           {/* 操作区域 */}
-          <div className="p-4 space-y-2">
+          <div className="p-4 space-y-3">
             {/* 邀请链接 */}
             {isHost && inviteLink && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Share2 className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-900">邀请链接</span>
+              <div className="bg-blue-500/10 backdrop-blur-md border border-blue-500/20 rounded-xl p-4 mb-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <Share2 className="h-4 w-4 text-blue-400" />
+                  <span className="text-sm font-medium text-blue-300">邀请链接</span>
                 </div>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={inviteLink}
                     readOnly
-                    className="flex-1 px-2 py-1.5 text-xs bg-white border border-blue-300 rounded text-gray-700"
+                    className="flex-1 px-3 py-2 text-xs bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white/80"
                   />
                   <button
                     onClick={handleCopyInviteLink}
-                    className="px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors flex items-center gap-1"
+                    className="px-3 py-2 bg-blue-500/20 text-blue-300 rounded-lg text-xs font-medium hover:bg-blue-500/30 transition-colors flex items-center gap-1 border border-blue-500/30"
                   >
                     {copied ? (
                       <>
@@ -866,7 +912,7 @@ export default function CollabRoom() {
                     )}
                   </button>
                 </div>
-                <p className="text-xs text-blue-700 mt-2">
+                <p className="text-xs text-blue-300/80 mt-3">
                   分享此链接邀请朋友加入协同规划
                 </p>
               </div>
@@ -876,7 +922,7 @@ export default function CollabRoom() {
               <>
                 <button
                   onClick={showStats ? handleHideSpotStats : handleLoadSpotStats}
-                  className="w-full py-2.5 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-gradient-to-r from-blue-500/20 to-blue-600/20 text-blue-300 rounded-xl font-medium hover:bg-blue-500/30 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300 flex items-center justify-center gap-2 border border-blue-500/30"
                 >
                   <Eye className="h-4 w-4" />
                   {showStats ? '隐藏景点统计' : '查看景点统计'}
@@ -885,7 +931,7 @@ export default function CollabRoom() {
                 {!isLocked && (
                   <button
                     onClick={handleLockRoom}
-                    className="w-full py-2.5 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-gradient-to-r from-gray-700/80 to-gray-800/80 text-white rounded-xl font-medium hover:bg-gray-700 hover:shadow-lg hover:shadow-gray-500/20 transition-all duration-300 flex items-center justify-center gap-2 border border-white/20"
                   >
                     <Lock className="h-4 w-4" />
                     锁定行程
@@ -900,7 +946,7 @@ export default function CollabRoom() {
                         setShowAllRoutes(false);
                         clearRoute();
                       } : showAllMemberRoutes}
-                      className="w-full py-2.5 bg-purple-500 text-white rounded-lg font-medium hover:bg-purple-600 transition-colors flex items-center justify-center gap-2"
+                      className="w-full py-3 bg-gradient-to-r from-purple-500/20 to-purple-600/20 text-purple-300 rounded-xl font-medium hover:bg-purple-500/30 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 flex items-center justify-center gap-2 border border-purple-500/30"
                     >
                       <Eye className="h-4 w-4" />
                       {showAllRoutes ? '隐藏所有路线' : '查看所有路线'}
@@ -908,9 +954,9 @@ export default function CollabRoom() {
                     
                     {/* 路线图例 */}
                     {showAllRoutes && allMemberDrafts.length > 0 && (
-                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                        <h4 className="text-xs font-semibold text-gray-700 mb-2">路线图例</h4>
-                        <div className="space-y-1">
+                      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4">
+                        <h4 className="text-xs font-semibold text-white/80 mb-3">路线图例</h4>
+                        <div className="space-y-2">
                           {allMemberDrafts.map((member: any, index: number) => {
                             const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
                             return (
@@ -919,7 +965,7 @@ export default function CollabRoom() {
                                   className="w-4 h-1 rounded"
                                   style={{ backgroundColor: colors[index % colors.length] }}
                                 />
-                                <span className="text-xs text-gray-600">{member.username}</span>
+                                <span className="text-xs text-white/70">{member.username}</span>
                               </div>
                             );
                           })}

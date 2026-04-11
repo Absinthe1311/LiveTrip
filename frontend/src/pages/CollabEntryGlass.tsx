@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Users, Plus, Search, Clock, CheckCircle, UserPlus, Lock, Unlock, ChevronRight } from 'lucide-react';
 import GlassLayout from '../components/GlassLayout';
 import { GlassCard } from '../components/home';
-import { createCollabRoom, joinCollabRoom } from '../api/collabApi';
+import { joinCollabRoom } from '../api/collabApi';
 import { message } from 'antd';
 
 interface CollabRoom {
@@ -23,7 +23,6 @@ export default function CollabEntryGlass() {
   const [loading, setLoading] = useState(false);
   const [joinToken, setJoinToken] = useState('');
   const [showJoinInput, setShowJoinInput] = useState(false);
-  const [creatingRoom, setCreatingRoom] = useState(false);
 
   useEffect(() => {
     loadUserRooms();
@@ -42,76 +41,9 @@ export default function CollabEntryGlass() {
     }
   };
 
-  const handleCreateRoom = async () => {
-    try {
-      setCreatingRoom(true);
-      
-      // 创建一个空的协同行程数据
-      const emptyTripData = {
-        summary: {
-          origin: '',
-          destination: '',
-          start_date: new Date().toISOString(),
-          end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 默认7天
-          travelers: 1,
-          budget: 10000,
-          preferences: []
-        },
-        itinerary: {
-          itinerary: []
-        },
-        total_cost: 0,
-        budget_breakdown: {
-          transportation: 0,
-          accommodation: 0,
-          dining: 0,
-          tickets: 0
-        },
-        hotel: null,
-        hotelRecommendations: [],
-        restaurantRecommendations: [],
-        restaurants: []
-      };
-
-      // 使用apiClient创建行程，这样会自动携带认证信息
-      const saveResponse = await fetch('http://localhost:3003/api/trips', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(emptyTripData),
-      });
-
-      const saveData = await saveResponse.json();
-      
-      if (!saveData.success) {
-        throw new Error(saveData.error || '创建行程失败');
-      }
-
-      const tripId = saveData.data?.tripId;
-
-      if (!tripId) {
-        throw new Error('行程ID为空');
-      }
-
-      // 用新创建的行程ID创建协同房间
-      const roomResponse = await createCollabRoom(tripId);
-      
-      if (roomResponse.success) {
-        message.success('协同房间创建成功');
-        // 直接进入房间
-        const roomId = roomResponse.data.room?.id || roomResponse.data.id;
-        navigate(`/collab/room/${roomId}`);
-      } else {
-        throw new Error(roomResponse.error || '创建协同房间失败');
-      }
-    } catch (error: any) {
-      console.error('创建协同房间失败:', error);
-      message.error(error.response?.data?.error || error.message || '创建协同房间失败，请重试');
-    } finally {
-      setCreatingRoom(false);
-    }
+  const handleCreateRoom = () => {
+    // 跳转到协同规划设置页面
+    navigate('/collab/setup');
   };
 
   const handleJoinRoom = async () => {
@@ -184,24 +116,17 @@ export default function CollabEntryGlass() {
         {/* 操作按钮 */}
         <div className="grid grid-cols-2 gap-6">
           <GlassCard
-            className={`p-8 cursor-pointer hover:scale-[1.02] transition-transform ${creatingRoom ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={!creatingRoom ? handleCreateRoom : undefined}
+            className="p-8 cursor-pointer hover:scale-[1.02] transition-transform"
+            onClick={handleCreateRoom}
           >
             <div className="text-center">
               <div className="inline-flex p-6 rounded-2xl bg-livetrip-primary/20 mb-6">
-                {creatingRoom ? (
-                  <div className="animate-spin h-12 w-12 border-4 border-livetrip-primary border-t-transparent rounded-full" />
-                ) : (
-                  <Plus className="h-12 w-12 text-livetrip-primary" />
-                )}
+                <Plus className="h-12 w-12 text-livetrip-primary" />
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">创建协同房间</h2>
               <p className="text-white/60 mb-6">创建一个新的协同规划房间，邀请朋友一起规划行程</p>
-              <button 
-                className={`px-8 py-3 rounded-lg bg-livetrip-primary text-white font-medium hover:bg-livetrip-primary/90 transition-colors ${creatingRoom ? 'opacity-50 cursor-not-allowed' : ''}`}
-                disabled={creatingRoom}
-              >
-                {creatingRoom ? '创建中...' : '开始创建'}
+              <button className="px-8 py-3 rounded-lg bg-livetrip-primary text-white font-medium hover:bg-livetrip-primary/90 transition-colors">
+                开始创建
               </button>
             </div>
           </GlassCard>

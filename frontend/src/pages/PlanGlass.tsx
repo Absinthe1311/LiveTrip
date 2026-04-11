@@ -1,8 +1,8 @@
 // 创建行程页面 - 毛玻璃风格版本（优化版）
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
-import { Check, Sparkles, ChevronLeft, ChevronRight, MapPin, Navigation, Calendar, Wallet, Users, Heart, ArrowRight, ArrowLeft, User, HeartHandshake, UsersRound, Mountain, Utensils, Camera, Building, TreePine, Waves, ShoppingBag, Dumbbell, Droplets, Moon, Sun, Palette, Landmark, Ticket, Coffee, Store, ChefHat, CreditCard, Gem, Crown, Briefcase, Building2, Locate, X } from "lucide-react";
+import { Check, Sparkles, ChevronLeft, ChevronRight, MapPin, Navigation, Calendar, Wallet, Users, Heart, ArrowRight, ArrowLeft, User, HeartHandshake, UsersRound, Mountain, Utensils, Camera, Building, TreePine, Waves, ShoppingBag, Dumbbell, Droplets, Moon, Sun, Palette, Landmark, Ticket, Coffee, Store, ChefHat, CreditCard, Gem, Crown, Briefcase, Building2, Locate, X, Upload, Image as ImageIcon, Type as TypeIcon } from "lucide-react";
 import GlassLayout from '../components/GlassLayout';
 import { GlassCard } from '../components/home';
 import { createPlan } from '../api/client';
@@ -18,6 +18,7 @@ const steps = [
   { id: 4, label: "预算范围", icon: Wallet },
   { id: 5, label: "群体类型", icon: Users },
   { id: 6, label: "兴趣偏好", icon: Heart },
+  { id: 7, label: "个性化设置", icon: ImageIcon },
 ];
 
 export default function PlanGlass() {
@@ -43,7 +44,16 @@ export default function PlanGlass() {
     hasElderly: false,
     pace: 'moderate',
     energy_level: 'medium',
+    // 个性化设置
+    tripName: '',
+    tripDescription: '',
+    coverImage: '',
   });
+
+  // 图片上传状态
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -57,9 +67,95 @@ export default function PlanGlass() {
     }
   };
 
+  // 计算默认行程名称
+  const getDefaultTripName = () => {
+    const days = formData.startDate && formData.endDate
+      ? Math.ceil((new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) / (1000 * 60 * 60 * 24))
+      : 3;
+    return `${formData.origin || '出发地'} → ${formData.destination || '目的地'} (${days}天)`;
+  };
+
+  // 处理图片上传
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 验证文件类型
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      message.error('仅支持 JPG、PNG、GIF、WebP 格式的图片');
+      return;
+    }
+
+    // 验证文件大小（10MB）
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      message.error('图片大小不能超过 10MB');
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('image', file);
+
+      const response = await fetch('http://localhost:3003/api/upload/image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: uploadFormData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const imageUrl = result.data.url;
+        setFormData((prevFormData) => ({ ...prevFormData, coverImage: imageUrl }));
+        setPreviewUrl(imageUrl);
+        message.success('图片上传成功');
+      } else {
+        message.error(result.error || '图片上传失败');
+      }
+    } catch (error) {
+      console.error('图片上传失败:', error);
+      message.error('图片上传失败，请重试');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // 删除上传的图片
+  const handleRemoveImage = () => {
+    setFormData((prevFormData) => ({ ...prevFormData, coverImage: '' }));
+    setPreviewUrl('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleGenerate = async () => {
     setLoading(true);
     setError(null);
+
+    // 添加详细的调试信息
+    console.log('🔍 当前 formData 状态:', formData);
+    console.log('🔍 必填字段检查:');
+    console.log('  destination:', formData.destination);
+    console.log('  startDate:', formData.startDate);
+    console.log('  endDate:', formData.endDate);
+
+    // 验证必填字段
+    if (!formData.destination || !formData.startDate || !formData.endDate) {
+      const missingFields = [];
+      if (!formData.destination) missingFields.push('目的地');
+      if (!formData.startDate) missingFields.push('出发日期');
+      if (!formData.endDate) missingFields.push('返回日期');
+      setError(`请填写${missingFields.join('、')}`);
+      setLoading(false);
+      return;
+    }
 
     try {
       const request = {
@@ -73,16 +169,72 @@ export default function PlanGlass() {
         },
       };
 
+      console.log('📝 发送行程规划请求:', request);
+
       const response = await createPlan(request);
 
       if (response.success) {
+        // 保存个性化信息到行程
+        if (formData.tripName || formData.tripDescription || formData.coverImage) {
+          try {
+            // 构造符合后端期望的数据结构
+            const tripData = {
+              summary: response.data.summary || {
+                origin: formData.origin,
+                destination: formData.destination,
+                start_date: formData.startDate,
+                end_date: formData.endDate,
+                days: response.data.itinerary?.length || 1,
+              },
+              itinerary: {
+                itinerary: response.data.itinerary || []
+              },
+              total_cost: response.data.total_cost || 0,
+              budget_breakdown: response.data.budget_breakdown || {
+                transportation: 0,
+                accommodation: 0,
+                dining: 0,
+                tickets: 0,
+              },
+              hotel: response.data.hotel || null,
+              hotelRecommendations: response.data.hotelRecommendations || [],
+              restaurantRecommendations: response.data.restaurantRecommendations || [],
+              restaurants: response.data.restaurants || [],
+              customization: {
+                tripName: formData.tripName,
+                tripDescription: formData.tripDescription,
+                coverImage: formData.coverImage,
+              },
+            };
+
+            const saveResponse = await fetch('http://localhost:3003/api/trips', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              },
+              body: JSON.stringify(tripData),
+            });
+
+            const saveData = await saveResponse.json();
+            if (saveData.success) {
+              console.log('✅ 个性化信息保存成功');
+            } else {
+              console.warn('⚠️ 个性化信息保存失败，但行程已生成');
+            }
+          } catch (error) {
+            console.warn('⚠️ 个性化信息保存失败，但行程已生成:', error);
+          }
+        }
+
         setCurrentItinerary(response.data);
         navigate('/itinerary');
       } else {
-        setError('行程规划失败，请稍后重试');
+        setError(response.error || '行程规划失败，请稍后重试');
       }
     } catch (error: any) {
-      setError(error.response?.data?.error || '行程规划失败，请稍后重试');
+      console.error('❌ 行程规划失败:', error);
+      setError(error.response?.data?.error || error.message || '行程规划失败，请稍后重试');
     } finally {
       setLoading(false);
     }
@@ -392,14 +544,14 @@ export default function PlanGlass() {
                       <button
                         key={item.label}
                         onClick={() => {
-                          const prefs = formData.preferences as string[];
+                          const prefs = (formData.preferences || []) as string[];
                           const newPrefs = prefs.includes(item.label)
                             ? prefs.filter((p) => p !== item.label)
                             : [...prefs, item.label];
                           setFormData({ ...formData, preferences: newPrefs });
                         }}
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border transition-all duration-300 ${
-                          (formData.preferences as string[]).includes(item.label)
+                          (formData.preferences || []).includes(item.label)
                             ? 'bg-gradient-to-r from-amber-500/30 to-amber-600/30 border-amber-400/50 text-white shadow-lg shadow-amber-500/20'
                             : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:border-white/30'
                         }`}
@@ -431,14 +583,14 @@ export default function PlanGlass() {
                       <button
                         key={item.label}
                         onClick={() => {
-                          const prefs = formData.preferences as string[];
+                          const prefs = (formData.preferences || []) as string[];
                           const newPrefs = prefs.includes(item.label)
                             ? prefs.filter((p) => p !== item.label)
                             : [...prefs, item.label];
                           setFormData({ ...formData, preferences: newPrefs });
                         }}
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border transition-all duration-300 ${
-                          (formData.preferences as string[]).includes(item.label)
+                          (formData.preferences || []).includes(item.label)
                             ? 'bg-gradient-to-r from-amber-500/30 to-amber-600/30 border-amber-400/50 text-white shadow-lg shadow-amber-500/20'
                             : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:border-white/30'
                         }`}
@@ -470,14 +622,14 @@ export default function PlanGlass() {
                       <button
                         key={item.label}
                         onClick={() => {
-                          const prefs = formData.preferences as string[];
+                          const prefs = (formData.preferences || []) as string[];
                           const newPrefs = prefs.includes(item.label)
                             ? prefs.filter((p) => p !== item.label)
                             : [...prefs, item.label];
                           setFormData({ ...formData, preferences: newPrefs });
                         }}
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border transition-all duration-300 ${
-                          (formData.preferences as string[]).includes(item.label)
+                          (formData.preferences || []).includes(item.label)
                             ? 'bg-gradient-to-r from-amber-500/30 to-amber-600/30 border-amber-400/50 text-white shadow-lg shadow-amber-500/20'
                             : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:border-white/30'
                         }`}
@@ -509,14 +661,14 @@ export default function PlanGlass() {
                       <button
                         key={item.label}
                         onClick={() => {
-                          const prefs = formData.preferences as string[];
+                          const prefs = (formData.preferences || []) as string[];
                           const newPrefs = prefs.includes(item.label)
                             ? prefs.filter((p) => p !== item.label)
                             : [...prefs, item.label];
                           setFormData({ ...formData, preferences: newPrefs });
                         }}
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border transition-all duration-300 ${
-                          (formData.preferences as string[]).includes(item.label)
+                          (formData.preferences || []).includes(item.label)
                             ? 'bg-gradient-to-r from-amber-500/30 to-amber-600/30 border-amber-400/50 text-white shadow-lg shadow-amber-500/20'
                             : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:border-white/30'
                         }`}
@@ -527,6 +679,102 @@ export default function PlanGlass() {
                     );
                   })}
                 </div>
+              </div>
+            </div>
+          </GlassCard>
+        );
+      case 6:
+        return (
+          <GlassCard className="p-6">
+            <h3 className="text-2xl font-bold text-white mb-4">个性化设置</h3>
+            <p className="text-white/60 mb-6">为您的行程添加个性化信息（可选）</p>
+
+            <div className="space-y-6">
+              {/* 行程名称 */}
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  <TypeIcon className="inline h-4 w-4 mr-2" />
+                  行程名称
+                </label>
+                <div className="relative group">
+                  <input
+                    type="text"
+                    value={formData.tripName}
+                    onChange={(e) => setFormData({ ...formData, tripName: e.target.value })}
+                    placeholder={getDefaultTripName()}
+                    className="w-full px-5 py-4 text-base rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none"
+                  />
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-livetrip-primary/0 via-livetrip-primary/20 to-livetrip-primary/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                </div>
+                <p className="text-xs text-white/50 mt-1">留空将使用默认名称：{getDefaultTripName()}</p>
+              </div>
+
+              {/* 行程封面 */}
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  <ImageIcon className="inline h-4 w-4 mr-2" />
+                  行程封面
+                </label>
+
+                {/* 封面预览 */}
+                {(previewUrl || formData.coverImage) && (
+                  <div className="mb-3 relative rounded-xl overflow-hidden">
+                    <img
+                      src={previewUrl || formData.coverImage}
+                      alt="行程封面预览"
+                      className="w-full h-40 object-cover"
+                    />
+                    <button
+                      onClick={handleRemoveImage}
+                      className="absolute top-2 right-2 p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* 上传按钮 */}
+                <div className="flex gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    {uploading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        上传中...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        上传封面
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-white/50 mt-1">支持 JPG、PNG、GIF、WebP 格式，最大 10MB</p>
+              </div>
+
+              {/* 行程描述 */}
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  行程描述（可选）
+                </label>
+                <textarea
+                  value={formData.tripDescription}
+                  onChange={(e) => setFormData({ ...formData, tripDescription: e.target.value })}
+                  placeholder="简要描述您的行程主题或备注..."
+                  rows={3}
+                  className="w-full px-5 py-3 text-base rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none resize-none"
+                />
               </div>
             </div>
           </GlassCard>
