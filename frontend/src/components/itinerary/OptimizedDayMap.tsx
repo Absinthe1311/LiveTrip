@@ -11,6 +11,7 @@ interface OptimizedDayMapProps {
   showAllDays?: boolean;
   allDays?: any[];
   restaurantRecommendations?: Restaurant[];
+  hotelRecommendations?: Hotel[];
   onMapUpdate?: () => void;
 }
 
@@ -58,6 +59,7 @@ export default function OptimizedDayMap({
   showAllDays = false,
   allDays = [],
   restaurantRecommendations = [],
+  hotelRecommendations = [],
   onMapUpdate
 }: OptimizedDayMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -312,6 +314,67 @@ export default function OptimizedDayMap({
         markersRef.current.push(hotelMarker);
       }
 
+      // 添加待选酒店标记（如果有）
+      if (hotelRecommendations && hotelRecommendations.length > 0) {
+        hotelRecommendations.forEach((candHotel: Hotel) => {
+          if (candHotel.location) {
+            const isHotelSelected = hotel?.name === candHotel.name;
+            const candHotelCoords = candHotel.location.split(',').map(Number);
+
+            const candHotelMarker = new AMap.Marker({
+              position: candHotelCoords,
+              title: candHotel.name,
+              content: `
+                <div class="map-marker-container" style="position: relative; cursor: pointer;">
+                  <div style="
+                    width: ${isHotelSelected ? '40px' : '32px'};
+                    height: ${isHotelSelected ? '40px' : '32px'};
+                    background: ${isHotelSelected 
+                      ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' 
+                      : 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'};
+                    border-radius: 50% 50% 50% 0;
+                    transform: rotate(-45deg);
+                    border: ${isHotelSelected ? '3px' : '2px'} solid #fff;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
+                    <div style="transform: rotate(45deg); font-size: ${isHotelSelected ? '18px' : '14px'};">🏨</div>
+                  </div>
+                  <div style="
+                    position: absolute;
+                    top: -30px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(255, 255, 255, 0.95);
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    color: #1f2937;
+                    white-space: nowrap;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    border: 1px solid #e5e7eb;
+                  ">
+                    ${candHotel.name}
+                  </div>
+                </div>
+              `,
+              offset: new AMap.Pixel(isHotelSelected ? -20 : -16, isHotelSelected ? -40 : -32),
+              zIndex: isHotelSelected ? 90 : 85
+            });
+
+            candHotelMarker.on('click', () => {
+              handleMarkerClick(candHotel, candHotelCoords);
+            });
+
+            map.add(candHotelMarker);
+            markersRef.current.push(candHotelMarker);
+          }
+        });
+      }
+
       // 添加餐厅标记
       if (showAllRestaurants && restaurantRecommendations) {
         // 显示所有推荐餐厅
@@ -450,7 +513,7 @@ export default function OptimizedDayMap({
         mapRef.current = null;
       }
     };
-  }, [day, amapKey, hotel, restaurant, showAllRestaurants, showAllDays, allDays, restaurantRecommendations]);
+  }, [day, amapKey, hotel, restaurant, showAllRestaurants, showAllDays, allDays, restaurantRecommendations, hotelRecommendations]);
 
   return (
     <div className="w-full h-full rounded-2xl overflow-hidden relative">

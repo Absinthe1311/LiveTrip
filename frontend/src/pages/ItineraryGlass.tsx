@@ -61,7 +61,25 @@ declare global {
 }
 
 // 地图组件
-function DayMap({ day, hotel, restaurant }: { day: any; hotel?: Hotel | null; restaurant?: Restaurant | null }) {
+interface DayMapProps {
+  day: any;
+  hotel?: Hotel | null;
+  restaurant?: Restaurant | null;
+  showHotel?: boolean;
+  showRestaurant?: boolean;
+  candidateHotels?: Hotel[];
+  candidateRestaurants?: Restaurant[];
+}
+
+function DayMap({
+  day,
+  hotel,
+  restaurant,
+  showHotel = true,
+  showRestaurant = true,
+  candidateHotels = [],
+  candidateRestaurants = []
+}: DayMapProps) {
   const mapContainer = React.useRef<HTMLDivElement>(null);
   const mapRef = React.useRef<any>(null);
   const markersRef = React.useRef<any[]>([]);
@@ -117,8 +135,8 @@ function DayMap({ day, hotel, restaurant }: { day: any; hotel?: Hotel | null; re
 
       map.addControl(new AMap.Scale());
 
-      // 添加餐厅标记
-      if (restaurant?.location) {
+      // 添加餐厅标记（根据showRestaurant参数控制）
+      if (showRestaurant && restaurant?.location) {
         const restaurantCoords = restaurant.location.split(',').map(Number);
         const restaurantMarker = new AMap.Marker({
           position: restaurantCoords,
@@ -165,8 +183,60 @@ function DayMap({ day, hotel, restaurant }: { day: any; hotel?: Hotel | null; re
         markersRef.current.push(restaurantMarker);
       }
 
-      // 添加酒店标记
-      if (hotel?.location) {
+      // 添加待选餐厅标记
+      if (candidateRestaurants && candidateRestaurants.length > 0) {
+        candidateRestaurants.forEach((candRest, index) => {
+          if (candRest.location) {
+            const candCoords = candRest.location.split(',').map(Number);
+            const candMarker = new AMap.Marker({
+              position: candCoords,
+              title: candRest.name,
+              content: `
+                <div style="
+                  width: 36px;
+                  height: 36px;
+                  background: linear-gradient(135deg, #a0d911 0%, #73d13d 100%);
+                  border-radius: 50%;
+                  border: 2px solid #fff;
+                  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                  cursor: pointer;
+                  display: flex;
+              align-items: center;
+                  justify-content: center;
+                  color: #fff;
+                  font-weight: bold;
+                  font-size: 14px;
+                ">
+                  🍽️
+                </div>
+              `,
+              offset: new AMap.Pixel(-18, -18),
+              zIndex: 130
+            });
+
+            candMarker.on('click', () => {
+              const infoWindow = new AMap.InfoWindow({
+                content: `
+                  <div style="padding: 12px; min-width: 200px; background: rgba(0,0,0,0.8); color: white; border-radius: 8px;">
+                    <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">🍽️ ${candRest.name}</h3>
+                    <p style="margin: 4px 0; color: #a0d911; font-weight: 500;">${candRest.type || '餐厅'}</p>
+                    <p style="margin: 4px 0; color: #ccc; font-size: 13px;">${candRest.address || ''}</p>
+                    ${candRest.rating ? `<p style="margin: 4px 0; color: #faad14; font-size: 13px;">⭐ ${candRest.rating}分</p>` : ''}
+                  </div>
+                `,
+                offset: new AMap.Pixel(0, -30)
+              });
+              infoWindow.open(map, candCoords);
+            });
+
+            map.add(candMarker);
+            markersRef.current.push(candMarker);
+          }
+        });
+      }
+
+      // 添加酒店标记（根据showHotel参数控制）
+      if (showHotel && hotel?.location) {
         const hotelCoords = hotel.location.split(',').map(Number);
         const hotelMarker = new AMap.Marker({
           position: hotelCoords,
@@ -211,6 +281,58 @@ function DayMap({ day, hotel, restaurant }: { day: any; hotel?: Hotel | null; re
 
         map.add(hotelMarker);
         markersRef.current.push(hotelMarker);
+      }
+
+      // 添加待选酒店标记
+      if (candidateHotels && candidateHotels.length > 0) {
+        candidateHotels.forEach((candHotel, index) => {
+          if (candHotel.location) {
+            const candCoords = candHotel.location.split(',').map(Number);
+            const candMarker = new AMap.Marker({
+              position: candCoords,
+              title: candHotel.name,
+              content: `
+                <div style="
+                  width: 36px;
+                  height: 36px;
+                  background: linear-gradient(135deg, #ff9c6e 0%, #ff7a45 100%);
+                  border-radius: 50%;
+                  border: 2px solid #fff;
+                  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: #fff;
+                  font-weight: bold;
+                  font-size: 14px;
+                ">
+                  🏨
+                </div>
+              `,
+              offset: new AMap.Pixel(-18, -18),
+              zIndex: 140
+            });
+
+            candMarker.on('click', () => {
+              const infoWindow = new AMap.InfoWindow({
+                content: `
+                  <div style="padding: 12px; min-width: 200px; background: rgba(0,0,0,0.8); color: white; border-radius: 8px;">
+                    <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">🏨 ${candHotel.name}</h3>
+                    <p style="margin: 4px 0; color: #ff9c6e; font-weight: 500;">${candHotel.type || '酒店'}</p>
+                    <p style="margin: 4px 0; color: #ccc; font-size: 13px;">${candHotel.address || ''}</p>
+                    ${candHotel.rating ? `<p style="margin: 4px 0; color: #faad14; font-size: 13px;">⭐ ${candHotel.rating}分</p>` : ''}
+                  </div>
+                `,
+                offset: new AMap.Pixel(0, -30)
+              });
+              infoWindow.open(map, candCoords);
+            });
+
+            map.add(candMarker);
+            markersRef.current.push(candMarker);
+          }
+        });
       }
 
       // 添加景点标记
@@ -292,7 +414,7 @@ function DayMap({ day, hotel, restaurant }: { day: any; hotel?: Hotel | null; re
         mapRef.current.destroy();
       }
     };
-  }, [day, amapKey, hotel, restaurant]);
+  }, [day, amapKey, hotel, restaurant, showHotel, showRestaurant, candidateHotels, candidateRestaurants]);
 
   return (
     <div className="w-full h-full rounded-2xl overflow-hidden">
@@ -563,6 +685,17 @@ export default function ItineraryGlass() {
   const [restaurantRecommendations, setRestaurantRecommendations] = useState<DayRestaurantRecommendation[]>([]);
   const [hotelRecommendationLoaded, setHotelRecommendationLoaded] = useState(false);
 
+  // 地图显示控制状态
+  const [showRestaurantOnMap, setShowRestaurantOnMap] = useState(false);
+  const [showHotelOnMap, setShowHotelOnMap] = useState(false);
+  const [candidateRestaurantsVisible, setCandidateRestaurantsVisible] = useState<Record<number, Restaurant[]>>({});
+  const [candidateHotelsVisible, setCandidateHotelsVisible] = useState<Hotel[]>([]);
+  const [selectingRestaurantForDay, setSelectingRestaurantForDay] = useState<number | null>(null);
+  const [selectingHotel, setSelectingHotel] = useState(false);
+
+  // 地图显示模式：'attractions' | 'restaurant' | 'hotel'
+  const [mapDisplayMode, setMapDisplayMode] = useState<'attractions' | 'restaurant' | 'hotel'>('attractions');
+
   // 预算相关状态
   const [budgetInfo, setBudgetInfo] = useState<any>(null);
 
@@ -818,12 +951,20 @@ export default function ItineraryGlass() {
   const handleReplaceAttraction = async (params: any, originalItemParam?: any, newItemParam?: any) => {
     let dayIndex: number, attractionIndex: number, originalItem: AttractionItem, newItem: any, skipConfirm: boolean;
 
+    console.log('🔍 handleReplaceAttraction 接收到的参数:', params);
+
     if (typeof params === 'object' && params.dayIndex !== undefined) {
       dayIndex = params.dayIndex;
       attractionIndex = params.attractionIndex;
       originalItem = params.originalItem;
       newItem = params.newItem;
       skipConfirm = params.skipConfirm;
+      console.log('🔍 解构后的参数:');
+      console.log('   dayIndex:', dayIndex);
+      console.log('   attractionIndex:', attractionIndex);
+      console.log('   originalItem:', originalItem);
+      console.log('   newItem:', newItem);
+      console.log('   skipConfirm:', skipConfirm);
     } else {
       dayIndex = params;
       attractionIndex = originalItemParam;
@@ -832,12 +973,21 @@ export default function ItineraryGlass() {
       skipConfirm = false;
     }
 
+    console.log('🔄 替换景点:', originalItem?.name, '->', newItem.name);
+
     const executeReplacement = async () => {
       try {
         if (!itineraryData) return;
 
+        console.log('✅ 开始执行替换操作');
+
         const newItineraryData = { ...itineraryData };
         const day = newItineraryData.itinerary[dayIndex];
+
+        // 如果没有提供originalItem，从当前行程中获取
+        if (!originalItem) {
+          originalItem = day.attractions[attractionIndex];
+        }
 
         day.attractions[attractionIndex] = {
           ...day.attractions[attractionIndex],
@@ -845,7 +995,11 @@ export default function ItineraryGlass() {
           description: newItem.description,
           estimated_cost: newItem.estimated_cost,
           location: newItem.location,
+          // 保留原有的时间
+          time: day.attractions[attractionIndex].time,
         };
+
+        console.log('🔄 替换后的景点对象:', day.attractions[attractionIndex]);
 
         day.attractions = recalculateTimeSlots(day.attractions);
 
@@ -859,6 +1013,7 @@ export default function ItineraryGlass() {
               newItem.id,
               itineraryData.summary.destination
             );
+            console.log('✅ 备选关系更新成功');
           } catch (error) {
             console.error('⚠️  更新备选关系失败:', error);
           }
@@ -867,6 +1022,7 @@ export default function ItineraryGlass() {
         handleCloseAlternatives(originalItem);
 
         message.success('景点替换成功！');
+        console.log('✅ 景点替换完成');
       } catch (error: any) {
         console.error('❌ 替换景点失败:', error);
         message.error('替换景点失败，请稍后重试');
@@ -880,7 +1036,7 @@ export default function ItineraryGlass() {
         title: '确认替换景点',
         content: (
           <div>
-            <p>确认将 <strong>{originalItem.name}</strong> 替换为 <strong>{newItem.name}</strong> 吗？</p>
+            <p>确认将 <strong>{originalItem?.name || '当前景点'}</strong> 替换为 <strong>{newItem.name}</strong> 吗？</p>
             <p style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
               替换后，系统会自动调整该景点的建议游玩时间
             </p>
@@ -901,6 +1057,195 @@ export default function ItineraryGlass() {
       setAdjustModalVisible(false);
       message.success('行程调整成功！');
     }
+  };
+
+  // 打开餐厅选择模式
+  const handleOpenRestaurantSelection = (dayNumber: number) => {
+    console.log('🍽️ 打开餐厅选择模式 - 第', dayNumber, '天');
+
+    setSelectingRestaurantForDay(dayNumber);
+    setShowRestaurantOnMap(true);
+    setMapDisplayMode('restaurant');
+
+    // 获取当天的餐厅推荐
+    const dayRecommendations = restaurantRecommendations.find(r => r.day === dayNumber);
+    if (dayRecommendations && dayRecommendations.restaurants) {
+      console.log('✅ 使用餐厅推荐数据:', dayRecommendations.restaurants.length, '个');
+      setCandidateRestaurantsVisible(prev => ({
+        ...prev,
+        [dayNumber]: dayRecommendations.restaurants
+      }));
+    } else {
+      // 如果没有推荐，使用模拟数据
+      console.log('⚠️  使用模拟餐厅数据');
+      const currentDay = itineraryData?.itinerary.find(d => d.day === dayNumber);
+      const centerLocation = currentDay?.attractions[0]?.location || '116.397428,39.90923';
+
+      const mockRestaurants = [
+        {
+          name: '老北京炸酱面',
+          type: '中式快餐',
+          rating: 4.5,
+          address: '距离500m',
+          location: centerLocation,
+          tel: '010-12345678',
+          distance: 500
+        },
+        {
+          name: '川味观',
+          type: '川菜',
+          rating: 4.7,
+          address: '距离800m',
+          location: centerLocation,
+          tel: '010-87654321',
+          distance: 800
+        },
+        {
+          name: '绿茶餐厅',
+          type: '创意菜',
+          rating: 4.6,
+          address: '距离1.2km',
+          location: centerLocation,
+          tel: '010-11112222',
+          distance: 1200
+        }
+      ];
+
+      console.log('✅ 模拟餐厅数据:', mockRestaurants);
+      setCandidateRestaurantsVisible(prev => ({
+        ...prev,
+        [dayNumber]: mockRestaurants
+      }));
+    }
+  };
+
+  // 选择餐厅
+  const handleSelectRestaurant = (dayNumber: number, restaurant: Restaurant) => {
+    console.log('🍽️ 选择餐厅:', restaurant.name, '第', dayNumber, '天');
+
+    setSelectedRestaurants(prev => {
+      const newSelected = {
+        ...prev,
+        [dayNumber]: restaurant
+      };
+      console.log('✅ 更新已选餐厅:', newSelected);
+      return newSelected;
+    });
+
+    // 清除其他待选餐厅，只保留选中的
+    setCandidateRestaurantsVisible(prev => {
+      const newVisible = {
+        ...prev,
+        [dayNumber]: [restaurant]
+      };
+      console.log('✅ 更新待选餐厅（只保留选中）:', newVisible);
+      return newVisible;
+    });
+
+    message.success(`已选择: ${restaurant.name}`);
+
+    // 延迟关闭选择模式
+    setTimeout(() => {
+      console.log('🔄 关闭餐厅选择模式');
+      setSelectingRestaurantForDay(null);
+      setShowRestaurantOnMap(false);
+    }, 1500); // 增加延迟时间，让用户看到选择效果
+  };
+
+  // 关闭餐厅选择模式
+  const handleCloseRestaurantSelection = () => {
+    console.log('🔄 关闭餐厅选择模式');
+    setSelectingRestaurantForDay(null);
+    setShowRestaurantOnMap(false);
+    setMapDisplayMode('attractions');
+    setCandidateRestaurantsVisible(prev => {
+      const newVisible = { ...prev };
+      delete newVisible[selectedDayIndex + 1]; // 清除当前天的待选餐厅
+      return newVisible;
+    });
+  };
+
+  // 打开酒店选择模式
+  const handleOpenHotelSelection = () => {
+    console.log('🏨 打开酒店选择模式');
+    console.log('   酒店推荐列表:', hotelRecommendations);
+
+    setSelectingHotel(true);
+    setShowHotelOnMap(true);
+    setMapDisplayMode('hotel');
+
+    // 使用酒店推荐列表
+    if (hotelRecommendations && hotelRecommendations.length > 0) {
+      console.log('✅ 使用酒店推荐列表:', hotelRecommendations.length, '个');
+      setCandidateHotelsVisible(hotelRecommendations);
+    } else {
+      // 如果没有推荐，使用模拟数据
+      console.log('⚠️  使用模拟酒店数据');
+      const centerLocation = itineraryData?.itinerary[0]?.attractions[0]?.location || '116.397428,39.90923';
+
+      const mockHotels = [
+        {
+          name: '北京饭店',
+          type: '五星级酒店',
+          rating: 4.8,
+          address: '距离市中心500m',
+          location: centerLocation,
+          tel: '010-12345678',
+          avgDistance: 0.5,
+          distanceDetails: [0.5]
+        },
+        {
+          name: '王府井希尔顿酒店',
+          type: '五星级酒店',
+          rating: 4.7,
+          address: '距离市中心800m',
+          location: centerLocation,
+          tel: '010-87654321',
+          avgDistance: 0.8,
+          distanceDetails: [0.8]
+        },
+        {
+          name: '如家快捷酒店',
+          type: '经济型酒店',
+          rating: 4.3,
+          address: '距离市中心1.2km',
+          location: centerLocation,
+          tel: '010-11112222',
+          avgDistance: 1.2,
+          distanceDetails: [1.2]
+        }
+      ];
+      console.log('✅ 模拟酒店数据:', mockHotels);
+      setCandidateHotelsVisible(mockHotels);
+    }
+  };
+
+  // 选择酒店
+  const handleSelectHotel = (hotel: Hotel) => {
+    console.log('🏨 选择酒店:', hotel.name);
+
+    setSelectedHotel(hotel);
+
+    // 清除其他待选酒店，只保留选中的
+    setCandidateHotelsVisible([hotel]);
+
+    message.success(`已选择: ${hotel.name}`);
+
+    // 延迟关闭选择模式
+    setTimeout(() => {
+      console.log('🔄 关闭酒店选择模式');
+      setSelectingHotel(false);
+      setShowHotelOnMap(false);
+    }, 1500); // 增加延迟时间，让用户看到选择效果
+  };
+
+  // 关闭酒店选择模式
+  const handleCloseHotelSelection = () => {
+    console.log('🔄 关闭酒店选择模式');
+    setSelectingHotel(false);
+    setShowHotelOnMap(false);
+    setMapDisplayMode('attractions');
+    setCandidateHotelsVisible([]);
   };
 
   // 完成行程
@@ -1101,7 +1446,7 @@ export default function ItineraryGlass() {
                       const itemIoTData = getAttractionIoTData(item, iotData);
 
                       // 判断是否需要显示餐厅建议（在11:00-13:00之间）
-                      const showRestaurantSuggestion = index < array.length - 1 && 
+                      const showRestaurantSuggestion = index < array.length - 1 &&
                         item.time.includes('11:') || item.time.includes('12:');
 
                       return (
@@ -1137,6 +1482,8 @@ export default function ItineraryGlass() {
                                 });
                               }}
                               city={itineraryData.summary?.destination}
+                              dayIndex={selectedDayIndex}
+                              attractionIndex={index}
                             />
                           )}
 
@@ -1145,8 +1492,9 @@ export default function ItineraryGlass() {
                             <RestaurantSuggestionPlaceholder
                               time="12:00-13:00"
                               onClick={() => {
-                                // 触发右侧餐厅推荐显示
-                                message.info('正在加载周边餐厅...');
+                                // 触发餐厅选择模式
+                                const currentDay = itineraryData.itinerary[selectedDayIndex].day;
+                                handleOpenRestaurantSelection(currentDay);
                               }}
                             />
                           )}
@@ -1172,12 +1520,107 @@ export default function ItineraryGlass() {
                     {itineraryData.itinerary[selectedDayIndex] && (
                       <DayMap
                         day={itineraryData.itinerary[selectedDayIndex]}
-                        hotel={selectedHotel}
-                        restaurant={selectedRestaurants[itineraryData.itinerary[selectedDayIndex].day]}
+                        hotel={showHotelOnMap ? selectedHotel : null}
+                        restaurant={showRestaurantOnMap ? selectedRestaurants[itineraryData.itinerary[selectedDayIndex].day] : null}
+                        showHotel={showHotelOnMap}
+                        showRestaurant={showRestaurantOnMap}
+                        candidateHotels={selectingHotel ? candidateHotelsVisible : []}
+                        candidateRestaurants={selectingRestaurantForDay === itineraryData.itinerary[selectedDayIndex].day
+                          ? candidateRestaurantsVisible[itineraryData.itinerary[selectedDayIndex].day] || []
+                          : []
+                        }
                       />
                     )}
                   </div>
                 </div>
+
+                {/* 餐厅选择面板 */}
+                {selectingRestaurantForDay === itineraryData.itinerary[selectedDayIndex].day && (
+                  <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-4 border border-white/30 shadow-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-white">选择餐厅</span>
+                        <span className="text-xs text-white/50">第{selectingRestaurantForDay}天午餐</span>
+                      </div>
+                      <button
+                        onClick={handleCloseRestaurantSelection}
+                        className="text-xs text-white/60 hover:text-white flex items-center gap-1"
+                      >
+                        <X className="w-3 h-3" />
+                        关闭
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(candidateRestaurantsVisible[selectingRestaurantForDay] || []).map((restaurant, index) => {
+                        const isSelected = selectedRestaurants[selectingRestaurantForDay]?.name === restaurant.name;
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => handleSelectRestaurant(selectingRestaurantForDay, restaurant)}
+                            className={`p-3 rounded-xl border-2 transition-all duration-300 ${
+                              isSelected
+                                ? 'bg-green-500/20 border-green-400/50 shadow-lg shadow-green-500/20'
+                                : 'bg-white/10 border-white/20 hover:bg-white/15 hover:border-white/30'
+                            }`}
+                          >
+                            <div className="text-center">
+                              <div className="text-lg mb-1">🍽️</div>
+                              <div className="text-xs font-semibold text-white truncate">{restaurant.name}</div>
+                              <div className="text-xs text-white/60 mt-1">{restaurant.type}</div>
+                              {restaurant.rating && (
+                                <div className="text-xs text-amber-400 mt-1">⭐ {restaurant.rating}</div>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 酒店选择面板 */}
+                {selectingHotel && (
+                  <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-4 border border-white/30 shadow-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-white">选择酒店</span>
+                        <span className="text-xs text-white/50">住宿推荐</span>
+                      </div>
+                      <button
+                        onClick={handleCloseHotelSelection}
+                        className="text-xs text-white/60 hover:text-white flex items-center gap-1"
+                      >
+                        <X className="w-3 h-3" />
+                        关闭
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {candidateHotelsVisible.map((hotel, index) => {
+                        const isSelected = selectedHotel?.name === hotel.name;
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => handleSelectHotel(hotel)}
+                            className={`p-3 rounded-xl border-2 transition-all duration-300 ${
+                              isSelected
+                                ? 'bg-purple-500/20 border-purple-400/50 shadow-lg shadow-purple-500/20'
+                                : 'bg-white/10 border-white/20 hover:bg-white/15 hover:border-white/30'
+                            }`}
+                          >
+                            <div className="text-center">
+                              <div className="text-lg mb-1">🏨</div>
+                              <div className="text-xs font-semibold text-white truncate">{hotel.name}</div>
+                              <div className="text-xs text-white/60 mt-1">{hotel.type}</div>
+                              {hotel.rating && (
+                                <div className="text-xs text-amber-400 mt-1">⭐ {hotel.rating}</div>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* 紧凑预算分布 */}
                 <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-4 border border-white/30 shadow-lg">
@@ -1391,6 +1834,7 @@ export default function ItineraryGlass() {
           setSelectedHotel(null);
           message.info('已取消酒店选择');
         }}
+        onOpenSelection={handleOpenHotelSelection}
       />
     </GlassLayout>
   );

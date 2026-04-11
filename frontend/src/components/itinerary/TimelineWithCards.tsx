@@ -31,7 +31,7 @@ interface TimelineWithCardsProps {
   expandedAlternatives: Record<string, any[]>;
   loadingAlternatives: Record<string, boolean>;
   handleCloseAlternatives: (item: AttractionItem) => void;
-  handleReplaceAttraction: (params: any) => void;
+  handleReplaceAttraction: (newItem: any, originalItem: any) => void;
   onAttractionsReorder?: (newAttractions: AttractionItem[]) => void;
 }
 
@@ -63,7 +63,7 @@ function SortableSpotCardWrapper({
   alternatives?: any[];
   isLoading?: boolean;
   handleCloseAlternatives: (item: AttractionItem) => void;
-  handleReplaceAttraction: (params: any) => void;
+  handleReplaceAttraction: (newItem: any, originalItem: any) => void;
 }) {
   const {
     attributes,
@@ -108,9 +108,10 @@ function SortableSpotCardWrapper({
         {showAlternatives && alternatives && (
           <InlineAlternativeAttractions
             alternatives={alternatives}
+            originalItem={item}
             onClose={() => handleCloseAlternatives(item)}
             onReplace={(newItem) => {
-              handleReplaceAttraction(newItem);
+              handleReplaceAttraction(newItem, item);
             }}
           />
         )}

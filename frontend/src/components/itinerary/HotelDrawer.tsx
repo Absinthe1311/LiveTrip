@@ -7,12 +7,14 @@ interface HotelDrawerProps {
   selectedHotel?: Hotel | null;
   onHotelSelect?: (hotel: Hotel) => void;
   onHotelRemove?: () => void;
+  onOpenSelection?: () => void;
 }
 
 export default function HotelDrawer({
   selectedHotel,
   onHotelSelect,
-  onHotelRemove
+  onHotelRemove,
+  onOpenSelection
 }: HotelDrawerProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -97,6 +99,17 @@ export default function HotelDrawer({
                       >
                         取消选择
                       </button>
+                      {onOpenSelection && (
+                        <button
+                          onClick={() => {
+                            onOpenSelection();
+                            setIsOpen(false);
+                          }}
+                          className="flex-1 py-2 rounded-lg bg-amber-500/30 hover:bg-amber-500/40 text-white text-sm font-medium transition-colors"
+                        >
+                          地图选择
+                        </button>
+                      )}
                       <button
                         onClick={() => setIsOpen(false)}
                         className="flex-1 py-2 rounded-lg bg-purple-500/30 hover:bg-purple-500/40 text-white text-sm font-medium transition-colors"

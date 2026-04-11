@@ -4,12 +4,14 @@ import { Star, X, Plus } from 'lucide-react';
 
 interface InlineAlternativeAttractionsProps {
   alternatives: any[];
+  originalItem: any;
   onClose: () => void;
-  onReplace: (attraction: any) => void;
+  onReplace: (attraction: any, originalItem: any) => void;
 }
 
 export default function InlineAlternativeAttractions({
   alternatives,
+  originalItem,
   onClose,
   onReplace
 }: InlineAlternativeAttractionsProps) {
@@ -18,7 +20,7 @@ export default function InlineAlternativeAttractions({
   const handleReplace = async (attraction: any) => {
     setLoadingId(attraction.id);
     try {
-      onReplace(attraction);
+      onReplace(attraction, originalItem);
     } finally {
       setLoadingId(null);
     }

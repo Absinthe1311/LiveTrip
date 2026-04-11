@@ -351,8 +351,7 @@ export default function ItineraryOptimized() {
         setRestaurantRecommendations(restaurantsMap);
         console.log(`✅ 成功加载餐厅推荐`);
         
-        // 加载餐厅推荐后，显示所有餐厅供用户选择
-        setShowAllRestaurants(true);
+        // 不在这里设置showAllRestaurants，让它在步骤切换时动态控制
       }
     } catch (error) {
       console.error('加载餐厅推荐失败:', error);
@@ -437,6 +436,23 @@ export default function ItineraryOptimized() {
   const handleStepChange = (index: number) => {
     if (index <= currentStepIndex || completedSteps[index - 1]) {
       setCurrentStepIndex(index);
+      
+      // 根据步骤类型设置地图显示模式
+      const step = steps[index];
+      if (step.type === 'restaurants') {
+        setShowAllRestaurants(true);
+        setShowAllDays(false);
+        console.log(`🍽️ 切换到餐厅选择模式 - 第${step.day}天`);
+      } else if (step.type === 'hotels') {
+        setShowAllRestaurants(false);
+        setShowAllDays(true);
+        console.log('🏨 切换到酒店选择模式');
+      } else {
+        // 景点选择模式
+        setShowAllRestaurants(false);
+        setShowAllDays(false);
+        console.log(`📍 切换到景点选择模式 - 第${step.day}天`);
+      }
     }
   };
 
@@ -727,10 +743,11 @@ export default function ItineraryOptimized() {
                   expandedAlternatives={expandedAlternatives}
                   loadingAlternatives={loadingAlternatives}
                   handleCloseAlternatives={handleCloseAlternatives}
-                  handleReplaceAttraction={(newItem: any) => {
+                  handleReplaceAttraction={(newItem: any, originalItem: any) => {
                     const newItinerary = { ...itineraryData };
                     newItinerary.itinerary[currentDayIndex].attractions = newItinerary.itinerary[currentDayIndex].attractions.map((attr: any, idx: number) => {
-                      if (attr.id === newItem.id || attr.name === newItem.name) {
+                      // 通过原始景点信息来找到要替换的景点
+                      if (originalItem && (attr.name === originalItem.name && attr.time === originalItem.time)) {
                         return { ...newItem, time: attr.time }; // 保持原有的时间
                       }
                       return attr;
@@ -761,12 +778,13 @@ export default function ItineraryOptimized() {
                 {itineraryData.itinerary[currentDayIndex] && (
                   <OptimizedDayMap
                     day={itineraryData.itinerary[currentDayIndex]}
-                    hotel={selectedHotel}
-                    restaurant={selectedRestaurants[itineraryData.itinerary[currentDayIndex].day]}
+                    hotel={currentStep?.type === 'hotels' ? selectedHotel : null}
+                    restaurant={currentStep?.type === 'restaurants' ? selectedRestaurants[itineraryData.itinerary[currentDayIndex].day] : null}
                     showAllRestaurants={showAllRestaurants}
                     showAllDays={showAllDays}
                     allDays={itineraryData.itinerary}
                     restaurantRecommendations={restaurantRecommendations[itineraryData.itinerary[currentDayIndex].day]}
+                    hotelRecommendations={currentStep?.type === 'hotels' ? hotelRecommendations : []}
                   />
                 )}
               </FullscreenMap>
