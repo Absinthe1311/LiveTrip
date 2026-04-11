@@ -166,7 +166,7 @@ export default function TimelineWithCards({
 
   // 获取景点的IoT数据
   const getAttractionIoTData = (item: AttractionItem, allIoTData: any[]) => {
-    return allIoTData.find(data => data.spotName === item.name);
+    return allIoTData.find(data => data.name === item.name || data.spotName === item.name);
   };
 
   // 处理卡片高度变化

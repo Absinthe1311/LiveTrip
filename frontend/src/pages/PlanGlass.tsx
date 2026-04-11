@@ -1,5 +1,5 @@
 // 创建行程页面 - 毛玻璃风格版本（优化版）
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
 import { Check, Sparkles, ChevronLeft, ChevronRight, MapPin, Navigation, Calendar, Wallet, Users, Heart, ArrowRight, ArrowLeft, User, HeartHandshake, UsersRound, Mountain, Utensils, Camera, Building, TreePine, Waves, ShoppingBag, Dumbbell, Droplets, Moon, Sun, Palette, Landmark, Ticket, Coffee, Store, ChefHat, CreditCard, Gem, Crown, Briefcase, Building2, Locate, X, Upload, Image as ImageIcon, Type as TypeIcon } from "lucide-react";
@@ -159,8 +159,15 @@ export default function PlanGlass() {
   };
 
   const handleGenerate = async () => {
+    // 防止重复点击
+    if (loading) {
+      console.log('⚠️ 正在生成行程，请勿重复点击');
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    console.log('🔄 开始生成行程...');
 
     // 添加详细的调试信息
     console.log('🔍 当前 formData 状态:', formData);
@@ -197,60 +204,29 @@ export default function PlanGlass() {
       const response = await createPlan(request);
 
       if (response.success) {
-        // 保存个性化信息到行程
-        if (formData.tripName || formData.tripDescription || formData.coverImage) {
-          try {
-            // 构造符合后端期望的数据结构
-            const tripData = {
-              summary: response.data.summary || {
-                origin: formData.origin,
-                destination: formData.destination,
-                start_date: formData.startDate,
-                end_date: formData.endDate,
-                days: response.data.itinerary?.length || 1,
-              },
-              itinerary: {
-                itinerary: response.data.itinerary || []
-              },
-              total_cost: response.data.total_cost || 0,
-              budget_breakdown: response.data.budget_breakdown || {
-                transportation: 0,
-                accommodation: 0,
-                dining: 0,
-                tickets: 0,
-              },
-              hotel: response.data.hotel || null,
-              hotelRecommendations: response.data.hotelRecommendations || [],
-              restaurantRecommendations: response.data.restaurantRecommendations || [],
-              restaurants: response.data.restaurants || [],
-              customization: {
-                tripName: formData.tripName,
-                tripDescription: formData.tripDescription,
-                coverImage: formData.coverImage,
-              },
-            };
+        console.log('✅ 行程规划成功');
 
-            const saveResponse = await fetch('http://localhost:3003/api/trips', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-              },
-              body: JSON.stringify(tripData),
-            });
+        // 构造行程数据（不保存到数据库，只设置到store）
+        const itineraryData = {
+          ...response.data,
+          summary: response.data.summary || {
+            origin: formData.origin,
+            destination: formData.destination,
+            start_date: formData.startDate,
+            end_date: formData.endDate,
+            days: response.data.itinerary?.length || 1,
+          },
+          customization: {
+            tripName: formData.tripName,
+            tripDescription: formData.tripDescription,
+            coverImage: formData.coverImage,
+          },
+          isSavedTrip: false, // 标记为未保存
+          status: 'planning'
+        };
 
-            const saveData = await saveResponse.json();
-            if (saveData.success) {
-              console.log('✅ 个性化信息保存成功');
-            } else {
-              console.warn('⚠️ 个性化信息保存失败，但行程已生成');
-            }
-          } catch (error) {
-            console.warn('⚠️ 个性化信息保存失败，但行程已生成:', error);
-          }
-        }
-
-        setCurrentItinerary(response.data);
+        // 将行程数据设置到store，但不保存到数据库
+        setCurrentItinerary(itineraryData);
         navigate('/itinerary');
       } else {
         setError(response.error || '行程规划失败，请稍后重试');
@@ -816,53 +792,54 @@ export default function PlanGlass() {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-livetrip-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '15s' }} />
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto py-8 space-y-8">
-        {/* 步骤指示器 - 渐进式高亮设计 */}
-        <GlassCard className="p-8">
-          <div className="flex items-center justify-between">
+      <div className="relative z-10 max-w-4xl mx-auto py-6 space-y-6">
+        {/* 步骤指示器 - 紧凑横向滚动设计 */}
+        <GlassCard className="p-4">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {steps.map((step, index) => {
               const StepIcon = step.icon;
               return (
-                <div key={step.id} className="flex items-center">
-                  {/* 步骤圆圈 */}
-                  <div className="flex flex-col items-center">
+                <React.Fragment key={step.id}>
+                  {/* 步骤项 */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* 步骤圆圈 */}
                     <div className={`
-                      relative w-14 h-14 rounded-full flex items-center justify-center
+                      relative w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
                       transition-all duration-500
-                      ${index === currentStep 
-                        ? 'bg-livetrip-primary scale-110 shadow-lg shadow-livetrip-primary/50' 
+                      ${index === currentStep
+                        ? 'bg-livetrip-primary scale-110 shadow-lg shadow-livetrip-primary/50'
                         : index < currentStep
                           ? 'bg-livetrip-primary/30 border-2 border-livetrip-primary'
                           : 'bg-white/10 border-2 border-white/20'
                       }
                     `}>
                       {index < currentStep ? (
-                        <Check className="w-6 h-6 text-white" />
+                        <Check className="w-4 h-4 text-white" />
                       ) : (
                         <StepIcon className={`
-                          w-6 h-6 transition-all duration-300
+                          w-4 h-4 transition-all duration-300
                           ${index <= currentStep ? 'text-white' : 'text-white/40'}
                         `} />
                       )}
                     </div>
-                    
+
                     {/* 步骤标签 */}
                     <span className={`
-                      mt-3 text-sm font-medium transition-all duration-300
+                      text-xs font-medium transition-all duration-300 whitespace-nowrap
                       ${index === currentStep ? 'text-white' : 'text-white/50'}
                     `}>
                       {step.label}
                     </span>
                   </div>
-                  
+
                   {/* 连接线 */}
                   {index < steps.length - 1 && (
                     <div className={`
-                      w-16 h-0.5 mx-3 transition-all duration-500
+                      w-8 h-0.5 flex-shrink-0 transition-all duration-500
                       ${index < currentStep ? 'bg-livetrip-primary' : 'bg-white/20'}
                     `} />
                   )}
-                </div>
+                </React.Fragment>
               );
             })}
           </div>

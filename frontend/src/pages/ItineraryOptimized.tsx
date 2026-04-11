@@ -482,6 +482,12 @@ export default function ItineraryOptimized() {
   const handleSave = async () => {
     if (!itineraryData) return;
 
+    // 检查是否已经保存过
+    if (itineraryData.isSavedTrip && itineraryData.tripId) {
+      message.info('行程已保存，无需重复保存');
+      return;
+    }
+
     try {
       message.loading({ content: '正在保存行程...', key: 'save' });
 
@@ -502,42 +508,51 @@ export default function ItineraryOptimized() {
         restaurants: Object.entries(selectedRestaurants).map(([day, restaurant]) => ({
           day: parseInt(day),
           selectedRestaurant: restaurant
-        }))
+        })),
+        // 添加个性化信息
+        customization: itineraryData.customization || {
+          tripName: '',
+          tripDescription: '',
+          coverImage: ''
+        }
       };
 
       console.log('📝 准备保存的行程数据:', JSON.stringify(saveData, null, 2));
       console.log('📝 restaurantRecommendations详情:', restaurantRecommendations);
       console.log('📝 hotelRecommendations详情:', hotelRecommendations);
 
-      console.log('📝 准备保存的行程数据:', JSON.stringify(saveData, null, 2));
-
       const response = await saveTrip(saveData);
 
       if (response.success) {
-        message.success({ 
-          content: '行程保存成功！', 
+        message.success({
+          content: '行程保存成功！',
           key: 'save',
           duration: 2
         });
-        
-        // 清空当前行程数据
-        setCurrentItinerary(null);
-        
+
+        // 更新行程数据，标记为已保存
+        const updatedItinerary = {
+          ...itineraryData,
+          tripId: response.data?.tripId,
+          isSavedTrip: true
+        };
+        setCurrentItinerary(updatedItinerary);
+
         // 跳转到我的行程页面
         setTimeout(() => {
           navigate('/my-trips');
         }, 500);
       } else {
-        message.error({ 
-          content: response.message || '保存失败，请重试', 
-          key: 'save' 
+        message.error({
+          content: response.message || '保存失败，请重试',
+          key: 'save'
         });
       }
     } catch (error: any) {
       console.error('保存行程失败:', error);
-      message.error({ 
-        content: error.response?.data?.error || error.message || '保存失败', 
-        key: 'save' 
+      message.error({
+        content: error.response?.data?.error || error.message || '保存失败',
+        key: 'save'
       });
     }
   };
@@ -862,7 +877,7 @@ export default function ItineraryOptimized() {
                     <OptimizedDayMap
                       day={itineraryData.itinerary[currentStep.day - 1]}
                       hotel={null}
-                      restaurant={null}
+                      restaurant={selectedRestaurants[currentStep.day || 0] || null}
                       showAllRestaurants={true}
                       showAllDays={false}
                       allDays={[]}
@@ -934,12 +949,13 @@ export default function ItineraryOptimized() {
                   {itineraryData.itinerary.length > 0 && (
                     <OptimizedDayMap
                       day={null}
-                      hotel={null}
+                      hotel={selectedHotel || null}
                       restaurant={null}
                       showAllRestaurants={false}
                       showAllDays={true}
                       allDays={itineraryData.itinerary}
                       restaurantRecommendations={[]}
+                      hotelRecommendations={hotelRecommendations}
                     />
                   )}
                 </div>

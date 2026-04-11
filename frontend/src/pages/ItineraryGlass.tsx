@@ -69,6 +69,8 @@ interface DayMapProps {
   showRestaurant?: boolean;
   candidateHotels?: Hotel[];
   candidateRestaurants?: Restaurant[];
+  selectedRestaurant?: Restaurant | null;
+  selectedHotel?: Hotel | null;
 }
 
 function DayMap({
@@ -78,7 +80,9 @@ function DayMap({
   showHotel = true,
   showRestaurant = true,
   candidateHotels = [],
-  candidateRestaurants = []
+  candidateRestaurants = [],
+  selectedRestaurant = null,
+  selectedHotel = null
 }: DayMapProps) {
   const mapContainer = React.useRef<HTMLDivElement>(null);
   const mapRef = React.useRef<any>(null);
@@ -138,30 +142,37 @@ function DayMap({
       // 添加餐厅标记（根据showRestaurant参数控制）
       if (showRestaurant && restaurant?.location) {
         const restaurantCoords = restaurant.location.split(',').map(Number);
+        const isSelected = selectedRestaurant?.name === restaurant.name;
+
         const restaurantMarker = new AMap.Marker({
           position: restaurantCoords,
           title: restaurant.name,
           content: `
             <div style="
-              width: 40px;
-              height: 40px;
-              background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+              width: ${isSelected ? '50px' : '40px'};
+              height: ${isSelected ? '50px' : '40px'};
+              background: ${isSelected
+                ? 'linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%)'
+                : 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)'};
               border-radius: 50%;
-              border: 3px solid #fff;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+              border: ${isSelected ? '4px solid #fff' : '3px solid #fff'};
+              box-shadow: ${isSelected ? '0 4px 16px rgba(255,107,107,0.6)' : '0 2px 8px rgba(0,0,0,0.3)'};
               cursor: pointer;
               display: flex;
               align-items: center;
               justify-content: center;
               color: #fff;
               font-weight: bold;
-              font-size: 16px;
+              font-size: ${isSelected ? '20px' : '16px'};
+              transform: ${isSelected ? 'scale(1.1)' : 'scale(1)'};
+              transition: all 0.3s ease;
             ">
               🍽️
+              ${isSelected ? '<div style="position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; background: #ff4757; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</div>' : ''}
             </div>
           `,
-          offset: new AMap.Pixel(-20, -20),
-          zIndex: 140
+          offset: new AMap.Pixel(isSelected ? -25 : -20, isSelected ? -25 : -20),
+          zIndex: isSelected ? 160 : 140
         });
 
         restaurantMarker.on('click', () => {
@@ -172,6 +183,7 @@ function DayMap({
                 <p style="margin: 4px 0; color: #52c41a; font-weight: 500;">${restaurant.type || '餐厅'}</p>
                 <p style="margin: 4px 0; color: #ccc; font-size: 13px;">${restaurant.address || ''}</p>
                 ${restaurant.rating ? `<p style="margin: 4px 0; color: #faad14; font-size: 13px;">⭐ ${restaurant.rating}分</p>` : ''}
+                ${isSelected ? `<p style="margin: 8px 0 0 0; color: #ff6b6b; font-weight: 600; font-size: 14px;">✓ 已选择</p>` : ''}
               </div>
             `,
             offset: new AMap.Pixel(0, -30)
@@ -188,30 +200,37 @@ function DayMap({
         candidateRestaurants.forEach((candRest, index) => {
           if (candRest.location) {
             const candCoords = candRest.location.split(',').map(Number);
+            const isSelected = selectedRestaurant?.name === candRest.name;
+
             const candMarker = new AMap.Marker({
               position: candCoords,
               title: candRest.name,
               content: `
                 <div style="
-                  width: 36px;
-                  height: 36px;
-                  background: linear-gradient(135deg, #a0d911 0%, #73d13d 100%);
+                  width: ${isSelected ? '50px' : '36px'};
+                  height: ${isSelected ? '50px' : '36px'};
+                  background: ${isSelected
+                    ? 'linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%)'
+                    : 'linear-gradient(135deg, #a0d911 0%, #73d13d 100%)'};
                   border-radius: 50%;
-                  border: 2px solid #fff;
-                  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                  border: ${isSelected ? '4px solid #fff' : '2px solid #fff'};
+                  box-shadow: ${isSelected ? '0 4px 16px rgba(255,107,107,0.6)' : '0 2px 8px rgba(0,0,0,0.3)'};
                   cursor: pointer;
                   display: flex;
-              align-items: center;
+                  align-items: center;
                   justify-content: center;
                   color: #fff;
                   font-weight: bold;
-                  font-size: 14px;
+                  font-size: ${isSelected ? '20px' : '14px'};
+                  transform: ${isSelected ? 'scale(1.1)' : 'scale(1)'};
+                  transition: all 0.3s ease;
                 ">
                   🍽️
+                  ${isSelected ? '<div style="position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; background: #ff4757; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</div>' : ''}
                 </div>
               `,
-              offset: new AMap.Pixel(-18, -18),
-              zIndex: 130
+              offset: new AMap.Pixel(isSelected ? -25 : -18, isSelected ? -25 : -18),
+              zIndex: isSelected ? 160 : 130
             });
 
             candMarker.on('click', () => {
@@ -222,6 +241,7 @@ function DayMap({
                     <p style="margin: 4px 0; color: #a0d911; font-weight: 500;">${candRest.type || '餐厅'}</p>
                     <p style="margin: 4px 0; color: #ccc; font-size: 13px;">${candRest.address || ''}</p>
                     ${candRest.rating ? `<p style="margin: 4px 0; color: #faad14; font-size: 13px;">⭐ ${candRest.rating}分</p>` : ''}
+                    ${isSelected ? `<p style="margin: 8px 0 0 0; color: #ff6b6b; font-weight: 600; font-size: 14px;">✓ 已选择</p>` : ''}
                   </div>
                 `,
                 offset: new AMap.Pixel(0, -30)
@@ -238,30 +258,37 @@ function DayMap({
       // 添加酒店标记（根据showHotel参数控制）
       if (showHotel && hotel?.location) {
         const hotelCoords = hotel.location.split(',').map(Number);
+        const isSelected = selectedHotel?.name === hotel.name;
+
         const hotelMarker = new AMap.Marker({
           position: hotelCoords,
           title: hotel.name,
           content: `
             <div style="
-              width: 40px;
-              height: 40px;
-              background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+              width: ${isSelected ? '50px' : '40px'};
+              height: ${isSelected ? '50px' : '40px'};
+              background: ${isSelected
+                ? 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)'
+                : 'linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%)'};
               border-radius: 50%;
-              border: 3px solid #fff;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+              border: ${isSelected ? '4px solid #fff' : '3px solid #fff'};
+              box-shadow: ${isSelected ? '0 4px 16px rgba(156,39,176,0.6)' : '0 2px 8px rgba(0,0,0,0.3)'};
               cursor: pointer;
               display: flex;
               align-items: center;
               justify-content: center;
               color: #fff;
               font-weight: bold;
-              font-size: 16px;
+              font-size: ${isSelected ? '20px' : '16px'};
+              transform: ${isSelected ? 'scale(1.1)' : 'scale(1)'};
+              transition: all 0.3s ease;
             ">
               🏨
+              ${isSelected ? '<div style="position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; background: #9c27b0; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</div>' : ''}
             </div>
           `,
-          offset: new AMap.Pixel(-20, -20),
-          zIndex: 150
+          offset: new AMap.Pixel(isSelected ? -25 : -20, isSelected ? -25 : -20),
+          zIndex: isSelected ? 170 : 150
         });
 
         hotelMarker.on('click', () => {
@@ -272,6 +299,7 @@ function DayMap({
                 <p style="margin: 4px 0; color: #ff6b6b; font-weight: 500;">${hotel.type || '酒店'}</p>
                 <p style="margin: 4px 0; color: #ccc; font-size: 13px;">${hotel.address || ''}</p>
                 ${hotel.rating ? `<p style="margin: 4px 0; color: #faad14; font-size: 13px;">⭐ ${hotel.rating}分</p>` : ''}
+                ${isSelected ? `<p style="margin: 8px 0 0 0; color: #9c27b0; font-weight: 600; font-size: 14px;">✓ 已选择</p>` : ''}
               </div>
             `,
             offset: new AMap.Pixel(0, -30)
@@ -288,30 +316,37 @@ function DayMap({
         candidateHotels.forEach((candHotel, index) => {
           if (candHotel.location) {
             const candCoords = candHotel.location.split(',').map(Number);
+            const isSelected = selectedHotel?.name === candHotel.name;
+
             const candMarker = new AMap.Marker({
               position: candCoords,
               title: candHotel.name,
               content: `
                 <div style="
-                  width: 36px;
-                  height: 36px;
-                  background: linear-gradient(135deg, #ff9c6e 0%, #ff7a45 100%);
+                  width: ${isSelected ? '50px' : '36px'};
+                  height: ${isSelected ? '50px' : '36px'};
+                  background: ${isSelected
+                    ? 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)'
+                    : 'linear-gradient(135deg, #ff9c6e 0%, #ff7a45 100%)'};
                   border-radius: 50%;
-                  border: 2px solid #fff;
-                  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                  border: ${isSelected ? '4px solid #fff' : '2px solid #fff'};
+                  box-shadow: ${isSelected ? '0 4px 16px rgba(156,39,176,0.6)' : '0 2px 8px rgba(0,0,0,0.3)'};
                   cursor: pointer;
                   display: flex;
                   align-items: center;
                   justify-content: center;
                   color: #fff;
                   font-weight: bold;
-                  font-size: 14px;
+                  font-size: ${isSelected ? '20px' : '14px'};
+                  transform: ${isSelected ? 'scale(1.1)' : 'scale(1)'};
+                  transition: all 0.3s ease;
                 ">
                   🏨
+                  ${isSelected ? '<div style="position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; background: #9c27b0; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</div>' : ''}
                 </div>
               `,
-              offset: new AMap.Pixel(-18, -18),
-              zIndex: 140
+              offset: new AMap.Pixel(isSelected ? -25 : -18, isSelected ? -25 : -18),
+              zIndex: isSelected ? 170 : 140
             });
 
             candMarker.on('click', () => {
@@ -322,6 +357,7 @@ function DayMap({
                     <p style="margin: 4px 0; color: #ff9c6e; font-weight: 500;">${candHotel.type || '酒店'}</p>
                     <p style="margin: 4px 0; color: #ccc; font-size: 13px;">${candHotel.address || ''}</p>
                     ${candHotel.rating ? `<p style="margin: 4px 0; color: #faad14; font-size: 13px;">⭐ ${candHotel.rating}分</p>` : ''}
+                    ${isSelected ? `<p style="margin: 8px 0 0 0; color: #9c27b0; font-weight: 600; font-size: 14px;">✓ 已选择</p>` : ''}
                   </div>
                 `,
                 offset: new AMap.Pixel(0, -30)
@@ -414,7 +450,7 @@ function DayMap({
         mapRef.current.destroy();
       }
     };
-  }, [day, amapKey, hotel, restaurant, showHotel, showRestaurant, candidateHotels, candidateRestaurants]);
+  }, [day, amapKey, hotel, restaurant, showHotel, showRestaurant, candidateHotels, candidateRestaurants, selectedRestaurant, selectedHotel]);
 
   return (
     <div className="w-full h-full rounded-2xl overflow-hidden">
@@ -800,6 +836,13 @@ export default function ItineraryGlass() {
 
   // 确认行程并返回主页
   const handleConfirmItinerary = async () => {
+    // 如果已经保存过，提示用户
+    if (isSavedTrip && tripId) {
+      message.info('行程已保存，无需重复保存');
+      navigate('/');
+      return;
+    }
+
     setConfirming(true);
 
     try {
@@ -828,6 +871,7 @@ export default function ItineraryGlass() {
         message.success('行程已保存');
         if (response.data.tripId) {
           setTripId(response.data.tripId);
+          setIsSavedTrip(true);
         }
         navigate('/');
       } else {
@@ -992,11 +1036,17 @@ export default function ItineraryGlass() {
         day.attractions[attractionIndex] = {
           ...day.attractions[attractionIndex],
           name: newItem.name,
-          description: newItem.description,
-          estimated_cost: newItem.estimated_cost,
+          description: newItem.description || newItem.name,
+          estimated_cost: newItem.estimated_cost || 0,
           location: newItem.location,
           // 保留原有的时间
           time: day.attractions[attractionIndex].time,
+          // 确保包含 id 字段
+          id: newItem.id || newItem.amapId || newItem.name,
+          // 确保包含其他必要字段
+          type: newItem.type || newItem.category || '景点',
+          address: newItem.address || '',
+          spotId: newItem.id || newItem.amapId,
         };
 
         console.log('🔄 替换后的景点对象:', day.attractions[attractionIndex]);
@@ -1529,6 +1579,8 @@ export default function ItineraryGlass() {
                           ? candidateRestaurantsVisible[itineraryData.itinerary[selectedDayIndex].day] || []
                           : []
                         }
+                        selectedRestaurant={selectedRestaurants[itineraryData.itinerary[selectedDayIndex].day] || null}
+                        selectedHotel={selectedHotel}
                       />
                     )}
                   </div>
