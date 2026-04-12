@@ -9,6 +9,7 @@ interface ActionButtonProps {
   onNext: () => void;
   onPrevious: () => void;
   onSave: () => void;
+  saveButtonText?: string;
 }
 
 export default function ActionButton({
@@ -17,7 +18,8 @@ export default function ActionButton({
   canProceed,
   onNext,
   onPrevious,
-  onSave
+  onSave,
+  saveButtonText = '保存行程'
 }: ActionButtonProps) {
   return (
     <div className="fixed bottom-8 right-8 z-50 flex items-center gap-3">
@@ -49,7 +51,7 @@ export default function ActionButton({
         <span className="flex items-center gap-2">
           {isLastStep ? (
             <>
-              <span>保存行程</span>
+              <span>{saveButtonText}</span>
               <Check className="w-5 h-5" />
             </>
           ) : (
