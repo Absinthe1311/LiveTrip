@@ -50,7 +50,10 @@ export const joinRoom = async (req: Request, res: Response) => {
     const { token } = req.body;
     const userId = (req as any).user?.userId;
 
+    console.log('📝 加入房间请求:', { token, userId });
+
     if (!userId) {
+      console.error('❌ 未授权: userId 不存在');
       return res.status(401).json({
         success: false,
         error: '未授权，请先登录',
@@ -58,6 +61,7 @@ export const joinRoom = async (req: Request, res: Response) => {
     }
 
     if (!token) {
+      console.error('❌ 缺少邀请token');
       return res.status(400).json({
         success: false,
         error: '缺少邀请token',
@@ -65,6 +69,16 @@ export const joinRoom = async (req: Request, res: Response) => {
     }
 
     const room = await collabService.joinRoom(token, userId);
+
+    if (!room) {
+      console.error('❌ 加入房间失败: 返回的房间数据为空');
+      return res.status(500).json({
+        success: false,
+        error: '加入房间失败',
+      });
+    }
+
+    console.log('✅ 成功加入房间:', room.id);
 
     res.json({
       success: true,

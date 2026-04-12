@@ -241,16 +241,16 @@ export default function DayRoutePlanner({
   };
   
   return (
-    <div className="bg-white border-t-2 border-amber-500 shadow-lg">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/10 backdrop-blur-xl border-t-2 border-amber-500/50 shadow-lg">
       {/* 标题栏 */}
       <div
-        className="flex items-center justify-between px-4 py-3 bg-amber-50 cursor-pointer"
+        className="flex items-center justify-between px-4 py-3 bg-amber-500/20 backdrop-blur-md cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-amber-600" />
-          <h3 className="font-semibold text-amber-900">Day {day} 最终路线绘制</h3>
-          <span className="text-sm text-amber-600">({daySpots.length}个景点被选择)</span>
+          <MapPin className="h-5 w-5 text-amber-400" />
+          <h3 className="font-semibold text-white">Day {day} 最终路线绘制</h3>
+          <span className="text-sm text-amber-300">({daySpots.length}个景点被选择)</span>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -259,27 +259,27 @@ export default function DayRoutePlanner({
               onSave(selectedSpots);
             }}
             disabled={selectedSpots.length === 0}
-            className="px-3 py-1 bg-amber-500 text-white rounded text-sm font-medium hover:bg-amber-600 disabled:opacity-50"
+            className="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg text-sm font-medium hover:shadow-lg hover:shadow-amber-500/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-white/20"
           >
-            保存
+            保存最终路线
           </button>
-          {isExpanded ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+          {isExpanded ? <ChevronDown className="h-5 w-5 text-white/60" /> : <ChevronUp className="h-5 w-5 text-white/60" />}
         </div>
       </div>
       
       {/* 内容区 */}
       {isExpanded && (
-        <div className="p-4">
+        <div className="p-4 max-h-[60vh] overflow-y-auto">
           {/* 用餐提醒 */}
           {mealReminders.length > 0 && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="mb-4 p-3 bg-blue-500/10 backdrop-blur-md border border-blue-500/20 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <Utensils className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-semibold text-blue-900">用餐时间提醒</span>
+                <Utensils className="h-4 w-4 text-blue-400" />
+                <span className="text-sm font-semibold text-blue-300">用餐时间提醒</span>
               </div>
               <div className="space-y-1">
                 {mealReminders.map((reminder, index) => (
-                  <div key={index} className="flex items-center gap-2 text-sm text-blue-700">
+                  <div key={index} className="flex items-center gap-2 text-sm text-blue-300/80">
                     <AlertCircle className="h-3 w-3" />
                     <span>建议在 {reminder.time} 附近安排{reminder.type}</span>
                   </div>
@@ -292,18 +292,18 @@ export default function DayRoutePlanner({
             {/* 左侧：成员路线统计 */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />
+                <h4 className="text-sm font-semibold text-white/80 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-amber-400" />
                   景点选择统计
                 </h4>
                 <button
                   onClick={handleAddAllHotSpots}
-                  className="text-xs text-amber-600 hover:text-amber-700"
+                  className="text-xs text-amber-400 hover:text-amber-300 transition-colors"
                 >
                   一键添加热门景点
                 </button>
               </div>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
+              <div className="space-y-2 max-h-80 overflow-y-auto">
                 {daySpots.map(spot => {
                   const isSelected = selectedSpots.find(s => s.id === spot.id);
                   const isHot = spot.selectedCount >= 2;
@@ -311,37 +311,39 @@ export default function DayRoutePlanner({
                   return (
                     <div
                       key={spot.id}
-                      className={`p-2 border rounded-lg ${
-                        isSelected ? 'bg-amber-100 border-amber-300' : 'bg-white hover:bg-gray-50 cursor-pointer'
+                      className={`p-2 border rounded-lg transition-all duration-200 ${
+                        isSelected 
+                          ? 'bg-amber-500/20 border-amber-500/50' 
+                          : 'bg-white/5 border-white/10 hover:bg-white/10 cursor-pointer'
                       }`}
                       onClick={() => !isSelected && handleAddSpot(spot)}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">{spot.name}</span>
+                            <span className="text-sm font-medium text-white">{spot.name}</span>
                             {isHot && (
-                              <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs rounded">
+                              <span className="px-1.5 py-0.5 bg-red-500/20 text-red-400 text-xs rounded border border-red-500/30">
                                 热门
                               </span>
                             )}
                             {isSelected && (
-                              <span className="px-1.5 py-0.5 bg-amber-200 text-amber-700 text-xs rounded">
+                              <span className="px-1.5 py-0.5 bg-amber-500/30 text-amber-300 text-xs rounded border border-amber-500/40">
                                 已选
                               </span>
                             )}
                           </div>
                           <div className="flex items-center gap-2 mt-1">
-                            <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <div className="flex items-center gap-1 text-xs text-white/50">
                               <Users className="h-3 w-3" />
                               <span>{spot.selectedCount}人选择</span>
                             </div>
-                            <div className="text-xs text-gray-400">
+                            <div className="text-xs text-white/40">
                               ({spot.selectedBy.join(', ')})
                             </div>
                           </div>
                           {/* 频率条 */}
-                          <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="mt-1 h-1 bg-white/10 rounded-full overflow-hidden">
                             <div 
                               className="h-full bg-amber-500 rounded-full"
                               style={{ width: `${(spot.selectedCount / allMemberDrafts.length) * 100}%` }}
@@ -349,7 +351,7 @@ export default function DayRoutePlanner({
                           </div>
                         </div>
                         {!isSelected && (
-                          <Plus className="h-4 w-4 text-amber-500" />
+                          <Plus className="h-4 w-4 text-amber-400" />
                         )}
                       </div>
                     </div>
@@ -357,7 +359,7 @@ export default function DayRoutePlanner({
                 })}
                 
                 {daySpots.length === 0 && (
-                  <div className="text-center text-gray-500 py-8 text-sm">
+                  <div className="text-center text-white/50 py-8 text-sm">
                     该天暂无成员选择景点
                   </div>
                 )}
@@ -366,13 +368,13 @@ export default function DayRoutePlanner({
             
             {/* 右侧：最终路线编辑 */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">最终路线</h4>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
+              <h4 className="text-sm font-semibold text-white/80 mb-2">最终路线</h4>
+              <div className="space-y-2 max-h-80 overflow-y-auto">
                 {selectedSpots.map((spot, index) => (
-                  <div key={spot.id} className="p-2 border border-amber-200 rounded-lg bg-amber-50">
+                  <div key={spot.id} className="p-2 border border-amber-500/30 rounded-lg bg-amber-500/10 backdrop-blur-md">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-amber-900">
+                        <span className="text-sm font-medium text-amber-300">
                           {index + 1}. {spot.name}
                         </span>
                       </div>
@@ -380,7 +382,7 @@ export default function DayRoutePlanner({
                         {index > 0 && (
                           <button
                             onClick={() => handleMoveSpot(index, 'up')}
-                            className="p-1 hover:bg-amber-200 rounded text-xs"
+                            className="p-1 hover:bg-white/10 rounded text-xs text-white/60 hover:text-white transition-colors"
                           >
                             ↑
                           </button>
@@ -388,14 +390,14 @@ export default function DayRoutePlanner({
                         {index < selectedSpots.length - 1 && (
                           <button
                             onClick={() => handleMoveSpot(index, 'down')}
-                            className="p-1 hover:bg-amber-200 rounded text-xs"
+                            className="p-1 hover:bg-white/10 rounded text-xs text-white/60 hover:text-white transition-colors"
                           >
                             ↓
                           </button>
                         )}
                         <button
                           onClick={() => handleRemoveSpot(index)}
-                          className="p-1 hover:bg-red-100 rounded text-red-600"
+                          className="p-1 hover:bg-red-500/20 rounded text-red-400"
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
@@ -404,32 +406,32 @@ export default function DayRoutePlanner({
                     
                     <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <label className="block text-xs text-gray-500 mb-0.5">到达</label>
+                        <label className="block text-xs text-white/50 mb-0.5">到达</label>
                         <input
                           type="time"
                           value={spot.arrivalTime}
                           onChange={(e) => handleUpdateTime(index, 'arrivalTime', e.target.value)}
-                          className="w-full px-1.5 py-1 border border-gray-300 rounded text-xs"
+                          className="w-full px-1.5 py-1 border border-white/20 rounded text-xs bg-white/10 text-white focus:outline-none focus:border-amber-500/50"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-500 mb-0.5">时长(分)</label>
+                        <label className="block text-xs text-white/50 mb-0.5">时长(分)</label>
                         <input
                           type="number"
                           value={spot.duration}
                           onChange={(e) => handleUpdateTime(index, 'duration', Number(e.target.value))}
                           min={15}
                           step={15}
-                          className="w-full px-1.5 py-1 border border-gray-300 rounded text-xs"
+                          className="w-full px-1.5 py-1 border border-white/20 rounded text-xs bg-white/10 text-white focus:outline-none focus:border-amber-500/50"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-500 mb-0.5">离开</label>
+                        <label className="block text-xs text-white/50 mb-0.5">离开</label>
                         <input
                           type="time"
                           value={spot.departureTime}
                           readOnly
-                          className="w-full px-1.5 py-1 border border-gray-300 rounded text-xs bg-gray-100"
+                          className="w-full px-1.5 py-1 border border-white/20 rounded text-xs bg-white/5 text-white/60"
                         />
                       </div>
                     </div>
@@ -437,7 +439,7 @@ export default function DayRoutePlanner({
                 ))}
                 
                 {selectedSpots.length === 0 && (
-                  <div className="text-center text-gray-500 py-8 text-sm">
+                  <div className="text-center text-white/50 py-8 text-sm">
                     点击左侧景点添加到路线
                   </div>
                 )}

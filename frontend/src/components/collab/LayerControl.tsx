@@ -43,43 +43,43 @@ export default function LayerControl({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-border shadow-sm">
+    <div className="bg-white/10 backdrop-blur-md rounded-lg border border-white/20 shadow-lg">
       {/* 标题栏 */}
       <div
-        className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50"
+        className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/5 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-livetrip-primary" />
-          <span className="text-sm font-medium">图层控制</span>
+          <Users className="h-4 w-4 text-amber-400" />
+          <span className="text-sm font-medium text-white">图层控制</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-white/50">
             {visibleLayers.size}/{members.length} 可见
           </span>
           {isExpanded ? (
-            <ChevronUp className="h-4 w-4 text-gray-400" />
+            <ChevronUp className="h-4 w-4 text-white/60" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-gray-400" />
+            <ChevronDown className="h-4 w-4 text-white/60" />
           )}
         </div>
       </div>
 
       {/* 内容区域 */}
       {isExpanded && (
-        <div className="border-t border-border">
+        <div className="border-t border-white/10">
           {/* 快捷操作 */}
-          <div className="flex gap-2 p-3 border-b border-border bg-gray-50">
+          <div className="flex gap-2 p-3 border-b border-white/10 bg-white/5">
             <button
               onClick={onShowAll}
-              className="flex-1 px-3 py-1.5 text-xs bg-white border border-border rounded hover:bg-gray-100 transition-colors flex items-center justify-center gap-1"
+              className="flex-1 px-3 py-1.5 text-xs bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-colors flex items-center justify-center gap-1 text-white/80"
             >
               <Eye className="h-3 w-3" />
               全部显示
             </button>
             <button
               onClick={onHideAll}
-              className="flex-1 px-3 py-1.5 text-xs bg-white border border-border rounded hover:bg-gray-100 transition-colors flex items-center justify-center gap-1"
+              className="flex-1 px-3 py-1.5 text-xs bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-colors flex items-center justify-center gap-1 text-white/80"
             >
               <EyeOff className="h-3 w-3" />
               全部隐藏
@@ -95,30 +95,30 @@ export default function LayerControl({
               return (
                 <div
                   key={member.id}
-                  className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="flex items-center gap-3 p-3 hover:bg-white/5 cursor-pointer transition-colors"
                   onClick={() => onToggleLayer(member.userId)}
                 >
                   {/* 颜色标识 */}
                   <div
-                    className="w-4 h-4 rounded-full"
+                    className="w-4 h-4 rounded-full border border-white/20"
                     style={{ backgroundColor: color }}
                   />
                   
                   {/* 用户信息 */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
+                    <p className="text-sm font-medium text-white truncate">
                       {member.user.username}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-white/50">
                       {member.role === 'HOST' ? '主持人' : '协作者'}
                     </p>
                   </div>
                   
                   {/* 可见性图标 */}
                   {isVisible ? (
-                    <Eye className="h-4 w-4 text-livetrip-primary" />
+                    <Eye className="h-4 w-4 text-amber-400" />
                   ) : (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
+                    <EyeOff className="h-4 w-4 text-white/40" />
                   )}
                 </div>
               );

@@ -66,6 +66,15 @@ export interface AttractionItem {
   type?: string;
   address?: string;
   spotId?: string; // 兼容旧字段名
+  // 扩展字段
+  duration?: number;
+  city?: string;
+  cost?: number;
+  rating?: number;
+  photos?: string[];
+  tips?: string;
+  arrivalTime?: string;
+  departureTime?: string;
 }
 
 // 每日行程

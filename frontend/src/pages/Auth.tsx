@@ -1,8 +1,10 @@
-// 登录注册页面 - 基于 V0 设计风格
+// 登录注册页面 - 基于 LoginPage 设计
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { App } from 'antd';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -100,32 +102,55 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-livetrip-primary to-emerald-600 p-6">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-2xl">✈️</span>
-            </div>
-            <div className="text-left">
-              <h1 className="text-2xl font-serif font-bold text-white">LiveTrip</h1>
-              <p className="text-xs text-white/80">AI · IoT · Travel</p>
-            </div>
-          </div>
-          <p className="text-white/90 text-sm">
-            {isLogin ? '欢迎回来，继续你的旅程' : '加入我们，开启智能旅行'}
+    <div className="min-h-screen grid lg:grid-cols-2">
+      {/* Left side with flower wreath image */}
+      <div className="relative hidden lg:flex flex-col items-center justify-center overflow-hidden">
+        {/* Background image */}
+        <img
+          src="/images/login-bg.png"
+          alt="Flower wreath with sky view"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Overlay text in the center - two lines stacked vertically */}
+        <div className="relative z-10 text-center -mt-8 max-w-[280px] lg:max-w-[320px]">
+          <p 
+            className="text-4xl lg:text-5xl font-semibold tracking-wide leading-snug"
+            style={{ 
+              fontFamily: "'Brush Script MT', 'Segoe Script', cursive",
+              color: "#F5F5F5",
+              textShadow: "0px 4px 12px rgba(139, 69, 19, 0.8), 0px 0px 20px rgba(0, 0, 0, 0.2)"
+            }}
+          >
+            Live to see,
+            <br />
+            Live to go.
           </p>
         </div>
+      </div>
 
-        {/* Auth Card */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+      {/* Right side with login form */}
+      <div className="flex flex-col items-center justify-center p-8 bg-white">
+        <div className="w-full max-w-sm space-y-8">
+          <div className="text-center">
+            {/* LiveTrip Logo */}
+            <div className="mb-6 flex justify-center">
+              <img
+                src="/images/login-logo.png"
+                alt="LiveTrip Logo"
+                width={180}
+                height={60}
+                className="object-contain"
+              />
+            </div>
+            <h2 className="text-xl text-gray-600">Welcome to LiveTrip</h2>
+          </div>
+
           {/* Tab Switcher */}
           <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setIsLogin(true)}
               className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
-                isLogin ? 'bg-white text-livetrip-primary shadow-sm' : 'text-gray-600'
+                isLogin ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-600'
               }`}
             >
               登录
@@ -133,113 +158,129 @@ export default function Auth() {
             <button
               onClick={() => setIsLogin(false)}
               className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
-                !isLogin ? 'bg-white text-livetrip-primary shadow-sm' : 'text-gray-600'
+                !isLogin ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-600'
               }`}
             >
               注册
             </button>
           </div>
 
-          {/* Form */}
-          <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-4">
+          <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-6">
             {!isLogin && (
-              <div>
-                <label className="text-xs text-gray-600 mb-1.5 block">用户名</label>
-                <input
-                  type="text"
+              <div className="space-y-2">
+                <label className="text-sm text-gray-500" htmlFor="username">
+                  用户名
+                </label>
+                <Input 
+                  id="username" 
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   placeholder="请输入用户名"
-                  className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-livetrip-primary/20 focus:border-livetrip-primary transition-all"
+                  className="w-full p-2 border rounded" 
                 />
               </div>
             )}
 
-            <div>
-              <label className="text-xs text-gray-600 mb-1.5 block">
-                {isLogin ? '用户名 / 邮箱' : '邮箱'}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500" htmlFor="email">
+                {isLogin ? 'Users name or Email' : '邮箱'}
               </label>
-              <input
+              <Input 
+                id="email" 
                 type={isLogin ? 'text' : 'email'}
                 value={isLogin ? formData.username : formData.email}
                 onChange={(e) => setFormData({ ...formData, [isLogin ? 'username' : 'email']: e.target.value })}
                 placeholder={isLogin ? '请输入用户名或邮箱' : '请输入邮箱'}
-                className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-livetrip-primary/20 focus:border-livetrip-primary transition-all"
+                className="w-full p-2 border rounded" 
               />
             </div>
 
-            <div>
-              <label className="text-xs text-gray-600 mb-1.5 block">密码</label>
-              <input
-                type="password"
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500" htmlFor="password">
+                Password
+              </label>
+              <Input 
+                id="password" 
+                type="password" 
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 placeholder="请输入密码"
-                className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-livetrip-primary/20 focus:border-livetrip-primary transition-all"
+                className="w-full p-2 border rounded" 
               />
+              {isLogin && (
+                <div className="text-right">
+                  <button type="button" className="text-sm text-gray-500 hover:text-gray-700">
+                    Forget password?
+                  </button>
+                </div>
+              )}
             </div>
 
             {!isLogin && (
-              <div>
-                <label className="text-xs text-gray-600 mb-1.5 block">确认密码</label>
-                <input
-                  type="password"
+              <div className="space-y-2">
+                <label className="text-sm text-gray-500" htmlFor="confirmPassword">
+                  确认密码
+                </label>
+                <Input 
+                  id="confirmPassword" 
+                  type="password" 
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   placeholder="请再次输入密码"
-                  className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-livetrip-primary/20 focus:border-livetrip-primary transition-all"
+                  className="w-full p-2 border rounded" 
                 />
               </div>
             )}
 
-            {isLogin && (
-              <div className="flex items-center justify-between text-xs">
-                <label className="flex items-center gap-2 text-gray-600">
-                  <input type="checkbox" className="rounded border-gray-300" />
-                  记住我
-                </label>
-                <button type="button" className="text-livetrip-primary hover:underline">
-                  忘记密码？
-                </button>
-              </div>
-            )}
-
-            <button
+            <Button 
               type="submit"
               disabled={loading}
-              className="w-full h-10 bg-livetrip-primary text-white rounded-lg text-sm font-medium hover:bg-livetrip-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gray-600 hover:bg-gray-700 text-white"
             >
-              {loading ? (isLogin ? '登录中...' : '注册中...') : (isLogin ? '登录' : '注册')}
-            </button>
+              {loading ? (isLogin ? '登录中...' : '注册中...') : (isLogin ? 'Sign in' : '注册')}
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">or</span>
+              </div>
+            </div>
+
+            <Button variant="outline" type="button" className="w-full border-gray-300">
+              <img src="/placeholder.svg" alt="Google" width={20} height={20} className="mr-2" />
+              Sign in with Google
+            </Button>
+
+            <p className="text-center text-sm text-gray-500">
+              {isLogin ? (
+                <>
+                  New to LiveTrip?{" "}
+                  <button 
+                    type="button"
+                    onClick={() => setIsLogin(false)}
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    Create Account
+                  </button>
+                </>
+              ) : (
+                <>
+                  Already have an account?{" "}
+                  <button 
+                    type="button"
+                    onClick={() => setIsLogin(true)}
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    Sign in
+                  </button>
+                </>
+              )}
+            </p>
           </form>
-
-          {/* Divider */}
-          <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400">或</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-
-          {/* Social Login */}
-          <div className="space-y-2">
-            <button className="w-full h-10 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-              <span>📱</span>
-              使用微信登录
-            </button>
-            <button className="w-full h-10 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-              <span>📧</span>
-              使用邮箱登录
-            </button>
-          </div>
         </div>
-
-        {/* Footer */}
-        <p className="text-center text-white/70 text-xs mt-6">
-          登录即表示同意我们的
-          <button className="text-white hover:underline mx-1">服务条款</button>
-          和
-          <button className="text-white hover:underline mx-1">隐私政策</button>
-        </p>
       </div>
     </div>
   );

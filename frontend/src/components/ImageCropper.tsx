@@ -1,8 +1,7 @@
-// 图片裁剪组件 - 简化版，使用react-image-crop库
-import { useState, useRef, useEffect } from 'react';
-import ReactCrop, { PixelCrop } from 'react-image-crop';
+// 图片裁剪组件 - 使用 react-easy-crop 库，完美适配屏幕比例
+import { useState, useRef, useEffect, useCallback } from 'react';
+import Cropper, { Area } from 'react-easy-crop';
 import { Modal, Button } from 'antd';
-import 'react-image-crop/dist/ReactCrop.css';
 
 interface ImageCropperProps {
   visible: boolean;
@@ -13,16 +12,11 @@ interface ImageCropperProps {
 
 export default function ImageCropper({ visible, imageFile, onConfirm, onCancel }: ImageCropperProps) {
   const [imageUrl, setImageUrl] = useState<string>('');
-  const [crop, setCrop] = useState<PixelCrop>({
-    unit: 'px',
-    x: 0,
-    y: 0,
-    width: 800,
-    height: 450,
-  });
-  const [imageRef, setImageRef] = useState<HTMLImageElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [screenAspectRatio, setScreenAspectRatio] = useState<number>(16 / 9);
+  const [imageNaturalSize, setImageNaturalSize] = useState({ width: 0, height: 0 });
 
   // 计算屏幕比例
   useEffect(() => {
@@ -42,62 +36,70 @@ export default function ImageCropper({ visible, imageFile, onConfirm, onCancel }
     if (imageFile) {
       const url = URL.createObjectURL(imageFile);
       setImageUrl(url);
-      // 重置裁剪框到中心位置，根据屏幕比例设置初始大小
-      const initialWidth = 800;
-      const initialHeight = initialWidth / screenAspectRatio;
-      setCrop({
-        unit: 'px',
-        x: 0,
-        y: 0,
-        width: initialWidth,
-        height: initialHeight,
-      });
+      
+      // 重置状态
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setCroppedAreaPixels(null);
+      
+      // 获取图片自然尺寸
+      const img = new window.Image();
+      img.onload = () => {
+        setImageNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
+      };
+      img.src = url;
+      
       return () => URL.revokeObjectURL(url);
     }
   }, [imageFile]);
 
+  // 处理裁剪完成
+  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
   // 确认裁剪
   const handleConfirm = async () => {
-    if (!canvasRef.current || !imageRef) return;
+    if (!croppedAreaPixels || !imageUrl) return;
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    const image = imageRef;
+    try {
+      // 创建图片元素
+      const image = new window.Image();
+      image.src = imageUrl;
+      
+      await new Promise((resolve) => {
+        image.onload = resolve;
+      });
 
-    if (!ctx) return;
+      // 创建canvas
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
 
-    // 设置画布大小为裁剪区域大小
-    canvas.width = crop.width;
-    canvas.height = crop.height;
+      if (!ctx) return;
 
-    // 清空画布
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // 设置canvas大小为裁剪区域大小
+      canvas.width = croppedAreaPixels.width;
+      canvas.height = croppedAreaPixels.height;
 
-    // 计算图片的缩放比例
-    const scaleX = image.naturalWidth / (image.width || image.naturalWidth);
-    const scaleY = image.naturalHeight / (image.height || image.naturalHeight);
+      // 绘制裁剪后的图片
+      ctx.drawImage(
+        image,
+        croppedAreaPixels.x,
+        croppedAreaPixels.y,
+        croppedAreaPixels.width,
+        croppedAreaPixels.height,
+        0,
+        0,
+        croppedAreaPixels.width,
+        croppedAreaPixels.height
+      );
 
-    // 绘制裁剪后的图片
-    ctx.drawImage(
-      image,
-      crop.x * scaleX,
-      crop.y * scaleY,
-      crop.width * scaleX,
-      crop.height * scaleY,
-      0,
-      0,
-      crop.width,
-      crop.height
-    );
-
-    // 导出裁剪后的图片
-    const croppedImage = canvas.toDataURL('image/jpeg', 0.95);
-    onConfirm(croppedImage);
-  };
-
-  // 处理裁剪框变化
-  const handleCropChange = (crop: PixelCrop) => {
-    setCrop(crop);
+      // 导出裁剪后的图片（高质量）
+      const croppedImage = canvas.toDataURL('image/jpeg', 0.95);
+      onConfirm(croppedImage);
+    } catch (error) {
+      console.error('裁剪失败:', error);
+    }
   };
 
   return (
@@ -115,35 +117,63 @@ export default function ImageCropper({ visible, imageFile, onConfirm, onCancel }
         </Button>,
       ]}
     >
-      <div style={{ minHeight: '600px' }}>
-        <ReactCrop
-          crop={crop}
-          onChange={handleCropChange}
-          onComplete={(c) => setCrop(c)}
-          aspect={screenAspectRatio}
-          minWidth={200}
-          minHeight={200 / screenAspectRatio}
-          keepSelection
-        >
-          <img
-            ref={(element) => {
-              if (element) {
-                setImageRef(element);
-              }
-            }}
-            src={imageUrl}
-            alt="Preview"
+      <div style={{ minHeight: '600px', position: 'relative' }}>
+        {imageUrl && (
+          <Cropper
+            image={imageUrl}
+            crop={crop}
+            zoom={zoom}
+            aspect={screenAspectRatio}
+            onCropChange={setCrop}
+            onCropComplete={onCropComplete}
+            onZoomChange={setZoom}
             style={{
-              maxWidth: '100%',
-              maxHeight: '600px',
-              objectFit: 'contain',
+              containerStyle: {
+                position: 'relative',
+                width: '100%',
+                height: '500px',
+                background: '#1a1a1a',
+              },
+              mediaStyle: {
+                // 让图片完整显示，不裁剪
+              },
+              cropAreaStyle: {
+                // 裁剪区域样式
+              },
             }}
+            // 限制缩放范围
+            restrictPosition={false}
+            showGrid={true}
+            zoomSpeed={0.1}
+            minZoom={0.1}
+            maxZoom={3}
           />
-        </ReactCrop>
+        )}
       </div>
-
-      {/* 隐藏的Canvas用于生成裁剪后的图片 */}
-      <canvas ref={canvasRef} className="hidden" />
+      
+      {/* 缩放控制 */}
+      <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <span style={{ fontSize: '14px', color: '#666' }}>缩放:</span>
+        <input
+          type="range"
+          min={0.1}
+          max={3}
+          step={0.01}
+          value={zoom}
+          onChange={(e) => setZoom(Number(e.target.value))}
+          style={{ flex: 1 }}
+        />
+        <span style={{ fontSize: '14px', color: '#666', minWidth: '40px' }}>
+          {zoom.toFixed(1)}x
+        </span>
+      </div>
+      
+      {/* 提示信息 */}
+      <div style={{ marginTop: '12px', padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
+        <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>
+          💡 提示：裁剪框比例已自动适配您的屏幕比例（{screenAspectRatio.toFixed(2)}:1），裁剪后的图片将完美铺满背景。
+        </p>
+      </div>
     </Modal>
   );
 }

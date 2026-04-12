@@ -48,12 +48,28 @@ export default function CollabEntryGlass() {
 
   const handleJoinRoom = async () => {
     if (!joinToken.trim()) {
-      message.warning('请输入房间邀请码');
+      message.warning('请输入房间邀请码或邀请链接');
       return;
     }
 
     try {
-      const response = await joinCollabRoom(joinToken.trim());
+      // 解析 token：用户可能输入的是完整链接或单独的 token
+      let token = joinToken.trim();
+
+      // 如果输入的是完整链接，提取 token 参数
+      if (token.includes('token=')) {
+        const urlParams = new URLSearchParams(token.split('?')[1]);
+        token = urlParams.get('token') || '';
+      }
+
+      if (!token) {
+        message.error('无效的邀请链接或邀请码');
+        return;
+      }
+
+      console.log('📝 解析后的 token:', token);
+
+      const response = await joinCollabRoom(token);
       if (response.success) {
         message.success('成功加入房间');
         navigate(`/collab/room/${response.data.id}`);
@@ -140,7 +156,7 @@ export default function CollabEntryGlass() {
                 <UserPlus className="h-12 w-12 text-livetrip-accent" />
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">加入协同房间</h2>
-              <p className="text-white/60 mb-6">输入房间邀请码，加入朋友的协同规划</p>
+              <p className="text-white/60 mb-6">输入邀请链接或邀请码，加入朋友的协同规划</p>
               <button className="px-8 py-3 rounded-lg bg-livetrip-accent text-white font-medium hover:bg-livetrip-accent/90 transition-colors">
                 加入房间
               </button>
@@ -154,7 +170,7 @@ export default function CollabEntryGlass() {
             <div className="flex gap-4">
               <input
                 type="text"
-                placeholder="请输入房间邀请码"
+                placeholder="请输入邀请链接或邀请码（如：http://localhost:5173/collab/join?token=xxx）"
                 value={joinToken}
                 onChange={(e) => setJoinToken(e.target.value)}
                 className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-livetrip-primary"
