@@ -16,6 +16,8 @@ import SharedTrip from './pages/SharedTrip';
 import BlogsGlass from './pages/BlogsGlass';
 import CreateBlog from './pages/CreateBlog';
 import BlogDetailPage from './pages/BlogDetailPage';
+import BlogCreateGlass from './pages/BlogCreateGlass';
+import BlogDetailGlass from './pages/BlogDetailGlass';
 import AIFeaturesGlass from './pages/AIFeaturesGlass';
 import TodayGlass from './pages/TodayGlass';
 import AuthGuard from './components/AuthGuard';
@@ -102,7 +104,15 @@ function AppContent() {
           path="/blog/create"
           element={
             <AuthGuard>
-              <CreateBlog />
+              <BlogCreateGlass />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/blog/edit"
+          element={
+            <AuthGuard>
+              <BlogCreateGlass />
             </AuthGuard>
           }
         />
@@ -110,7 +120,7 @@ function AppContent() {
           path="/blog/:id"
           element={
             <AuthGuard>
-              <BlogDetailPage />
+              <BlogDetailGlass />
             </AuthGuard>
           }
         />
