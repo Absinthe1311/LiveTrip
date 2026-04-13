@@ -82,7 +82,7 @@ export default function AIAdvisorGlass({
             <button
               key={index}
               onClick={() => setInputValue(question)}
-              className="px-3 py-1.5 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10 text-xs text-white/70 hover:bg-amber-500/10 hover:border-amber-400/30 hover:text-white transition-all duration-300"
+              className="px-3 py-1.5 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10 text-xs text-white/70 hover:bg-[#AE1C31]/10 hover:border-[#AE1C31]/30 hover:text-white transition-all duration-300"
             >
               {question}
             </button>
@@ -100,13 +100,13 @@ export default function AIAdvisorGlass({
             <div
               className={`max-w-[85%] rounded-2xl px-3 py-2 backdrop-blur-md transition-all duration-300 ${
                 msg.role === 'user'
-                  ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-white border border-amber-400/30'
+                  ? 'bg-gradient-to-r from-[#AE1C31]/20 to-[#AE1C31]/10 text-white border border-[#AE1C31]/30'
                   : 'bg-white/5 text-white border border-white/10'
               }`}
             >
               {msg.role === 'assistant' && (
                 <div className="flex items-center gap-1 mb-1">
-                  <Bot className="h-3 w-3 text-amber-400" />
+                  <Bot className="h-3 w-3 text-[#AE1C31]" />
                   <span className="text-[10px] text-white/60">AI</span>
                 </div>
               )}
@@ -118,11 +118,11 @@ export default function AIAdvisorGlass({
           <div className="flex justify-start">
             <div className="bg-white/5 backdrop-blur-md rounded-2xl px-3 py-2 border border-white/10">
               <div className="flex items-center gap-2">
-                <Bot className="h-3 w-3 text-amber-400" />
+                <Bot className="h-3 w-3 text-[#AE1C31]" />
                 <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400/60 animate-bounce" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400/60 animate-bounce" style={{ animationDelay: '0.1s' }} />
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400/60 animate-bounce" style={{ animationDelay: '0.2s' }} />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#AE1C31]/60 animate-bounce" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#AE1C31]/60 animate-bounce" style={{ animationDelay: '0.1s' }} />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#AE1C31]/60 animate-bounce" style={{ animationDelay: '0.2s' }} />
                 </div>
               </div>
             </div>
@@ -138,12 +138,12 @@ export default function AIAdvisorGlass({
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
           placeholder="输入您的问题..."
-          className="w-full px-4 py-2.5 pr-12 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 text-white text-sm placeholder-white/40 outline-none focus:bg-white/10 focus:border-amber-400/30 focus:shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-all duration-300"
+          className="w-full px-4 py-2.5 pr-12 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 text-white text-sm placeholder-white/40 outline-none focus:bg-white/10 focus:border-[#AE1C31]/30 focus:shadow-[0_0_15px_rgba(174,28,49,0.2)] transition-all duration-300"
         />
         <button
           onClick={handleSend}
           disabled={loading || !inputValue.trim()}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-400 hover:to-amber-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-amber-500/30"
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-gradient-to-r from-[#AE1C31] to-[#AE1C31]/80 text-white hover:from-[#AE1C31]/90 hover:to-[#AE1C31]/70 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#AE1C31]/30"
         >
           <Send className="h-4 w-4" />
         </button>

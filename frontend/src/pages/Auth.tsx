@@ -129,36 +129,51 @@ export default function Auth() {
       </div>
 
       {/* Right side with login form */}
-      <div className="flex flex-col items-center justify-center p-8 bg-white">
-        <div className="w-full max-w-sm space-y-8">
+      <div
+        className="flex flex-col items-center justify-center p-8"
+        style={{
+          background: 'linear-gradient(135deg, #fef3e2 0%, #fde8d0 50%, #f9d5b7 100%)',
+        }}
+      >
+        <div
+          className="w-full max-w-md space-y-8"
+          style={{
+            background: 'rgba(255, 255, 255, 0.6)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '24px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+            padding: '48px',
+          }}
+        >
           <div className="text-center">
             {/* LiveTrip Logo */}
             <div className="mb-6 flex justify-center">
               <img
                 src="/images/login-logo.png"
                 alt="LiveTrip Logo"
-                width={180}
-                height={60}
+                width={220}
+                height={73}
                 className="object-contain"
               />
             </div>
-            <h2 className="text-xl text-gray-600">Welcome to LiveTrip</h2>
+            <h2 className="text-2xl text-gray-600">Welcome to LiveTrip</h2>
           </div>
 
           {/* Tab Switcher */}
-          <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
+          <div className="flex mb-6 bg-white/40 rounded-lg p-1">
             <button
               onClick={() => setIsLogin(true)}
-              className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
-                isLogin ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-600'
+              className={`flex-1 py-2.5 rounded-md text-base font-medium transition-all ${
+                isLogin ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-600 hover:text-gray-800'
               }`}
             >
               登录
             </button>
             <button
               onClick={() => setIsLogin(false)}
-              className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
-                !isLogin ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-600'
+              className={`flex-1 py-2.5 rounded-md text-base font-medium transition-all ${
+                !isLogin ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-600 hover:text-gray-800'
               }`}
             >
               注册
@@ -168,44 +183,44 @@ export default function Auth() {
           <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-6">
             {!isLogin && (
               <div className="space-y-2">
-                <label className="text-sm text-gray-500" htmlFor="username">
+                <label className="text-base text-gray-600" htmlFor="username">
                   用户名
                 </label>
-                <Input 
-                  id="username" 
+                <Input
+                  id="username"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   placeholder="请输入用户名"
-                  className="w-full p-2 border rounded" 
+                  className="w-full p-3 text-base border rounded-lg"
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <label className="text-sm text-gray-500" htmlFor="email">
+              <label className="text-base text-gray-600" htmlFor="email">
                 {isLogin ? 'Users name or Email' : '邮箱'}
               </label>
-              <Input 
-                id="email" 
+              <Input
+                id="email"
                 type={isLogin ? 'text' : 'email'}
                 value={isLogin ? formData.username : formData.email}
                 onChange={(e) => setFormData({ ...formData, [isLogin ? 'username' : 'email']: e.target.value })}
                 placeholder={isLogin ? '请输入用户名或邮箱' : '请输入邮箱'}
-                className="w-full p-2 border rounded" 
+                className="w-full p-3 text-base border rounded-lg"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm text-gray-500" htmlFor="password">
+              <label className="text-base text-gray-600" htmlFor="password">
                 Password
               </label>
-              <Input 
-                id="password" 
-                type="password" 
+              <Input
+                id="password"
+                type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 placeholder="请输入密码"
-                className="w-full p-2 border rounded" 
+                className="w-full p-3 text-base border rounded-lg"
               />
               {isLogin && (
                 <div className="text-right">
@@ -218,40 +233,26 @@ export default function Auth() {
 
             {!isLogin && (
               <div className="space-y-2">
-                <label className="text-sm text-gray-500" htmlFor="confirmPassword">
+                <label className="text-base text-gray-600" htmlFor="confirmPassword">
                   确认密码
                 </label>
-                <Input 
-                  id="confirmPassword" 
-                  type="password" 
+                <Input
+                  id="confirmPassword"
+                  type="password"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   placeholder="请再次输入密码"
-                  className="w-full p-2 border rounded" 
+                  className="w-full p-3 text-base border rounded-lg"
                 />
               </div>
             )}
 
-            <Button 
+            <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-gray-600 hover:bg-gray-700 text-white"
+              className="w-full py-3 text-base bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/30"
             >
               {loading ? (isLogin ? '登录中...' : '注册中...') : (isLogin ? 'Sign in' : '注册')}
-            </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">or</span>
-              </div>
-            </div>
-
-            <Button variant="outline" type="button" className="w-full border-gray-300">
-              <img src="/placeholder.svg" alt="Google" width={20} height={20} className="mr-2" />
-              Sign in with Google
             </Button>
 
             <p className="text-center text-sm text-gray-500">

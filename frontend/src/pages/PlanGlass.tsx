@@ -13,13 +13,12 @@ import { DoubleCalendar } from '../components/DoubleCalendar';
 import ImageCropper from '../components/ImageCropper';
 
 const steps = [
-  { id: 1, label: "出发地", icon: MapPin },
-  { id: 2, label: "目的地", icon: Navigation },
-  { id: 3, label: "行程日期", icon: Calendar },
-  { id: 4, label: "预算范围", icon: Wallet },
-  { id: 5, label: "群体类型", icon: Users },
-  { id: 6, label: "兴趣偏好", icon: Heart },
-  { id: 7, label: "个性化设置", icon: ImageIcon },
+  { id: 1, label: "出发地与目的地", icon: Navigation },
+  { id: 2, label: "行程日期", icon: Calendar },
+  { id: 3, label: "预算范围", icon: Wallet },
+  { id: 4, label: "群体类型", icon: Users },
+  { id: 5, label: "兴趣偏好", icon: Heart },
+  { id: 6, label: "个性化设置", icon: ImageIcon },
 ];
 
 export default function PlanGlass() {
@@ -244,128 +243,115 @@ export default function PlanGlass() {
       case 0:
         return (
           <GlassCard className="p-8">
-            <h3 className="text-2xl font-bold text-white mb-6">选择出发地</h3>
-            <div className="space-y-4">
-              <div className="relative group">
-                <input
-                  type="text"
-                  value={formData.origin}
-                  onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
-                  placeholder="输入出发城市"
-                  className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none"
-                />
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-livetrip-primary/0 via-livetrip-primary/20 to-livetrip-primary/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 pointer-events-none" />
-              </div>
-              
-              {/* 自动定位按钮 */}
-              <button
-                onClick={async () => {
-                  try {
-                    // 检查浏览器是否支持地理位置API
-                    if (!('geolocation' in navigator)) {
-                      message.error('您的浏览器不支持地理位置功能');
-                      return;
-                    }
-
-                    // 检查是否为HTTPS或localhost
-                    const isSecureContext = window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-                    if (!isSecureContext) {
-                      message.warning('定位功能需要HTTPS环境，请使用手动输入');
-                      return;
-                    }
-
-                    message.loading({ content: '正在获取位置...', key: 'location' });
-
-                    navigator.geolocation.getCurrentPosition(
-                      async (position) => {
-                        try {
-                          const { latitude, longitude } = position.coords;
-                          console.log('📍 获取到坐标:', { latitude, longitude });
-
-                          // 检查高德地图API Key是否配置
-                          const amapKey = import.meta.env.VITE_AMAP_WS_KEY;
-                          if (!amapKey) {
-                            message.warning({ content: '高德地图API未配置，请手动输入城市', key: 'location' });
-                            return;
-                          }
-
-                          // 使用高德地图逆地理编码获取城市名
-                          const response = await fetch(
-                            `https://restapi.amap.com/v3/geocode/regeo?key=${amapKey}&location=${longitude},${latitude}`
-                          );
-                          const data = await response.json();
-                          console.log('🗺️ 高德地图返回:', data);
-
-                          if (data.regeocode?.addressComponent?.city) {
-                            const city = data.regeocode.addressComponent.city;
-                            setFormData({ ...formData, origin: city });
-                            message.success({ content: `已定位到: ${city}`, key: 'location' });
-                          } else if (data.regeocode?.addressComponent?.province) {
-                            const province = data.regeocode.addressComponent.province;
-                            setFormData({ ...formData, origin: province });
-                            message.success({ content: `已定位到: ${province}`, key: 'location' });
-                          } else {
-                            message.error({ content: '无法获取城市信息，请手动输入', key: 'location' });
-                          }
-                        } catch (error) {
-                          console.error('❌ 逆地理编码失败:', error);
-                          message.error({ content: '获取城市信息失败，请手动输入', key: 'location' });
-                        }
-                      },
-                      (error) => {
-                        console.error('❌ 获取位置失败:', error);
-                        let errorMsg = '获取位置失败';
-                        switch (error.code) {
-                          case error.PERMISSION_DENIED:
-                            errorMsg = '您拒绝了位置请求，请在浏览器设置中允许位置访问';
-                            break;
-                          case error.POSITION_UNAVAILABLE:
-                            errorMsg = '位置信息不可用，请检查设备定位功能';
-                            break;
-                          case error.TIMEOUT:
-                            errorMsg = '获取位置超时，请重试或手动输入';
-                            break;
-                        }
-                        message.error({ content: errorMsg, key: 'location', duration: 5 });
-                      },
-                      {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0
-                      }
-                    );
-                  } catch (error) {
-                    console.error('❌ 自动定位失败:', error);
-                    message.error('自动定位失败，请手动输入出发地');
-                  }
-                }}
-                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-400/30 text-amber-400 hover:bg-amber-500/20 transition-all duration-300"
-              >
-                <Locate className="w-5 h-5" />
-                <span>使用当前位置</span>
-              </button>
-            </div>
-          </GlassCard>
-        );
-      case 1:
-        return (
-          <GlassCard className="p-8">
-            <h3 className="text-2xl font-bold text-white mb-6">选择目的地</h3>
+            <h3 className="text-2xl font-bold text-white mb-6">选择出发地与目的地</h3>
             <div className="space-y-6">
-              <div className="relative group">
-                <input
-                  type="text"
-                  value={formData.destination}
-                  onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
-                  placeholder="输入目的地城市"
-                  className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none"
-                />
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-livetrip-primary/0 via-livetrip-primary/20 to-livetrip-primary/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 pointer-events-none" />
+              {/* 出发地输入 */}
+              <div>
+                <label className="block text-sm text-white/60 mb-2 font-medium">出发地</label>
+                <div className="relative group">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                  <input
+                    type="text"
+                    value={formData.origin}
+                    onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
+                    placeholder="输入出发城市"
+                    className="w-full pl-12 pr-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-green-400/50 focus:shadow-[0_0_20px_rgba(34,197,94,0.3)] focus:outline-none"
+                  />
+                </div>
+                
+                {/* 自动定位按钮 */}
+                <button
+                  onClick={async () => {
+                    try {
+                      if (!('geolocation' in navigator)) {
+                        message.error('您的浏览器不支持地理位置功能');
+                        return;
+                      }
+
+                      const isSecureContext = window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+                      if (!isSecureContext) {
+                        message.warning('定位功能需要HTTPS环境，请使用手动输入');
+                        return;
+                      }
+
+                      message.loading({ content: '正在获取位置...', key: 'location' });
+
+                      navigator.geolocation.getCurrentPosition(
+                        async (position) => {
+                          try {
+                            const { latitude, longitude } = position.coords;
+                            const amapKey = import.meta.env.VITE_AMAP_WS_KEY;
+                            if (!amapKey) {
+                              message.warning({ content: '高德地图API未配置，请手动输入城市', key: 'location' });
+                              return;
+                            }
+
+                            const response = await fetch(
+                              `https://restapi.amap.com/v3/geocode/regeo?key=${amapKey}&location=${longitude},${latitude}`
+                            );
+                            const data = await response.json();
+
+                            if (data.regeocode?.addressComponent?.city) {
+                              const city = data.regeocode.addressComponent.city;
+                              setFormData({ ...formData, origin: city });
+                              message.success({ content: `已定位到: ${city}`, key: 'location' });
+                            } else if (data.regeocode?.addressComponent?.province) {
+                              const province = data.regeocode.addressComponent.province;
+                              setFormData({ ...formData, origin: province });
+                              message.success({ content: `已定位到: ${province}`, key: 'location' });
+                            } else {
+                              message.error({ content: '无法获取城市信息，请手动输入', key: 'location' });
+                            }
+                          } catch (error) {
+                            message.error({ content: '获取城市信息失败，请手动输入', key: 'location' });
+                          }
+                        },
+                        (error) => {
+                          let errorMsg = '获取位置失败';
+                          switch (error.code) {
+                            case error.PERMISSION_DENIED:
+                              errorMsg = '您拒绝了位置请求，请在浏览器设置中允许位置访问';
+                              break;
+                            case error.POSITION_UNAVAILABLE:
+                              errorMsg = '位置信息不可用，请检查设备定位功能';
+                              break;
+                            case error.TIMEOUT:
+                              errorMsg = '获取位置超时，请重试或手动输入';
+                              break;
+                          }
+                          message.error({ content: errorMsg, key: 'location', duration: 5 });
+                        },
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                      );
+                    } catch (error) {
+                      message.error('自动定位失败，请手动输入出发地');
+                    }
+                  }}
+                  className="mt-2 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#005746]/20 border border-[#005746]/40 text-[#005746] hover:bg-[#005746]/30 transition-all duration-300 text-sm"
+                >
+                  <Locate className="w-4 h-4" />
+                  <span>使用当前位置</span>
+                </button>
+              </div>
+
+              {/* 目的地输入 */}
+              <div>
+                <label className="block text-sm text-white/60 mb-2 font-medium">目的地</label>
+                <div className="relative group">
+                  <Navigation className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                  <input
+                    type="text"
+                    value={formData.destination}
+                    onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
+                    placeholder="输入目的地城市"
+                    className="w-full pl-12 pr-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-green-400/50 focus:shadow-[0_0_20px_rgba(34,197,94,0.3)] focus:outline-none"
+                  />
+                </div>
               </div>
 
               {/* 热门目的地推荐 */}
               <div>
-                <p className="text-sm text-white/60 mb-4 font-medium">热门目的地</p>
+                <p className="text-sm text-white/60 mb-3 font-medium">热门目的地</p>
                 <div className="grid grid-cols-3 gap-3">
                   {popularDestinations.slice(0, 9).map((dest) => {
                     const IconComponent = dest.icon;
@@ -373,14 +359,14 @@ export default function PlanGlass() {
                       <button
                         key={dest.id}
                         onClick={() => setFormData({ ...formData, destination: dest.name })}
-                        className={`p-4 rounded-xl border transition-all duration-300 text-left ${
+                        className={`p-3 rounded-xl border transition-all duration-300 text-left ${
                           formData.destination === dest.name
-                            ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 border-amber-400/50 shadow-lg shadow-amber-500/20'
-                            : 'bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/30'
+                            ? 'bg-gradient-to-r from-[#008F8D]/30 to-[#008F8D]/20 border-[#008F8D]/50 shadow-lg shadow-[#008F8D]/20'
+                            : 'bg-white/5 border-white/20 hover:bg-[#008F8D]/10 hover:border-[#008F8D]/30'
                         }`}
                       >
-                        <div className="flex items-center gap-2 mb-2">
-                          <IconComponent className="w-5 h-5 text-amber-400" />
+                        <div className="flex items-center gap-2 mb-1">
+                          <IconComponent className="w-4 h-4 text-[#008F8D]" />
                           <div className="text-sm font-medium text-white">{dest.name}</div>
                         </div>
                         <div className="text-xs text-white/60">{dest.days}</div>
@@ -392,7 +378,7 @@ export default function PlanGlass() {
             </div>
           </GlassCard>
         );
-      case 2:
+      case 1:
         return (
           <GlassCard className="p-8">
             <h3 className="text-2xl font-bold text-white mb-6">选择行程日期</h3>
@@ -404,7 +390,7 @@ export default function PlanGlass() {
             />
           </GlassCard>
         );
-      case 3:
+      case 2:
         return (
           <GlassCard className="p-8">
             <h3 className="text-2xl font-bold text-white mb-6">设置预算范围</h3>
@@ -424,8 +410,8 @@ export default function PlanGlass() {
                       onClick={() => setFormData({ ...formData, minBudget: option.min, maxBudget: option.max })}
                       className={`p-4 rounded-xl border-2 transition-all duration-300 ${
                         formData.minBudget === option.min && formData.maxBudget === option.max
-                          ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 border-amber-400/50 shadow-lg shadow-amber-500/20'
-                          : 'bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/30'
+                          ? 'bg-gradient-to-r from-[#FFD9A3]/40 to-[#FFD9A3]/20 border-[#FFD9A3]/60 shadow-lg shadow-[#FFD9A3]/30'
+                          : 'bg-white/5 border-white/20 hover:bg-[#FFD9A3]/15 hover:border-[#FFD9A3]/40'
                       }`}
                     >
                       <IconComponent className="w-6 h-6 text-white mb-2 mx-auto" />
@@ -447,7 +433,7 @@ export default function PlanGlass() {
                       type="number"
                       value={formData.minBudget}
                       onChange={(e) => setFormData({ ...formData, minBudget: Number(e.target.value) })}
-                      className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none"
+                      className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 focus:bg-white/15 focus:border-green-400/50 focus:shadow-[0_0_20px_rgba(34,197,94,0.3)] focus:outline-none"
                     />
                   </div>
                   <div className="relative group">
@@ -456,7 +442,7 @@ export default function PlanGlass() {
                       type="number"
                       value={formData.maxBudget}
                       onChange={(e) => setFormData({ ...formData, maxBudget: Number(e.target.value) })}
-                      className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none"
+                      className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 focus:bg-white/15 focus:border-green-400/50 focus:shadow-[0_0_20px_rgba(34,197,94,0.3)] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -464,7 +450,7 @@ export default function PlanGlass() {
             </div>
           </GlassCard>
         );
-      case 4:
+      case 3:
         return (
           <GlassCard className="p-8">
             <h3 className="text-2xl font-bold text-white mb-6">选择群体类型</h3>
@@ -486,8 +472,8 @@ export default function PlanGlass() {
                       onClick={() => setFormData({ ...formData, groupType: item.type, groupSize: item.count })}
                       className={`p-5 rounded-xl border-2 transition-all duration-300 text-left ${
                         formData.groupType === item.type
-                          ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 border-amber-400/50 shadow-lg shadow-amber-500/20'
-                          : 'bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/30'
+                          ? 'bg-gradient-to-r from-[#CDEDDE]/30 to-[#CDEDDE]/20 border-[#CDEDDE]/50 shadow-lg shadow-[#CDEDDE]/20'
+                          : 'bg-white/5 border-white/20 hover:bg-[#CDEDDE]/10 hover:border-[#CDEDDE]/30'
                       }`}
                     >
                       <IconComponent className="w-7 h-7 text-white mb-2" />
@@ -511,7 +497,7 @@ export default function PlanGlass() {
                       setFormData({ ...formData, groupSize: size, groupType: 'custom' });
                     }}
                     min="1"
-                    className="flex-1 px-6 py-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none"
+                    className="flex-1 px-6 py-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 focus:bg-white/15 focus:border-green-400/50 focus:shadow-[0_0_20px_rgba(34,197,94,0.3)] focus:outline-none"
                   />
                   <span className="text-sm text-white/80">人</span>
                 </div>
@@ -519,7 +505,7 @@ export default function PlanGlass() {
             </div>
           </GlassCard>
         );
-      case 5:
+      case 4:
         return (
           <GlassCard className="p-8">
             <h3 className="text-2xl font-bold text-white mb-6">选择兴趣偏好</h3>
@@ -527,7 +513,7 @@ export default function PlanGlass() {
               {/* 文化探索 */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Landmark className="w-4 h-4 text-amber-400" />
+                  <Landmark className="w-4 h-4 text-green-400" />
                   <h4 className="text-sm font-medium text-white/60">文化探索</h4>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -551,7 +537,7 @@ export default function PlanGlass() {
                         }}
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border transition-all duration-300 ${
                           (formData.preferences || []).includes(item.label)
-                            ? 'bg-gradient-to-r from-amber-500/30 to-amber-600/30 border-amber-400/50 text-white shadow-lg shadow-amber-500/20'
+                            ? 'bg-gradient-to-r from-green-500/30 to-green-600/30 border-green-400/50 text-white shadow-lg shadow-green-500/20'
                             : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:border-white/30'
                         }`}
                       >
@@ -566,7 +552,7 @@ export default function PlanGlass() {
               {/* 自然风光 */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Mountain className="w-4 h-4 text-amber-400" />
+                  <Mountain className="w-4 h-4 text-green-400" />
                   <h4 className="text-sm font-medium text-white/60">自然风光</h4>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -590,7 +576,7 @@ export default function PlanGlass() {
                         }}
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border transition-all duration-300 ${
                           (formData.preferences || []).includes(item.label)
-                            ? 'bg-gradient-to-r from-amber-500/30 to-amber-600/30 border-amber-400/50 text-white shadow-lg shadow-amber-500/20'
+                            ? 'bg-gradient-to-r from-green-500/30 to-green-600/30 border-green-400/50 text-white shadow-lg shadow-green-500/20'
                             : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:border-white/30'
                         }`}
                       >
@@ -605,7 +591,7 @@ export default function PlanGlass() {
               {/* 美食体验 */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Utensils className="w-4 h-4 text-amber-400" />
+                  <Utensils className="w-4 h-4 text-green-400" />
                   <h4 className="text-sm font-medium text-white/60">美食体验</h4>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -629,7 +615,7 @@ export default function PlanGlass() {
                         }}
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border transition-all duration-300 ${
                           (formData.preferences || []).includes(item.label)
-                            ? 'bg-gradient-to-r from-amber-500/30 to-amber-600/30 border-amber-400/50 text-white shadow-lg shadow-amber-500/20'
+                            ? 'bg-gradient-to-r from-green-500/30 to-green-600/30 border-green-400/50 text-white shadow-lg shadow-green-500/20'
                             : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:border-white/30'
                         }`}
                       >
@@ -644,7 +630,7 @@ export default function PlanGlass() {
               {/* 休闲娱乐 */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <ShoppingBag className="w-4 h-4 text-amber-400" />
+                  <ShoppingBag className="w-4 h-4 text-green-400" />
                   <h4 className="text-sm font-medium text-white/60">休闲娱乐</h4>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -668,7 +654,7 @@ export default function PlanGlass() {
                         }}
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border transition-all duration-300 ${
                           (formData.preferences || []).includes(item.label)
-                            ? 'bg-gradient-to-r from-amber-500/30 to-amber-600/30 border-amber-400/50 text-white shadow-lg shadow-amber-500/20'
+                            ? 'bg-gradient-to-r from-green-500/30 to-green-600/30 border-green-400/50 text-white shadow-lg shadow-green-500/20'
                             : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:border-white/30'
                         }`}
                       >
@@ -682,7 +668,7 @@ export default function PlanGlass() {
             </div>
           </GlassCard>
         );
-      case 6:
+      case 5:
         return (
           <GlassCard className="p-6">
             <h3 className="text-2xl font-bold text-white mb-4">个性化设置</h3>
@@ -701,7 +687,7 @@ export default function PlanGlass() {
                     value={formData.tripName}
                     onChange={(e) => setFormData({ ...formData, tripName: e.target.value })}
                     placeholder={getDefaultTripName()}
-                    className="w-full px-5 py-4 text-base rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none"
+                    className="w-full px-5 py-4 text-base rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-green-400/50 focus:shadow-[0_0_20px_rgba(34,197,94,0.3)] focus:outline-none"
                   />
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-livetrip-primary/0 via-livetrip-primary/20 to-livetrip-primary/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 </div>
@@ -772,7 +758,7 @@ export default function PlanGlass() {
                   onChange={(e) => setFormData({ ...formData, tripDescription: e.target.value })}
                   placeholder="简要描述您的行程主题或备注..."
                   rows={3}
-                  className="w-full px-5 py-3 text-base rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none resize-none"
+                  className="w-full px-5 py-3 text-base rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-green-400/50 focus:shadow-[0_0_20px_rgba(34,197,94,0.3)] focus:outline-none resize-none"
                 />
               </div>
             </div>
@@ -784,7 +770,7 @@ export default function PlanGlass() {
   };
 
   return (
-    <GlassLayout>
+    <GlassLayout showSearch={false}>
       {/* 动态背景光影效果 */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-livetrip-primary/5 via-transparent to-livetrip-accent/5 animate-pulse" style={{ animationDuration: '8s' }} />
@@ -869,7 +855,7 @@ export default function PlanGlass() {
             {currentStep < steps.length - 1 ? (
               <button
                 onClick={handleNext}
-                className="relative flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold text-lg border border-amber-400/30 shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden flex items-center justify-center gap-2"
+                className="relative flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-[#CDEDDE] to-[#CDEDDE]/80 text-[#005746] font-semibold text-lg border border-[#CDEDDE]/50 shadow-lg shadow-[#CDEDDE]/30 hover:shadow-xl hover:shadow-[#CDEDDE]/40 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden flex items-center justify-center gap-2"
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
                 <span className="relative flex items-center gap-2">
@@ -881,7 +867,7 @@ export default function PlanGlass() {
               <button
                 onClick={handleGenerate}
                 disabled={loading}
-                className="relative flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold text-lg border border-amber-500/30 shadow-lg shadow-amber-600/30 hover:shadow-xl hover:shadow-amber-600/40 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold text-lg border border-green-500/30 shadow-lg shadow-green-600/30 hover:shadow-xl hover:shadow-green-600/40 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
                 <span className="relative flex items-center gap-2">
@@ -920,7 +906,7 @@ export default function PlanGlass() {
             {/* 头部 */}
             <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-amber-400" />
+                <Sparkles className="w-5 h-5 text-[#AE1C31]" />
                 <span className="text-base font-semibold text-white">AI 旅行顾问</span>
               </div>
               <button
@@ -953,7 +939,7 @@ export default function PlanGlass() {
         className={`fixed bottom-8 right-8 z-40 w-16 h-16 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center group ${
           aiDrawerOpen 
             ? 'bg-white/20 backdrop-blur-md border-2 border-white/30 scale-90' 
-            : 'bg-gradient-to-r from-amber-500 to-amber-600 shadow-amber-500/40 hover:scale-110 hover:shadow-xl animate-pulse'
+            : 'bg-gradient-to-r from-[#AE1C31] to-[#AE1C31]/80 shadow-[#AE1C31]/40 hover:scale-110 hover:shadow-xl animate-pulse'
         }`}
         style={!aiDrawerOpen ? { animationDuration: '3s' } : {}}
       >

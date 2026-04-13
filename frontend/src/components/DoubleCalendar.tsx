@@ -141,9 +141,9 @@ export function DoubleCalendar({ startDate, endDate, onStartDateChange, onEndDat
                   isPast
                     ? 'text-white/20 cursor-not-allowed'
                     : isSelected
-                    ? 'bg-amber-500 text-white'
+                    ? 'bg-[#FFD9A3] text-[#718771]'
                     : isInRange
-                    ? 'bg-amber-500/20 text-amber-300'
+                    ? 'bg-[#FFD9A3]/40 text-[#718771]'
                     : 'text-white/80 hover:bg-white/10'
                 }`}
               >
@@ -188,8 +188,8 @@ export function DoubleCalendar({ startDate, endDate, onStartDateChange, onEndDat
         </div>
         {/* 总天数 */}
         {startDate && endDate && (
-          <div className="text-center py-3 rounded-xl bg-amber-500/10 border border-amber-400/20">
-            <span className="text-amber-400 font-medium">
+          <div className="text-center py-3 rounded-xl bg-[#FFD9A3]/20 border border-[#FFD9A3]/40">
+            <span className="text-[#718771] font-medium">
               共 {Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1} 天行程
             </span>
           </div>
