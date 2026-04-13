@@ -329,12 +329,17 @@ export const useHomepageData = () => {
   // 获取预算数据 - 获取最近的非协同行程的预算
   const fetchBudgetData = async (currentTripId?: string) => {
     try {
+      console.log('💰 开始获取预算数据...');
       const response = await getUserTrips();
-      if (response.data.success) {
-        const trips = response.data.trips;
+
+      // getUserTrips返回的是response.data，结构为 { success: true, data: Trip[] }
+      if (response.success && Array.isArray(response.data)) {
+        const trips = response.data;
+        console.log('📊 获取到的行程列表:', trips.length, '个');
 
         // 筛选非协同行程（source !== 'collab'）
         const nonCollabTrips = trips.filter((trip: any) => trip.source !== 'collab');
+        console.log('📊 非协同行程:', nonCollabTrips.length, '个');
 
         // 按开始日期降序排序，获取最近的行程
         const sortedTrips = nonCollabTrips.sort((a: any, b: any) =>
@@ -355,7 +360,12 @@ export const useHomepageData = () => {
           const budget = targetTrip.budget || {};
           const total = targetTrip.totalBudget || 0;
 
-          console.log('预算数据:', { tripId: targetTrip.id, budget, total });
+          console.log('✅ 预算数据:', {
+            tripId: targetTrip.id,
+            tripTitle: targetTrip.title,
+            budget,
+            total
+          });
 
           setBudgetData({
             transportation: budget.transportation || 0,
@@ -367,6 +377,7 @@ export const useHomepageData = () => {
             total: total,
           });
         } else {
+          console.log('⚠️ 没有找到行程，设置默认预算数据');
           // 没有找到行程，设置默认预算数据
           setBudgetData({
             transportation: 0,
@@ -378,9 +389,11 @@ export const useHomepageData = () => {
             total: 0,
           });
         }
+      } else {
+        console.log('⚠️ 响应格式不正确:', response);
       }
     } catch (err) {
-      console.error('获取预算数据失败:', err);
+      console.error('❌ 获取预算数据失败:', err);
       setBudgetData({
         transportation: 0,
         accommodation: 0,
@@ -393,64 +406,99 @@ export const useHomepageData = () => {
     }
   };
 
-  // 初始化数据
-  useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      try {
-        // 1. 并行获取基础数据
-        const [tripsResult] = await Promise.all([
-          fetchUserTrips(),
-          fetchHotDestinations(), // 获取热门目的地
-        ]);
+  // 初始化数据的函数（提取到外部，供多处调用）
+  const init = async () => {
+    setLoading(true);
+    try {
+      console.log('🔄 开始初始化Homepage数据...');
 
-        // 2. 获取天气数据
-        if (tripsResult?.trips && tripsResult.trips.length > 0) {
-          // 提取所有目的地城市
-          const citiesSet = new Set<string>();
-          tripsResult.trips.forEach((trip: any) => {
-            if (trip.destination) {
-              citiesSet.add(trip.destination);
-            }
-          });
-          const destinations = Array.from(citiesSet);
-          setDestinationCities(destinations);
+      // 1. 并行获取基础数据
+      const [tripsResult] = await Promise.all([
+        fetchUserTrips(),
+        fetchHotDestinations(), // 获取热门目的地
+      ]);
 
-          // 使用第一个目的地城市的天气
-          if (destinations.length > 0) {
-            setSelectedCity(destinations[0]);
-            await fetchWeatherData(destinations[0]);
+      console.log('📊 行程数据获取结果:', tripsResult);
+
+      // 2. 获取天气数据
+      if (tripsResult?.trips && tripsResult.trips.length > 0) {
+        // 提取所有目的地城市
+        const citiesSet = new Set<string>();
+        tripsResult.trips.forEach((trip: any) => {
+          if (trip.destination) {
+            citiesSet.add(trip.destination);
           }
-        } else {
-          // 没有行程，使用默认城市北京
-          await fetchWeatherData('北京');
+        });
+        const destinations = Array.from(citiesSet);
+        setDestinationCities(destinations);
+
+        // 使用第一个目的地城市的天气
+        if (destinations.length > 0) {
+          setSelectedCity(destinations[0]);
+          await fetchWeatherData(destinations[0]);
         }
+      } else {
+        // 没有行程，使用默认城市北京
+        await fetchWeatherData('北京');
+      }
 
-        if (!tripsResult || !tripsResult.currentTrip) {
-          setLoading(false);
-          return;
-        }
-
-        const { currentTrip, trips } = tripsResult;
-
-        // 3. 并行获取当前行程的相关数据和足迹城市
-        await Promise.all([
-          fetchPackingList(currentTrip.id),
-          fetchPackingProgress(currentTrip.id),
-          fetchBudgetData(), // 不传递tripId，自动获取最近的非协同行程预算
-          calculateFootprintCities(trips).then(cities => setFootprintCities(cities)),
-        ]);
-
-      } catch (err) {
-        setError('加载数据失败');
-        console.error('初始化数据失败:', err);
-      } finally {
+      if (!tripsResult || !tripsResult.currentTrip) {
+        console.log('⚠️ 没有当前行程，跳过后续数据获取');
         setLoading(false);
+        return;
+      }
+
+      const { currentTrip, trips } = tripsResult;
+
+      // 3. 并行获取当前行程的相关数据和足迹城市
+      await Promise.all([
+        fetchPackingList(currentTrip.id),
+        fetchPackingProgress(currentTrip.id),
+        fetchBudgetData(), // 不传递tripId，自动获取最近的非协同行程预算
+        calculateFootprintCities(trips).then(cities => setFootprintCities(cities)),
+      ]);
+
+      console.log('✅ Homepage数据初始化完成');
+
+    } catch (err) {
+      setError('加载数据失败');
+      console.error('❌ 初始化数据失败:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 初始化数据（组件挂载时执行）
+  useEffect(() => {
+    init();
+  }, []); // 只在组件挂载时执行一次
+
+  // 监听行程变化，自动刷新数据
+  useEffect(() => {
+    // 监听存储事件（当其他标签页创建/更新行程时）
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'trip-updated' || e.key === 'trip-created') {
+        console.log('🔔 检测到行程变化，刷新数据...');
+        // 清除缓存并重新获取数据
+        cacheManager.clear();
+        init();
       }
     };
 
-    init();
-  }, []); // 移除 currentTripId 依赖，只在组件挂载时执行一次
+    window.addEventListener('storage', handleStorageChange);
+
+    // 定时刷新数据（每30秒，提高更新频率）
+    const refreshInterval = setInterval(() => {
+      console.log('⏰ 定时刷新数据...');
+      cacheManager.clear();
+      init();
+    }, 30 * 1000); // 改为30秒刷新一次
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(refreshInterval);
+    };
+  }, []);
 
   // 切换打包状态
   const togglePacked = async (itemId: string) => {
@@ -615,6 +663,59 @@ export const useHomepageData = () => {
     console.log('🔄 手动刷新缓存...');
     cacheManager.clear();
     // 重新初始化数据
+    const init = async () => {
+      setLoading(true);
+      try {
+        // 1. 并行获取基础数据
+        const [tripsResult] = await Promise.all([
+          fetchUserTrips(),
+          fetchHotDestinations(), // 获取热门目的地
+        ]);
+
+        // 2. 获取天气数据
+        if (tripsResult?.trips && tripsResult.trips.length > 0) {
+          // 提取所有目的地城市
+          const citiesSet = new Set<string>();
+          tripsResult.trips.forEach((trip: any) => {
+            if (trip.destination) {
+              citiesSet.add(trip.destination);
+            }
+          });
+          const destinations = Array.from(citiesSet);
+          setDestinationCities(destinations);
+
+          // 使用第一个目的地城市的天气
+          if (destinations.length > 0) {
+            setSelectedCity(destinations[0]);
+            await fetchWeatherData(destinations[0]);
+          }
+        } else {
+          // 没有行程，使用默认城市北京
+          await fetchWeatherData('北京');
+        }
+
+        if (!tripsResult || !tripsResult.currentTrip) {
+          setLoading(false);
+          return;
+        }
+
+        const { currentTrip, trips } = tripsResult;
+
+        // 3. 并行获取当前行程的相关数据和足迹城市
+        await Promise.all([
+          fetchPackingList(currentTrip.id),
+          fetchPackingProgress(currentTrip.id),
+          fetchBudgetData(), // 不传递tripId，自动获取最近的非协同行程预算
+          calculateFootprintCities(trips).then(cities => setFootprintCities(cities)),
+        ]);
+
+      } catch (err) {
+        setError('加载数据失败');
+        console.error('初始化数据失败:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
     await init();
   };
 

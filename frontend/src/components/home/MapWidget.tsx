@@ -26,7 +26,7 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
   const citiesKey = useMemo(() => JSON.stringify(cities.map(c => c.name)), [cities]);
 
   useEffect(() => {
-    if (!mapRef.current || cities.length === 0) return;
+    if (!mapRef.current) return;
 
     const initMap = async () => {
       try {
@@ -39,6 +39,11 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
             mapInstanceRef.current.remove(marker);
           });
           markersRef.current = [];
+
+          // 如果没有城市数据，不添加标记
+          if (cities.length === 0) {
+            return;
+          }
 
           // 添加新标记
           const AMap = (window as any).AMap;
@@ -132,6 +137,12 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
         // 添加比例尺
         map.addControl(new AMap.Scale());
 
+        // 如果没有城市数据，不添加标记
+        if (cities.length === 0) {
+          setMapLoaded(true);
+          return;
+        }
+
         // 添加城市标记
         cities.forEach(city => {
           if (!city.location) return;
@@ -213,8 +224,8 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
     };
   }, [citiesKey, onCityClick]); // 使用citiesKey而不是cities
 
-  // 降级方案：显示城市列表
-  if (mapError || cities.length === 0) {
+  // 降级方案：显示城市列表（仅在地图加载失败时）
+  if (mapError) {
     return (
       <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-6">
         <div className="flex items-center gap-2 mb-4">

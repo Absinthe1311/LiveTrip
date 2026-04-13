@@ -1,7 +1,7 @@
 // 首页 - LiveTrip 智能旅行规划（最终优化版）
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Home as HomeIcon, Plus, Sparkles, Globe, Heart, PenLine, List, MapPin, Users, Search, Bell, Settings, Sun } from "lucide-react";
+import { Menu, Home as HomeIcon, Plus, Sparkles, Globe, Heart, PenLine, List, MapPin, Users, Search, Bell, Settings, Sun, RefreshCw } from "lucide-react";
 import {
   GlassCard,
   PackingList,
@@ -49,6 +49,7 @@ function WorkspaceView() {
     hotDestinations,
     searchResults,
     search,
+    refreshCache,
   } = useHomepageData();
 
   // 调试信息
@@ -115,7 +116,8 @@ function WorkspaceView() {
   const handleLogout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
-    navigate('/login');
+    // 退出登录后刷新页面，显示未登录态（Landing Page）
+    window.location.href = '/';
   };
 
   return (
@@ -294,6 +296,15 @@ function WorkspaceView() {
 
                   {/* 功能图标组 */}
                   <div className="flex items-center gap-2">
+                    {/* 刷新按钮 */}
+                    <button
+                      onClick={refreshCache}
+                      className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                      title="刷新数据"
+                    >
+                      <RefreshCw className={`h-5 w-5 text-white/80 ${loading ? 'animate-spin' : ''}`} />
+                    </button>
+
                     {/* 通知按钮 */}
                     <button className="relative p-2 rounded-lg hover:bg-white/10 transition-colors">
                       <Bell className="h-5 w-5 text-white/80" />
