@@ -29,12 +29,6 @@ router.post('/upload', authenticateToken, uploadSingleImage, ImageController.upl
 router.get('/spot/:spotName/cover', ImageController.getSpotCoverImage);
 
 /**
- * 搜索Unsplash图片
- * GET /images/search/:keyword
- */
-router.get('/search/:keyword', ImageController.searchUnsplashImages);
-
-/**
  * 批量获取景点图片
  * POST /images/batch
  */

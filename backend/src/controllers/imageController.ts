@@ -236,52 +236,6 @@ export class ImageController {
   }
 
   /**
-   * 搜索Unsplash图片
-   */
-  static async searchUnsplashImages(req: Request, res: Response): Promise<void> {
-    try {
-      const { keyword } = req.params;
-      const { city, perPage } = req.query;
-
-      if (!keyword) {
-        res.status(400).json({
-          success: false,
-          message: '搜索关键词不能为空',
-        });
-        return;
-      }
-
-      const keywordStr = Array.isArray(keyword) ? keyword[0] : keyword;
-      const cityStr = city ? (Array.isArray(city) ? city[0] : city) : undefined;
-      const cityStrToUse = cityStr ? String(cityStr) : undefined;
-      const perPageNum = perPage ? parseInt(String(Array.isArray(perPage) ? perPage[0] : perPage)) : 5;
-
-      const images = await imageService.searchUnsplashImages(
-        decodeURIComponent(keywordStr),
-        cityStrToUse ? decodeURIComponent(cityStrToUse) : undefined,
-        perPageNum
-      );
-
-      res.status(200).json({
-        success: true,
-        data: {
-          keyword: decodeURIComponent(keywordStr),
-          city: cityStrToUse ? decodeURIComponent(cityStrToUse) : undefined,
-          images: images,
-          count: images.length,
-        },
-      });
-    } catch (error: any) {
-      console.error('搜索Unsplash图片失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '搜索Unsplash图片失败',
-        error: error.message,
-      });
-    }
-  }
-
-  /**
    * 批量获取景点图片
    */
   static async batchGetSpotImages(req: Request, res: Response): Promise<void> {

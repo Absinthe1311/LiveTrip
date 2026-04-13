@@ -6,16 +6,6 @@ import { checkDuplicateImage, generateUniqueFileName, getImageExtension } from '
 const prisma = getPrismaClient();
 
 /**
- * Unsplash图片接口
- */
-export interface UnsplashImage {
-  id: string;
-  url: string;
-  description?: string;
-  author?: string;
-}
-
-/**
  * 图片上传结果接口
  */
 export interface ImageUploadResult {
@@ -510,16 +500,8 @@ export class ImageService {
         };
       }
 
-      // 如果数据库中没有图片，尝试使用 Unsplash
-      console.log(`⚠️  景点 ${spotName} 没有图片，尝试使用 Unsplash`);
-      const unsplashImages = await this.searchUnsplashImages(spotName, city, 1);
-      if (unsplashImages.length > 0) {
-        return {
-          url: unsplashImages[0].url,
-          source: 'unsplash'
-        };
-      }
-
+      // 如果数据库中没有图片，返回null
+      console.log(`⚠️  景点 ${spotName} 没有图片`);
       return null;
     } catch (error) {
       console.error('❌ 获取景点封面图片失败:', error);
@@ -536,38 +518,6 @@ export class ImageService {
   async getSpotCoverImage(spotName: string, city?: string): Promise<string | null> {
     const result = await this.getSpotCoverImageWithSource(spotName, city);
     return result?.url || null;
-  }
-
-  /**
-   * 搜索Unsplash图片
-   * @param keyword 搜索关键词
-   * @param city 城市名称（可选）
-   * @param perPage 每页数量
-   * @returns Unsplash图片列表
-   */
-  async searchUnsplashImages(
-    keyword: string,
-    city?: string,
-    perPage: number = 5
-  ): Promise<UnsplashImage[]> {
-    try {
-      // TODO: 集成Unsplash API
-      // 这里暂时返回模拟数据
-      const searchQuery = city ? `${keyword} ${city}` : keyword;
-
-      // 模拟Unsplash API响应
-      const mockImages: UnsplashImage[] = Array.from({ length: perPage }, (_, index) => ({
-        id: `unsplash_${Date.now()}_${index}`,
-        url: `https://source.unsplash.com/800x600/?${encodeURIComponent(searchQuery)}`,
-        description: `${searchQuery} - 图片 ${index + 1}`,
-        author: 'Unsplash User',
-      }));
-
-      return mockImages;
-    } catch (error) {
-      console.error('❌ 搜索Unsplash图片失败:', error);
-      throw error instanceof Error ? error : new Error('搜索Unsplash图片失败');
-    }
   }
 
   /**

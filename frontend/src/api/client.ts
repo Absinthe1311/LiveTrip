@@ -493,21 +493,6 @@ export const getSpotCoverImage = async (spotName: string, city?: string) => {
 };
 
 /**
- * 搜索Unsplash图片
- * @param keyword 搜索关键词
- * @param city 城市（可选）
- * @param perPage 每页数量
- * @returns 图片列表
- */
-export const searchUnsplashImages = async (keyword: string, city?: string, perPage?: number) => {
-  const params: any = {};
-  if (city) params.city = city;
-  if (perPage) params.perPage = perPage;
-  const response = await apiClient.get(`/images/search/${encodeURIComponent(keyword)}`, { params });
-  return response.data;
-};
-
-/**
  * 批量获取景点图片
  * @param spots 景点列表
  * @returns 图片映射
