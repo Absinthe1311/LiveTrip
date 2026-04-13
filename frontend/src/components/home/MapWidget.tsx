@@ -1,5 +1,5 @@
 // 地图控件 - 展示中国地图和用户足迹
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import AMapLoader from '@amap/amap-jsapi-loader';
 import { MapPin, Navigation } from 'lucide-react';
 
@@ -17,20 +17,106 @@ interface MapWidgetProps {
 
 const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
   const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null); // 保存地图实例
+  const markersRef = useRef<any[]>([]); // 保存标记实例
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+
+  // 使用useMemo缓存cities的JSON字符串，用于比较
+  const citiesKey = useMemo(() => JSON.stringify(cities.map(c => c.name)), [cities]);
 
   useEffect(() => {
     if (!mapRef.current || cities.length === 0) return;
 
     const initMap = async () => {
       try {
+        // 如果地图已经存在，只更新标记
+        if (mapInstanceRef.current) {
+          console.log('更新地图标记，不重新初始化地图');
+          
+          // 清除旧标记
+          markersRef.current.forEach(marker => {
+            mapInstanceRef.current.remove(marker);
+          });
+          markersRef.current = [];
+
+          // 添加新标记
+          const AMap = (window as any).AMap;
+          cities.forEach(city => {
+            if (!city.location) return;
+
+            const [lng, lat] = city.location.split(',').map(Number);
+            if (isNaN(lng) || isNaN(lat)) return;
+
+            // 创建自定义标记内容
+            const markerContent = document.createElement('div');
+            markerContent.className = 'custom-marker';
+            markerContent.innerHTML = `
+              <div style="
+                background: linear-gradient(135deg, #f59e0b, #d97706);
+                color: white;
+                padding: 6px 12px;
+                border-radius: 16px;
+                font-size: 13px;
+                font-weight: 600;
+                box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+                white-space: nowrap;
+                cursor: pointer;
+                transition: all 0.3s ease;
+              ">
+                ${city.name} (${city.tripCount})
+              </div>
+            `;
+
+            // 创建标记
+            const marker = new AMap.Marker({
+              position: [lng, lat],
+              content: markerContent,
+              offset: new AMap.Pixel(-20, -20),
+            });
+
+            // 添加点击事件
+            marker.on('click', () => {
+              if (onCityClick) {
+                onCityClick(city);
+              }
+            });
+
+            // 添加悬停效果
+            markerContent.addEventListener('mouseenter', () => {
+              const child = markerContent.firstElementChild as HTMLElement;
+              if (child) {
+                child.style.transform = 'scale(1.1)';
+                child.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.6)';
+              }
+            });
+
+            markerContent.addEventListener('mouseleave', () => {
+              const child = markerContent.firstElementChild as HTMLElement;
+              if (child) {
+                child.style.transform = 'scale(1)';
+                child.style.boxShadow = '0 2px 8px rgba(245, 158, 11, 0.4)';
+              }
+            });
+
+            mapInstanceRef.current.add(marker);
+            markersRef.current.push(marker);
+          });
+
+          return;
+        }
+
+        console.log('首次初始化地图');
+        
         // 加载高德地图
         const AMap = await AMapLoader.load({
           key: import.meta.env.VITE_AMAP_JS_KEY,
           version: '2.0',
           plugins: ['AMap.Scale', 'AMap.Marker', 'AMap.InfoWindow'],
         });
+
+        // 保存AMap到window，供后续使用
+        (window as any).AMap = AMap;
 
         // 创建地图实例
         const map = new AMap.Map(mapRef.current, {
@@ -39,6 +125,9 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
           mapStyle: 'amap://styles/whitesmoke',
           viewMode: '2D',
         });
+
+        // 保存地图实例
+        mapInstanceRef.current = map;
 
         // 添加比例尺
         map.addControl(new AMap.Scale());
@@ -102,6 +191,7 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
           });
 
           map.add(marker);
+          markersRef.current.push(marker);
         });
 
         setMapLoaded(true);
@@ -113,11 +203,15 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
 
     initMap();
 
-    // 清理函数
+    // 清理函数 - 只在组件卸载时清理
     return () => {
-      // 高德地图的清理逻辑
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.destroy();
+        mapInstanceRef.current = null;
+        markersRef.current = [];
+      }
     };
-  }, [cities, onCityClick]);
+  }, [citiesKey, onCityClick]); // 使用citiesKey而不是cities
 
   // 降级方案：显示城市列表
   if (mapError || cities.length === 0) {
@@ -152,7 +246,7 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
   }
 
   return (
-    <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-6">
+    <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-6 h-full flex flex-col">
       <div className="flex items-center gap-2 mb-4">
         <MapPin className="w-5 h-5 text-amber-400" />
         <h3 className="text-lg font-semibold text-white">我的足迹</h3>
@@ -171,10 +265,11 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
         ref={mapRef}
         style={{
           width: '100%',
-          height: '300px',
+          height: '500px',
           borderRadius: '12px',
           overflow: 'hidden',
           display: mapLoaded ? 'block' : 'none',
+          flex: 1,
         }}
       />
     </div>

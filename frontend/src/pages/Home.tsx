@@ -1,7 +1,7 @@
 // 首页 - LiveTrip 智能旅行规划（最终优化版）
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Home as HomeIcon, Plus, Sparkles, Globe, Heart, PenLine, List, MapPin, Users, Search, Bell, Settings, Sun, Image as ImageIcon, Upload, X } from "lucide-react";
+import { Menu, Home as HomeIcon, Plus, Sparkles, Globe, Heart, PenLine, List, MapPin, Users, Search, Bell, Settings, Sun } from "lucide-react";
 import {
   GlassCard,
   PackingList,
@@ -9,14 +9,13 @@ import {
   WeatherCard,
   CalendarCard,
   UpcomingTourCard,
-  LogoutButton,
   TotalTravelCard,
   MapWidget,
   SearchBar
 } from '../components/home';
-import ImageCropper from '../components/ImageCropper';
 import LandingHeroSection from '../components/LandingHeroSection';
 import UserProfileEditModal from '../components/UserProfileEditModal';
+import SettingsModal from '../components/SettingsModal';
 import { useHomepageData } from '../hooks/useHomepageData';
 
 // ==================== 未登录态视图 ====================
@@ -39,6 +38,7 @@ function WorkspaceView() {
     togglePacked,
     weatherData,
     selectedCity,
+    destinationCities,
     changeCity,
     budgetData,
     tripStats,
@@ -50,20 +50,26 @@ function WorkspaceView() {
     searchResults,
     search,
   } = useHomepageData();
+
+  // 调试信息
+  useEffect(() => {
+    console.log('=== Homepage Data Debug ===');
+    console.log('destinationCities:', destinationCities);
+    console.log('weatherData:', weatherData);
+    console.log('upcomingTrips:', upcomingTrips);
+    console.log('footprintCities:', footprintCities);
+    console.log('========================');
+  }, [destinationCities, weatherData, upcomingTrips, footprintCities]);
   
   // 背景图更换功能状态
   const [bgImage, setBgImage] = useState<string>('/homepage-bg.jpg');
-  const [showBgInput, setShowBgInput] = useState(false);
-  const [bgUrl, setBgUrl] = useState<string>('');
-  const [uploading, setUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string>('');
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [cropperVisible, setCropperVisible] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // 用户信息编辑弹窗
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+
+  // 设置弹窗
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
   // 获取用户信息
   const fetchUserProfile = async () => {
@@ -105,97 +111,11 @@ function WorkspaceView() {
     }
   }, []);
 
-  // 处理背景图更改
-  const handleBgChange = () => {
-    if (bgUrl.trim()) {
-      setBgImage(bgUrl.trim());
-      localStorage.setItem('customBgImage', bgUrl.trim());
-      setShowBgInput(false);
-      setBgUrl('');
-    }
-  };
-
-  // 处理背景图上传
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // 验证文件类型
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      alert('仅支持 JPG、PNG、GIF、WebP 格式的图片');
-      return;
-    }
-
-    // 验证文件大小（10MB）
-    const maxSize = 10 * 1024 * 1024;
-    if (file.size > maxSize) {
-      alert('图片大小不能超过 10MB');
-      return;
-    }
-
-    // 打开裁剪器
-    setSelectedFile(file);
-    setCropperVisible(true);
-    setShowBgInput(false);
-  };
-
-  // 处理裁剪确认
-  const handleCropConfirm = async (croppedImage: string) => {
-    setUploading(true);
-    try {
-      // 将base64转换为Blob
-      const response = await fetch(croppedImage);
-      const blob = await response.blob();
-      const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
-
-      // 上传裁剪后的图片
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const uploadResponse = await fetch('http://localhost:3003/api/upload/image', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: formData,
-      });
-
-      const result = await uploadResponse.json();
-
-      if (result.success) {
-        const imageUrl = result.data.url;
-        setBgImage(imageUrl);
-        localStorage.setItem('customBgImage', imageUrl);
-        setPreviewUrl(imageUrl);
-        setCropperVisible(false);
-        setSelectedFile(null);
-        alert('图片上传成功');
-      } else {
-        alert(result.error || '图片上传失败');
-      }
-    } catch (error) {
-      console.error('背景图上传失败:', error);
-      alert('图片上传失败，请重试');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  // 处理裁剪取消
-  const handleCropCancel = () => {
-    setCropperVisible(false);
-    setSelectedFile(null);
-  };
-
-  // 删除上传的图片
-  const handleRemoveImage = () => {
-    setBgImage('/homepage-bg.jpg');
-    setPreviewUrl('');
-    localStorage.removeItem('customBgImage');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  // 处理退出登录
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    navigate('/login');
   };
 
   return (
@@ -350,79 +270,6 @@ function WorkspaceView() {
               </ul>
             </div>
           </nav>
-
-          {/* 背景图更换按钮（左下角） */}
-          <div className="p-3 border-t border-white/10">
-            <button
-              onClick={() => setShowBgInput(!showBgInput)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
-            >
-              <ImageIcon className="h-4 w-4" />
-              <span>更换背景</span>
-            </button>
-
-            {/* 背景图输入框 */}
-            {showBgInput && (
-              <div className="mt-2 space-y-2">
-                {/* URL 输入 */}
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={bgUrl}
-                    onChange={(e) => setBgUrl(e.target.value)}
-                    placeholder="输入图片URL..."
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30 transition-all"
-                  />
-                  <button
-                    onClick={handleBgChange}
-                    className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-livetrip-primary text-white hover:bg-livetrip-primary/90 transition-colors"
-                  >
-                    应用 URL
-                  </button>
-                </div>
-
-                {/* 分隔线 */}
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-white/20"></div>
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="px-2 bg-white/5 text-white/50">或</span>
-                  </div>
-                </div>
-
-                {/* 上传按钮 */}
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/gif,image/webp"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="bg-upload-input-home"
-                  ref={fileInputRef}
-                />
-                <label
-                  htmlFor="bg-upload-input-home"
-                  className="flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-lg bg-white/10 text-white/80 hover:bg-white/20 cursor-pointer transition-colors"
-                >
-                  <Upload className="w-3 h-3" />
-                  上传本地图片
-                </label>
-
-                {/* 重置按钮 */}
-                <button
-                  onClick={handleRemoveImage}
-                  className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-white/5 text-white/60 hover:bg-white/10 transition-colors"
-                >
-                  重置为默认背景
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* 退出按钮（左下角） */}
-          <div className="p-3 border-t border-white/10">
-            <LogoutButton />
-          </div>
         </aside>
 
         {/* 中间核心区 (60%) - 包含用户信息和搜索 */}
@@ -432,17 +279,16 @@ function WorkspaceView() {
           }`}
         >
           <div className="max-w-full h-full flex flex-col">
-            {/* 顶部栏 - 搜索框 */}
+            {/* 顶部栏 - 搜索框（使用SearchBar组件的功能） */}
             <div className="mb-6">
               <GlassCard className="p-4">
                 <div className="flex items-center gap-4">
-                  {/* 搜索框 */}
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/60" />
-                    <input
-                      type="text"
-                      placeholder="搜索目的地、景点、攻略…"
-                      className="w-full h-10 pl-10 pr-4 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/60 outline-none focus:ring-2 focus:ring-white/30 transition-all"
+                  {/* 搜索框 - 使用SearchBar的功能 */}
+                  <div className="flex-1">
+                    <SearchBar
+                      onSearch={search}
+                      hotDestinations={hotDestinations}
+                      searchResults={searchResults}
                     />
                   </div>
 
@@ -455,7 +301,10 @@ function WorkspaceView() {
                     </button>
 
                     {/* 设置按钮 */}
-                    <button className="p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <button
+                      onClick={() => setSettingsModalOpen(true)}
+                      className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                    >
                       <Settings className="h-5 w-5 text-white/80" />
                     </button>
 
@@ -481,13 +330,15 @@ function WorkspaceView() {
               </div>
 
               {/* Weather 卡片 - 放在中间 */}
-              <WeatherCard 
+              <WeatherCard
                 city={weatherData?.city}
                 temperature={weatherData?.temperature}
                 condition={weatherData?.condition}
                 humidity={weatherData?.humidity}
                 windSpeed={weatherData?.windSpeed}
                 pressure={weatherData?.pressure}
+                onCityChange={changeCity}
+                destinationCities={destinationCities}
               />
 
               {/* Budget 卡片 - 缩短高度 */}
@@ -503,54 +354,24 @@ function WorkspaceView() {
               />
             </div>
 
-            {/* 第二行 - Most Visited 地图（大面积） */}
+            {/* 第二行 - 我的足迹地图（大面积） */}
             <div className="flex-1">
-              <GlassCard className="p-6 h-full">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-white">
-                    旅行足迹
-                  </h3>
-                  <div className="flex items-center gap-2 text-sm text-white/60">
-                    <span>已探索</span>
-                    <span className="text-lg font-bold text-white">{tripStats.totalCities}</span>
-                    <span>个城市</span>
-                  </div>
-                </div>
-
-                {/* 地图区域 */}
-                <div className="flex-1 bg-white/5 rounded-lg flex items-center justify-center min-h-[400px]">
-                  <div className="text-center">
-                    <p className="text-4xl mb-4">🌍</p>
-                    <p className="text-white/60 text-lg">
-                      中国旅行地图
-                    </p>
-                    <p className="text-white/40 text-sm mt-2">
-                      已完成 {tripStats.completedTrips} 次旅行，共 {tripStats.totalTrips} 个行程
-                    </p>
-                    <div className="mt-6 flex items-center justify-center gap-6 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-                        <span className="text-white/60">已完成</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-green-500"></span>
-                        <span className="text-white/60">进行中</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
-                        <span className="text-white/60">即将出行</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </GlassCard>
+              <MapWidget
+                cities={footprintCities}
+                onCityClick={useCallback((city: any) => {
+                  // 点击城市标记，跳转到该城市的第一个行程
+                  if (city.tripIds.length > 0) {
+                    navigate(`/trip/${city.tripIds[0]}`);
+                  }
+                }, [navigate])}
+              />
             </div>
           </div>
         </main>
 
         {/* 右侧边栏 (25%) - 正确顺序 */}
         <aside
-          className={`w-[25%] min-w-[300px] max-w-[400px] p-6 space-y-4 ${
+          className={`w-[25%] min-w-[300px] max-w-[400px] p-6 flex flex-col gap-4 ${
             isLargeScreen ? 'block' : 'hidden'
           }`}
         >
@@ -604,37 +425,11 @@ function WorkspaceView() {
             </div>
           </GlassCard>
 
-          {/* 搜索栏 */}
-          <SearchBar
-            onSearch={search}
-            hotDestinations={hotDestinations}
-            searchResults={searchResults}
-          />
-
-          {/* 地图足迹 */}
-          <MapWidget
-            cities={footprintCities}
-            onCityClick={(city) => {
-              // 点击城市标记，跳转到该城市的第一个行程
-              if (city.tripIds.length > 0) {
-                navigate(`/trip/${city.tripIds[0]}`);
-              }
-            }}
-          />
-
           {/* 月历组件 */}
           <CalendarCard 
             year={new Date().getFullYear()}
             month={new Date().getMonth() + 1}
-            highlightedDates={tripDates.flatMap(trip => {
-              const dates = [];
-              const start = trip.startDate;
-              const end = trip.endDate;
-              for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                dates.push(d.getDate());
-              }
-              return dates;
-            })}
+            tripDates={tripDates}
           />
 
           {/* 即将出行 */}
@@ -647,6 +442,7 @@ function WorkspaceView() {
               date: new Date(trip.startDate).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
               temperature: 20,
               condition: '晴',
+              coverImage: undefined, // 后续可以添加城市图片
               onClick: () => navigate(`/trip/${trip.id}`),
             }))}
           />
@@ -660,20 +456,28 @@ function WorkspaceView() {
           />
         )}
 
-        {/* 图片裁剪器 */}
-        <ImageCropper
-          visible={cropperVisible}
-          imageFile={selectedFile}
-          onConfirm={handleCropConfirm}
-          onCancel={handleCropCancel}
-        />
-
         {/* 用户信息编辑弹窗 */}
         <UserProfileEditModal
           isOpen={editModalOpen}
           onClose={() => setEditModalOpen(false)}
           profile={userProfile || {}}
           onUpdate={fetchUserProfile}
+        />
+
+        {/* 设置弹窗 */}
+        <SettingsModal
+          isOpen={settingsModalOpen}
+          onClose={() => setSettingsModalOpen(false)}
+          onLogout={handleLogout}
+          bgImage={bgImage}
+          onBgChange={(url) => {
+            setBgImage(url);
+            localStorage.setItem('customBgImage', url);
+          }}
+          onBgRemove={() => {
+            setBgImage('/homepage-bg.jpg');
+            localStorage.removeItem('customBgImage');
+          }}
         />
       </div>
     </div>
