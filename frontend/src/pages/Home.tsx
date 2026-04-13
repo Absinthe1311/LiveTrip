@@ -10,84 +10,18 @@ import {
   CalendarCard,
   UpcomingTourCard,
   LogoutButton,
-  TotalTravelCard
+  TotalTravelCard,
+  MapWidget,
+  SearchBar
 } from '../components/home';
 import ImageCropper from '../components/ImageCropper';
+import LandingHeroSection from '../components/LandingHeroSection';
+import UserProfileEditModal from '../components/UserProfileEditModal';
+import { useHomepageData } from '../hooks/useHomepageData';
 
 // ==================== 未登录态视图 ====================
 function GuestView() {
-  const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen flex flex-col font-sans">
-      {/* Navbar */}
-      <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-border z-50 flex items-center shadow-subtle">
-        <div
-          className="w-[240px] h-full flex items-center justify-center px-5 border-r border-border shrink-0 cursor-pointer"
-          onClick={() => navigate('/')}
-        >
-          <img
-            src="/logo.png"
-            alt="LiveTrip Logo"
-            className="h-10 w-auto object-contain"
-          />
-        </div>
-
-        <div className="flex-1 flex items-center justify-center px-6">
-          <div className="relative w-full max-w-md">
-            <input
-              type="text"
-              placeholder="搜索目的地、景点、攻略…"
-              className="w-full h-10 pl-4 pr-4 rounded-full bg-gray-100 border-none outline-none text-sm focus:ring-2 focus:ring-livetrip-primary/20 transition-all"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1 px-4">
-          <button
-            onClick={() => navigate('/auth')}
-            className="bg-livetrip-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-livetrip-primary-dark transition-colors"
-          >
-            登录
-          </button>
-        </div>
-      </header>
-
-      {/* Hero Section */}
-      <section className="min-h-[calc(100vh-56px)] flex items-center justify-center bg-gradient-to-br from-purple-600 to-purple-800 p-6">
-        <div className="text-center text-white max-w-3xl">
-          <h1 className="text-5xl font-bold mb-4 font-serif">
-            LiveTrip 智能旅行规划
-          </h1>
-          <p className="text-lg opacity-90 mb-8 leading-relaxed">
-            基于人工智能和物联网技术的智能行程规划系统，能够根据用户偏好、实时物联网数据动态优化旅行行程
-          </p>
-          <button
-            onClick={() => navigate('/auth')}
-            className="bg-livetrip-accent text-white px-8 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
-          >
-            开始你的旅程
-          </button>
-          {/* 测试登录按钮 - 仅用于开发测试 */}
-          <button
-            onClick={() => {
-              const testUser = {
-                id: 'test-user-1',
-                username: 'Zhang Lei',
-                role: 'user'
-              };
-              localStorage.setItem('user', JSON.stringify(testUser));
-              localStorage.setItem('token', 'test-token-123');
-              window.location.reload();
-            }}
-            className="mt-4 bg-white/20 text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-white/30 transition-all"
-          >
-            测试登录（开发模式）
-          </button>
-        </div>
-      </section>
-    </div>
-  );
+  return <LandingHeroSection />;
 }
 
 // ==================== 已登录态工作台视图（最终优化版） ====================
@@ -95,6 +29,27 @@ function WorkspaceView() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
+  
+  // 使用自定义Hook获取数据
+  const {
+    loading,
+    error,
+    packingItems,
+    packingProgress,
+    togglePacked,
+    weatherData,
+    selectedCity,
+    changeCity,
+    budgetData,
+    tripStats,
+    upcomingTrips,
+    tripDates,
+    currentTripId,
+    footprintCities,
+    hotDestinations,
+    searchResults,
+    search,
+  } = useHomepageData();
   
   // 背景图更换功能状态
   const [bgImage, setBgImage] = useState<string>('/homepage-bg.jpg');
@@ -105,6 +60,31 @@ function WorkspaceView() {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [cropperVisible, setCropperVisible] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // 用户信息编辑弹窗
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  // 获取用户信息
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('http://localhost:3003/api/users/profile', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      const result = await response.json();
+      if (result.success) {
+        setUserProfile(result.data);
+      }
+    } catch (error) {
+      console.error('获取用户信息失败:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -493,14 +473,34 @@ function WorkspaceView() {
             <div className="grid grid-cols-3 gap-6 mb-4">
               {/* Packing List 卡片 - 缩短宽度 */}
               <div className="col-span-1">
-                <PackingList />
+                <PackingList 
+                  packingItems={packingItems}
+                  onItemToggle={togglePacked}
+                  onPackingClick={() => currentTripId && navigate(`/trip/${currentTripId}`)}
+                />
               </div>
 
               {/* Weather 卡片 - 放在中间 */}
-              <WeatherCard />
+              <WeatherCard 
+                city={weatherData?.city}
+                temperature={weatherData?.temperature}
+                condition={weatherData?.condition}
+                humidity={weatherData?.humidity}
+                windSpeed={weatherData?.windSpeed}
+                pressure={weatherData?.pressure}
+              />
 
               {/* Budget 卡片 - 缩短高度 */}
-              <BudgetCard />
+              <BudgetCard 
+                title="行程预算"
+                totalBudget={budgetData?.total}
+                budgetItems={budgetData ? [
+                  { category: '交通', amount: budgetData.transportation, percentage: (budgetData.transportation / budgetData.total) * 100 || 0, color: 'bg-red-500' },
+                  { category: '住宿', amount: budgetData.accommodation, percentage: (budgetData.accommodation / budgetData.total) * 100 || 0, color: 'bg-yellow-500' },
+                  { category: '餐饮', amount: budgetData.food, percentage: (budgetData.food / budgetData.total) * 100 || 0, color: 'bg-blue-500' },
+                  { category: '门票', amount: budgetData.tickets, percentage: (budgetData.tickets / budgetData.total) * 100 || 0, color: 'bg-green-500' },
+                ] : undefined}
+              />
             </div>
 
             {/* 第二行 - Most Visited 地图（大面积） */}
@@ -508,13 +508,13 @@ function WorkspaceView() {
               <GlassCard className="p-6 h-full">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-bold text-white">
-                    Most Visited in 2024
+                    旅行足迹
                   </h3>
-                  <select className="bg-white/10 border border-white/20 text-white px-3 py-1.5 rounded-lg outline-none focus:ring-2 focus:ring-white/30">
-                    <option value="2024">2024</option>
-                    <option value="2023">2023</option>
-                    <option value="2022">2022</option>
-                  </select>
+                  <div className="flex items-center gap-2 text-sm text-white/60">
+                    <span>已探索</span>
+                    <span className="text-lg font-bold text-white">{tripStats.totalCities}</span>
+                    <span>个城市</span>
+                  </div>
                 </div>
 
                 {/* 地图区域 */}
@@ -522,23 +522,23 @@ function WorkspaceView() {
                   <div className="text-center">
                     <p className="text-4xl mb-4">🌍</p>
                     <p className="text-white/60 text-lg">
-                      世界地图预览
+                      中国旅行地图
                     </p>
                     <p className="text-white/40 text-sm mt-2">
-                      （待实现 - 将显示旅行足迹地图）
+                      已完成 {tripStats.completedTrips} 次旅行，共 {tripStats.totalTrips} 个行程
                     </p>
                     <div className="mt-6 flex items-center justify-center gap-6 text-sm">
                       <div className="flex items-center gap-2">
                         <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-                        <span className="text-white/60">Last Visited</span>
+                        <span className="text-white/60">已完成</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="w-3 h-3 rounded-full bg-green-500"></span>
-                        <span className="text-white/60">Next Tour</span>
+                        <span className="text-white/60">进行中</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
-                        <span className="text-white/60">Favorite</span>
+                        <span className="text-white/60">即将出行</span>
                       </div>
                     </div>
                   </div>
@@ -558,35 +558,98 @@ function WorkspaceView() {
           <GlassCard className="p-4">
             <div className="flex items-center gap-3">
               {/* 头像 */}
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-livetrip-primary to-emerald-400 flex items-center justify-center text-white text-lg font-semibold">
-                Z
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white text-lg font-semibold">
+                {userProfile?.avatar ? (
+                  <img src={userProfile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span>{userProfile?.nickname?.[0] || userProfile?.username?.[0] || 'U'}</span>
+                )}
               </div>
 
               {/* 用户信息 */}
               <div className="flex-1">
                 <div className="text-sm font-semibold text-white">
-                  Zhang Lei
+                  {userProfile?.nickname || userProfile?.username || '用户'}
                 </div>
                 <div className="text-xs text-white/60">
-                  Premium User
+                  {userProfile?.bio || '这个人很懒，什么都没写'}
                 </div>
               </div>
 
-              {/* 更多选项 */}
-              <button className="p-2 rounded-lg hover:bg-white/10 transition-colors">
-                <Settings className="h-4 w-4 text-white/60" />
+              {/* 编辑按钮 */}
+              <button
+                onClick={() => setEditModalOpen(true)}
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <PenLine className="h-4 w-4 text-white/60" />
               </button>
+            </div>
+
+            {/* 统计信息 */}
+            <div className="mt-4 flex items-center justify-around text-center">
+              <div>
+                <div className="text-lg font-semibold text-white">{userProfile?.totalTrips || 0}</div>
+                <div className="text-xs text-white/60">行程</div>
+              </div>
+              <div className="w-px h-8 bg-white/20"></div>
+              <div>
+                <div className="text-lg font-semibold text-white">{userProfile?.totalCities || 0}</div>
+                <div className="text-xs text-white/60">城市</div>
+              </div>
+              <div className="w-px h-8 bg-white/20"></div>
+              <div>
+                <div className="text-lg font-semibold text-white">{userProfile?.completedTrips || 0}</div>
+                <div className="text-xs text-white/60">已完成</div>
+              </div>
             </div>
           </GlassCard>
 
-          {/* Total Travel 卡片 */}
-          <TotalTravelCard />
+          {/* 搜索栏 */}
+          <SearchBar
+            onSearch={search}
+            hotDestinations={hotDestinations}
+            searchResults={searchResults}
+          />
+
+          {/* 地图足迹 */}
+          <MapWidget
+            cities={footprintCities}
+            onCityClick={(city) => {
+              // 点击城市标记，跳转到该城市的第一个行程
+              if (city.tripIds.length > 0) {
+                navigate(`/trip/${city.tripIds[0]}`);
+              }
+            }}
+          />
 
           {/* 月历组件 */}
-          <CalendarCard />
+          <CalendarCard 
+            year={new Date().getFullYear()}
+            month={new Date().getMonth() + 1}
+            highlightedDates={tripDates.flatMap(trip => {
+              const dates = [];
+              const start = trip.startDate;
+              const end = trip.endDate;
+              for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                dates.push(d.getDate());
+              }
+              return dates;
+            })}
+          />
 
           {/* 即将出行 */}
-          <UpcomingTourCard />
+          <UpcomingTourCard 
+            tours={upcomingTrips.map(trip => ({
+              id: trip.id,
+              city: trip.destination,
+              country: '中国',
+              flag: '🇨🇳',
+              date: new Date(trip.startDate).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
+              temperature: 20,
+              condition: '晴',
+              onClick: () => navigate(`/trip/${trip.id}`),
+            }))}
+          />
         </aside>
 
         {/* 移动端遮罩 */}
@@ -604,13 +667,21 @@ function WorkspaceView() {
           onConfirm={handleCropConfirm}
           onCancel={handleCropCancel}
         />
+
+        {/* 用户信息编辑弹窗 */}
+        <UserProfileEditModal
+          isOpen={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          profile={userProfile || {}}
+          onUpdate={fetchUserProfile}
+        />
       </div>
     </div>
   );
 }
 
 // ==================== 主组件 ====================
-export default function Home() {
+function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -621,3 +692,5 @@ export default function Home() {
 
   return isLoggedIn ? <WorkspaceView /> : <GuestView />;
 }
+
+export default Home;

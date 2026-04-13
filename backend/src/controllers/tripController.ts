@@ -122,6 +122,7 @@ export const deleteTrip = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const tripId = Array.isArray(id) ? id[0] : id;
+    const userId = (req as any).user?.userId;
 
     console.log(`📝 收到删除行程请求，ID: ${tripId}`);
 
@@ -133,6 +134,12 @@ export const deleteTrip = async (req: Request, res: Response) => {
     });
 
     console.log('✅ 行程删除成功');
+
+    // 更新用户统计数据
+    if (userId) {
+      const { UserController } = await import('./userController');
+      await UserController.updateUserStats(userId);
+    }
 
     res.json({
       success: true,
@@ -392,6 +399,10 @@ export const saveTrip = async (req: Request, res: Response) => {
     });
 
     console.log('✅ 预算信息已更新');
+
+    // 更新用户统计数据
+    const { UserController } = await import('./userController');
+    await UserController.updateUserStats(userId);
 
     res.json({
       success: true,

@@ -21,6 +21,7 @@ import agentRoutes from './agentRoutes';
 // import testRoutes from './testRoutes'; // 文件不存在，暂时注释
 import collabRoutes from './collabRoutes';
 import uploadRoutes from './uploadRoutes';
+import userRoutes from './userRoutes';
 import { PackingController } from '../controllers/packingController';
 import { authenticateToken } from '../controllers/authController';
 
@@ -48,6 +49,7 @@ router.use('/agent', agentRoutes);
 // router.use('/test', testRoutes); // 文件不存在，暂时注释
 router.use('/collab', collabRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/users', userRoutes);
 
 // ==================== 打包清单独立路由 ====================
 // PATCH /api/packing/:itemId - 更新打包物品状态

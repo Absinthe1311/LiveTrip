@@ -12,3 +12,5 @@ export { default as PackingList } from './PackingList';
 export { default as TotalTravelCard } from './TotalTravelCard';
 export { default as TopBar } from './TopBar';
 export { default as FlightAndTravel } from './FlightAndTravel';
+export { default as MapWidget } from './MapWidget';
+export { default as SearchBar } from './SearchBar';

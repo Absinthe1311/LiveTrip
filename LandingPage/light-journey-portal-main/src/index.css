@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=Barlow:wght@300;400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 213 45% 95%;
+    --foreground: 213 45% 10%;
+    --glass-bg: rgba(255, 255, 255, 0.15);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --accent-warm: 35 100% 70%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 213 45% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 213 45% 10%;
+    --primary: 213 45% 10%;
+    --primary-foreground: 213 45% 95%;
+    --secondary: 213 30% 90%;
+    --secondary-foreground: 213 45% 10%;
+    --muted: 213 30% 90%;
+    --muted-foreground: 213 20% 46%;
+    --accent: 35 100% 70%;
+    --accent-foreground: 213 45% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 213 30% 85%;
+    --input: 213 30% 85%;
+    --ring: 213 45% 10%;
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-body;
+    font-weight: 300;
+  }
+}
+
+@layer components {
+  .liquid-glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+      0 4px 30px rgba(0, 0, 0, 0.08);
+  }
+
+  .liquid-glass-strong {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(40px) saturate(1.5);
+    -webkit-backdrop-filter: blur(40px) saturate(1.5);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+      0 8px 40px rgba(0, 0, 0, 0.12);
+  }
+}

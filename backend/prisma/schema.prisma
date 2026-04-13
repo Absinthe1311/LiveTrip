@@ -13,9 +13,16 @@ model User {
   email               String?          @unique
   passwordHash        String
   avatar              String?          @default("")
+  nickname            String?          @default("")
+  gender              String?          @default("")
+  bio                 String?          @default("")
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
   role                String           @default("user")
+  // 统计字段
+  totalTrips          Int              @default(0)
+  totalCities         Int              @default(0)
+  completedTrips      Int              @default(0)
   reviewedBlogs       BlogPost[]       @relation("BlogReviewer")
   collabMessages      CollabMessage[]
   collabRoomsAsHost   CollabRoom[]     @relation("HostRooms")
