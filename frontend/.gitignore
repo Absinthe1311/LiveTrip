@@ -27,3 +27,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Backup files
+*_backup.tsx
+*_backup.ts
+
+# Test files
+test_*.txt
+test_*.ts

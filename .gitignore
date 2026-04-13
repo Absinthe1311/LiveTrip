@@ -57,3 +57,12 @@ v0/
 # Database
 *.db
 *.db-journal
+
+# Prisma
+prisma_backup/
+
+# Landing Page (deprecated)
+LandingPage/
+
+# CodeArts Doer specs (development only)
+.codeartsdoer/
