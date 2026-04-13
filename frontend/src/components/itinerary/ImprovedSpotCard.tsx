@@ -85,14 +85,14 @@ export default function ImprovedSpotCard({
   const WeatherIcon = getWeatherIcon(iotData?.weatherIcon);
 
   return (
-    <div 
+    <div
       ref={cardRef}
-      className={`bg-white/80 backdrop-blur-xl border-2 border-white/50 rounded-3xl overflow-hidden transition-all duration-300 shadow-xl hover:shadow-2xl ${
-        isHovered ? 'ring-2 ring-green-400/50 scale-[1.02]' : ''
+      className={`bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl overflow-hidden transition-all duration-300 shadow-xl hover:shadow-xl hover:scale-105 ${
+        isHovered ? 'bg-gradient-to-r from-[#CDEDDE]/30 to-[#CDEDDE]/20 border-[#CDEDDE]/50' : ''
       }`}
     >
       {/* 景点图片 - 更大尺寸 */}
-      <div className="relative h-56 bg-gradient-to-br from-green-500/20 to-green-600/20">
+      <div className="relative h-56 bg-gradient-to-br from-[#145F39]/20 to-[#005746]/20">
         {imageLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-400" />
@@ -113,7 +113,7 @@ export default function ImprovedSpotCard({
         <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/70 to-transparent" />
         
         {/* 序号标签 */}
-        <div className="absolute top-4 left-4 w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+        <div className="absolute top-4 left-4 w-12 h-12 rounded-full bg-gradient-to-r from-[#145F39] to-[#005746] flex items-center justify-center text-white font-bold text-lg shadow-lg">
           {index + 1}
         </div>
 
@@ -129,24 +129,24 @@ export default function ImprovedSpotCard({
       {/* 景点信息 - 更大内边距 */}
       <div className="p-6 space-y-4">
         {/* 标题 */}
-        <h3 className="text-2xl font-bold text-gray-800 truncate">
+        <h3 className="text-2xl font-bold text-white truncate">
           {item.name}
         </h3>
 
         {/* 分类标签 */}
         <div className="flex items-center gap-2 flex-wrap">
           {(item as any).category && (
-            <span className="bg-green-500/20 text-green-700 px-4 py-1.5 rounded-full text-sm font-medium border border-green-500/30">
+            <span className="bg-[#CDEDDE]/20 text-[#CDEDDE] px-4 py-1.5 rounded-full text-sm font-medium border border-[#CDEDDE]/30">
               {(item as any).category}
             </span>
           )}
           {item.estimated_cost && item.estimated_cost > 0 ? (
-            <span className="bg-amber-500/20 text-amber-700 px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-1 border border-amber-500/30">
+            <span className="bg-[#FFD9A3]/20 text-[#FFD9A3] px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-1 border border-[#FFD9A3]/30">
               <Wallet className="w-4 h-4" />
               ¥{item.estimated_cost}
             </span>
           ) : (
-            <span className="bg-green-500/20 text-green-700 px-4 py-1.5 rounded-full text-sm font-medium border border-green-500/30">
+            <span className="bg-[#CDEDDE]/20 text-[#CDEDDE] px-4 py-1.5 rounded-full text-sm font-medium border border-[#CDEDDE]/30">
               免费
             </span>
           )}
@@ -154,40 +154,40 @@ export default function ImprovedSpotCard({
 
         {/* IoT数据直接显示 */}
         {iotData && (
-          <div className="bg-gray-100/80 rounded-xl p-4 border border-gray-200/50">
+          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
             <div className="grid grid-cols-4 gap-3">
               {/* 拥挤度 */}
               <div className="text-center">
-                <Users className="w-5 h-5 text-gray-600 mx-auto mb-1" />
-                <div className="text-xs text-gray-500">拥挤</div>
+                <Users className="w-5 h-5 text-white/60 mx-auto mb-1" />
+                <div className="text-xs text-white/50">拥挤</div>
                 <div className={`text-sm font-semibold ${getCrowdColor(iotData.crowdLevel)}`}>
                   {getCrowdText(iotData.crowdLevel)}
                 </div>
               </div>
-              
+
               {/* 天气 */}
               <div className="text-center">
-                <WeatherIcon className="w-5 h-5 text-gray-600 mx-auto mb-1" />
-                <div className="text-xs text-gray-500">天气</div>
-                <div className="text-sm font-semibold text-gray-800">
+                <WeatherIcon className="w-5 h-5 text-white/60 mx-auto mb-1" />
+                <div className="text-xs text-white/50">天气</div>
+                <div className="text-sm font-semibold text-white">
                   {iotData.weatherDescription || '晴'}
                 </div>
               </div>
-              
+
               {/* 温度 */}
               <div className="text-center">
-                <Thermometer className="w-5 h-5 text-gray-600 mx-auto mb-1" />
-                <div className="text-xs text-gray-500">温度</div>
-                <div className="text-sm font-semibold text-gray-800">
+                <Thermometer className="w-5 h-5 text-white/60 mx-auto mb-1" />
+                <div className="text-xs text-white/50">温度</div>
+                <div className="text-sm font-semibold text-white">
                   {iotData.temperature}°C
                 </div>
               </div>
-              
+
               {/* 降雨概率 */}
               <div className="text-center">
-                <Droplets className="w-5 h-5 text-gray-600 mx-auto mb-1" />
-                <div className="text-xs text-gray-500">降雨</div>
-                <div className="text-sm font-semibold text-gray-800">
+                <Droplets className="w-5 h-5 text-white/60 mx-auto mb-1" />
+                <div className="text-xs text-white/50">降雨</div>
+                <div className="text-sm font-semibold text-white">
                   {iotData.rainProbability}%
                 </div>
               </div>
@@ -198,16 +198,16 @@ export default function ImprovedSpotCard({
         {/* 描述 - 默认显示2-3行 */}
         {item.description && (
           <div>
-            <p className={`text-base text-gray-600 leading-relaxed ${
+            <p className={`text-base text-white/70 leading-relaxed ${
               !expanded ? 'line-clamp-3' : ''
             }`}>
               {item.description}
             </p>
-            
+
             {/* Read more 按钮 */}
             <button
               onClick={() => setExpanded(!expanded)}
-              className="mt-2 text-green-600 hover:text-green-700 text-sm font-medium flex items-center gap-1 transition-colors"
+              className="mt-2 text-[#CDEDDE] hover:text-[#CDEDDE]/80 text-sm font-medium flex items-center gap-1 transition-colors"
             >
               {expanded ? (
                 <>
@@ -228,7 +228,7 @@ export default function ImprovedSpotCard({
         {onShowAlternatives && (
           <button
             onClick={onShowAlternatives}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-green-500/20 to-green-600/20 hover:from-green-500/30 hover:to-green-600/30 text-gray-800 text-base font-medium transition-all duration-300 border-2 border-green-400/30"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-[#145F39]/20 to-[#005746]/20 hover:from-[#145F39]/30 hover:to-[#005746]/30 text-white text-base font-medium transition-all duration-300 border border-[#145F39]/30"
           >
             <span>查看备选景点</span>
             {showAlternatives ? (

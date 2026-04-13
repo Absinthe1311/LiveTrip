@@ -12,9 +12,10 @@ import FullscreenMap from '../components/itinerary/FullscreenMap';
 import ImprovedBudgetBar from '../components/itinerary/ImprovedBudgetBar';
 import ActionButton from '../components/itinerary/ActionButton';
 import OptimizedDayMap from '../components/itinerary/OptimizedDayMap';
+import PackingStep, { PackingItemData } from '../components/itinerary/PackingStep';
 import { useAppStore } from '../store';
 import { FullItinerary, AttractionItem, calculateRealTimeBudget, completeTrip } from '../api/client';
-import { getIoTData, saveTrip, getSpotCoverImage, batchGetSpotImagesByIds } from '../api/client';
+import { getIoTData, saveTrip, getSpotCoverImage, batchGetSpotImagesByIds, addPackingItem, updatePackingItem, getPackingList } from '../api/client';
 import { Hotel, Restaurant, getHotelRecommendations, getRestaurantRecommendations } from '../api/recommendationApi';
 import { alternativeRecommender } from '../services/alternativeRecommender';
 import AMapLoader from '@amap/amap-jsapi-loader';
@@ -187,6 +188,9 @@ export default function ItineraryOptimized() {
   const [expandedAlternatives, setExpandedAlternatives] = useState<Record<string, any[]>>({});
   const [loadingAlternatives, setLoadingAlternatives] = useState<Record<string, boolean>>({});
 
+  // 打包清单状态
+  const [packingItems, setPackingItems] = useState<any[]>([]);
+
   // 从URL参数或store获取行程数据
   const tripId = new URLSearchParams(location.search).get('tripId');
 
@@ -257,10 +261,16 @@ export default function ItineraryOptimized() {
       });
     });
 
-    // 最后：酒店
+    // 然后：酒店
     newSteps.push({
       type: 'hotels',
       label: '选择酒店'
+    });
+
+    // 最后：打包
+    newSteps.push({
+      type: 'packing',
+      label: '行李打包'
     });
 
     setSteps(newSteps);
@@ -436,7 +446,7 @@ export default function ItineraryOptimized() {
   const handleStepChange = (index: number) => {
     if (index <= currentStepIndex || completedSteps[index - 1]) {
       setCurrentStepIndex(index);
-      
+
       // 根据步骤类型设置地图显示模式
       const step = steps[index];
       if (step.type === 'restaurants') {
@@ -447,12 +457,31 @@ export default function ItineraryOptimized() {
         setShowAllRestaurants(false);
         setShowAllDays(true);
         console.log('🏨 切换到酒店选择模式');
+      } else if (step.type === 'packing') {
+        // 加载打包清单
+        loadPackingItems();
+        console.log('📦 切换到打包模式');
       } else {
         // 景点选择模式
         setShowAllRestaurants(false);
         setShowAllDays(false);
         console.log(`📍 切换到景点选择模式 - 第${step.day}天`);
       }
+    }
+  };
+
+  // 加载打包清单
+  const loadPackingItems = async () => {
+    if (!itineraryData?.tripId) return;
+
+    try {
+      const response = await getPackingList(itineraryData.tripId);
+      if (response.success && response.data) {
+        setPackingItems(response.data);
+        console.log(`✅ 加载了 ${response.data.length} 个打包物品`);
+      }
+    } catch (error) {
+      console.error('加载打包清单失败:', error);
     }
   };
 
@@ -638,15 +667,14 @@ export default function ItineraryOptimized() {
       return (itineraryData?.itinerary[dayIndex]?.attractions.length || 0) > 0;
     }
 
-    // 餐厅步骤：已选择餐厅
+    // 餐厅步骤：允许跳过，始终可以进入下一步
     if (currentStep.type === 'restaurants') {
-      const day = currentStep.day || 0;
-      return !!selectedRestaurants[day];
+      return true;
     }
 
-    // 酒店步骤：已选择酒店
+    // 酒店步骤：允许跳过，始终可以进入下一步
     if (currentStep.type === 'hotels') {
-      return !!selectedHotel;
+      return true;
     }
 
     return true;
@@ -705,28 +733,28 @@ export default function ItineraryOptimized() {
           {/* 顶部摘要卡片组 */}
           <div className="grid grid-cols-4 gap-3 mb-6">
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl py-3 px-4 flex items-center gap-3">
-              <Calendar className="w-5 h-5 text-amber-400 flex-shrink-0" />
+              <Calendar className="w-5 h-5 text-[#FFD9A3] flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">出行日期</p>
                 <p className="text-lg font-bold text-white truncate">{itineraryData.summary?.start_date || '未设置'}</p>
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl py-3 px-4 flex items-center gap-3">
-              <Wallet className="w-5 h-5 text-amber-400 flex-shrink-0" />
+              <Wallet className="w-5 h-5 text-[#FFD9A3] flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">总预算</p>
                 <p className="text-lg font-bold text-white truncate">¥{(itineraryData.summary?.budget || itineraryData.total_cost || 0).toLocaleString()}</p>
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl py-3 px-4 flex items-center gap-3">
-              <Cloud className="w-5 h-5 text-amber-400 flex-shrink-0" />
+              <Cloud className="w-5 h-5 text-[#FFD9A3] flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">目的地天气</p>
                 <p className="text-lg font-bold text-white truncate">{itineraryData.summary?.destination || '未设置'}</p>
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl py-3 px-4 flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-amber-400 flex-shrink-0" />
+              <MapPin className="w-5 h-5 text-[#FFD9A3] flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">行程总览</p>
                 <p className="text-lg font-bold text-white truncate">{itineraryData.itinerary.length}天 · {calculateTotalAttractions()}景点</p>
@@ -825,10 +853,20 @@ export default function ItineraryOptimized() {
               <h2 className="text-2xl font-bold text-white mb-4">第{currentStep.day}天 · 餐厅选择</h2>
               <p className="text-white/60">
                 基于当天行程景点位置推荐的餐厅
-                {restaurantRecommendations[currentStep.day || 0]?.length > 0 && 
+                {restaurantRecommendations[currentStep.day || 0]?.length > 0 &&
                   ` · 共找到 ${restaurantRecommendations[currentStep.day || 0].length} 家餐厅`
                 }
               </p>
+              {/* 跳过按钮 */}
+              <button
+                onClick={() => {
+                  message.info('已跳过餐厅选择');
+                  handleNext();
+                }}
+                className="mt-4 px-6 py-2.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white/70 font-medium hover:bg-white/15 hover:text-white transition-all duration-300"
+              >
+                跳过此步骤
+              </button>
             </div>
               
             {restaurantRecommendations[currentStep.day || 0]?.length > 0 ? (
@@ -901,10 +939,20 @@ export default function ItineraryOptimized() {
               <h2 className="text-2xl font-bold text-white mb-4">选择酒店</h2>
               <p className="text-white/60">
                 基于所有行程景点位置推荐的酒店
-                {hotelRecommendations?.length > 0 && 
+                {hotelRecommendations?.length > 0 &&
                   ` · 共找到 ${hotelRecommendations.length} 家酒店`
                 }
               </p>
+              {/* 跳过按钮 */}
+              <button
+                onClick={() => {
+                  message.info('已跳过酒店选择');
+                  handleNext();
+                }}
+                className="mt-4 px-6 py-2.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white/70 font-medium hover:bg-white/15 hover:text-white transition-all duration-300"
+              >
+                跳过此步骤
+              </button>
             </div>
               
             {hotelRecommendations?.length > 0 ? (
@@ -967,6 +1015,43 @@ export default function ItineraryOptimized() {
               </div>
             )}
           </div>
+        )}
+
+        {currentStep?.type === 'packing' && (
+          <PackingStep
+            tripId={itineraryData.tripId}
+            initialItems={packingItems}
+            onSave={async (items) => {
+              setPackingItems(items);
+              // 如果有tripId，保存到数据库
+              if (itineraryData.tripId) {
+                try {
+                  // 批量保存打包物品
+                  for (const item of items) {
+                    if (!item.id) {
+                      // 新物品，添加
+                      await addPackingItem(
+                        itineraryData.tripId,
+                        item.itemName,
+                        item.category
+                      );
+                    } else {
+                      // 已有物品，更新状态
+                      await updatePackingItem(item.id, {
+                        isPacked: item.isPacked
+                      });
+                    }
+                  }
+                  console.log('✅ 打包清单已保存到数据库');
+                } catch (error) {
+                  console.error('保存打包清单失败:', error);
+                  message.error('保存失败，请重试');
+                }
+              }
+            }}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+          />
         )}
       </div>
 

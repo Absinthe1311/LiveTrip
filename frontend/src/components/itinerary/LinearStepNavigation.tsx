@@ -1,9 +1,9 @@
-// 线性步骤导航组件 - 按天交替：第1天景点→第1天餐厅→第2天景点→第2天餐厅→...→酒店
+// 线性步骤导航组件 - 按天交替：第1天景点→第1天餐厅→第2天景点→第2天餐厅→...→酒店→打包
 import React from 'react';
-import { Check, MapPin, UtensilsCrossed, Building2, Lock } from 'lucide-react';
+import { Check, MapPin, UtensilsCrossed, Building2, Lock, Package } from 'lucide-react';
 
 export type PlanningStep = {
-  type: 'attractions' | 'restaurants' | 'hotels';
+  type: 'attractions' | 'restaurants' | 'hotels' | 'packing';
   day?: number;
   label: string;
 };
@@ -29,6 +29,8 @@ export default function LinearStepNavigation({
         return UtensilsCrossed;
       case 'hotels':
         return Building2;
+      case 'packing':
+        return Package;
       default:
         return MapPin;
     }
