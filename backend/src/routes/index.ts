@@ -22,6 +22,7 @@ import agentRoutes from './agentRoutes';
 import collabRoutes from './collabRoutes';
 import uploadRoutes from './uploadRoutes';
 import userRoutes from './userRoutes';
+import chatHistoryRoutes from './chatHistoryRoutes';
 import { PackingController } from '../controllers/packingController';
 import { authenticateToken } from '../controllers/authController';
 
@@ -50,6 +51,7 @@ router.use('/agent', agentRoutes);
 router.use('/collab', collabRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/users', userRoutes);
+router.use('/chat', chatHistoryRoutes);
 
 // ==================== 打包清单独立路由 ====================
 // PATCH /api/packing/:itemId - 更新打包物品状态

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, List, Tag, Avatar, Button, Empty, Image, Spin, Pagination, Space, Dropdown, Menu } from 'antd';
 import { UserOutlined, EyeOutlined, LikeOutlined, MessageOutlined, MoreOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getBlogPosts, toggleLike, deleteBlog } from '../api/client';
-import BlogEditor from './BlogEditor';
+import BlogEditorGlass from './BlogEditorGlass';
 
 interface BlogListProps {
   userId?: string;
@@ -258,7 +258,7 @@ export default function BlogList({ userId, city, tags, sortBy = 'latest', onView
       </Card>
 
       {/* 博客编辑器 */}
-      <BlogEditor
+      <BlogEditorGlass
         visible={editorVisible}
         postId={editingPostId}
         userId={userId}

@@ -3,6 +3,19 @@ import { getPrismaClient } from '../lib/prisma';
 
 const prisma = getPrismaClient();
 
+// ✅ P0优化: 会话状态类型
+export enum SessionState {
+  IDLE = 'idle',                    // 空闲状态
+  WAITING_CONFIRMATION = 'waiting', // 等待确认
+  COMPLETED = 'completed',          // 已完成
+}
+
+// ✅ P0优化: 临时数据类型
+export enum TempDataType {
+  TRIP_DRAFT = 'trip_draft',        // 行程草稿
+  BLOG_DRAFT = 'blog_draft',        // 博客草稿
+}
+
 interface CreateSessionParams {
   userId?: string;
   mode: 'advisor' | 'agent';
@@ -20,6 +33,14 @@ interface GetMessagesParams {
   limit?: number;
 }
 
+// ✅ P0优化: 临时数据结构
+interface TempData {
+  type: TempDataType;
+  data: any;
+  createdAt: Date;
+  expiresAt: Date;
+}
+
 class ChatHistoryService {
   /**
    * 创建新的对话会话
@@ -30,6 +51,7 @@ class ChatHistoryService {
         data: {
           userId: params.userId,
           mode: params.mode,
+          state: SessionState.IDLE, // ✅ P0优化: 初始状态为空闲
         },
       });
 
@@ -37,6 +59,87 @@ class ChatHistoryService {
       return session;
     } catch (error) {
       console.error('❌ 创建对话会话失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * ✅ P0优化: 更新会话状态
+   */
+  async updateSessionState(sessionId: string, state: SessionState) {
+    try {
+      const session = await prisma.chatSession.update({
+        where: { id: sessionId },
+        data: {
+          state: state,
+          updatedAt: new Date(),
+        },
+      });
+
+      console.log(`✅ 更新会话状态: ${sessionId} -> ${state}`);
+      return session;
+    } catch (error) {
+      console.error('❌ 更新会话状态失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * ✅ P0优化: 更新会话临时数据
+   */
+  async updateSessionTempData(sessionId: string, tempData: TempData) {
+    try {
+      const session = await prisma.chatSession.update({
+        where: { id: sessionId },
+        data: {
+          tempData: JSON.stringify(tempData),
+          state: SessionState.WAITING_CONFIRMATION, // 自动设置为等待确认状态
+          updatedAt: new Date(),
+        },
+      });
+
+      console.log(`✅ 更新会话临时数据: ${sessionId}`);
+      return session;
+    } catch (error) {
+      console.error('❌ 更新会话临时数据失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * ✅ P0优化: 清除会话临时数据
+   */
+  async clearSessionTempData(sessionId: string) {
+    try {
+      const session = await prisma.chatSession.update({
+        where: { id: sessionId },
+        data: {
+          tempData: '',
+          state: SessionState.IDLE, // 重置为空闲状态
+          updatedAt: new Date(),
+        },
+      });
+
+      console.log(`✅ 清除会话临时数据: ${sessionId}`);
+      return session;
+    } catch (error) {
+      console.error('❌ 清除会话临时数据失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * ✅ P0优化: 获取会话信息
+   */
+  async getSession(sessionId: string) {
+    try {
+      const session = await prisma.chatSession.findUnique({
+        where: { id: sessionId },
+      });
+
+      return session;
+    } catch (error) {
+      console.error('❌ 获取会话信息失败:', error);
       throw error;
     }
   }
@@ -218,6 +321,29 @@ class ChatHistoryService {
       console.log(`✅ 删除会话成功: ${sessionId}`);
     } catch (error) {
       console.error('❌ 删除会话失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 获取会话详情（包含消息）
+   */
+  async getSessionWithMessages(sessionId: string) {
+    try {
+      const session = await prisma.chatSession.findUnique({
+        where: { id: sessionId },
+        include: {
+          messages: {
+            orderBy: {
+              createdAt: 'asc',
+            },
+          },
+        },
+      });
+
+      return session;
+    } catch (error) {
+      console.error('❌ 获取会话详情失败:', error);
       throw error;
     }
   }

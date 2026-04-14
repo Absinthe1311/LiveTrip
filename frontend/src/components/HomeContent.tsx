@@ -330,11 +330,11 @@ export function HomeContent() {
                     <div key={category}>
                       <div className="text-xs text-gray-500 mb-2">{category}</div>
                       <div className="space-y-1.5">
-                        {categoryItems.slice(0, 4).map((item: any) => (
+                        {(categoryItems as any[]).slice(0, 4).map((item: any) => (
                           <div key={item.id} className="flex items-center gap-2">
                             <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                              item.isPacked 
-                                ? 'bg-livetrip-primary border-livetrip-primary' 
+                              item.isPacked
+                                ? 'bg-livetrip-primary border-livetrip-primary'
                                 : 'border-gray-300'
                             }`}>
                               {item.isPacked && <Check className="h-3 w-3 text-white" />}
@@ -346,9 +346,9 @@ export function HomeContent() {
                             </span>
                           </div>
                         ))}
-                        {categoryItems.length > 4 && (
+                        {(categoryItems as any[]).length > 4 && (
                           <div className="text-xs text-gray-500 pl-6">
-                            还有 {categoryItems.length - 4} 个物品...
+                            还有 {(categoryItems as any[]).length - 4} 个物品...
                           </div>
                         )}
                       </div>

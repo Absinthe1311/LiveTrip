@@ -466,12 +466,15 @@ model ChatSession {
   id        String        @id @default(cuid())
   userId    String?
   mode      String
+  state     String        @default("idle")        // ✅ P0优化: 会话状态 (idle/waiting/completed)
+  tempData  String?       @default("")            // ✅ P0优化: 临时数据（JSON格式，用于二次确认）
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   messages  ChatMessage[]
 
   @@index([userId])
   @@index([mode])
+  @@index([state])        // ✅ P0优化: 添加状态索引
   @@index([createdAt])
 }
 

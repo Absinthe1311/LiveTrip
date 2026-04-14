@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { App as AntdApp } from 'antd';
 import Home from './pages/Home';
 import PlanGlass from './pages/PlanGlass';
-import ItineraryGlass from './pages/ItineraryGlass';
 import ItineraryOptimized from './pages/ItineraryOptimized';
 import TripDetail from './pages/TripDetail';
 import MyTripsGlass from './pages/MyTripsGlass';
@@ -14,8 +13,6 @@ import FavoritesGlass from './pages/FavoritesGlass';
 import DestinationsGlass from './pages/DestinationsGlass';
 import SharedTrip from './pages/SharedTrip';
 import BlogsGlass from './pages/BlogsGlass';
-import CreateBlog from './pages/CreateBlog';
-import BlogDetailPage from './pages/BlogDetailPage';
 import BlogCreateGlass from './pages/BlogCreateGlass';
 import BlogDetailGlass from './pages/BlogDetailGlass';
 import AIFeaturesGlass from './pages/AIFeaturesGlass';

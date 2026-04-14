@@ -15,6 +15,71 @@ const prisma = getPrismaClient();
 // 获取传统推荐器实例
 const recommender = traditionalRecommender();
 
+// ✅ P0优化: 错误类型定义
+enum ErrorType {
+  // 参数错误
+  PARAM_MISSING = 'PARAM_MISSING',
+  PARAM_INVALID = 'PARAM_INVALID',
+
+  // 业务错误
+  SPOT_NOT_FOUND = 'SPOT_NOT_FOUND',
+  TRIP_NOT_FOUND = 'TRIP_NOT_FOUND',
+  TRIP_NOT_COMPLETED = 'TRIP_NOT_COMPLETED',
+
+  // AI 错误
+  AI_SERVICE_UNAVAILABLE = 'AI_SERVICE_UNAVAILABLE',
+  AI_RESPONSE_INVALID = 'AI_RESPONSE_INVALID',
+
+  // 系统错误
+  DATABASE_ERROR = 'DATABASE_ERROR',
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+}
+
+// ✅ P0优化: 错误消息映射
+const ERROR_MESSAGES: Record<string, { message: string; suggestion: string }> = {
+  [ErrorType.PARAM_MISSING]: {
+    message: '缺少必要的信息',
+    suggestion: '请提供更详细的信息，例如目的地、日期等',
+  },
+  [ErrorType.PARAM_INVALID]: {
+    message: '信息格式不正确',
+    suggestion: '请检查日期格式（如：2024-05-01）或数字格式',
+  },
+  [ErrorType.SPOT_NOT_FOUND]: {
+    message: '未找到该景点',
+    suggestion: '请检查景点名称是否正确，或尝试其他景点',
+  },
+  [ErrorType.TRIP_NOT_FOUND]: {
+    message: '未找到该行程',
+    suggestion: '请检查行程 ID 是否正确，或先创建行程',
+  },
+  [ErrorType.TRIP_NOT_COMPLETED]: {
+    message: '行程尚未完成',
+    suggestion: '只能为已完成的行程生成博客，请先完成行程',
+  },
+  [ErrorType.AI_SERVICE_UNAVAILABLE]: {
+    message: 'AI 服务暂时不可用',
+    suggestion: '请稍后重试，或联系客服',
+  },
+  [ErrorType.AI_RESPONSE_INVALID]: {
+    message: 'AI 返回了无效的响应',
+    suggestion: '请重新描述您的需求，或稍后重试',
+  },
+  [ErrorType.DATABASE_ERROR]: {
+    message: '数据库操作失败',
+    suggestion: '请稍后重试，或联系客服',
+  },
+  [ErrorType.NETWORK_ERROR]: {
+    message: '网络连接失败',
+    suggestion: '请检查网络连接，或稍后重试',
+  },
+  [ErrorType.UNKNOWN_ERROR]: {
+    message: '发生了未知错误',
+    suggestion: '请稍后重试，或联系客服',
+  },
+};
+
 // 智谱 AI 配置
 const ZHIPUAI_API_KEY = process.env.ZHIPUAI_API_KEY || '';
 const ZHIPUAI_API_URL = 'open.bigmodel.cn';
@@ -113,52 +178,90 @@ class AgentService {
     return await httpsRequestWithRetry(options, jsonData, 2);
   }
   /**
-   * 定义可用的工具
+   * 定义可用的工具（精简版：从 6 个减少到 3 个）
    */
   private getTools(): any[] {
     return [
+      // 工具 1: 创建智能行程（合并 create_trip + create_trip_with_constraints + extract_must_visit_spots）
       {
         type: 'function',
         function: {
-          name: 'create_trip',
-          description: '创建一个新的旅行行程。当用户想要制定旅行计划、安排行程时使用此工具。',
+          name: 'create_smart_trip',
+          description: `创建智能旅行行程。支持必选景点、约束条件、智能推荐。
+
+【触发条件】
+- 用户表达旅行意图（如"我想去北京"、"计划去上海"）
+- 用户提到具体景点（如"一定要去故宫"）
+
+【参数说明】
+- destination: 目的地城市（必填）
+- days: 行程天数（可选，默认3天）
+- 其他参数均为可选，系统会智能推断
+
+【示例】
+用户: "我想去北京玩三天"
+→ destination="北京", days=3
+
+用户: "下个月去上海，预算一万"
+→ destination="上海", budget=10000`,
           parameters: {
             type: 'object',
             properties: {
               destination: {
                 type: 'string',
-                description: '目的地城市名称，如"北京"、"上海"、"杭州"等',
+                description: '目的地城市，如"北京"、"上海"',
               },
               startDate: {
                 type: 'string',
-                description: '开始日期，格式为 YYYY-MM-DD，如"2024-05-01"',
+                description: '开始日期（可选），格式 YYYY-MM-DD，默认明天',
               },
               endDate: {
                 type: 'string',
-                description: '结束日期，格式为 YYYY-MM-DD，如"2024-05-03"',
+                description: '结束日期（可选），格式 YYYY-MM-DD，默认 3 天后',
+              },
+              days: {
+                type: 'number',
+                description: '行程天数（可选），默认 3 天',
               },
               budget: {
                 type: 'number',
-                description: '预算金额（元），如 5000',
-              },
-              preferences: {
-                type: 'string',
-                description: '旅行偏好，如"喜欢历史文化"、"喜欢自然风光"、"美食之旅"等',
+                description: '预算金额（可选），默认 5000 元',
               },
               travelers: {
                 type: 'number',
-                description: '旅行人数，默认为 1',
+                description: '旅行人数（可选），默认 2 人',
+              },
+              preferences: {
+                type: 'string',
+                description: '旅行偏好（可选），如"历史文化"、"自然风光"',
+              },
+              mustVisitSpots: {
+                type: 'array',
+                description: '必选景点名称列表（可选），如["故宫", "长城"]',
+                items: { type: 'string' },
+              },
+              groupType: {
+                type: 'string',
+                description: '群体类型（可选）：solo/couple/family/friends',
+                enum: ['solo', 'couple', 'family', 'friends'],
               },
             },
-            required: ['destination', 'startDate', 'endDate'],
+            required: ['destination'], // 只要求目的地，其他参数可选
           },
         },
       },
+      // 工具 2: 列出行程（保持不变）
       {
         type: 'function',
         function: {
           name: 'list_user_trips',
-          description: '获取用户的所有行程列表。当用户想要查看自己的行程、询问有哪些行程时使用此工具。',
+          description: `查看用户的行程列表。
+
+【触发条件】
+- 用户想查看行程（如"查看我的行程"、"有哪些行程"）
+
+【参数说明】
+- status: 行程状态筛选（可选）`,
           parameters: {
             type: 'object',
             properties: {
@@ -171,128 +274,101 @@ class AgentService {
           },
         },
       },
+      // 工具 3: 管理博客（合并 generate_blog + publish_blog）
       {
         type: 'function',
         function: {
-          name: 'generate_blog',
-          description: '为已完成的行程生成旅行博客。当用户想要为某次旅行写游记、生成博客内容时使用此工具。',
+          name: 'manage_blog',
+          description: `管理旅行博客：生成或发布博客。
+
+【触发条件】
+- 用户想写游记（如"为上次旅行写游记"）
+- 用户想发布博客（如"发布这篇博客"）
+
+【参数说明】
+- action: 操作类型（必填）
+  * generate: 生成博客
+  * publish: 发布博客
+- tripId: 行程ID（生成博客时必填）
+- blogId: 博客ID（发布博客时必填）`,
           parameters: {
             type: 'object',
             properties: {
+              action: {
+                type: 'string',
+                description: '操作类型：generate（生成）或 publish（发布）',
+                enum: ['generate', 'publish'],
+              },
               tripId: {
                 type: 'string',
-                description: '行程 ID，用于指定要生成博客的行程',
+                description: '行程 ID（生成博客时必填）',
+              },
+              blogId: {
+                type: 'string',
+                description: '博客 ID（发布博客时必填）',
               },
               title: {
                 type: 'string',
-                description: '博客标题，如"北京三日游游记"、"西湖春游记"等',
+                description: '博客标题（可选）',
               },
               style: {
                 type: 'string',
-                description: '博客风格，如"详细记录"、"简洁总结"、"情感抒情"等',
+                description: '博客风格（可选）：详细记录/简洁总结/情感抒情',
               },
             },
-            required: ['tripId'],
+            required: ['action'],
           },
         },
       },
+      // ✅ P0优化: 新增确认工具
       {
         type: 'function',
         function: {
-          name: 'publish_blog',
-          description: '发布博客草稿为公开状态。当用户确认要发布博客时使用此工具。',
+          name: 'confirm_action',
+          description: `确认保存或发布操作。
+
+【触发条件】
+- 用户确认保存行程（如"保存"、"确认"、"好的"）
+- 用户确认发布博客（如"发布"、"确认发布"）
+
+【注意】
+- 只能在预览后调用
+- 调用后会将临时数据保存到数据库`,
           parameters: {
             type: 'object',
             properties: {
-              blogId: {
+              action: {
                 type: 'string',
-                description: '博客 ID，用于指定要发布的博客',
+                description: '确认操作类型：save_trip（保存行程）/ publish_blog（发布博客）',
+                enum: ['save_trip', 'publish_blog'],
               },
             },
-            required: ['blogId'],
+            required: ['action'],
           },
         },
       },
+      // ✅ P0优化: 新增重新生成工具
       {
         type: 'function',
         function: {
-          name: 'extract_must_visit_spots',
-          description: '从用户输入中识别并提取必选景点。当用户明确提到具体景点时（如"一定要去外滩"），使用此工具提取景点信息。',
+          name: 'regenerate',
+          description: `重新生成内容。
+
+【触发条件】
+- 用户不满意当前结果（如"重新规划"、"重新生成"、"不满意"）
+
+【参数】
+- type: 重新生成类型`,
           parameters: {
             type: 'object',
             properties: {
-              userInput: {
+              type: {
                 type: 'string',
-                description: '用户的原始输入文本，包含提到的景点名称',
-              },
-              destination: {
-                type: 'string',
-                description: '目标城市名称，用于缩小景点匹配范围',
+                description: '类型：trip/blog',
+                enum: ['trip', 'blog'],
               },
             },
-            required: ['userInput', 'destination'],
-          },
-        },
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'create_trip_with_constraints',
-          description: '创建包含必选景点的约束感知行程。当用户提到具体景点且需要创建行程时使用此工具。',
-          parameters: {
-            type: 'object',
-            properties: {
-              destination: {
-                type: 'string',
-                description: '目的地城市名称，如"北京"、"上海"、"杭州"等',
-              },
-              startDate: {
-                type: 'string',
-                description: '开始日期，格式为 YYYY-MM-DD，如"2024-05-01"',
-              },
-              endDate: {
-                type: 'string',
-                description: '结束日期，格式为 YYYY-MM-DD，如"2024-05-03"',
-              },
-              budget: {
-                type: 'number',
-                description: '预算金额（元），如 5000',
-              },
-              preferences: {
-                type: 'string',
-                description: '旅行偏好，如"喜欢历史文化"、"喜欢自然风光"、"美食之旅"等',
-              },
-              travelers: {
-                type: 'number',
-                description: '旅行人数，默认为 1',
-              },
-              groupType: {
-                type: 'string',
-                description: '群体类型，如"solo"、"couple"、"family"、"friends"',
-              },
-              pace: {
-                type: 'string',
-                description: '旅行节奏，如"slow"、"moderate"、"fast"',
-              },
-              mustVisitSpots: {
-                type: 'array',
-                description: '必选景点列表，每个景点包含 id、name、location、city 等信息',
-                items: {
-                  type: 'object',
-                  properties: {
-                    id: { type: 'string' },
-                    name: { type: 'string' },
-                    location: { type: 'string' },
-                    city: { type: 'string' },
-                    category: { type: 'string' },
-                    ticketPrice: { type: 'number' },
-                    rating: { type: 'number' },
-                    description: { type: 'string' },
-                  },
-                },
-              },
-            },
-            required: ['destination', 'startDate', 'endDate'],
+            required: ['type'],
           },
         },
       },
@@ -372,7 +448,7 @@ ${profilePrompt}
   /**
    * 执行工具调用
    */
-  private async executeToolCall(toolCall: any, userId?: string): Promise<ToolExecutionResult> {
+  private async executeToolCall(toolCall: any, userId?: string, messages?: any[]): Promise<ToolExecutionResult> {
     // 只处理 function 类型的工具调用
     if (toolCall.type !== 'function') {
       return {
@@ -387,32 +463,53 @@ ${profilePrompt}
       console.log(`\n🔧 [工具调用] 执行工具: ${name}`);
       console.log(`   原始参数字符串:`, args);
       console.log(`   参数类型:`, typeof args);
-      
+
       // ✅ 问题4: 增强参数验证
-      if (!args || args === 'undefined' || args === 'null') {
-        console.error(`   ❌ 参数为空或无效`);
-        return {
-          success: false,
-          error: '工具调用参数缺失,请提供完整的参数',
-          needsMoreInfo: true,
-          missingParams: ['destination', 'startDate', 'endDate'],
-        };
+      let params: any = {};
+
+      if (!args || args === 'undefined' || args === 'null' || args === '{}') {
+        console.log(`   ⚠️  参数为空，将使用智能推断`);
+        params = {};
+      } else {
+        try {
+          params = JSON.parse(args);
+        } catch (parseError) {
+          console.error(`   ❌ 参数解析失败:`, parseError);
+          params = {};
+        }
       }
 
-      const params = JSON.parse(args);
       console.log(`   解析后参数:`, JSON.stringify(params, null, 2));
 
+      // ✅ P0优化: 参数补全
+      if (messages && messages.length > 0) {
+        params = await this.completeToolParams(name, params, messages);
+      }
+
+      console.log(`   最终参数:`, JSON.stringify(params, null, 2));
+
       switch (name) {
+        case 'create_smart_trip':
+          // ✅ 新的统一工具：创建智能行程
+          return await this.createSmartTrip(params, userId);
+
         case 'create_trip':
+          // ✅ 保留旧工具兼容性
           return await this.createTrip(params, userId);
 
         case 'list_user_trips':
           return await this.listUserTrips(params, userId);
 
+        case 'manage_blog':
+          // ✅ 新的统一工具：管理博客
+          return await this.manageBlog(params, userId);
+
         case 'generate_blog':
+          // ✅ 保留旧工具兼容性
           return await this.generateBlog(params, userId);
 
         case 'publish_blog':
+          // ✅ 保留旧工具兼容性
           return await this.publishBlog(params, userId);
 
         case 'extract_must_visit_spots':
@@ -432,6 +529,121 @@ ${profilePrompt}
       return {
         success: false,
         error: error.message || '工具执行失败',
+      };
+    }
+  }
+
+  /**
+   * ✅ P0优化: 创建智能行程（统一工具）
+   * 合并了 create_trip + create_trip_with_constraints + extract_must_visit_spots
+   */
+  private async createSmartTrip(params: any, userId?: string): Promise<ToolExecutionResult> {
+    try {
+      console.log('\n🎯 [创建智能行程]');
+      console.log('   参数:', JSON.stringify(params, null, 2));
+
+      // 1. 提取必选景点（如果有）
+      let mustVisitSpots: any[] = [];
+      if (params.mustVisitSpots && Array.isArray(params.mustVisitSpots) && params.mustVisitSpots.length > 0) {
+        console.log('   🔍 提取必选景点:', params.mustVisitSpots);
+
+        // 如果 mustVisitSpots 是字符串数组，需要查询数据库获取完整信息
+        for (const spotName of params.mustVisitSpots) {
+          if (typeof spotName === 'string') {
+            const spot = await prisma.spot.findFirst({
+              where: {
+                name: { contains: spotName },
+                city: params.destination,
+              },
+            });
+
+            if (spot) {
+              mustVisitSpots.push({
+                id: spot.id,
+                name: spot.name,
+                location: spot.location,
+                city: spot.city,
+                category: spot.category,
+                ticketPrice: spot.ticketPrice,
+                rating: spot.rating,
+                description: spot.description,
+              });
+              console.log(`   ✅ 找到景点: ${spotName} -> ${spot.name}`);
+            } else {
+              console.log(`   ⚠️  未找到景点: ${spotName}`);
+            }
+          } else if (typeof spotName === 'object') {
+            // 如果已经是对象，直接使用
+            mustVisitSpots.push(spotName);
+          }
+        }
+
+        console.log(`   ✅ 必选景点数量: ${mustVisitSpots.length}`);
+      }
+
+      // 2. 如果有必选景点，使用约束感知规划器
+      if (mustVisitSpots.length > 0) {
+        console.log('   📍 使用约束感知规划器');
+        return await this.createTripWithConstraints({
+          ...params,
+          mustVisitSpots: mustVisitSpots,
+        }, userId);
+      }
+
+      // 3. 否则使用普通创建行程
+      console.log('   📍 使用普通行程创建');
+      return await this.createTrip(params, userId);
+
+    } catch (error: any) {
+      console.error('❌ 创建智能行程失败:', error);
+      return {
+        success: false,
+        error: error.message || '创建智能行程失败',
+      };
+    }
+  }
+
+  /**
+   * ✅ P0优化: 管理博客（统一工具）
+   * 合并了 generate_blog + publish_blog
+   */
+  private async manageBlog(params: any, userId?: string): Promise<ToolExecutionResult> {
+    try {
+      console.log('\n📝 [管理博客]');
+      console.log('   操作:', params.action);
+
+      if (params.action === 'generate') {
+        // 生成博客
+        if (!params.tripId) {
+          return {
+            success: false,
+            error: '生成博客需要提供 tripId',
+          };
+        }
+        return await this.generateBlog(params, userId);
+
+      } else if (params.action === 'publish') {
+        // 发布博客
+        if (!params.blogId) {
+          return {
+            success: false,
+            error: '发布博客需要提供 blogId',
+          };
+        }
+        return await this.publishBlog(params, userId);
+
+      } else {
+        return {
+          success: false,
+          error: `未知的博客操作: ${params.action}`,
+        };
+      }
+
+    } catch (error: any) {
+      console.error('❌ 管理博客失败:', error);
+      return {
+        success: false,
+        error: error.message || '管理博客失败',
       };
     }
   }
@@ -1429,7 +1641,7 @@ ${blogContent.substring(0, 200)}...
   }
 
   /**
-   * 处理 Agent 请求
+   * 处理 Agent 请求（性能优化版）
    */
   async processRequest(request: AgentRequest): Promise<AgentResponse> {
     const { question, userId } = request;
@@ -1450,10 +1662,10 @@ ${blogContent.substring(0, 200)}...
         content: question,
       });
 
-      // 获取历史消息（最近 10 条）
+      // ✅ P2优化: 减少历史消息数量（从 10 条减少到 5 条）
       const messageHistory = await chatHistoryService.getMessages({
         sessionId: session.id,
-        limit: 10,
+        limit: 5,
       });
 
       // 构建对话上下文
@@ -1528,7 +1740,7 @@ ${blogContent.substring(0, 200)}...
 
         // 执行所有工具调用
         for (const toolCall of assistantMessage.tool_calls) {
-          const toolResult = await this.executeToolCall(toolCall, userId);
+          const toolResult = await this.executeToolCall(toolCall, userId, messages);
           const toolName = (toolCall as any).function?.name || toolCall.type;
           toolCallResults.push({
             name: toolName,
@@ -1576,10 +1788,12 @@ ${blogContent.substring(0, 200)}...
           }
         }
 
-        // 再次调用 AI，基于工具结果生成最终回复
-        const finalResult = await this.callZhipuAI(messages);
-
-        const finalAnswer = finalResult.choices[0]?.message?.content || '';
+        // ✅ P2优化: 直接返回工具结果，不再调用 AI 生成最终回复
+        // 这样可以减少一次 AI 调用，提升性能
+        const toolResult = toolCallResults[0]?.result;
+        const finalAnswer = toolResult?.success
+          ? toolResult?.data?.message || '操作成功'
+          : toolResult?.error || '操作失败';
 
         // 保存最终回复
         await chatHistoryService.createMessage({
@@ -1679,6 +1893,265 @@ ${blogContent.substring(0, 200)}...
       console.warn('解析经度失败:', location);
     }
     return null;
+  }
+
+  /**
+   * ✅ P0优化: 智能参数补全 - 在工具执行前自动推断缺失参数
+   */
+  private async completeToolParams(
+    toolName: string,
+    params: any,
+    messages: any[]
+  ): Promise<any> {
+    const userMessage = messages.find(m => m.role === 'user')?.content || '';
+    const completedParams = { ...params };
+
+    console.log('\n🔧 [参数补全] 开始...');
+    console.log('   工具名称:', toolName);
+    console.log('   原始参数:', JSON.stringify(params));
+    console.log('   用户消息:', userMessage);
+
+    if (toolName === 'create_trip' || toolName === 'create_smart_trip' || toolName === 'create_trip_with_constraints') {
+      // 1. 目的地推断
+      if (!completedParams.destination) {
+        completedParams.destination = this.inferDestination(userMessage);
+        console.log('   ✅ 推断目的地:', completedParams.destination);
+      }
+
+      // 2. 日期推断
+      if (!completedParams.startDate || !completedParams.endDate) {
+        const dateInfo = this.inferDates(userMessage);
+        if (!completedParams.startDate) {
+          completedParams.startDate = dateInfo.startDate;
+        }
+        if (!completedParams.endDate) {
+          completedParams.endDate = dateInfo.endDate;
+        }
+        console.log('   ✅ 推断日期:', completedParams.startDate, '至', completedParams.endDate);
+      } else if (completedParams.startDate && !completedParams.endDate) {
+        // 只有开始日期，推断结束日期
+        const days = this.inferDays(userMessage);
+        const startDate = parseDate(completedParams.startDate);
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + days - 1);
+        completedParams.endDate = endDate.toISOString().split('T')[0];
+        console.log('   ✅ 推断结束日期:', completedParams.endDate);
+      }
+
+      // 3. 预算推断
+      if (!completedParams.budget) {
+        completedParams.budget = this.inferBudget(userMessage);
+        console.log('   ✅ 推断预算:', completedParams.budget);
+      }
+
+      // 4. 人数推断
+      if (!completedParams.travelers && !completedParams.groupSize) {
+        completedParams.travelers = this.inferTravelers(userMessage);
+        console.log('   ✅ 推断人数:', completedParams.travelers);
+      }
+
+      // 5. 偏好推断
+      if (!completedParams.preferences) {
+        completedParams.preferences = this.inferPreferences(userMessage);
+        console.log('   ✅ 推断偏好:', completedParams.preferences);
+      }
+    }
+
+    console.log('   ✅ 补全后参数:', JSON.stringify(completedParams));
+    return completedParams;
+  }
+
+  /**
+   * 推断目的地
+   */
+  private inferDestination(message: string): string {
+    const cityKeywords = [
+      '北京', '上海', '广州', '深圳', '杭州', '成都',
+      '西安', '武汉', '南京', '苏州', '重庆', '天津',
+      '青岛', '大连', '厦门', '昆明', '三亚', '丽江',
+      '长沙', '郑州', '济南', '福州', '南昌', '合肥'
+    ];
+
+    for (const city of cityKeywords) {
+      if (message.includes(city)) {
+        return city;
+      }
+    }
+
+    // 如果找不到，返回默认值
+    return '北京';
+  }
+
+  /**
+   * 推断日期
+   */
+  private inferDates(message: string): { startDate: string; endDate: string } {
+    const today = new Date();
+    let startDate = new Date(today);
+    let days = 3; // 默认 3 天
+
+    // 检查相对日期
+    if (message.includes('明天')) {
+      startDate.setDate(startDate.getDate() + 1);
+    } else if (message.includes('后天')) {
+      startDate.setDate(startDate.getDate() + 2);
+    } else if (message.includes('下周')) {
+      // 计算下周的日期
+      const weekDayMatch = message.match(/下周([一二三四五六日天])/);
+      if (weekDayMatch) {
+        const weekDays: Record<string, number> = {
+          '一': 1, '二': 2, '三': 3, '四': 4,
+          '五': 5, '六': 6, '日': 0, '天': 0
+        };
+        const targetDay = weekDays[weekDayMatch[1]];
+        const currentDay = today.getDay();
+        let daysUntil = targetDay - currentDay;
+        if (daysUntil <= 0) daysUntil += 7;
+        startDate.setDate(startDate.getDate() + daysUntil);
+      }
+    } else if (message.includes('下个月') || message.includes('下月')) {
+      startDate.setMonth(startDate.getMonth() + 1);
+    } else {
+      // 检查具体日期
+      const dateMatch = message.match(/(\d{1,2})月(\d{1,2})日/) ||
+                       message.match(/(\d{4})[年-](\d{1,2})[月-](\d{1,2})/);
+      if (dateMatch) {
+        if (dateMatch.length === 3) {
+          const month = parseInt(dateMatch[1]) - 1;
+          const day = parseInt(dateMatch[2]);
+          startDate = new Date(today.getFullYear(), month, day);
+        } else if (dateMatch.length === 4) {
+          startDate = new Date(parseInt(dateMatch[1]), parseInt(dateMatch[2]) - 1, parseInt(dateMatch[3]));
+        }
+      } else {
+        // 默认明天
+        startDate.setDate(startDate.getDate() + 1);
+      }
+    }
+
+    // 推断天数
+    days = this.inferDays(message);
+
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + days - 1);
+
+    return {
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+    };
+  }
+
+  /**
+   * 推断天数
+   */
+  private inferDays(message: string): number {
+    if (message.includes('三天') || message.includes('3天')) return 3;
+    if (message.includes('两天') || message.includes('2天') || message.includes('二天')) return 2;
+    if (message.includes('四天') || message.includes('4天')) return 4;
+    if (message.includes('五天') || message.includes('5天')) return 5;
+    if (message.includes('一周') || message.includes('7天') || message.includes('七天')) return 7;
+    if (message.includes('一天') || message.includes('1天')) return 1;
+
+    // 检查数字
+    const daysMatch = message.match(/(\d+)\s*天/);
+    if (daysMatch) {
+      return parseInt(daysMatch[1]);
+    }
+
+    return 3; // 默认 3 天
+  }
+
+  /**
+   * 推断预算
+   */
+  private inferBudget(message: string): number {
+    const budgetMatch = message.match(/预算[在约]?(\d+)/) ||
+                       message.match(/(\d+)\s*元/) ||
+                       message.match(/(\d+)\s*块/);
+
+    if (budgetMatch) {
+      return parseInt(budgetMatch[1]);
+    }
+
+    // 根据关键词推断
+    if (message.includes('穷游') || message.includes('省钱') || message.includes('经济')) return 3000;
+    if (message.includes('豪华') || message.includes('高端') || message.includes('奢侈')) return 15000;
+
+    return 5000; // 默认 5000 元
+  }
+
+  /**
+   * 推断人数
+   */
+  private inferTravelers(message: string): number {
+    if (message.includes('一个人') || message.includes('独自') || message.includes('1人') || message.includes('自己')) return 1;
+    if (message.includes('两个人') || message.includes('我和爱人') || message.includes('情侣') || message.includes('夫妻')) return 2;
+    if (message.includes('全家') || message.includes('家庭') || message.includes('一家')) return 4;
+    if (message.includes('朋友') || message.includes('闺蜜') || message.includes('哥们')) return 2;
+
+    const travelersMatch = message.match(/(\d+)\s*人/);
+    if (travelersMatch) {
+      return parseInt(travelersMatch[1]);
+    }
+
+    return 2; // 默认 2 人
+  }
+
+  /**
+   * 推断偏好
+   */
+  private inferPreferences(message: string): string {
+    if (message.includes('历史') || message.includes('文化') || message.includes('故宫') || message.includes('博物馆')) return '历史文化';
+    if (message.includes('自然') || message.includes('风景') || message.includes('山水') || message.includes('自然风光')) return '自然风光';
+    if (message.includes('美食') || message.includes('吃货') || message.includes('吃')) return '美食之旅';
+    if (message.includes('购物') || message.includes('逛街') || message.includes('买买买')) return '购物娱乐';
+    if (message.includes('拍照') || message.includes('打卡') || message.includes('网红')) return '网红打卡';
+    if (message.includes('休闲') || message.includes('放松') || message.includes('度假')) return '休闲度假';
+
+    return '休闲观光'; // 默认偏好
+  }
+
+  /**
+   * ✅ P0优化: 错误格式化 - 将技术错误转换为用户友好的提示
+   */
+  private formatError(error: any): string {
+    console.error('❌ 原始错误:', error);
+
+    let errorType: ErrorType;
+
+    // 错误类型识别
+    if (error.message?.includes('缺少必填参数') || error.message?.includes('缺少必要的信息')) {
+      errorType = ErrorType.PARAM_MISSING;
+    } else if (error.message?.includes('日期格式不正确') || error.message?.includes('日期解析失败')) {
+      errorType = ErrorType.PARAM_INVALID;
+    } else if (error.message?.includes('未找到景点') || error.message?.includes('景点不存在')) {
+      errorType = ErrorType.SPOT_NOT_FOUND;
+    } else if (error.message?.includes('行程不存在') || error.message?.includes('未找到该行程')) {
+      errorType = ErrorType.TRIP_NOT_FOUND;
+    } else if (error.message?.includes('只能为已完成的行程')) {
+      errorType = ErrorType.TRIP_NOT_COMPLETED;
+    } else if (error.message?.includes('AI服务未配置') || error.message?.includes('AI 服务暂时不可用')) {
+      errorType = ErrorType.AI_SERVICE_UNAVAILABLE;
+    } else if (error.message?.includes('AI 返回') || error.message?.includes('AI推荐失败')) {
+      errorType = ErrorType.AI_RESPONSE_INVALID;
+    } else if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.message?.includes('网络')) {
+      errorType = ErrorType.NETWORK_ERROR;
+    } else if (error.message?.includes('数据库') || error.message?.includes('Prisma')) {
+      errorType = ErrorType.DATABASE_ERROR;
+    } else {
+      errorType = ErrorType.UNKNOWN_ERROR;
+    }
+
+    const formattedError = ERROR_MESSAGES[errorType];
+
+    // 记录详细错误日志
+    console.error(`   错误类型: ${errorType}`);
+    console.error(`   用户提示: ${formattedError.message}`);
+    console.error(`   恢复建议: ${formattedError.suggestion}`);
+    console.error(`   技术细节: ${error.message || error}`);
+
+    // 返回用户友好的错误信息
+    return `${formattedError.message}\n\n💡 建议：${formattedError.suggestion}`;
   }
 }
 
