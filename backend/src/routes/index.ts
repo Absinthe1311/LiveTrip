@@ -61,4 +61,19 @@ router.delete('/packing/:itemId', authenticateToken, PackingController.deletePac
 // GET /api/packing/categories - 获取所有分类
 router.get('/packing/categories', PackingController.getCategories);
 
+// POST /api/trips/:tripId/packing/batch - 批量保存打包清单
+router.post('/trips/:tripId/packing/batch', authenticateToken, PackingController.batchSavePackingList);
+
+// GET /api/trips/:tripId/packing - 获取打包清单
+router.get('/trips/:tripId/packing', authenticateToken, PackingController.getPackingList);
+
+// POST /api/trips/:tripId/packing/initialize - 初始化打包清单
+router.post('/trips/:tripId/packing/initialize', authenticateToken, PackingController.initializePackingList);
+
+// POST /api/trips/:tripId/packing - 添加打包物品
+router.post('/trips/:tripId/packing', authenticateToken, PackingController.addPackingItem);
+
+// GET /api/trips/:tripId/packing/progress - 获取打包进度
+router.get('/trips/:tripId/packing/progress', authenticateToken, PackingController.getPackingProgress);
+
 export default router;

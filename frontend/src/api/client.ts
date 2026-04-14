@@ -877,6 +877,17 @@ export const addPackingItem = async (tripId: string, itemName: string, category:
 };
 
 /**
+ * 批量保存打包清单
+ * @param tripId 行程ID
+ * @param items 物品列表
+ * @returns 保存结果
+ */
+export const savePackingList = async (tripId: string, items: any[]) => {
+  const response = await apiClient.post(`/trips/${tripId}/packing/batch`, { items });
+  return response.data;
+};
+
+/**
  * 更新打包物品状态
  * @param itemId 物品ID
  * @param updates 更新内容

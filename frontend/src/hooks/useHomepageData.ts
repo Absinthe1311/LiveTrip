@@ -232,18 +232,26 @@ export const useHomepageData = () => {
   // 获取行李清单
   const fetchPackingList = async (tripId: string) => {
     try {
+      console.log('🔄 开始获取行李清单, tripId:', tripId);
       const response = await getPackingList(tripId);
-      if (response.data.success) {
-        const items = response.data.packingItems.map((item: any) => ({
+      console.log('📦 行李清单API响应:', response);
+      
+      if (response.success && response.data) {
+        const items = response.data.map((item: any) => ({
           id: item.id,
           name: item.itemName,
           packed: item.isPacked,
           category: item.category,
         }));
+        console.log('✅ 解析后的行李清单:', items);
         setPackingItems(items);
+      } else {
+        console.log('⚠️ 行李清单为空');
+        setPackingItems([]);
       }
     } catch (err) {
-      console.error('获取行李清单失败:', err);
+      console.error('❌ 获取行李清单失败:', err);
+      setPackingItems([]);
     }
   };
 

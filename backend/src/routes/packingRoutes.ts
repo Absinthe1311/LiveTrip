@@ -28,6 +28,12 @@ router.post('/trips/:tripId/packing/initialize', authenticateToken, PackingContr
 router.post('/trips/:tripId/packing', authenticateToken, PackingController.addPackingItem);
 
 /**
+ * 批量保存打包清单
+ * POST /api/trips/:tripId/packing/batch
+ */
+router.post('/trips/:tripId/packing/batch', authenticateToken, PackingController.batchSavePackingList);
+
+/**
  * 更新打包物品状态
  * PATCH /api/packing/:itemId
  */

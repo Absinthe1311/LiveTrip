@@ -4,7 +4,7 @@ import { message, Modal, Input, Select } from 'antd';
 import {
   Package, Check, Plus, Trash2, Edit2, X,
   ChevronDown, ChevronUp, Briefcase, CreditCard,
-  Smartphone, Shirt, Droplets, Pill, Other
+  Smartphone, Shirt, Droplets, Pill, MoreHorizontal
 } from 'lucide-react';
 import { PRESET_CATEGORIES, getAllPresetItems, PresetItem } from '../../config/presetItems';
 

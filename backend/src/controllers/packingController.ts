@@ -96,6 +96,36 @@ export class PackingController {
   }
 
   /**
+   * 批量保存打包清单
+   * POST /api/trips/:tripId/packing/batch
+   */
+  static async batchSavePackingList(req: Request, res: Response): Promise<void> {
+    try {
+      const { tripId } = req.params;
+      const { items } = req.body;
+      const tripIdStr = Array.isArray(tripId) ? tripId[0] : tripId;
+
+      if (!tripIdStr || !items || !Array.isArray(items)) {
+        res.status(400).json({
+          success: false,
+          message: '缺少必要参数',
+        });
+        return;
+      }
+
+      const result = await packingService.batchSavePackingList(tripIdStr, items);
+      res.status(200).json(result);
+    } catch (error: any) {
+      console.error('批量保存打包清单失败:', error);
+      res.status(500).json({
+        success: false,
+        message: '批量保存打包清单失败',
+        error: error.message,
+      });
+    }
+  }
+
+  /**
    * 更新打包物品状态
    * PATCH /api/packing/:itemId
    */

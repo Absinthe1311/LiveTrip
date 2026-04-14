@@ -167,6 +167,40 @@ export class PackingService {
   }
 
   /**
+   * 批量保存打包清单
+   */
+  async batchSavePackingList(tripId: string, items: any[]) {
+    try {
+      const prisma = getPrismaClient();
+
+      // 先删除所有现有物品
+      await prisma.packingItem.deleteMany({
+        where: { tripId },
+      });
+
+      // 批量创建新物品
+      const itemsToCreate = items.map(item => ({
+        tripId,
+        itemName: item.itemName,
+        category: item.category,
+        isPacked: item.isPacked || false,
+        isSuggested: !item.isCustom,
+        isDefault: false,
+      }));
+
+      await prisma.packingItem.createMany({
+        data: itemsToCreate,
+      });
+
+      // 返回完整的清单
+      return this.getPackingList(tripId);
+    } catch (error) {
+      console.error('批量保存打包清单失败:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 更新打包物品状态
    */
   async updatePackingItem(itemId: string, updates: { isPacked?: boolean; itemName?: string }) {

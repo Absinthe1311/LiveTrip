@@ -10,12 +10,13 @@ import TimelineWithCards from '../components/itinerary/TimelineWithCards';
 import LinearStepNavigation, { PlanningStep } from '../components/itinerary/LinearStepNavigation';
 import FullscreenMap from '../components/itinerary/FullscreenMap';
 import ImprovedBudgetBar from '../components/itinerary/ImprovedBudgetBar';
+import { PackingListWidget } from '../components/itinerary/PackingListWidget';
 import ActionButton from '../components/itinerary/ActionButton';
 import OptimizedDayMap from '../components/itinerary/OptimizedDayMap';
 import PackingStep, { PackingItemData } from '../components/itinerary/PackingStep';
 import { useAppStore } from '../store';
 import { FullItinerary, AttractionItem, calculateRealTimeBudget, completeTrip } from '../api/client';
-import { getIoTData, saveTrip, getSpotCoverImage, batchGetSpotImagesByIds, addPackingItem, updatePackingItem, getPackingList } from '../api/client';
+import { getIoTData, saveTrip, getSpotCoverImage, batchGetSpotImagesByIds, addPackingItem, updatePackingItem, getPackingList, savePackingList } from '../api/client';
 import { Hotel, Restaurant, getHotelRecommendations, getRestaurantRecommendations } from '../api/recommendationApi';
 import { alternativeRecommender } from '../services/alternativeRecommender';
 import AMapLoader from '@amap/amap-jsapi-loader';
@@ -472,10 +473,10 @@ export default function ItineraryOptimized() {
 
   // 加载打包清单
   const loadPackingItems = async () => {
-    if (!itineraryData?.tripId) return;
+    if (!tripId) return;
 
     try {
-      const response = await getPackingList(itineraryData.tripId);
+      const response = await getPackingList(tripId);
       if (response.success && response.data) {
         setPackingItems(response.data);
         console.log(`✅ 加载了 ${response.data.length} 个打包物品`);
@@ -512,7 +513,7 @@ export default function ItineraryOptimized() {
     if (!itineraryData) return;
 
     // 检查是否已经保存过
-    if (itineraryData.isSavedTrip && itineraryData.tripId) {
+    if (tripId) {
       message.info('行程已保存，无需重复保存');
       return;
     }
@@ -539,7 +540,7 @@ export default function ItineraryOptimized() {
           selectedRestaurant: restaurant
         })),
         // 添加个性化信息
-        customization: itineraryData.customization || {
+        customization: {
           tripName: '',
           tripDescription: '',
           coverImage: ''
@@ -553,6 +554,19 @@ export default function ItineraryOptimized() {
       const response = await saveTrip(saveData);
 
       if (response.success) {
+        const newTripId = response.data?.tripId;
+        
+        // 保存打包清单到新行程
+        if (newTripId && packingItems.length > 0) {
+          console.log('💾 保存打包清单到新行程:', { newTripId, itemCount: packingItems.length });
+          try {
+            await savePackingList(newTripId, packingItems);
+            console.log('✅ 打包清单保存成功');
+          } catch (error) {
+            console.error('❌ 打包清单保存失败:', error);
+          }
+        }
+
         message.success({
           content: '行程保存成功！',
           key: 'save',
@@ -562,7 +576,7 @@ export default function ItineraryOptimized() {
         // 更新行程数据，标记为已保存
         const updatedItinerary = {
           ...itineraryData,
-          tripId: response.data?.tripId,
+          tripId: newTripId,
           isSavedTrip: true
         };
         setCurrentItinerary(updatedItinerary);
@@ -843,6 +857,15 @@ export default function ItineraryOptimized() {
                 totalBudget={itineraryData.summary?.budget || 5000}
                 usedBudget={realTimeBudget?.total || itineraryData.total_cost || 0}
               />
+
+              {/* 行李清单 */}
+              {tripId && (
+                <PackingListWidget 
+                  itineraryId={tripId}
+                  editable={true}
+                  title="行李清单"
+                />
+              )}
             </div>
           </div>
         )}
@@ -857,16 +880,6 @@ export default function ItineraryOptimized() {
                   ` · 共找到 ${restaurantRecommendations[currentStep.day || 0].length} 家餐厅`
                 }
               </p>
-              {/* 跳过按钮 */}
-              <button
-                onClick={() => {
-                  message.info('已跳过餐厅选择');
-                  handleNext();
-                }}
-                className="mt-4 px-6 py-2.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white/70 font-medium hover:bg-white/15 hover:text-white transition-all duration-300"
-              >
-                跳过此步骤
-              </button>
             </div>
               
             {restaurantRecommendations[currentStep.day || 0]?.length > 0 ? (
@@ -943,16 +956,6 @@ export default function ItineraryOptimized() {
                   ` · 共找到 ${hotelRecommendations.length} 家酒店`
                 }
               </p>
-              {/* 跳过按钮 */}
-              <button
-                onClick={() => {
-                  message.info('已跳过酒店选择');
-                  handleNext();
-                }}
-                className="mt-4 px-6 py-2.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white/70 font-medium hover:bg-white/15 hover:text-white transition-all duration-300"
-              >
-                跳过此步骤
-              </button>
             </div>
               
             {hotelRecommendations?.length > 0 ? (
@@ -1019,19 +1022,19 @@ export default function ItineraryOptimized() {
 
         {currentStep?.type === 'packing' && (
           <PackingStep
-            tripId={itineraryData.tripId}
+            tripId={tripId || ''}
             initialItems={packingItems}
             onSave={async (items) => {
               setPackingItems(items);
               // 如果有tripId，保存到数据库
-              if (itineraryData.tripId) {
+              if (tripId) {
                 try {
                   // 批量保存打包物品
                   for (const item of items) {
                     if (!item.id) {
                       // 新物品，添加
                       await addPackingItem(
-                        itineraryData.tripId,
+                        tripId,
                         item.itemName,
                         item.category
                       );

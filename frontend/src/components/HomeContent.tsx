@@ -2,16 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import { Plus, ArrowRight, Star, TrendingUp } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Plus, ArrowRight, Star, TrendingUp, Package, Check } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getUserTrips, getFavoriteCount, getHotDestinations } from "@/api/client";
+import { getUserTrips, getFavoriteCount, getHotDestinations, getPackingList } from "@/api/client";
 
 export function HomeContent() {
   const navigate = useNavigate();
   const [statsData, setStatsData] = useState<any[]>([]);
   const [recentTrips, setRecentTrips] = useState<any[]>([]);
   const [hotDestinations, setHotDestinations] = useState<any[]>([]);
+  const [packingItems, setPackingItems] = useState<any[]>([]);
+  const [packingLoading, setPackingLoading] = useState(true);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -53,6 +55,11 @@ export function HomeContent() {
 
         // 最近行程（取前3个）
         setRecentTrips(trips.slice(0, 3));
+        
+        // 加载最新行程的打包清单
+        if (trips.length > 0) {
+          await loadPackingItems(trips[0].id);
+        }
       }
 
       if (destinationsResponse.success && destinationsResponse.data) {
@@ -62,6 +69,27 @@ export function HomeContent() {
       console.error('加载数据失败:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPackingItems = async (tripId: string) => {
+    console.log('🔄 开始加载打包清单, tripId:', tripId);
+    setPackingLoading(true);
+    try {
+      const response = await getPackingList(tripId);
+      console.log('📦 打包清单响应:', response);
+      if (response.success && response.data) {
+        setPackingItems(response.data);
+        console.log('✅ 设置打包物品:', response.data.length, '个');
+      } else {
+        setPackingItems([]);
+        console.log('⚠️ 打包清单为空');
+      }
+    } catch (error) {
+      console.error('❌ 加载打包清单失败:', error);
+      setPackingItems([]);
+    } finally {
+      setPackingLoading(false);
     }
   };
 
@@ -249,6 +277,89 @@ export function HomeContent() {
           ))}
         </div>
       </div>
+
+      {/* Packing List Section */}
+      {recentTrips.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-serif text-lg font-semibold text-gray-900">行李清单</h3>
+            <Button 
+              variant="ghost" 
+              className="text-livetrip-primary hover:text-livetrip-primary-dark p-0 h-auto"
+              onClick={() => navigate(`/trip/${recentTrips[0].id}`)}
+            >
+              查看详情 <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+          
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Package className="h-5 w-5 text-livetrip-primary" />
+                  <span className="text-base font-semibold">
+                    {recentTrips[0].title || recentTrips[0].destination}
+                  </span>
+                </div>
+                <div className="text-sm text-gray-500">
+                  {packingItems.filter(i => i.isPacked).length}/{packingItems.length}
+                </div>
+              </div>
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div 
+                  className="bg-livetrip-primary h-2 rounded-full transition-all"
+                  style={{ width: `${packingItems.length > 0 ? (packingItems.filter(i => i.isPacked).length / packingItems.length) * 100 : 0}%` }}
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {packingLoading ? (
+                <div className="text-gray-500 text-sm py-4">加载中...</div>
+              ) : packingItems.length === 0 ? (
+                <div className="text-gray-500 text-sm py-4 text-center">暂无打包物品</div>
+              ) : (
+                <div className="space-y-3">
+                  {Object.entries(
+                    packingItems.reduce((acc, item) => {
+                      if (!acc[item.category]) acc[item.category] = [];
+                      acc[item.category].push(item);
+                      return acc;
+                    }, {} as Record<string, any[]>)
+                  ).slice(0, 2).map(([category, categoryItems]) => (
+                    <div key={category}>
+                      <div className="text-xs text-gray-500 mb-2">{category}</div>
+                      <div className="space-y-1.5">
+                        {categoryItems.slice(0, 4).map((item: any) => (
+                          <div key={item.id} className="flex items-center gap-2">
+                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                              item.isPacked 
+                                ? 'bg-livetrip-primary border-livetrip-primary' 
+                                : 'border-gray-300'
+                            }`}>
+                              {item.isPacked && <Check className="h-3 w-3 text-white" />}
+                            </div>
+                            <span className={`text-sm ${
+                              item.isPacked ? 'text-gray-400 line-through' : 'text-gray-700'
+                            }`}>
+                              {item.itemName}
+                            </span>
+                          </div>
+                        ))}
+                        {categoryItems.length > 4 && (
+                          <div className="text-xs text-gray-500 pl-6">
+                            还有 {categoryItems.length - 4} 个物品...
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

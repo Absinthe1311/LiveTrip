@@ -19,6 +19,7 @@ import ShareButton from '../components/ShareButton';
 import PDFExportButton from '../components/PDFExportButton';
 import SpotImageUploadModal from '../components/SpotImageUploadModal';
 import PackingListDrawer from '../components/trip/PackingListDrawer';
+import { PackingListWidget } from '../components/itinerary/PackingListWidget';
 
 // 辅助函数
 const formatShortDate = (date: string) => {
@@ -574,6 +575,15 @@ export default function TripDetailPage() {
                 totalBudget={itineraryData.summary?.budget || 5000}
                 usedBudget={itineraryData.total_cost || 0}
               />
+
+              {/* 行李清单 */}
+              {id && (
+                <PackingListWidget 
+                  itineraryId={id}
+                  editable={true}
+                  title="行李清单"
+                />
+              )}
             </div>
           </div>
         )}
