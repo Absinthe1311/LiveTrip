@@ -129,6 +129,9 @@ interface ToolExecutionResult {
   error?: string;
   needsMoreInfo?: boolean;    // 是否需要用户补充信息
   missingParams?: string[];    // 缺失的参数列表
+  needsConfirmation?: boolean; // 是否需要用户确认
+  previewData?: any;           // 预览数据
+  sessionId?: string;          // 会话ID（用于确认）
 }
 
 /**
@@ -448,7 +451,7 @@ ${profilePrompt}
   /**
    * 执行工具调用
    */
-  private async executeToolCall(toolCall: any, userId?: string, messages?: any[]): Promise<ToolExecutionResult> {
+  private async executeToolCall(toolCall: any, userId?: string, messages?: any[], sessionId?: string): Promise<ToolExecutionResult> {
     // 只处理 function 类型的工具调用
     if (toolCall.type !== 'function') {
       return {
@@ -491,7 +494,7 @@ ${profilePrompt}
       switch (name) {
         case 'create_smart_trip':
           // ✅ 新的统一工具：创建智能行程
-          return await this.createSmartTrip(params, userId);
+          return await this.createSmartTrip(params, userId, sessionId);
 
         case 'create_trip':
           // ✅ 保留旧工具兼容性
@@ -536,63 +539,119 @@ ${profilePrompt}
   /**
    * ✅ P0优化: 创建智能行程（统一工具）
    * 合并了 create_trip + create_trip_with_constraints + extract_must_visit_spots
+   * 支持二次确认：先返回预览，用户确认后再保存
    */
-  private async createSmartTrip(params: any, userId?: string): Promise<ToolExecutionResult> {
+  private async createSmartTrip(params: any, userId?: string, sessionId?: string): Promise<ToolExecutionResult> {
     try {
       console.log('\n🎯 [创建智能行程]');
       console.log('   参数:', JSON.stringify(params, null, 2));
 
-      // 1. 提取必选景点（如果有）
-      let mustVisitSpots: any[] = [];
-      if (params.mustVisitSpots && Array.isArray(params.mustVisitSpots) && params.mustVisitSpots.length > 0) {
-        console.log('   🔍 提取必选景点:', params.mustVisitSpots);
+      // 1. 参数检查和追问
+      const missingParams = this.checkMissingTripParams(params);
+      if (missingParams.length > 0) {
+        const question = this.generateParamQuestion(missingParams);
+        return {
+          success: false,
+          needsMoreInfo: true,
+          missingParams,
+          error: question,
+        };
+      }
 
-        // 如果 mustVisitSpots 是字符串数组，需要查询数据库获取完整信息
-        for (const spotName of params.mustVisitSpots) {
-          if (typeof spotName === 'string') {
-            const spot = await prisma.spot.findFirst({
-              where: {
-                name: { contains: spotName },
-                city: params.destination,
+      // 2. 调用 createTrip 工具生成完整行程（包含 AI 推荐）
+      console.log('   📝 调用 createTrip 生成完整行程...');
+      const tripResult = await this.createTrip({
+        destination: params.destination,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        budget: params.budget,
+        preferences: params.preferences || '',
+        mustVisitSpots: params.mustVisitSpots || [],
+      }, userId);
+
+      if (!tripResult.success) {
+        return tripResult;
+      }
+
+      // 3. 从 createTrip 结果中提取完整行程数据
+      const tripData = tripResult.data;
+      const tripId = tripData.id; // createTrip 返回的是 id，不是 tripId
+      console.log('   ✅ AI 推荐完成，行程ID:', tripId);
+
+      // 4. 构建预览数据（从数据库查询完整行程）
+      const trip = await prisma.trip.findUnique({
+        where: { id: tripId },
+        include: {
+          days: {
+            orderBy: { dayNumber: 'asc' },
+            include: {
+              itineraryItems: {
+                orderBy: { startTime: 'asc' },
               },
-            });
+            },
+          },
+        },
+      });
 
-            if (spot) {
-              mustVisitSpots.push({
-                id: spot.id,
-                name: spot.name,
-                location: spot.location,
-                city: spot.city,
-                category: spot.category,
-                ticketPrice: spot.ticketPrice,
-                rating: spot.rating,
-                description: spot.description,
-              });
-              console.log(`   ✅ 找到景点: ${spotName} -> ${spot.name}`);
-            } else {
-              console.log(`   ⚠️  未找到景点: ${spotName}`);
-            }
-          } else if (typeof spotName === 'object') {
-            // 如果已经是对象，直接使用
-            mustVisitSpots.push(spotName);
-          }
-        }
-
-        console.log(`   ✅ 必选景点数量: ${mustVisitSpots.length}`);
+      if (!trip) {
+        return {
+          success: false,
+          error: '行程创建失败，请重试',
+        };
       }
 
-      // 2. 如果有必选景点，使用约束感知规划器
-      if (mustVisitSpots.length > 0) {
-        console.log('   📍 使用约束感知规划器');
-        return await this.createTripWithConstraints({
-          ...params,
-          mustVisitSpots: mustVisitSpots,
-        }, userId);
+      // 5. 构建预览数据结构
+      const previewData = {
+        tripId: trip.id,
+        title: trip.title,
+        description: trip.description,
+        destination: trip.destination,
+        startDate: trip.startDate.toISOString().split('T')[0],
+        endDate: trip.endDate.toISOString().split('T')[0],
+        days: Math.ceil((trip.endDate.getTime() - trip.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1,
+        budget: trip.totalBudget,
+        dailyPlans: trip.days.map((day: any) => ({
+          day: day.dayNumber,
+          date: day.date.toISOString().split('T')[0],
+          spots: day.itineraryItems.map((item: any) => ({
+            name: item.name,
+            category: item.category,
+            ticketPrice: item.cost,
+            startTime: item.startTime?.toISOString(),
+            endTime: item.endTime?.toISOString(),
+          })),
+        })),
+      };
+
+      // 6. 保存临时数据到会话（用于后续确认）
+      if (sessionId) {
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24); // 24小时后过期
+        
+        await chatHistoryService.updateSessionTempData(sessionId, {
+          type: 'trip_draft' as any,
+          data: previewData,
+          createdAt: new Date(),
+          expiresAt,
+        });
+        console.log('   ✅ 临时数据已保存到会话:', sessionId);
       }
 
-      // 3. 否则使用普通创建行程
-      console.log('   📍 使用普通行程创建');
-      return await this.createTrip(params, userId);
+      // 7. 删除临时创建的行程（因为用户还没确认）
+      await prisma.trip.delete({ where: { id: trip.id } });
+      console.log('   🗑️  已删除临时行程，等待用户确认');
+
+      // 8. 返回预览数据，等待用户确认
+      return {
+        success: true,
+        needsConfirmation: true,
+        previewData,
+        sessionId,
+        data: {
+          message: '已为您生成行程预览，请确认是否保存到"我的行程"中。',
+          preview: previewData,
+        },
+      };
 
     } catch (error: any) {
       console.error('❌ 创建智能行程失败:', error);
@@ -600,6 +659,121 @@ ${profilePrompt}
         success: false,
         error: error.message || '创建智能行程失败',
       };
+    }
+  }
+
+  /**
+   * 检查缺失的行程参数
+   */
+  private checkMissingTripParams(params: any): string[] {
+    const missing: string[] = [];
+    
+    if (!params.destination) {
+      missing.push('destination');
+    }
+    
+    if (!params.days && !params.startDate) {
+      missing.push('days');
+    }
+    
+    return missing;
+  }
+
+  /**
+   * 生成参数追问问题
+   */
+  private generateParamQuestion(missingParams: string[]): string {
+    const questions: string[] = [];
+    
+    for (const param of missingParams) {
+      switch (param) {
+        case 'destination':
+          questions.push('请问您想去哪里旅行？');
+          break;
+        case 'days':
+          questions.push('请问您计划旅行几天？');
+          break;
+        case 'budget':
+          questions.push('请问您的预算是多少？');
+          break;
+        case 'startDate':
+          questions.push('请问您计划什么时候出发？');
+          break;
+      }
+    }
+    
+    return questions.join('\n');
+  }
+
+  /**
+   * 生成行程预览（不保存到数据库）
+   */
+  private async generateTripPreview(params: any, userId?: string): Promise<any> {
+    try {
+      console.log('   🎨 生成行程预览数据...');
+      
+      // 解析日期
+      let startDate = params.startDate ? parseDate(params.startDate) : new Date();
+      let endDate = params.endDate ? parseDate(params.endDate) : new Date();
+      
+      if (!params.startDate && params.days) {
+        endDate = new Date(startDate.getTime() + (params.days - 1) * 24 * 60 * 60 * 1000);
+      }
+      
+      const days = params.days || Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+      
+      // 获取目的地景点
+      const spots = await prisma.spot.findMany({
+        where: { city: params.destination },
+        take: 10,
+        orderBy: { rating: 'desc' },
+      });
+      
+      // 生成预览数据
+      const preview: any = {
+        destination: params.destination,
+        startDate: formatDate(startDate),
+        endDate: formatDate(endDate),
+        days,
+        budget: params.budget || 0,
+        travelers: params.travelers || 1,
+        title: `${params.destination}${days}日游`,
+        description: `为您规划的${params.destination}${days}日行程`,
+        dailyPlans: [],
+        estimatedCost: {
+          total: params.budget || 0,
+          accommodation: Math.floor((params.budget || 0) * 0.3),
+          transportation: Math.floor((params.budget || 0) * 0.2),
+          food: Math.floor((params.budget || 0) * 0.2),
+          tickets: Math.floor((params.budget || 0) * 0.2),
+          other: Math.floor((params.budget || 0) * 0.1),
+        },
+        spots: spots.slice(0, days * 2),
+      };
+      
+      // 生成每日计划
+      for (let i = 0; i < days; i++) {
+        const dayDate = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+        const daySpots = spots.slice(i * 2, (i + 1) * 2);
+        
+        preview.dailyPlans.push({
+          day: i + 1,
+          date: formatDate(dayDate),
+          spots: daySpots.map(spot => ({
+            name: spot.name,
+            category: spot.category,
+            ticketPrice: spot.ticketPrice,
+            rating: spot.rating,
+          })),
+        });
+      }
+      
+      console.log('   ✅ 行程预览生成完成');
+      return preview;
+      
+    } catch (error: any) {
+      console.error('   ❌ 生成预览失败:', error);
+      throw error;
     }
   }
 
@@ -1740,7 +1914,7 @@ ${blogContent.substring(0, 200)}...
 
         // 执行所有工具调用
         for (const toolCall of assistantMessage.tool_calls) {
-          const toolResult = await this.executeToolCall(toolCall, userId, messages);
+          const toolResult = await this.executeToolCall(toolCall, userId, messages, session.id);
           const toolName = (toolCall as any).function?.name || toolCall.type;
           toolCallResults.push({
             name: toolName,
@@ -2152,6 +2326,189 @@ ${blogContent.substring(0, 200)}...
 
     // 返回用户友好的错误信息
     return `${formattedError.message}\n\n💡 建议：${formattedError.suggestion}`;
+  }
+
+  /**
+   * 确认保存行程
+   */
+  async confirmTrip(sessionId: string, userId?: string): Promise<ToolExecutionResult> {
+    try {
+      console.log('\n✅ [确认保存行程]');
+      console.log('   会话ID:', sessionId);
+
+      // 获取会话临时数据
+      const session = await chatHistoryService.getSession(sessionId);
+      if (!session || !session.tempData) {
+        return {
+          success: false,
+          error: '未找到行程预览数据，请重新生成',
+        };
+      }
+
+      // tempData 可能是字符串或对象
+      const tempData = typeof session.tempData === 'string' 
+        ? JSON.parse(session.tempData) 
+        : session.tempData;
+        
+      if (tempData.type !== 'trip_draft') {
+        return {
+          success: false,
+          error: '临时数据类型不正确',
+        };
+      }
+
+      // 从 temp 数据中直接保存到数据库
+      const previewData = tempData.data;
+      console.log('   📝 从临时数据保存行程...');
+
+      // 创建行程
+      const trip = await prisma.trip.create({
+        data: {
+          userId: userId || 'default-user',
+          title: previewData.title,
+          description: previewData.description,
+          destination: previewData.destination,
+          startDate: new Date(previewData.startDate),
+          endDate: new Date(previewData.endDate),
+          totalBudget: previewData.budget,
+          status: 'planning',
+          aiGenerated: true,
+        },
+      });
+
+      // 创建每日行程
+      for (const dayPlan of previewData.dailyPlans) {
+        const day = await prisma.day.create({
+          data: {
+            tripId: trip.id,
+            dayNumber: dayPlan.day,
+            date: new Date(dayPlan.date),
+          },
+        });
+
+        // 创建行程项
+        for (const spot of dayPlan.spots) {
+          await prisma.itineraryItem.create({
+            data: {
+              dayId: day.id,
+              name: spot.name,
+              type: 'attraction',
+              category: spot.category || '景点',
+              startTime: spot.startTime || undefined,
+              endTime: spot.endTime || undefined,
+              cost: spot.ticketPrice || 0,
+            },
+          });
+        }
+      }
+
+      // 清除临时数据
+      await chatHistoryService.clearSessionTempData(sessionId);
+
+      console.log('   ✅ 行程保存成功:', trip.id);
+
+      return {
+        success: true,
+        data: {
+          tripId: trip.id,
+          message: '行程已成功保存到"我的行程"中！',
+        },
+      };
+
+    } catch (error: any) {
+      console.error('❌ 确认保存失败:', error);
+      return {
+        success: false,
+        error: error.message || '保存失败',
+      };
+    }
+  }
+
+  /**
+   * 取消草稿
+   */
+  async cancelDraft(sessionId: string): Promise<ToolExecutionResult> {
+    try {
+      console.log('\n❌ [取消草稿]');
+      console.log('   会话ID:', sessionId);
+
+      // 清除临时数据
+      await chatHistoryService.clearSessionTempData(sessionId);
+
+      console.log('   ✅ 草稿已取消');
+
+      return {
+        success: true,
+        data: {
+          message: '已取消保存',
+        },
+      };
+
+    } catch (error: any) {
+      console.error('❌ 取消失败:', error);
+      return {
+        success: false,
+        error: error.message || '取消失败',
+      };
+    }
+  }
+
+  /**
+   * 保存行程到数据库
+   */
+  private async saveTripToDatabase(previewData: any, userId?: string): Promise<any> {
+    try {
+      console.log('   💾 保存行程到数据库...');
+
+      // 创建行程
+      const trip = await prisma.trip.create({
+        data: {
+          userId: userId || 'default-user',
+          title: previewData.title,
+          description: previewData.description,
+          destination: previewData.destination,
+          startDate: new Date(previewData.startDate),
+          endDate: new Date(previewData.endDate),
+          totalBudget: previewData.budget,
+          status: 'planning',
+          aiGenerated: true,
+        },
+      });
+
+      // 创建每日行程
+      for (const dayPlan of previewData.dailyPlans) {
+        const day = await prisma.day.create({
+          data: {
+            tripId: trip.id,
+            dayNumber: dayPlan.day,
+            date: new Date(dayPlan.date),
+          },
+        });
+
+        // 创建行程项
+        for (let i = 0; i < dayPlan.spots.length; i++) {
+          const spot = dayPlan.spots[i];
+          await prisma.itineraryItem.create({
+            data: {
+              dayId: day.id,
+              name: spot.name,
+              type: 'attraction',
+              category: spot.category || '景点',
+              startTime: new Date(new Date(dayPlan.date).getTime() + (9 + i * 3) * 60 * 60 * 1000),
+              endTime: new Date(new Date(dayPlan.date).getTime() + (12 + i * 3) * 60 * 60 * 1000),
+              cost: spot.ticketPrice || 0,
+            },
+          });
+        }
+      }
+
+      console.log('   ✅ 行程保存完成');
+      return trip;
+
+    } catch (error: any) {
+      console.error('   ❌ 保存失败:', error);
+      throw error;
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 // Agent 路由
 import { Router } from 'express';
 import { chatWithAgent } from '../controllers/agentController';
+import { agentService } from '../services/agentService';
 
 const router = Router();
 
@@ -10,5 +11,54 @@ const router = Router();
  * @access  Public
  */
 router.post('/chat', chatWithAgent);
+
+/**
+ * @route   POST /api/agent/confirm-trip
+ * @desc    确认保存行程
+ * @access  Public
+ */
+router.post('/confirm-trip', async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    const userId = (req as any).user?.id || req.headers['x-user-id'] as string;
+
+    const result = await agentService.confirmTrip(sessionId, userId);
+
+    res.json({
+      success: result.success,
+      data: result.data,
+      error: result.error,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || '确认失败',
+    });
+  }
+});
+
+/**
+ * @route   POST /api/agent/cancel-draft
+ * @desc    取消草稿
+ * @access  Public
+ */
+router.post('/cancel-draft', async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+
+    const result = await agentService.cancelDraft(sessionId);
+
+    res.json({
+      success: result.success,
+      data: result.data,
+      error: result.error,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || '取消失败',
+    });
+  }
+});
 
 export default router;

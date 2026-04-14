@@ -61,10 +61,27 @@ export const chatWithAgent = async (req: Request, res: Response) => {
 
     console.log('✅ Agent 回答完成');
 
-    res.json({
+    // 检查工具调用结果中是否有预览数据
+    const toolResult = response.toolCalls?.[0]?.result;
+    const resBody: any = {
       success: true,
       data: response,
-    });
+    };
+
+    // 如果工具返回了预览数据，添加到顶层
+    if (toolResult?.needsConfirmation) {
+      resBody.needsConfirmation = true;
+      resBody.previewData = toolResult.previewData;
+      resBody.sessionId = toolResult.sessionId;
+    }
+
+    // 如果工具需要更多信息
+    if (toolResult?.needsMoreInfo) {
+      resBody.needsMoreInfo = true;
+      resBody.error = toolResult.error;
+    }
+
+    res.json(resBody);
   } catch (error: any) {
     console.error('❌ Agent 请求失败:', error);
 

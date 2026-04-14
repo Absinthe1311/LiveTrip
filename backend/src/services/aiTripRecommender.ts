@@ -186,6 +186,7 @@ ${spotsInfo}
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.apiKey}`,
       },
+      timeout: 60000, // 60秒超时
     };
 
     const data = JSON.stringify({

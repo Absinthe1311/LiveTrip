@@ -8,6 +8,9 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   createdAt?: string;
+  previewData?: any;
+  needsConfirmation?: boolean;
+  sessionId?: string;
 }
 
 export interface ChatSession {
@@ -22,12 +25,17 @@ export interface AIResponse {
   success: boolean;
   data?: {
     answer: string;
+    message?: string;
     toolCalls?: Array<{
       name: string;
       result: any;
     }>;
   };
   error?: string;
+  needsConfirmation?: boolean;
+  needsMoreInfo?: boolean;
+  previewData?: any;
+  sessionId?: string;
 }
 
 /**

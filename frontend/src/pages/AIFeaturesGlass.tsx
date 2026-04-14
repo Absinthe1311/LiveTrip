@@ -192,15 +192,41 @@ export default function AIFeaturesGlass() {
         data = await aiService.sendAdvisorMessage(currentInput, {});
       }
 
-      if (data.success && data.data?.answer) {
-        const aiResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: data.data.answer,
-          createdAt: new Date().toISOString(),
-        };
-        setMessages(prev => [...prev, aiResponse]);
-        loadSessions();
+      if (data.success) {
+        // 检查是否需要用户确认（预览数据）
+        if (data.needsConfirmation && data.previewData) {
+          const aiResponse: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: data.data?.message || '已为您生成行程预览',
+            createdAt: new Date().toISOString(),
+            previewData: data.previewData,
+            needsConfirmation: true,
+            sessionId: data.sessionId,
+          };
+          setMessages(prev => [...prev, aiResponse]);
+        }
+        // 检查是否需要补充信息
+        else if (data.needsMoreInfo) {
+          const aiResponse: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: data.error || '请提供更多信息',
+            createdAt: new Date().toISOString(),
+          };
+          setMessages(prev => [...prev, aiResponse]);
+        }
+        // 普通回答
+        else if (data.data?.answer) {
+          const aiResponse: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: data.data.answer,
+            createdAt: new Date().toISOString(),
+          };
+          setMessages(prev => [...prev, aiResponse]);
+          loadSessions();
+        }
       } else {
         throw new Error(data.error || '获取回答失败');
       }
@@ -424,6 +450,92 @@ export default function AIFeaturesGlass() {
                     }`}
                   >
                     <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                    
+                    {/* 预览卡片 */}
+                    {(msg as any).previewData && (
+                      <div className="mt-3 p-3 rounded-lg bg-white/5 border border-white/10">
+                        <div className="text-xs font-medium text-white/80 mb-2">行程预览</div>
+                        <div className="space-y-1 text-xs text-white/60">
+                          <div>📍 目的地：{(msg as any).previewData.destination}</div>
+                          <div>📅 日期：{(msg as any).previewData.startDate} - {(msg as any).previewData.endDate}</div>
+                          <div>⏱️ 天数：{(msg as any).previewData.days}天</div>
+                          <div>💰 预算：¥{(msg as any).previewData.budget?.toLocaleString()}</div>
+                        </div>
+                        
+                        {/* 每日计划 */}
+                        {(msg as any).previewData.dailyPlans && (
+                          <div className="mt-2 space-y-1">
+                            {(msg as any).previewData.dailyPlans.map((day: any, idx: number) => (
+                              <div key={idx} className="text-xs text-white/50">
+                                第{day.day}天：{day.spots.map((s: any) => s.name).join('、')}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* 确认/取消按钮 */}
+                        <div className="flex gap-2 mt-3">
+                          <button
+                            onClick={async () => {
+                              try {
+                                const res = await fetch('http://localhost:3003/api/agent/confirm-trip', {
+                                  method: 'POST',
+                                  headers: { 
+                                    'Content-Type': 'application/json',
+                                    'x-user-id': userInfo?.id || '',
+                                  },
+                                  body: JSON.stringify({ sessionId: (msg as any).sessionId }),
+                                });
+                                const result = await res.json();
+                                if (result.success) {
+                                  // 更新消息
+                                  setMessages(prev => prev.map(m => 
+                                    m.id === msg.id 
+                                      ? { ...m, content: '✅ 行程已成功保存到"我的行程"中！', previewData: null, needsConfirmation: false }
+                                      : m
+                                  ));
+                                  loadSessions();
+                                } else {
+                                  console.error('确认失败:', result.error);
+                                  alert(result.error || '保存失败');
+                                }
+                              } catch (error) {
+                                console.error('确认失败:', error);
+                                alert('保存失败，请重试');
+                              }
+                            }}
+                            className="flex-1 px-3 py-1.5 rounded-lg bg-[#008F8D]/20 text-[#008F8D] text-xs font-medium hover:bg-[#008F8D]/30 transition-all"
+                          >
+                            确认保存
+                          </button>
+                          <button
+                            onClick={async () => {
+                              try {
+                                const res = await fetch('http://localhost:3003/api/agent/cancel-draft', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ sessionId: (msg as any).sessionId }),
+                                });
+                                const result = await res.json();
+                                if (result.success) {
+                                  setMessages(prev => prev.map(m => 
+                                    m.id === msg.id 
+                                      ? { ...m, content: '已取消保存', previewData: null, needsConfirmation: false }
+                                      : m
+                                  ));
+                                }
+                              } catch (error) {
+                                console.error('取消失败:', error);
+                              }
+                            }}
+                            className="flex-1 px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-xs font-medium hover:bg-white/10 transition-all"
+                          >
+                            取消
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
                     {msg.createdAt && (
                       <div className="text-[10px] text-white/30 mt-2">
                         {new Date(msg.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
