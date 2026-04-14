@@ -16,6 +16,7 @@ import {
 import LandingHeroSection from '../components/LandingHeroSection';
 import UserProfileEditModal from '../components/UserProfileEditModal';
 import SettingsModal from '../components/SettingsModal';
+import GlobalSidebar from '../components/GlobalSidebar';
 import { useHomepageData } from '../hooks/useHomepageData';
 
 // ==================== 未登录态视图 ====================
@@ -26,9 +27,9 @@ function GuestView() {
 // ==================== 已登录态工作台视图（最终优化版） ====================
 function WorkspaceView() {
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
-  
+
   // 使用自定义Hook获取数据
   const {
     loading,
@@ -145,139 +146,16 @@ function WorkspaceView() {
 
       {/* 主容器 */}
       <div className="relative min-h-screen flex">
-        {/* 左侧导航栏 (15%) */}
-        <aside
-          className={`fixed left-0 top-0 bottom-0 w-[15%] min-w-[200px] max-w-[240px] bg-white/5 backdrop-blur-xl border-r border-white/20 z-40 flex flex-col transition-transform duration-300 ${
-            isLargeScreen ? 'translate-x-0' : (sidebarOpen ? 'translate-x-0' : '-translate-x-full')
-          }`}
-        >
-          {/* 品牌区 - 使用logo图片 */}
-          <div className="p-4 border-b border-white/10">
-            <div className="flex items-center justify-center cursor-pointer" onClick={() => navigate('/')}>
-              <img
-                src="/logo.png"
-                alt="LiveTrip Logo"
-                className="h-20 w-auto object-contain"
-              />
-            </div>
-          </div>
-
-          {/* 导航菜单 */}
-          <nav className="flex-1 overflow-y-auto py-4 px-3">
-            {/* 主菜单 */}
-            <div className="mb-4">
-              <h3 className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/60">
-                主菜单
-              </h3>
-              <ul className="space-y-1">
-                <li>
-                  <button
-                    onClick={() => { navigate('/'); setSidebarOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <HomeIcon className="h-4 w-4" />
-                    <span>首页</span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => { navigate('/plan'); setSidebarOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>创建行程</span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => { navigate('/ai-features'); setSidebarOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    <span>AI 功能</span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => { navigate('/destinations'); setSidebarOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <Globe className="h-4 w-4" />
-                    <span>热门目的地</span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => { navigate('/favorites'); setSidebarOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <Heart className="h-4 w-4" />
-                    <span>我的收藏</span>
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            {/* 社区 */}
-            <div className="mb-4">
-              <h3 className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/60">
-                社区
-              </h3>
-              <ul className="space-y-1">
-                <li>
-                  <button
-                    onClick={() => { navigate('/blogs'); setSidebarOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <PenLine className="h-4 w-4" />
-                    <span>旅行博客</span>
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            {/* 我的旅行 */}
-            <div className="mb-4">
-              <h3 className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/60">
-                我的旅行
-              </h3>
-              <ul className="space-y-1">
-                <li>
-                  <button
-                    onClick={() => { navigate('/my-trips'); setSidebarOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <List className="h-4 w-4" />
-                    <span>我的行程</span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => { navigate('/today'); setSidebarOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <MapPin className="h-4 w-4" />
-                    <span>当前行程</span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => { navigate('/collab'); setSidebarOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <Users className="h-4 w-4" />
-                    <span>协同规划</span>
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </nav>
-        </aside>
+        {/* 全局侧边栏 */}
+        <GlobalSidebar
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+        />
 
         {/* 中间核心区 (60%) - 包含用户信息和搜索 */}
         <main
           className={`flex-1 p-6 transition-all duration-300 ${
-            isLargeScreen ? 'ml-[15%]' : ''
+            sidebarOpen ? 'ml-[15%]' : ''
           }`}
         >
           <div className="max-w-full h-full flex flex-col">
@@ -383,7 +261,7 @@ function WorkspaceView() {
         {/* 右侧边栏 (25%) - 正确顺序 */}
         <aside
           className={`w-[25%] min-w-[300px] max-w-[400px] p-6 flex flex-col gap-4 ${
-            isLargeScreen ? 'block' : 'hidden'
+            sidebarOpen ? 'block' : 'hidden'
           }`}
         >
           {/* 用户信息卡片 */}
@@ -444,12 +322,12 @@ function WorkspaceView() {
           />
 
           {/* 即将出行 */}
-          <UpcomingTourCard 
+          <UpcomingTourCard
             tours={upcomingTrips.map(trip => ({
               id: trip.id,
               city: trip.destination,
               country: '中国',
-              flag: '🇨🇳',
+              flag: 'CN',
               date: new Date(trip.startDate).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
               temperature: 20,
               condition: '晴',
@@ -458,14 +336,6 @@ function WorkspaceView() {
             }))}
           />
         </aside>
-
-        {/* 移动端遮罩 */}
-        {sidebarOpen && !isLargeScreen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-30"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
 
         {/* 用户信息编辑弹窗 */}
         <UserProfileEditModal

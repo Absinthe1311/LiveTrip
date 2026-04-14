@@ -87,7 +87,7 @@ export default function CollabEntryGlass() {
   };
 
   return (
-    <GlassLayout>
+    <GlassLayout showSearch={false}>
       <div className="space-y-6">
         {/* 页面标题 */}
         <div className="text-center">

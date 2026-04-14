@@ -1,7 +1,7 @@
 // 我的行程页面 - 毛玻璃风格版本
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Users, Clock, MoreVertical, Trash2, Share2, Search, Filter, FileText, Share as ShareIcon, Trash } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, MoreVertical, Trash2, Share2, Search, Filter, FileText, Share as ShareIcon, Trash, Plane } from 'lucide-react';
 import GlassLayout from '../components/GlassLayout';
 import { GlassCard } from '../components/home';
 import { getUserTrips, deleteTrip, getTripById, shareTrip } from '../api/client';
@@ -247,7 +247,7 @@ export default function MyTripsGlass() {
   };
 
   return (
-    <GlassLayout>
+    <GlassLayout showSearch={false}>
       <div className="space-y-6">
         {/* 页面标题和批量操作 */}
         <div className="flex items-center justify-between">
@@ -364,7 +364,7 @@ export default function MyTripsGlass() {
         ) : filteredTrips.length === 0 ? (
           <GlassCard className="p-8">
             <div className="text-center">
-              <div className="text-6xl mb-4">✈️</div>
+              <Plane className="h-16 w-16 mx-auto mb-4 text-white/40" />
               <h3 className="text-xl font-semibold text-white mb-2">
                 {trips.length === 0 ? '还没有行程' : '没有找到匹配的行程'}
               </h3>
