@@ -17,6 +17,8 @@ import LandingHeroSection from '../components/LandingHeroSection';
 import UserProfileEditModal from '../components/UserProfileEditModal';
 import SettingsModal from '../components/SettingsModal';
 import GlobalSidebar from '../components/GlobalSidebar';
+import { NotificationBell } from '../components/NotificationBell';
+import { TestNotificationButton } from '../components/TestNotificationButton';
 import { useHomepageData } from '../hooks/useHomepageData';
 
 // ==================== 未登录态视图 ====================
@@ -160,7 +162,7 @@ function WorkspaceView() {
         >
           <div className="max-w-full h-full flex flex-col">
             {/* 顶部栏 - 搜索框（使用SearchBar组件的功能） */}
-            <div className="mb-6">
+            <div className="mb-6 relative z-50">
               <GlassCard className="p-4">
                 <div className="flex items-center gap-4">
                   {/* 搜索框 - 使用SearchBar的功能 */}
@@ -184,10 +186,12 @@ function WorkspaceView() {
                     </button>
 
                     {/* 通知按钮 */}
-                    <button className="relative p-2 rounded-lg hover:bg-white/10 transition-colors">
-                      <Bell className="h-5 w-5 text-white/80" />
-                      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                    </button>
+                    <NotificationBell />
+
+                    {/* 测试通知按钮（开发环境） */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <TestNotificationButton />
+                    )}
 
                     {/* 设置按钮 */}
                     <button

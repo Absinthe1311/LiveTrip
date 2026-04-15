@@ -495,16 +495,8 @@ export const useHomepageData = () => {
 
     window.addEventListener('storage', handleStorageChange);
 
-    // 定时刷新数据（每30秒，提高更新频率）
-    const refreshInterval = setInterval(() => {
-      console.log('⏰ 定时刷新数据...');
-      cacheManager.clear();
-      init();
-    }, 30 * 1000); // 改为30秒刷新一次
-
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      clearInterval(refreshInterval);
     };
   }, []);
 

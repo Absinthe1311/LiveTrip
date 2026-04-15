@@ -9,6 +9,7 @@ import apiRoutes from './routes';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { initCloudinary } from './config/cloudinary';
 import { initSocketIO } from './socket/socketService';
+import { sensorScheduler } from './services/sensorScheduler';
 
 // 加载环境变量
 dotenv.config();
@@ -24,6 +25,9 @@ const httpServer = createServer(app);
 
 // 初始化Socket.io
 initSocketIO(httpServer);
+
+// 启动环境感知定时任务
+sensorScheduler.start();
 
 // 测试 Cloudinary 配置
 app.get('/test/cloudinary', (req, res) => {

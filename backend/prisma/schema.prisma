@@ -32,6 +32,7 @@ model User {
   trips               Trip[]
   collabRoomsAsMember TripMember[]
   preferences         UserPreferences?
+  notifications       Notification[]
 }
 
 model UserPreferences {
@@ -218,6 +219,7 @@ model Spot {
   reviews        Review[]
   images         SpotImage[]
   iotData        SpotIoTData?
+  sensorLogs     EnvironmentSensorLog[]
 
   @@index([city])
   @@index([category])
@@ -557,4 +559,64 @@ model CollabMessage {
   @@index([roomId])
   @@index([userId])
   @@index([createdAt])
+}
+
+// 环境感知日志表
+model EnvironmentSensorLog {
+  id        String   @id @default(cuid())
+  spotId    String
+  spot      Spot     @relation(fields: [spotId], references: [id], onDelete: Cascade)
+
+  // 感知类型: rain, crowd, temperature, close
+  type      String
+
+  // 感知级别: info, warning, danger
+  level     String
+
+  // 感知数据（JSON格式）
+  data      String   @default("{}")
+
+  // 感知消息
+  message   String
+
+  // 是否已通知用户
+  notified  Boolean  @default(false)
+
+  // 通知时间
+  notifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([spotId, type, createdAt])
+  @@index([level, createdAt])
+}
+
+// 站内通知表
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 通知类型: sensor, system
+  type      String
+
+  // 通知标题
+  title     String
+
+  // 通知内容
+  content   String
+
+  // 关联数据（JSON格式）
+  data      String?  @default("{}")
+
+  // 是否已读
+  isRead    Boolean  @default(false)
+
+  // 阅读时间
+  readAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead, createdAt])
+  @@index([userId, createdAt])
 }

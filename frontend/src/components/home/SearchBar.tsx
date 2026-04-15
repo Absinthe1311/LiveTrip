@@ -117,7 +117,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
       {/* 搜索结果下拉框 */}
       {showDropdown && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 shadow-2xl max-h-96 overflow-y-auto z-50">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-xl rounded-xl border border-white/30 shadow-2xl max-h-96 overflow-y-auto z-[9999]">
           {/* 空搜索显示热门推荐 */}
           {!keyword.trim() && hotDestinations.length > 0 && (
             <>
