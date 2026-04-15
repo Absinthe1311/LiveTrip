@@ -92,6 +92,11 @@ export default function CollabSetup() {
     try {
       // 创建空的行程数据
       const emptyTripData = {
+        title: formData.roomName, // 使用用户输入的房间名称
+        customization: {
+          tripName: formData.roomName, // 使用用户输入的房间名称
+          tripDescription: `协同规划 - ${formData.destination}`,
+        },
         summary: {
           origin: '',
           destination: formData.destination,

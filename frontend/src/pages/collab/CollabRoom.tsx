@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Menu, Users, MessageCircle, MapPin, Send, Lock, Eye, Loader, Copy, Check, Share2 } from 'lucide-react';
-import { Sidebar } from '../../components/SharedSidebar';
+import GlobalSidebar from '../../components/GlobalSidebar';
 import { useCollabStore } from '../../store/collabStore';
 import { getCollabRoomInfo, getUserDrafts, getCollabMessages, getSpotStats, lockCollabRoom, sendCollabMessage, upsertDraft, submitDraft, getCitySpots, getAllDrafts, saveFinalTrip } from '../../api/collabApi';
 import { connectSocket, disconnectSocket, joinRoom, leaveRoom, updateDraft } from '../../services/collabSocket';
@@ -16,7 +16,7 @@ export default function CollabRoom() {
   const navigate = useNavigate();
   const { roomId } = useParams<{ roomId: string }>();
   
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +75,10 @@ export default function CollabRoom() {
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const token = localStorage.getItem('token') || '';
 
+  // 提前定义isHost和isLocked，避免在useEffect中使用时未初始化
+  const isHost = currentRoom?.hostId === currentUser.id;
+  const isLocked = currentRoom?.phase === 'LOCKED';
+
   // 地图Hook
   const {
     addSpotMarker,
@@ -84,10 +88,12 @@ export default function CollabRoom() {
     showSpotStats: displaySpotStats,
     hideSpotStats,
     setCityWithBoundary,
+    updateSpotMarkerStyle,
     isLoaded: isMapLoaded,
   } = useCollabMap({
     containerId: 'collab-map',
     onSpotClick: handleSpotClick,
+    isLocked: isLocked,
   });
 
   useEffect(() => {
@@ -120,6 +126,37 @@ export default function CollabRoom() {
       messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // 监听草案提交事件，实时更新路线图
+  useEffect(() => {
+    const handleDraftSubmitted = async (event: any) => {
+      if (!roomId) return;
+
+      try {
+        // 使用事件中的数据或重新加载
+        const draftsData = event?.detail || null;
+
+        if (draftsData) {
+          setAllMemberDrafts(draftsData);
+        } else {
+          // 重新加载所有成员的草案
+          const response = await getAllDrafts(roomId);
+          if (response.success) {
+            setAllMemberDrafts(response.data);
+          }
+        }
+      } catch (err) {
+        console.error('重新加载草案失败:', err);
+      }
+    };
+
+    // 监听自定义事件
+    window.addEventListener('draft-submitted', handleDraftSubmitted);
+
+    return () => {
+      window.removeEventListener('draft-submitted', handleDraftSubmitted);
+    };
+  }, [roomId]);
 
   // 当城市景点加载后，显示在地图上
   useEffect(() => {
@@ -158,6 +195,59 @@ export default function CollabRoom() {
       drawRoute(points);
     }
   }, [isMapLoaded, routeSpots, clearRoute, drawRoute]);
+
+  // 锁定后自动显示所有成员的路线并高亮景点
+  useEffect(() => {
+    if (isLocked && allMemberDrafts.length > 0 && isMapLoaded && members.length > 0 && citySpots.length > 0) {
+      // 自动显示所有成员的路线
+      const allUserIds = new Set(members.map((m) => m.userId));
+      setVisibleLayers(allUserIds);
+
+      // 如果还没有加载所有草案，先加载
+      if (allMemberDrafts.length === 0) {
+        showAllMemberRoutes();
+      } else {
+        // 已经有数据，直接绘制
+        drawRoutesForDay(currentDay, allUserIds);
+      }
+
+      // 延迟一点确保地图标记已加载，然后高亮所有待选景点（绿色）
+      setTimeout(() => {
+        highlightCandidateSpots();
+      }, 500);
+    }
+  }, [isLocked, allMemberDrafts, isMapLoaded, members, currentDay, citySpots]);
+
+  // 高亮待选景点（所有成员选择的景点）
+  const highlightCandidateSpots = useCallback(() => {
+    if (!allMemberDrafts || allMemberDrafts.length === 0) return;
+
+    // 收集所有成员选择的景点ID
+    const candidateSpotIds = new Set<string>();
+
+    allMemberDrafts.forEach((memberDraft: any) => {
+      memberDraft.drafts.forEach((draft: any) => {
+        const spotIds: string[] = JSON.parse(draft.spotSequence || '[]');
+        spotIds.forEach((id) => candidateSpotIds.add(id));
+      });
+    });
+
+    // 将所有待选景点标记为绿色
+    candidateSpotIds.forEach((spotId) => {
+      updateSpotMarkerStyle(spotId, 'candidate');
+    });
+  }, [allMemberDrafts, updateSpotMarkerStyle]);
+
+  // 高亮最终路线景点（红色）
+  const highlightSelectedSpots = useCallback((selectedSpotIds: string[]) => {
+    // 先将所有景点恢复为待选状态（绿色）
+    highlightCandidateSpots();
+
+    // 然后将最终选择的景点标记为红色
+    selectedSpotIds.forEach((spotId) => {
+      updateSpotMarkerStyle(spotId, 'selected');
+    });
+  }, [highlightCandidateSpots, updateSpotMarkerStyle]);
 
   const loadRoomData = async () => {
     setLoading(true);
@@ -449,8 +539,19 @@ export default function CollabRoom() {
     // 清除现有路线
     clearRoute();
     
-    // 定义颜色数组
-    const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
+    // 定义颜色数组 - 使用更鲜明、更易区分的颜色
+    const colors = [
+      '#3B82F6', // 蓝色
+      '#EF4444', // 红色
+      '#10B981', // 绿色
+      '#F59E0B', // 橙色
+      '#8B5CF6', // 紫色
+      '#EC4899', // 粉色
+      '#06B6D4', // 青色
+      '#84CC16', // 黄绿色
+      '#F97316', // 深橙色
+      '#6366F1', // 靛蓝色
+    ];
     
     // 为每个成员绘制指定天的路线
     allMemberDrafts.forEach((memberDrafts: any, index: number) => {
@@ -568,10 +669,14 @@ export default function CollabRoom() {
       clearRoute();
       return;
     }
-    
+
     // 清除现有路线
     clearRoute();
-    
+
+    // 高亮最终选择的景点（红色）
+    const selectedSpotIds = route.map((spot) => spot.id);
+    highlightSelectedSpots(selectedSpotIds);
+
     // 绘制最终路线（使用橙色）
     const points: RoutePoint[] = route.map((spot, index) => {
       const [lng, lat] = spot.location.split(',').map(Number);
@@ -582,12 +687,9 @@ export default function CollabRoom() {
         order: index + 1,
       };
     });
-    
-    drawRoute(points, '#F59E0B'); // 橙色
-  };
 
-  const isHost = currentRoom?.hostId === currentUser.id;
-  const isLocked = currentRoom?.phase === 'LOCKED';
+    drawRoute(points, '#EF4444'); // 红色
+  };
 
   if (loading) {
     return (
@@ -664,25 +766,26 @@ export default function CollabRoom() {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl animate-pulse" />
       </div>
 
-      {/* Top Navbar */}
-      <header className="fixed top-0 left-0 right-0 h-14 bg-white/5 backdrop-blur-md border-b border-white/10 z-50 flex items-center">
-        <div className="w-[220px] h-full flex items-center px-4 border-r border-white/10 shrink-0">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className={`p-2 rounded-lg hover:bg-white/10 transition-colors mr-2 ${isLargeScreen ? 'hidden' : 'block'}`}
-          >
-            <Menu className="h-5 w-5 text-white" />
-          </button>
-          <div 
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => navigate('/')}
-          >
-            <span className="text-xl font-bold text-white">LiveTrip</span>
-          </div>
-        </div>
-        
+      {/* 全局侧边栏 */}
+      <GlobalSidebar
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+      />
+
+      {/* Top Navbar - 协同规划专用 */}
+      <header className={`fixed top-0 right-0 h-14 bg-white/5 backdrop-blur-md border-b border-white/10 z-40 flex items-center transition-all duration-300 ${
+        sidebarOpen ? 'left-[15%]' : 'left-0'
+      }`}>
         <div className="flex-1 flex items-center justify-between px-6">
           <div className="flex items-center gap-3">
+            {/* 移动端菜单按钮 */}
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors lg:hidden"
+            >
+              <Menu className="h-5 w-5 text-white" />
+            </button>
+
             <h1 className="text-lg font-semibold text-white">
               {currentRoom?.trip?.title || '协同规划'}
             </h1>
@@ -719,16 +822,10 @@ export default function CollabRoom() {
         </div>
       </header>
 
-      {/* Sidebar */}
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
-        isLargeScreen={isLargeScreen}
-        currentPage="/my-trips"
-      />
-
       {/* Main Content */}
-      <main className={`pt-14 ${isLargeScreen ? 'pl-[240px]' : ''} min-h-screen flex relative z-10`}>
+      <main className={`pt-14 min-h-screen flex relative z-10 transition-all duration-300 ${
+        sidebarOpen ? 'ml-[15%]' : ''
+      }`}>
         {/* 左侧：地图区域 */}
         <div className="flex-1 p-4 flex flex-col">
           <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl flex-1 flex flex-col overflow-hidden">
@@ -742,9 +839,19 @@ export default function CollabRoom() {
                   {/* 右侧面板切换按钮 */}
                   <button
                     onClick={() => setRightPanelOpen(!rightPanelOpen)}
-                    className="px-3 py-1.5 text-xs bg-white/10 text-white/80 rounded-lg hover:bg-white/20 transition-colors flex items-center gap-1 border border-white/20"
+                    className="px-3 py-1.5 text-xs bg-blue-500/20 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-colors flex items-center gap-1.5 border border-blue-500/30 font-medium"
                   >
-                    {rightPanelOpen ? '隐藏面板' : '显示面板'}
+                    {rightPanelOpen ? (
+                      <>
+                        <Eye className="h-3.5 w-3.5" />
+                        隐藏信息面板
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-3.5 w-3.5" />
+                        显示信息面板
+                      </>
+                    )}
                   </button>
                   {showStats && (
                     <button
@@ -786,6 +893,18 @@ export default function CollabRoom() {
         {/* 右侧：信息区域 */}
         {rightPanelOpen && (
           <div className="w-[400px] border-l border-white/10 bg-white/5 backdrop-blur-md flex flex-col">
+            {/* 面板头部 */}
+            <div className="p-3 border-b border-white/10 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white">信息面板</h3>
+              <button
+                onClick={() => setRightPanelOpen(false)}
+                className="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-white/60 hover:text-white"
+                title="隐藏面板"
+              >
+                <Eye className="h-4 w-4" />
+              </button>
+            </div>
+
             {/* 图层控制 */}
             <div className="p-4 border-b border-white/10">
               <LayerControl
@@ -978,6 +1097,20 @@ export default function CollabRoom() {
             )}
           </div>
         </div>
+        )}
+
+        {/* 右侧面板隐藏时的浮动显示按钮 */}
+        {!rightPanelOpen && (
+          <button
+            onClick={() => setRightPanelOpen(true)}
+            className="fixed right-0 top-1/2 -translate-y-1/2 z-30 bg-blue-500/90 hover:bg-blue-500 text-white px-2 py-4 rounded-l-lg shadow-lg transition-all duration-300 flex flex-col items-center gap-2 group"
+            title="显示信息面板"
+          >
+            <Eye className="h-5 w-5" />
+            <span className="text-xs font-medium writing-mode-vertical transform rotate-0 group-hover:scale-105 transition-transform">
+              信息
+            </span>
+          </button>
         )}
       </main>
       

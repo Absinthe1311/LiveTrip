@@ -122,9 +122,30 @@ export const connectSocket = (token: string) => {
   /**
    * 草案提交
    */
-  socket.on('draft:submitted', (data: { userId: string; dayNumber: number; timestamp: Date }) => {
+  socket.on('draft:submitted', async (data: { userId: string; dayNumber: number; timestamp: Date }) => {
     console.log('✅ 草案已提交:', data);
-    // 可以显示通知
+    const store = useCollabStore.getState();
+
+    // 重新获取所有成员的草案，以便实时更新路线图
+    if (store.currentRoom) {
+      try {
+        const response = await fetch(`http://localhost:3003/api/collab/rooms/${store.currentRoom.id}/drafts/all`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const draftsData = await response.json();
+          // 触发自定义事件，通知CollabRoom更新
+          window.dispatchEvent(new CustomEvent('draft-submitted', {
+            detail: draftsData.data
+          }));
+          console.log('📊 已更新所有成员草案:', draftsData.data);
+        }
+      } catch (error) {
+        console.error('获取草案列表失败:', error);
+      }
+    }
   });
 
   // ==================== 房间状态事件 ====================

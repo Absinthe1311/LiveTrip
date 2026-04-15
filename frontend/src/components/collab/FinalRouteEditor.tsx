@@ -140,28 +140,28 @@ export default function FinalRouteEditor({
   };
   
   return (
-    <div className="bg-white rounded-lg border border-border shadow-lg p-4 max-h-[80vh] overflow-y-auto">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">绘制最终路线</h3>
-        <button onClick={onCancel} className="p-1 hover:bg-gray-100 rounded">
-          <X className="h-5 w-5" />
+    <div className="bg-slate-900/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl p-3 max-w-md max-h-[60vh] overflow-y-auto">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-base font-semibold text-white">绘制最终路线</h3>
+        <button onClick={onCancel} className="p-1 hover:bg-white/10 rounded transition-colors">
+          <X className="h-4 w-4 text-white/70" />
         </button>
       </div>
       
       {/* 添加景点 */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">添加景点</label>
+      <div className="mb-3">
+        <label className="block text-xs font-medium text-white/70 mb-1.5">添加景点</label>
         <div className="flex gap-2">
           <select
             value={selectedSpotId}
             onChange={(e) => setSelectedSpotId(e.target.value)}
-            className="flex-1 px-3 py-2 border border-border rounded-lg text-sm"
+            className="flex-1 px-2 py-1.5 bg-white/10 border border-white/20 rounded-lg text-xs text-white"
           >
             <option value="">选择景点...</option>
             {spots
               .filter(s => !routeSpots.find(r => r.id === s.id))
               .map(spot => (
-                <option key={spot.id} value={spot.id}>
+                <option key={spot.id} value={spot.id} className="bg-slate-900">
                   {spot.name}
                 </option>
               ))}
@@ -169,7 +169,7 @@ export default function FinalRouteEditor({
           <button
             onClick={handleAddSpot}
             disabled={!selectedSpotId}
-            className="px-4 py-2 bg-livetrip-primary text-white rounded-lg text-sm font-medium hover:bg-livetrip-primary/90 disabled:opacity-50"
+            className="px-3 py-1.5 bg-blue-500 text-white rounded-lg text-xs font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             添加
           </button>
@@ -177,19 +177,19 @@ export default function FinalRouteEditor({
       </div>
       
       {/* 路线列表 */}
-      <div className="space-y-3 mb-4">
+      <div className="space-y-2 mb-3">
         {routeSpots.map((spot, index) => (
-          <div key={spot.id} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <GripVertical className="h-4 w-4 text-gray-400" />
-                <span className="font-medium text-sm">{index + 1}. {spot.name}</span>
+          <div key={spot.id} className="bg-white/5 border border-white/10 rounded-lg p-2">
+            <div className="flex items-start justify-between mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <GripVertical className="h-3 w-3 text-white/40" />
+                <span className="font-medium text-xs text-white">{index + 1}. {spot.name}</span>
               </div>
               <div className="flex items-center gap-1">
                 {index > 0 && (
                   <button
                     onClick={() => handleMoveSpot(index, 'up')}
-                    className="p-1 hover:bg-gray-200 rounded text-xs"
+                    className="p-0.5 hover:bg-white/10 rounded text-xs text-white/60"
                   >
                     ↑
                   </button>
@@ -197,48 +197,48 @@ export default function FinalRouteEditor({
                 {index < routeSpots.length - 1 && (
                   <button
                     onClick={() => handleMoveSpot(index, 'down')}
-                    className="p-1 hover:bg-gray-200 rounded text-xs"
+                    className="p-0.5 hover:bg-white/10 rounded text-xs text-white/60"
                   >
                     ↓
                   </button>
                 )}
                 <button
                   onClick={() => handleRemoveSpot(index)}
-                  className="p-1 hover:bg-red-100 rounded text-red-600"
+                  className="p-0.5 hover:bg-red-500/20 rounded text-red-400"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3 w-3" />
                 </button>
               </div>
             </div>
             
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1.5">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">到达时间</label>
+                <label className="block text-[10px] text-white/50 mb-0.5">到达</label>
                 <input
                   type="time"
                   value={spot.arrivalTime}
                   onChange={(e) => handleUpdateTime(index, 'arrivalTime', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
+                  className="w-full px-1.5 py-1 bg-white/10 border border-white/20 rounded text-[10px] text-white"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">停留时长(分钟)</label>
+                <label className="block text-[10px] text-white/50 mb-0.5">时长(分)</label>
                 <input
                   type="number"
                   value={spot.duration}
                   onChange={(e) => handleUpdateTime(index, 'duration', Number(e.target.value))}
                   min={15}
                   step={15}
-                  className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
+                  className="w-full px-1.5 py-1 bg-white/10 border border-white/20 rounded text-[10px] text-white"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">离开时间</label>
+                <label className="block text-[10px] text-white/50 mb-0.5">离开</label>
                 <input
                   type="time"
                   value={spot.departureTime}
                   readOnly
-                  className="w-full px-2 py-1 border border-gray-300 rounded text-xs bg-gray-100"
+                  className="w-full px-1.5 py-1 bg-white/5 border border-white/10 rounded text-[10px] text-white/60"
                 />
               </div>
             </div>
@@ -247,19 +247,19 @@ export default function FinalRouteEditor({
       </div>
       
       {routeSpots.length === 0 && (
-        <div className="text-center text-gray-500 py-8">
-          <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p>请添加景点到路线中</p>
+        <div className="text-center text-white/50 py-6">
+          <MapPin className="h-6 w-6 mx-auto mb-1.5 opacity-50" />
+          <p className="text-xs">请添加景点到路线中</p>
         </div>
       )}
-      
+
       {/* 保存按钮 */}
       <button
         onClick={() => onSave(routeSpots)}
         disabled={routeSpots.length === 0}
-        className="w-full py-2.5 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 disabled:opacity-50 flex items-center justify-center gap-2"
+        className="w-full py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 transition-colors"
       >
-        <Save className="h-4 w-4" />
+        <Save className="h-3.5 w-3.5" />
         保存最终路线
       </button>
     </div>

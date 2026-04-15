@@ -28,11 +28,13 @@ interface UseCollabMapOptions {
   containerId: string;
   onSpotClick?: (spot: Spot) => void;
   onMapClick?: (lng: number, lat: number) => void;
+  isLocked?: boolean;
 }
 
 interface UseCollabMapReturn {
   map: any;
   addSpotMarker: (spot: Spot, color?: string) => void;
+  updateSpotMarkerStyle: (spotId: string, style: 'normal' | 'candidate' | 'selected') => void;
   removeSpotMarker: (spotId: string) => void;
   clearAllMarkers: () => void;
   drawRoute: (points: RoutePoint[], color?: string) => void;
@@ -47,7 +49,7 @@ interface UseCollabMapReturn {
 }
 
 export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
-  const { containerId, onSpotClick, onMapClick } = options;
+  const { containerId, onSpotClick, onMapClick, isLocked = false } = options;
   
   const mapRef = useRef<any>(null);
   const markersRef = useRef<Map<string, any>>(new Map());
@@ -88,7 +90,7 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
         zoom: 12,
         center: [116.397428, 39.90923], // 默认北京
         viewMode: '2D',
-        mapStyle: 'amap://styles/normal',
+        mapStyle: 'amap://styles/dark', // 使用暗色主题
         features: ['bg', 'road', 'building', 'point'],
         showLabel: true,
       });
@@ -131,44 +133,79 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
     if (!mapRef.current || !window.AMap) return;
 
     const [lng, lat] = spot.location.split(',').map(Number);
-    
-    // 创建自定义标记
+
+    // 锁定后禁用点击，cursor改为default
+    const cursorStyle = isLocked ? 'default' : 'pointer';
+
+    // 创建自定义标记 - 显示完整景点名称
     const markerContent = `
       <div style="
         background: ${color};
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
+        padding: 6px 12px;
+        border-radius: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-weight: bold;
-        font-size: 14px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        cursor: ${cursorStyle};
+        white-space: nowrap;
+        border: 2px solid rgba(255,255,255,0.3);
+        transition: all 0.2s;
       ">
-        ${spot.name.charAt(0)}
+        ${spot.name}
       </div>
     `;
 
     const marker = new window.AMap.Marker({
       position: [lng, lat],
       content: markerContent,
-      offset: new window.AMap.Pixel(-16, -16),
+      offset: new window.AMap.Pixel(-20, -20),
       extData: spot,
     });
 
-    // 点击事件
-    marker.on('click', () => {
-      if (onSpotClick) {
+    // 锁定后禁用点击事件
+    if (!isLocked && onSpotClick) {
+      marker.on('click', () => {
         onSpotClick(spot);
-      }
-    });
+      });
+    }
+
+    // 锁定后禁用悬停效果
+    if (!isLocked) {
+      marker.on('mouseover', () => {
+        marker.setContent(`
+          <div style="
+            background: ${color};
+            padding: 8px 16px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+            cursor: pointer;
+            white-space: nowrap;
+            border: 2px solid rgba(255,255,255,0.5);
+            transform: scale(1.1);
+          ">
+            ${spot.name}
+          </div>
+        `);
+      });
+
+      marker.on('mouseout', () => {
+        marker.setContent(markerContent);
+      });
+    }
 
     marker.setMap(mapRef.current);
     markersRef.current.set(spot.id, marker);
-  }, [onSpotClick]);
+  }, [onSpotClick, isLocked]);
 
   // 移除景点标记
   const removeSpotMarker = useCallback((spotId: string) => {
@@ -177,6 +214,59 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
       marker.setMap(null);
       markersRef.current.delete(spotId);
     }
+  }, []);
+
+  // 更新景点标记样式
+  const updateSpotMarkerStyle = useCallback((spotId: string, style: 'normal' | 'candidate' | 'selected') => {
+    const marker = markersRef.current.get(spotId);
+    if (!marker) return;
+
+    const spot = marker.getExtData();
+    if (!spot) return;
+
+    let color = '#3B82F6'; // 默认蓝色
+    let borderColor = 'rgba(255,255,255,0.3)';
+    let scale = 1;
+
+    switch (style) {
+      case 'candidate':
+        color = '#10B981'; // 绿色 - 待选景点
+        borderColor = 'rgba(16,185,129,0.5)';
+        scale = 1.1;
+        break;
+      case 'selected':
+        color = '#EF4444'; // 红色 - 已选景点
+        borderColor = 'rgba(239,68,68,0.5)';
+        scale = 1.2;
+        break;
+      default:
+        color = '#3B82F6'; // 蓝色 - 普通
+        borderColor = 'rgba(255,255,255,0.3)';
+        scale = 1;
+    }
+
+    const markerContent = `
+      <div style="
+        background: ${color};
+        padding: ${6 * scale}px ${12 * scale}px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: ${13 * scale}px;
+        box-shadow: 0 ${4 * scale}px ${12 * scale}px rgba(0,0,0,0.4);
+        cursor: pointer;
+        white-space: nowrap;
+        border: 2px solid ${borderColor};
+        transition: all 0.2s;
+      ">
+        ${spot.name}
+      </div>
+    `;
+
+    marker.setContent(markerContent);
   }, []);
 
   // 清除所有标记
@@ -193,18 +283,20 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
 
     // 按顺序排序
     const sortedPoints = [...points].sort((a, b) => a.order - b.order);
-    
+
     // 创建路径
     const path = sortedPoints.map((point) => [point.lng, point.lat]);
-    
+
     const polyline = new window.AMap.Polyline({
       path: path,
       strokeColor: color,
-      strokeWeight: 4,
-      strokeOpacity: 0.8,
+      strokeWeight: 6, // 增加线条粗细
+      strokeOpacity: 1.0, // 完全不透明
       lineJoin: 'round',
       lineCap: 'round',
       showDir: true, // 显示方向箭头
+      borderWeight: 2, // 添加边框
+      borderColor: 'rgba(255,255,255,0.3)', // 白色边框
     });
 
     polyline.setMap(mapRef.current);
@@ -420,6 +512,7 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
   return {
     map: mapRef.current,
     addSpotMarker,
+    updateSpotMarkerStyle,
     removeSpotMarker,
     clearAllMarkers,
     drawRoute,
