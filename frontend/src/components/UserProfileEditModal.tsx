@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Camera, User, Mail, FileText } from 'lucide-react';
 import { message } from 'antd';
 import AvatarCropper from './AvatarCropper';
+import { API_BASE_URL } from '../config/api';
 
 interface UserProfile {
   id: string;
@@ -84,7 +85,7 @@ const UserProfileEditModal: React.FC<UserProfileEditModalProps> = ({
       const formData = new FormData();
       formData.append('file', file); // 修改为 'file'，与后端中间件一致
 
-      const uploadResponse = await fetch('http://localhost:3003/api/users/avatar', {
+      const uploadResponse = await fetch(`${API_BASE_URL}/users/avatar`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -112,7 +113,7 @@ const UserProfileEditModal: React.FC<UserProfileEditModalProps> = ({
 
   const handleSave = async () => {
     try {
-      const response = await fetch('http://localhost:3003/api/users/profile', {
+      const response = await fetch(`${API_BASE_URL}/users/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

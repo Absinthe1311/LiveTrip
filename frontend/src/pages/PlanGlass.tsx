@@ -9,6 +9,7 @@ import { createPlan } from '../api/client';
 import { useAppStore } from '../store';
 import AIAdvisorGlass from '../components/AIAdvisorGlass';
 import { popularDestinations } from '../data/popularDestinations';
+import { API_BASE_URL } from '../config/api';
 import { DoubleCalendar } from '../components/DoubleCalendar';
 import ImageCropper from '../components/ImageCropper';
 
@@ -114,7 +115,7 @@ export default function PlanGlass() {
       const formData = new FormData();
       formData.append('image', file);
 
-      const uploadResponse = await fetch('http://localhost:3003/api/upload/image', {
+      const uploadResponse = await fetch(`${API_BASE_URL}/upload/image`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

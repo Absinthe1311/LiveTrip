@@ -6,6 +6,7 @@ import { message } from 'antd';
 import GlassLayout from '../../components/GlassLayout';
 import { GlassCard } from '../../components/home';
 import { createCollabRoom } from '../../api/collabApi';
+import { API_BASE_URL } from '../../config/api';
 
 interface FormData {
   roomName: string;
@@ -123,7 +124,7 @@ export default function CollabSetup() {
       };
 
       // 使用apiClient创建行程
-      const saveResponse = await fetch('http://localhost:3003/api/trips', {
+      const saveResponse = await fetch(`${API_BASE_URL}/trips`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

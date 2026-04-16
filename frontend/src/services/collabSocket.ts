@@ -1,6 +1,7 @@
 // Socket.io客户端服务 - 处理协同规划的实时通信
 import { io, Socket } from 'socket.io-client';
 import { useCollabStore } from '../store/collabStore';
+import { SOCKET_URL, API_BASE_URL } from '../config/api';
 
 // Socket实例
 let socket: Socket | null = null;
@@ -15,7 +16,7 @@ export const connectSocket = (token: string) => {
     return;
   }
 
-  socket = io('http://localhost:3003', {
+  socket = io(SOCKET_URL, {
     auth: { token },
     transports: ['websocket'],
   });
@@ -46,7 +47,7 @@ export const connectSocket = (token: string) => {
     // 重新获取房间信息（包含成员列表）
     if (store.currentRoom) {
       try {
-        const response = await fetch(`http://localhost:3003/api/collab/rooms/${store.currentRoom.id}`, {
+        const response = await fetch(`${API_BASE_URL}/collab/rooms/${store.currentRoom.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -73,7 +74,7 @@ export const connectSocket = (token: string) => {
     // 重新获取房间信息（包含成员列表）
     if (store.currentRoom) {
       try {
-        const response = await fetch(`http://localhost:3003/api/collab/rooms/${store.currentRoom.id}`, {
+        const response = await fetch(`${API_BASE_URL}/collab/rooms/${store.currentRoom.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -129,7 +130,7 @@ export const connectSocket = (token: string) => {
     // 重新获取所有成员的草案，以便实时更新路线图
     if (store.currentRoom) {
       try {
-        const response = await fetch(`http://localhost:3003/api/collab/rooms/${store.currentRoom.id}/drafts/all`, {
+        const response = await fetch(`${API_BASE_URL}/collab/rooms/${store.currentRoom.id}/drafts/all`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },

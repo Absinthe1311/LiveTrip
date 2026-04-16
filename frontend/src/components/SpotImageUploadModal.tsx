@@ -3,6 +3,7 @@ import { Modal, Upload, Button, message, Image, Progress } from 'antd';
 import { UploadOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { AttractionItem } from '../api/client';
+import { API_BASE_URL } from '../config/api';
 
 interface SpotImageUploadModalProps {
   visible: boolean;
@@ -84,7 +85,7 @@ export default function SpotImageUploadModal({
 
       try {
         console.log(`🔍 查找景点ID: ${spot.name} (${city})`);
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api';
+        const apiBaseUrl = API_BASE_URL;
         const searchResponse = await fetch(`${apiBaseUrl}/spots/search`, {
           method: 'POST',
           headers: {
@@ -134,7 +135,7 @@ export default function SpotImageUploadModal({
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api';
+        const apiBaseUrl = API_BASE_URL;
         const response = await fetch(`${apiBaseUrl}/images/upload`, {
           method: 'POST',
           headers,

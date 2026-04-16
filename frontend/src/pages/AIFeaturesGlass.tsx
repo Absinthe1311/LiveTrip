@@ -1,6 +1,7 @@
 // AI 功能页面 - 美化版本
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 import { 
   Sparkles, 
   Send, 
@@ -478,7 +479,7 @@ export default function AIFeaturesGlass() {
                           <button
                             onClick={async () => {
                               try {
-                                const res = await fetch('http://localhost:3003/api/agent/confirm-trip', {
+                                const res = await fetch(`${API_BASE_URL}/agent/confirm-trip`, {
                                   method: 'POST',
                                   headers: { 
                                     'Content-Type': 'application/json',
@@ -511,7 +512,7 @@ export default function AIFeaturesGlass() {
                           <button
                             onClick={async () => {
                               try {
-                                const res = await fetch('http://localhost:3003/api/agent/cancel-draft', {
+                                const res = await fetch(`${API_BASE_URL}/agent/cancel-draft`, {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({ sessionId: (msg as any).sessionId }),

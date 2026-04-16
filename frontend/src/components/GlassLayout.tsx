@@ -5,6 +5,7 @@ import { Home as HomeIcon, Plus, Sparkles, Globe, Heart, PenLine, List, MapPin, 
 import { GlassCard, LogoutButton } from './home';
 import ImageCropper from './ImageCropper';
 import GlobalSidebar from './GlobalSidebar';
+import { API_BASE_URL } from '../config/api';
 
 interface GlassLayoutProps {
   children: ReactNode;
@@ -79,7 +80,7 @@ export default function GlassLayout({ children, showSearch = true }: GlassLayout
       const formData = new FormData();
       formData.append('image', file);
 
-      const uploadResponse = await fetch('http://localhost:3003/api/upload/image', {
+      const uploadResponse = await fetch(`${API_BASE_URL}/upload/image`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

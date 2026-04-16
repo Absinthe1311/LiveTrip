@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { X, Image as ImageIcon, Upload, LogOut, Sun, Moon } from 'lucide-react';
 import ImageCropper from './ImageCropper';
+import { API_BASE_URL } from '../config/api';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -74,7 +75,7 @@ export default function SettingsModal({
       const formData = new FormData();
       formData.append('image', file);
 
-      const uploadResponse = await fetch('http://localhost:3003/api/upload/image', {
+      const uploadResponse = await fetch(`${API_BASE_URL}/upload/image`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

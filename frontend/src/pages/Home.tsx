@@ -13,6 +13,7 @@ import {
   MapWidget,
   SearchBar
 } from '../components/home';
+import { API_BASE_URL } from '../config/api';
 import LandingHeroSection from '../components/LandingHeroSection';
 import UserProfileEditModal from '../components/UserProfileEditModal';
 import SettingsModal from '../components/SettingsModal';
@@ -78,7 +79,7 @@ function WorkspaceView() {
   // 获取用户信息
   const fetchUserProfile = async () => {
     try {
-      const response = await fetch('http://localhost:3003/api/users/profile', {
+      const response = await fetch(`${API_BASE_URL}/users/profile`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },

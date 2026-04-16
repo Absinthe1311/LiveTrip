@@ -1,5 +1,6 @@
 // AI 服务 - 统一的 AI 对话服务
 import { getUserId } from '../utils/auth';
+import { API_BASE_URL } from '../config/api';
 
 export type ChatMode = 'advisor' | 'agent';
 
@@ -42,7 +43,7 @@ export interface AIResponse {
  * AI 服务类
  */
 class AIService {
-  private baseUrl = 'http://localhost:3003/api';
+  private baseUrl = API_BASE_URL;
 
   /**
    * 发送消息（问答助手模式）

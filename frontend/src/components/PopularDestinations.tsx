@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Rate, Spin, Empty } from 'antd';
 import { FireOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 
 interface HotCity {
   city: string;
@@ -256,8 +257,7 @@ export default function PopularDestinations() {
   const loadHotCities = async () => {
     try {
       setLoading(true);
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api';
-      const response = await fetch(`${apiBaseUrl}/hot-spots/cities`);
+      const response = await fetch(`${API_BASE_URL}/hot-spots/cities`);
 
       if (!response.ok) {
         throw new Error('获取热门城市失败');

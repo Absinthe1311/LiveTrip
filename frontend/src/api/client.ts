@@ -1,9 +1,10 @@
 // API 客户端 - 封装所有后端 API 调用
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 // 创建 axios 实例
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api',
+  baseURL: API_BASE_URL,
   timeout: 60000, // 增加到60秒，避免分享行程加载超时
   headers: {
     'Content-Type': 'application/json',

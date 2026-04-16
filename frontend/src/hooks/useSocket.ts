@@ -1,6 +1,7 @@
 // Socket.io Hook - 提供WebSocket连接
 import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { SOCKET_URL } from '../config/api';
 
 let socket: Socket | null = null;
 
@@ -16,7 +17,7 @@ export const useSocket = (): Socket | null => {
 
     // 如果socket不存在或已断开，创建新连接
     if (!socket || !socket.connected) {
-      socket = io('http://localhost:3003', {
+      socket = io(SOCKET_URL, {
         auth: { token },
         transports: ['websocket', 'polling'],
       });

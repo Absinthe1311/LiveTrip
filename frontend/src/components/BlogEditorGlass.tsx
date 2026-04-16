@@ -1,6 +1,7 @@
 // 毛玻璃风格的Blog编辑器组件 - 适配LiveTrip UI设计（增强版）
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 import {
   X,
   Save,
@@ -407,7 +408,7 @@ export default function BlogEditorGlass({ postId, userId = 'default-user' }: Blo
       const formData = new FormData();
       formData.append('image', file);
 
-      const uploadResponse = await fetch('http://localhost:3003/api/upload/image', {
+      const uploadResponse = await fetch(`${API_BASE_URL}/upload/image`, {
         method: 'POST',
         body: formData,
       });
