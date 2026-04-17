@@ -285,7 +285,8 @@ export default function TodayGlass() {
 
   // 初始化地图
   useEffect(() => {
-    if (!amapKey) return;
+    // 地图容器在 currentTrip 分支内渲染，必须等行程数据就绪后再初始化
+    if (!amapKey || !currentTrip) return;
 
     const initTimer = setTimeout(() => {
       window._AMapSecurityConfig = {
@@ -298,7 +299,10 @@ export default function TodayGlass() {
         plugins: ['AMap.ToolBar', 'AMap.Scale', 'AMap.Marker', 'AMap.Polyline', 'AMap.Geocoder']
       }).then((AMap) => {
         const container = document.getElementById('today-map');
-        if (!container) return;
+        if (!container) {
+          console.warn('today-map 容器未就绪，跳过本次地图初始化');
+          return;
+        }
 
         const map = new AMap.Map(container, {
           zoom: 12,
@@ -327,7 +331,7 @@ export default function TodayGlass() {
       }
       setMapLoaded(false);
     };
-  }, [amapKey, amapSecret]);
+  }, [amapKey, amapSecret, currentTrip]);
 
   // 更新地图标记
   useEffect(() => {
