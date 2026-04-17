@@ -29,6 +29,7 @@ interface UseCollabMapOptions {
   onSpotClick?: (spot: Spot) => void;
   onMapClick?: (lng: number, lat: number) => void;
   isLocked?: boolean;
+  enabled?: boolean;
 }
 
 interface UseCollabMapReturn {
@@ -49,7 +50,7 @@ interface UseCollabMapReturn {
 }
 
 export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
-  const { containerId, onSpotClick, onMapClick, isLocked = false } = options;
+  const { containerId, onSpotClick, onMapClick, isLocked = false, enabled = true } = options;
   
   const mapRef = useRef<any>(null);
   const markersRef = useRef<Map<string, any>>(new Map());
@@ -62,6 +63,10 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
 
   // 初始化地图
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     if (!amapKey) {
       console.error('缺少高德地图API Key');
       return;
@@ -126,7 +131,7 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
       }
       setIsLoaded(false);
     };
-  }, [containerId, amapKey, amapSecret, onMapClick]);
+  }, [containerId, amapKey, amapSecret, onMapClick, enabled]);
 
   // 添加景点标记
   const addSpotMarker = useCallback((spot: Spot, color: string = '#3B82F6') => {
