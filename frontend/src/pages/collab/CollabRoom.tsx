@@ -94,6 +94,7 @@ export default function CollabRoom() {
     containerId: 'collab-map',
     onSpotClick: handleSpotClick,
     isLocked: isLocked,
+    enabled: !loading && !error,
   });
 
   useEffect(() => {
