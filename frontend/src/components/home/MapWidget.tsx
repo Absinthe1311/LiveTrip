@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import AMapLoader from '@amap/amap-jsapi-loader';
 import { MapPin, Navigation } from 'lucide-react';
+import MapCopyright from '../map/MapCopyright';
 
 interface FootprintCity {
   name: string;
@@ -129,6 +130,9 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
           center: [104.195397, 35.86169], // 中国中心
           mapStyle: 'amap://styles/whitesmoke',
           viewMode: '2D',
+          showBuildingBlock: true,
+          features: ['bg', 'road', 'building', 'point'],
+          showLabel: true,
         });
 
         // 保存地图实例
@@ -136,6 +140,10 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
 
         // 添加比例尺
         map.addControl(new AMap.Scale());
+
+        // 注意：高德地图 JS API 2.0 会自动在地图右下角显示审图号
+        // 审图号格式：GS(XXXX)XXX号
+        // 使用官方地图样式时，审图号由高德自动提供和显示
 
         // 如果没有城市数据，不添加标记
         if (cities.length === 0) {
@@ -272,17 +280,21 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
         </div>
       )}
 
-      <div
-        ref={mapRef}
-        style={{
-          width: '100%',
-          height: '500px',
-          borderRadius: '12px',
-          overflow: 'hidden',
-          display: mapLoaded ? 'block' : 'none',
-          flex: 1,
-        }}
-      />
+      {/* 地图容器 - 需要position: relative让审图号正确定位 */}
+      <div style={{ position: 'relative', flex: 1 }}>
+        <div
+          ref={mapRef}
+          style={{
+            width: '100%',
+            height: '500px',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            display: mapLoaded ? 'block' : 'none',
+          }}
+        />
+        {/* 高德地图审图号 */}
+        {mapLoaded && <MapCopyright position="bottom-right" />}
+      </div>
     </div>
   );
 };

@@ -11,6 +11,7 @@ import LayerControl from '../../components/collab/LayerControl';
 import RouteEditor, { RouteSpot } from '../../components/collab/RouteEditor';
 import SpotStatsPanel from '../../components/collab/SpotStatsPanel';
 import DayRoutePlanner from '../../components/collab/DayRoutePlanner';
+import MapCopyright from '../../components/map/MapCopyright';
 
 export default function CollabRoom() {
   const navigate = useNavigate();
@@ -868,6 +869,8 @@ export default function CollabRoom() {
             
             {/* 地图容器 */}
             <div id="collab-map" className="flex-1 relative">
+              {/* 高德地图审图号 */}
+              <MapCopyright position="bottom-right" />
               {!isMapLoaded && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                   <Loader className="h-8 w-8 animate-spin text-amber-400" />

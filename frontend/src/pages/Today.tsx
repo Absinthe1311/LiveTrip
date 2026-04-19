@@ -8,6 +8,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
+import MapCopyright from '../components/map/MapCopyright';
 import { GlassCard } from '../components/home';
 import { 
   getTripById, 
@@ -311,7 +312,12 @@ export default function TodayGlass() {
           mapStyle: 'amap://styles/normal',
           features: ['bg', 'road', 'building', 'point'],
           showLabel: true,
+          showBuildingBlock: true,
         });
+
+        // 注意：高德地图 JS API 2.0 会自动在地图右下角显示审图号
+        // 审图号格式：GS(XXXX)XXX号
+        // 使用官方地图样式时，审图号由高德自动提供和显示
 
         map.addControl(new AMap.ToolBar({ position: 'RB' }));
         map.addControl(new AMap.Scale());
@@ -905,6 +911,8 @@ export default function TodayGlass() {
               {/* 地图 */}
               <div className="h-64 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden relative">
                 <div id="today-map" className="w-full h-full"></div>
+                {/* 高德地图审图号 */}
+                <MapCopyright position="bottom-right" />
                 <div className="absolute bottom-3 right-3 flex flex-col gap-2">
                   <button
                     onClick={() => mapRef.current?.setZoom(mapRef.current.getZoom() + 1)}

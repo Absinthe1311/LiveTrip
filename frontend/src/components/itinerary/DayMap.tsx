@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Hotel, Restaurant } from '../../api/recommendationApi';
 import AMapLoader from '@amap/amap-jsapi-loader';
+import MapCopyright from '../map/MapCopyright';
 
 interface OptimizedDayMapProps {
   day?: any;
@@ -152,7 +153,14 @@ export default function OptimizedDayMap({
         zoom: showAllDays ? 12 : 14,
         center: [centerLng, centerLat],
         mapStyle: 'amap://styles/dark',
+        showBuildingBlock: true,
+        features: ['bg', 'road', 'building', 'point'],
+        showLabel: true,
       });
+
+      // 注意：高德地图 JS API 2.0 会自动在地图右下角显示审图号
+      // 审图号格式：GS(XXXX)XXX号
+      // 使用官方地图样式时，审图号由高德自动提供和显示
 
       if (!mapRef.current) {
         mapRef.current = map;
@@ -518,6 +526,8 @@ export default function OptimizedDayMap({
   return (
     <div className="w-full h-full rounded-2xl overflow-hidden relative">
       <div ref={mapContainer} className="w-full h-full" />
+      {/* 高德地图审图号 */}
+      <MapCopyright position="bottom-right" />
       {!amapKey && (
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white z-50">
           高德地图 Key 未配置

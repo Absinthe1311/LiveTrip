@@ -135,7 +135,12 @@ export async function generateDayMapScreenshot(
         features: ['bg', 'road', 'building', 'point'],
         showLabel: true,
         showIndoorMap: false,
+        showBuildingBlock: true,
       });
+
+      // 注意：高德地图 JS API 2.0 会自动在地图右下角显示审图号
+      // 审图号格式：GS(XXXX)XXX号
+      // 使用官方地图样式时，审图号由高德自动提供和显示
 
       // 等待地图加载完成
       map.on('complete', () => {
@@ -430,7 +435,12 @@ export async function generateMapScreenshot(
         features: ['bg', 'road', 'building', 'point'], // 显示背景、道路、建筑、兴趣点
         showLabel: true, // 显示文字标注
         showIndoorMap: false,
+        showBuildingBlock: true,
       });
+
+      // 注意：高德地图 JS API 2.0 会自动在地图右下角显示审图号
+      // 审图号格式：GS(XXXX)XXX号
+      // 使用官方地图样式时，审图号由高德自动提供和显示
 
       // 等待地图加载完成
       map.on('complete', () => {
