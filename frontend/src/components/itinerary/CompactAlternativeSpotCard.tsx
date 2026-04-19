@@ -1,4 +1,4 @@
-// 紧凑版备选景点卡片 - 与ImprovedSpotCard样式一致但尺寸更小
+﻿// 紧凑版备选景点卡片 - 与ImprovedSpotCard样式一致但尺寸更小
 import React, { useState } from 'react';
 import { Star, MapPin, Wallet, Image as ImageIcon } from 'lucide-react';
 import { getSpotCoverImage } from '../../api/client';
@@ -165,3 +165,5 @@ export default function CompactAlternativeSpotCard({
     </div>
   );
 }
+
+

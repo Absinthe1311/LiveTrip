@@ -18,7 +18,7 @@ LiveTrip 是一个基于 **AI + IoT** 的智能旅行规划系统，采用自主
 
 ### 核心亮点
 
-- 🤖 **智能AI助手**：基于智谱AI GLM-4的智能对话助手,支持自然语言创建行程
+- 🤖 **智能AI助手**：基于智谱AI GLM-4的智能对话助手，支持自然语言创建行程
 - 🧠 **自主规划算法**：多因素评分引擎 + K-means聚类 + 多样性约束
 - 📡 **IoT实时数据**：集成物联网传感器数据，提供景点拥挤度、天气等实时信息
 - 🔔 **环境感知推送**：实时监控降雨、人流、温度等环境因素，主动推送提醒通知
@@ -46,7 +46,7 @@ LiveTrip 是一个基于 **AI + IoT** 的智能旅行规划系统，采用自主
 
 | 功能模块 | 功能描述 |
 |---------|---------|
-| **AI智能助手** | 自然语言对话创建行程,支持"我想去北京玩三天"等自然表达 |
+| **AI智能助手** | 自然语言对话创建行程，支持"我想去北京玩三天"等自然表达 |
 | **AI行程规划** | 输入目的地、日期、预算，AI自动生成完整行程 |
 | **智能定位** | 支持浏览器定位，自动获取当前位置作为出发地 |
 | **日期选择** | 双月日历组件，直观选择开始和结束日期 |
@@ -97,7 +97,7 @@ cd backend
 npm install
 ```
 
-3. **配置环境变量**
+3. **配置后端环境变量**
 ```bash
 # 复制环境变量示例文件
 cp .env.example .env
@@ -220,7 +220,7 @@ npm run dev
 
 | 服务 | 用途 |
 |------|------|
-| 智谱AI GLM-4 | AI对话助手,自然语言理解和行程创建 |
+| 智谱AI GLM-4 | AI对话助手，自然语言理解和行程创建 |
 | 高德地图API | 景点数据、地理编码、路径规划、逆地理编码 |
 | OpenWeatherMap | 实时天气数据 |
 | Cloudinary | 图片存储（可选） |
@@ -233,57 +233,77 @@ npm run dev
 LiveTrip/
 ├── backend/                 # 后端项目
 │   ├── src/
-│   │   ├── controllers/     # 控制器
-│   │   │   ├── agentController.ts     # AI Agent控制器
-│   │   │   ├── advisorController.ts   # 对话管理控制器
-│   │   │   ├── favoriteController.ts  # 收藏控制器
-│   │   │   └── ...
-│   │   ├── services/        # 业务逻辑
-│   │   │   ├── agentService.ts        # AI Agent核心服务
-│   │   │   ├── scoringEngine.ts      # 多因素评分引擎
-│   │   │   ├── clusteringService.ts  # K-means聚类
-│   │   │   ├── diversityService.ts   # 多样性约束
-│   │   │   ├── routeOptimizer.ts      # 2-opt路径优化
-│   │   │   ├── budgetOptimizer.ts     # 动态预算计算
-│   │   │   ├── iotCheckService.ts     # IoT实时检查
-│   │   │   ├── favoriteService.ts     # 收藏服务
-│   │   │   └── ...
-│   │   ├── routes/          # 路由
-│   │   ├── middleware/      # 中间件
-│   │   ├── types/           # 类型定义
-│   │   └── lib/            # 工具库
-│   ├── prisma/             # 数据库迁移
-│   └── scripts/            # 工具脚本
+│   │   ├── config/         # 配置文件
+│   │   ├── controllers/    # 控制器层
+│   │   ├── data/           # 静态数据
+│   │   ├── iot/            # IoT相关
+│   │   ├── lib/            # 工具库
+│   │   ├── middleware/     # 中间件
+│   │   ├── models/         # 数据模型
+│   │   ├── routes/         # 路由定义
+│   │   ├── scripts/        # 脚本工具
+│   │   ├── services/       # 业务逻辑层
+│   │   ├── socket/         # Socket.io
+│   │   ├── types/          # TypeScript类型定义
+│   │   └── utils/          # 工具函数
+│   ├── prisma/             # 数据库schema和迁移
+│   ├── scripts/            # 工具脚本
+│   ├── data-backups/       # 数据备份
+│   └── dist/               # 编译输出
 ├── frontend/               # 前端项目
 │   ├── src/
-│   │   ├── components/     # 组件
-│   │   │   ├── GlassLayout.tsx        # 毛玻璃布局
-│   │   │   ├── DoubleCalendar.tsx     # 双月日历
-│   │   │   ├── SpotCard.tsx           # 景点卡片
-│   │   │   └── ...
-│   │   ├── pages/          # 页面
-│   │   │   ├── Home.tsx              # 首页
-│   │   │   ├── PlanGlass.tsx         # 创建行程
-│   │   │   ├── FavoritesGlass.tsx    # 我的收藏
-│   │   │   └── ...
-│   │   ├── api/            # API调用
-│   │   ├── store/          # 状态管理
-│   │   └── data/           # 静态数据
-│   └── public/             # 静态资源
-│       ├── homepage-bg.jpg           # 背景图
-│       └── logo.png                  # Logo
-├── image_processed/        # 处理后的图片资源
-├── README.md               # 项目说明
-├── 使用说明文档.md          # 详细使用说明
-├── 项目交接文档.md          # 项目交接文档
-└── UI设计指导文档.md        # UI设计规范
+│   │   ├── api/            # API调用封装
+│   │   ├── assets/         # 静态资源
+│   │   ├── components/     # 可复用组件
+│   │   ├── config/         # 配置文件
+│   │   ├── data/           # 静态数据
+│   │   ├── hooks/          # 自定义Hooks
+│   │   ├── lib/            # 工具库
+│   │   ├── pages/          # 页面组件
+│   │   ├── services/       # 服务层
+│   │   ├── store/          # Zustand状态管理
+│   │   ├── types/          # TypeScript类型定义
+│   │   └── utils/          # 工具函数
+│   └── public/             # 公共静态资源
+├── .arts/                  # CodeArts配置
+├── .codeartsdoer/          # CodeArts Doer配置
+└── README.md               # 项目说明文档
 ```
+
+### 核心模块说明
+
+#### 后端核心服务
+
+| 服务文件 | 功能描述 |
+|---------|---------|
+| `scoringEngine.ts` | 多因素评分引擎，计算景点综合评分 |
+| `clusteringService.ts` | K-means地理聚类，景点分组 |
+| `diversityService.ts` | 多样性约束，确保推荐多样性 |
+| `routeOptimizer.ts` | 2-opt路径优化，减少行程距离 |
+| `budgetOptimizer.ts` | 动态预算计算，城市等级识别 |
+| `iotCheckService.ts` | IoT实时检查，环境感知 |
+| `agentService.ts` | AI Agent核心服务，自然语言处理 |
+| `planService.ts` | 行程规划核心逻辑 |
+| `favoriteService.ts` | 收藏服务 |
+| `collabService.ts` | 协同规划服务 |
+| `weatherService.ts` | 天气数据服务 |
+| `notificationService.ts` | 通知推送服务 |
+
+#### 前端核心组件
+
+| 组件文件 | 功能描述 |
+|---------|---------|
+| `GlassLayout.tsx` | 毛玻璃布局容器 |
+| `DoubleCalendar.tsx` | 双月日历组件 |
+| `SpotCard.tsx` | 景点卡片组件 |
+| `AuthGuard.tsx` | 认证守卫组件 |
+| `AdminGuard.tsx` | 管理员守卫组件 |
 
 ---
 
 ## 🔧 开发指南
 
-### 添加新功能
+### 开发模式
 
 1. **后端开发**
 ```bash
@@ -300,7 +320,7 @@ npm run dev
 ### 数据库操作
 
 ```bash
-# 查看数据库
+# 查看数据库（可视化界面）
 npm run prisma:studio
 
 # 重置数据库
@@ -314,74 +334,124 @@ npx ts-node data-recovery-backup.ts
 npm run prisma:seed
 ```
 
+### 代码规范
+
+```bash
+# 后端代码检查
+cd backend
+npm run lint
+npm run format
+
+# 前端代码检查
+cd frontend
+npm run lint
+npm run format
+npm run type-check
+```
+
 ### API文档
 
 启动后端服务后，访问 http://localhost:3003/api-docs 查看完整的API文档。
 
 ---
 
-## 📝 最近更新 (2026-04-14)
+## 📊 数据库设计
 
-### 行程规划功能升级
+### 核心数据表
+
+| 表名 | 说明 | 主要字段 |
+|------|------|---------|
+| `User` | 用户信息 | id, username, email, role |
+| `Trip` | 行程信息 | id, userId, destination, startDate, endDate |
+| `Day` | 行程天数 | id, tripId, dayNumber, date |
+| `ItineraryItem` | 行程项 | id, dayId, name, type, spotId |
+| `Spot` | 景点信息 | id, name, city, category, rating |
+| `Favorite` | 收藏记录 | id, userId, spotId |
+| `SpotIoTData` | IoT数据 | id, spotId, crowdLevel, temperature |
+| `CollabRoom` | 协同房间 | id, tripId, hostId, inviteToken |
+| `BlogPost` | 游记 | id, userId, title, content |
+| `Notification` | 通知 | id, userId, type, content |
+
+### 数据关系
+
+- User → Trip → Day → ItineraryItem → Spot
+- User ↔ Favorite ↔ Spot
+- Trip ↔ CollabRoom ↔ TripMember
+- Spot → SpotIoTData → EnvironmentSensorLog
+- User → BlogPost → BlogComment
+
+---
+
+## 📝 最近更新
+
+### v2.1 (2026-04-19)
+
+#### 项目文档优化
+- ✅ 删除冗余的 frontend/README.md 文件
+- ✅ 更新根目录 README.md，完善项目结构说明
+- ✅ 添加核心模块说明表格
+- ✅ 添加数据库设计章节
+
+### v2.0 (2026-04-14)
+
+#### 行程规划功能升级
 - ✅ 新增行李打包功能，支持预设物品分类和自定义添加
 - ✅ 餐厅和酒店选择支持跳过功能
 - ✅ 景点卡片配色优化，采用UI设计文档的松绿色系
 - ✅ 打包清单自动保存，无需手动保存按钮
 
-### Unsplash功能移除
+#### Unsplash功能移除
 - ✅ 完全移除Unsplash图片获取功能
 - ✅ 图片完全依赖数据库和Cloudinary存储
 - ✅ 清理相关API接口和前端调用
 
-### 项目清理
+#### 项目清理
 - ✅ 删除过时的说明文档和脚本文件
 - ✅ 删除不再使用的LandingPage项目
 - ✅ 更新项目文档，反映最新功能
 
-### 数据恢复 (2026-04-11)
+#### 数据恢复 (2026-04-11)
 - ✅ 完成数据恢复工作，恢复659个景点、7个用户、34个行程、326张图片
 - ✅ 支持10个热门城市（北京、上海、厦门、成都、杭州、西安、武汉、三亚、丽江）
 - ✅ 创建数据备份脚本，支持一键备份和恢复
 - ✅ 统一城市名称格式，标记524个热门景点
 
-### UI/UX 改进
+#### UI/UX 改进
 - ✅ 优化背景图更换功能，只在首页显示更换背景按钮
 - ✅ 修复背景图显示问题，避免图片截取和放大
 - ✅ 优化日历组件，添加独立的开始/结束日期显示区域
 - ✅ 优化收藏页面景点卡片显示，支持图片和完整信息展示
 
-### 功能改进
+#### 功能改进
 - ✅ 修复封面上传功能，解决数据丢失问题
 - ✅ 修复自动定位功能，支持HTTPS环境检查和API Key验证
 - ✅ 修复收藏功能，支持数据库持久化和图片显示
 - ✅ 改进SpotCard组件，支持外部传入收藏状态
 
----
+### 算法优化版本
 
-## 📝 算法优化版本
-
-### v2.0 核心改进
+#### v2.0 核心改进
 
 本次更新完成了算法的全面优化，主要改进包括：
 
-#### Phase 1：核心算法重构
+##### Phase 1：核心算法重构
 - ✅ 移除外部AI依赖，建立自主多因素评分引擎
 - ✅ 实现K-means地理聚类，减少交通时间
 - ✅ 添加多样性约束，确保推荐多样性
 - ✅ 支持丰富的用户画像（群体类型、儿童/老人、兴趣标签）
 
-#### Phase 2：优化层升级
+##### Phase 2：优化层升级
 - ✅ 升级为2-opt路径优化算法
 - ✅ 集成体力权重到路径优化
 - ✅ 实现IoT实时检查和排除机制
 - ✅ 动态生成备选景点池
 
-#### Phase 3：细节优化
+##### Phase 3：细节优化
 - ✅ 动态预算计算（城市等级、季节性、群体类型）
 - ✅ 异常处理和回退机制
 - ✅ 数据验证和错误追踪
 
-### 优化效果
+#### 优化效果
 
 - **多样性提升**：避免推荐相似景点，每天至少2种不同类型
 - **效率提升**：2-opt算法比贪心算法平均减少20%行程距离
@@ -429,6 +499,7 @@ npm run prisma:seed
 - shadcn/ui
 - Ant Design
 - Lucide React
+- Socket.io
 
 ---
 

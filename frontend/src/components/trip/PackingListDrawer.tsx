@@ -1,4 +1,4 @@
-// 打包清单抽屉组件
+﻿// 打包清单抽屉组件
 import { useState, useEffect } from 'react';
 import { Drawer, Checkbox, Button, Input, Select, Empty, message, Spin, Progress, Space, Popconfirm } from 'antd';
 import { Plus, Trash2, CheckCircle, Circle, Briefcase, RefreshCw } from 'lucide-react';
@@ -297,3 +297,5 @@ export default function PackingListDrawer({ visible, onClose, tripId }: PackingL
     </Drawer>
   );
 }
+
+

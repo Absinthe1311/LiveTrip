@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Typography, Button, Rate, Tag, Spin, Row, Col, Select, Space, message, Divider } from 'antd';
 import { ArrowLeftOutlined, FireOutlined, CalendarOutlined, DollarOutlined, StarOutlined } from '@ant-design/icons';
-import DestinationAttractionCard from '../components/DestinationAttractionCard';
-import ReviewList from '../components/ReviewList';
+import DestinationAttractionCard from '../components/spot/DestinationAttractionCard';
+import ReviewList from '../components/review/ReviewList';
 import type { DestinationDetail, Attraction } from '../types/destination';
 import { destinationsData } from '../data/destinationsData';
 import { getFavorites, addFavorite, removeFavorite, checkFavorite, syncSpot } from '../api/client';
@@ -531,3 +531,5 @@ export default function DestinationDetail() {
     </div>
   );
 }
+
+

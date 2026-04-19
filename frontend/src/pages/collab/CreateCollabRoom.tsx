@@ -1,10 +1,10 @@
-// 创建协同房间页面 - Host创建协同规划房间（毛玻璃风格优化版）
+﻿// 创建协同房间页面 - Host创建协同规划房间（毛玻璃风格优化版）
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Users, Link, CheckCircle, AlertCircle, Sparkles, Share2, ArrowRight } from 'lucide-react';
 import { message } from 'antd';
 import { createCollabRoom } from '../../api/collabApi';
-import { Sidebar } from '../../components/SharedSidebar';
+import { Sidebar } from '../../components/layout/SharedSidebar';
 
 export default function CreateCollabRoom() {
   const navigate = useNavigate();
@@ -211,3 +211,6 @@ export default function CreateCollabRoom() {
     </div>
   );
 }
+
+
+

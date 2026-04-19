@@ -1,34 +1,32 @@
-// 应用主组件 - 配置路由
+﻿// 应用主组件 - 配置路由
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { App as AntdApp } from 'antd';
 import Home from './pages/Home';
-import PlanGlass from './pages/PlanGlass';
-import ItineraryOptimized from './pages/ItineraryOptimized';
+import Plan from './pages/Plan';
+import Itinerary from './pages/Itinerary';
 import TripDetail from './pages/TripDetail';
-import MyTripsGlass from './pages/MyTripsGlass';
+import MyTrips from './pages/MyTrips';
 import Auth from './pages/Auth';
 import Profile from './pages/Profile';
 import DestinationDetail from './pages/DestinationDetail';
-import FavoritesGlass from './pages/FavoritesGlass';
-import DestinationsGlass from './pages/DestinationsGlass';
+import Favorites from './pages/Favorites';
+import Destinations from './pages/Destinations';
 import SharedTrip from './pages/SharedTrip';
-import BlogsGlass from './pages/BlogsGlass';
-import BlogCreateGlass from './pages/BlogCreateGlass';
-import BlogDetailGlass from './pages/BlogDetailGlass';
-import AIFeaturesGlass from './pages/AIFeaturesGlass';
-import TodayGlass from './pages/TodayGlass';
-import AuthGuard from './components/AuthGuard';
+import Blogs from './pages/Blogs';
+import BlogCreate from './pages/BlogCreate';
+import BlogDetail from './pages/BlogDetail';
+import AIFeatures from './pages/AIFeatures';
+import Today from './pages/Today';
+import AuthGuard from './components/auth/AuthGuard';
 import AdminGuard from './components/admin/AdminGuard';
 import SpotManagePage from './pages/admin/SpotManagePage';
 import ReviewPage from './pages/admin/ReviewPage';
 // 协同规划页面
-import CollabEntryGlass from './pages/CollabEntryGlass';
+import CollabEntry from './pages/CollabEntry';
 import CollabSetup from './pages/collab/CollabSetup';
 import CreateCollabRoom from './pages/collab/CreateCollabRoom';
 import JoinCollabRoom from './pages/collab/JoinCollabRoom';
 import CollabRoom from './pages/collab/CollabRoom';
-// 测试页面
-import TestOptimizedCard from './pages/TestOptimizedCard';
 
 function AppContent() {
   return (
@@ -41,7 +39,7 @@ function AppContent() {
           path="/plan"
           element={
             <AuthGuard>
-              <PlanGlass />
+              <Plan />
             </AuthGuard>
           }
         />
@@ -49,7 +47,7 @@ function AppContent() {
           path="/itinerary"
           element={
             <AuthGuard>
-              <ItineraryOptimized />
+              <Itinerary />
             </AuthGuard>
           }
         />
@@ -66,7 +64,7 @@ function AppContent() {
           path="/my-trips"
           element={
             <AuthGuard>
-              <MyTripsGlass />
+              <MyTrips />
             </AuthGuard>
           }
         />
@@ -83,17 +81,17 @@ function AppContent() {
           path="/favorites"
           element={
             <AuthGuard>
-              <FavoritesGlass />
+              <Favorites />
             </AuthGuard>
           }
         />
-        <Route path="/destinations" element={<DestinationsGlass />} />
+        <Route path="/destinations" element={<Destinations />} />
         <Route path="/shared/:token" element={<SharedTrip />} />
         <Route
           path="/blogs"
           element={
             <AuthGuard>
-              <BlogsGlass />
+              <Blogs />
             </AuthGuard>
           }
         />
@@ -101,7 +99,7 @@ function AppContent() {
           path="/blog/create"
           element={
             <AuthGuard>
-              <BlogCreateGlass />
+              <BlogCreate />
             </AuthGuard>
           }
         />
@@ -109,7 +107,7 @@ function AppContent() {
           path="/blog/edit"
           element={
             <AuthGuard>
-              <BlogCreateGlass />
+              <BlogCreate />
             </AuthGuard>
           }
         />
@@ -117,7 +115,7 @@ function AppContent() {
           path="/blog/:id"
           element={
             <AuthGuard>
-              <BlogDetailGlass />
+              <BlogDetail />
             </AuthGuard>
           }
         />
@@ -126,7 +124,7 @@ function AppContent() {
           path="/ai-features"
           element={
             <AuthGuard>
-              <AIFeaturesGlass />
+              <AIFeatures />
             </AuthGuard>
           }
         />
@@ -135,12 +133,10 @@ function AppContent() {
           path="/today"
           element={
             <AuthGuard>
-              <TodayGlass />
+              <Today />
             </AuthGuard>
           }
         />
-        {/* 测试优化卡片页面 */}
-        <Route path="/test-card" element={<TestOptimizedCard />} />
         {/* 管理员路由 - 直接访问页面，不使用嵌套布局 */}
         <Route
           path="/admin/spots"
@@ -168,7 +164,7 @@ function AppContent() {
           path="/collab"
           element={
             <AuthGuard>
-              <CollabEntryGlass />
+              <CollabEntry />
             </AuthGuard>
           }
         />

@@ -1,10 +1,10 @@
-// 加入协同房间页面 - 通过邀请链接加入协同规划（毛玻璃风格优化版）
+﻿// 加入协同房间页面 - 通过邀请链接加入协同规划（毛玻璃风格优化版）
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Users, AlertCircle, Loader, Link, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import { message } from 'antd';
 import { joinCollabRoom } from '../../api/collabApi';
-import { Sidebar } from '../../components/SharedSidebar';
+import { Sidebar } from '../../components/layout/SharedSidebar';
 
 export default function JoinCollabRoom() {
   const navigate = useNavigate();
@@ -224,3 +224,6 @@ export default function JoinCollabRoom() {
     </div>
   );
 }
+
+
+

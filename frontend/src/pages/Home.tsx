@@ -1,4 +1,4 @@
-// 首页 - LiveTrip 智能旅行规划（最终优化版）
+﻿// 首页 - LiveTrip 智能旅行规划（最终优化版）
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Home as HomeIcon, Plus, Sparkles, Globe, Heart, PenLine, List, MapPin, Users, Search, Bell, Settings, Sun, RefreshCw } from "lucide-react";
@@ -14,12 +14,11 @@ import {
   SearchBar
 } from '../components/home';
 import { API_BASE_URL } from '../config/api';
-import LandingHeroSection from '../components/LandingHeroSection';
-import UserProfileEditModal from '../components/UserProfileEditModal';
-import SettingsModal from '../components/SettingsModal';
-import GlobalSidebar from '../components/GlobalSidebar';
-import { NotificationBell } from '../components/NotificationBell';
-import { TestNotificationButton } from '../components/TestNotificationButton';
+import LandingHeroSection from '../components/common/LandingHeroSection';
+import UserProfileEditModal from '../components/user/UserProfileEditModal';
+import SettingsModal from '../components/common/SettingsModal';
+import GlobalSidebar from '../components/layout/GlobalSidebar';
+import { NotificationBell } from '../components/notification/NotificationBell';
 import { useHomepageData } from '../hooks/useHomepageData';
 
 // ==================== 未登录态视图 ====================
@@ -188,11 +187,6 @@ function WorkspaceView() {
 
                     {/* 通知按钮 */}
                     <NotificationBell />
-
-                    {/* 测试通知按钮（开发环境） */}
-                    {process.env.NODE_ENV === 'development' && (
-                      <TestNotificationButton />
-                    )}
 
                     {/* 设置按钮 */}
                     <button
@@ -384,3 +378,11 @@ function Home() {
 }
 
 export default Home;
+
+
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-// 时间轴和景点卡片整体部件 - 支持拖拽排序
+﻿// 时间轴和景点卡片整体部件 - 支持拖拽排序
 import React, { useState, useEffect } from 'react';
 import {
   DndContext,
@@ -17,8 +17,8 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import ImprovedTimeline from './ImprovedTimeline';
-import ImprovedSpotCard from './ImprovedSpotCard';
+import ImprovedTimeline from './Timeline';
+import ImprovedSpotCard from './SpotCardV2';
 import InlineAlternativeAttractions from './InlineAlternativeAttractions';
 import { AttractionItem } from '../../api/client';
 
@@ -250,3 +250,6 @@ export default function TimelineWithCards({
     </div>
   );
 }
+
+
+

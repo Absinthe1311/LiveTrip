@@ -1,8 +1,8 @@
-// 个人信息编辑页面
+﻿// 个人信息编辑页面
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, User, Mail, Camera, Save, Loader, LogOut } from 'lucide-react';
-import { Sidebar } from '../components/SharedSidebar';
+import { Sidebar } from '../components/layout/SharedSidebar';
 import { apiClient } from '../api/client';
 
 export default function Profile() {
@@ -267,3 +267,11 @@ export default function Profile() {
     </div>
   );
 }
+
+
+
+
+
+
+
+

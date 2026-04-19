@@ -1,23 +1,23 @@
-// 行程详情页面 - 优化版UI设计（参考ItineraryOptimized风格）
+﻿// 行程详情页面 - 优化版UI设计（参考ItineraryOptimized风格）
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { message, Spin } from 'antd';
 import {
   MapPin, Calendar, Wallet, Cloud, Share2, Check, ChevronRight, Clock, DollarSign, Camera, PenLine, CheckCircle
 } from "lucide-react";
-import GlassLayout from '../components/GlassLayout';
+import GlassLayout from '../components/layout/GlassLayout';
 import TimelineWithCards from '../components/itinerary/TimelineWithCards';
 import LinearStepNavigation, { PlanningStep } from '../components/itinerary/LinearStepNavigation';
 import FullscreenMap from '../components/itinerary/FullscreenMap';
-import ImprovedBudgetBar from '../components/itinerary/ImprovedBudgetBar';
+import BudgetBar from '../components/itinerary/BudgetBar';
 import ActionButton from '../components/itinerary/ActionButton';
-import OptimizedDayMap from '../components/itinerary/OptimizedDayMap';
+import DayMap from '../components/itinerary/DayMap';
 import { getTripById, completeTrip, getIoTData, updateAlternativeRelations, batchGetSpotImagesByIds } from '../api/client';
 import { FullItinerary, AttractionItem } from '../api/client';
 import { alternativeRecommender } from '../services/alternativeRecommender';
-import ShareButton from '../components/ShareButton';
-import PDFExportButton from '../components/PDFExportButton';
-import SpotImageUploadModal from '../components/SpotImageUploadModal';
+import ShareButton from '../components/common/ShareButton';
+import PDFExportButton from '../components/common/PDFExportButton';
+import SpotImageUploadModal from '../components/spot/SpotImageUploadModal';
 import PackingListDrawer from '../components/trip/PackingListDrawer';
 import { PackingListWidget } from '../components/itinerary/PackingListWidget';
 
@@ -551,7 +551,7 @@ export default function TripDetailPage() {
                 fullscreenWidth="w-full"
               >
                 {itineraryData.itinerary[currentDayIndex] && (
-                  <OptimizedDayMap
+                  <DayMap
                     day={itineraryData.itinerary[currentDayIndex]}
                     hotel={hotel}
                     restaurant={getRestaurantForDay(itineraryData.itinerary[currentDayIndex].day)}
@@ -565,7 +565,7 @@ export default function TripDetailPage() {
               </FullscreenMap>
 
               {/* 改进的预算分布 */}
-              <ImprovedBudgetBar
+              <BudgetBar
                 categories={[
                   { name: '交通', amount: itineraryData.budget_breakdown.transportation, color: 'bg-blue-500' },
                   { name: '住宿', amount: itineraryData.budget_breakdown.accommodation, color: 'bg-purple-500' },
@@ -630,3 +630,12 @@ export default function TripDetailPage() {
     </GlassLayout>
   );
 }
+
+
+
+
+
+
+
+
+

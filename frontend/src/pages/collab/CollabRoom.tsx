@@ -1,8 +1,8 @@
-// 协同编辑主页面 - 多人协同规划行程的核心界面（集成地图功能）
+﻿// 协同编辑主页面 - 多人协同规划行程的核心界面（集成地图功能）
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Menu, Users, MessageCircle, MapPin, Send, Lock, Eye, Loader, Copy, Check, Share2 } from 'lucide-react';
-import GlobalSidebar from '../../components/GlobalSidebar';
+import GlobalSidebar from '../../components/layout/GlobalSidebar';
 import { useCollabStore } from '../../store/collabStore';
 import { getCollabRoomInfo, getUserDrafts, getCollabMessages, getSpotStats, lockCollabRoom, sendCollabMessage, upsertDraft, submitDraft, getCitySpots, getAllDrafts, saveFinalTrip } from '../../api/collabApi';
 import { connectSocket, disconnectSocket, joinRoom, leaveRoom, updateDraft } from '../../services/collabSocket';
@@ -1136,3 +1136,5 @@ export default function CollabRoom() {
     </div>
   );
 }
+
+

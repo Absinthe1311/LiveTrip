@@ -1,9 +1,9 @@
-// 协同规划设置页面 - 填写必要信息后创建协同房间（毛玻璃风格）
+﻿// 协同规划设置页面 - 填写必要信息后创建协同房间（毛玻璃风格）
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Navigation, Calendar, Users, Sparkles, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
 import { message } from 'antd';
-import GlassLayout from '../../components/GlassLayout';
+import GlassLayout from '../../components/layout/GlassLayout';
 import { GlassCard } from '../../components/home';
 import { createCollabRoom } from '../../api/collabApi';
 import { API_BASE_URL } from '../../config/api';
@@ -372,3 +372,5 @@ export default function CollabSetup() {
     </GlassLayout>
   );
 }
+
+
