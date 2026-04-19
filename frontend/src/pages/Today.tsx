@@ -18,6 +18,7 @@ import {
   updatePackingItem,
   getSpotCoverImage,
   batchGetSpotImagesByIds,
+  apiClient,
   AttractionItem,
   PackingItem
 } from '../api/client';
@@ -107,6 +108,11 @@ export default function TodayGlass() {
   
   // 景点图片
   const [spotImages, setSpotImages] = useState<Record<string, string>>({});
+  const [spotImagesByName, setSpotImagesByName] = useState<Record<string, string>>({});
+  const [citySpotLookup, setCitySpotLookup] = useState<{
+    byId: Record<string, [number, number]>;
+    byName: Record<string, [number, number]>;
+  }>({ byId: {}, byName: {} });
   
   // 地图相关
   const mapRef = useRef<any>(null);
@@ -145,22 +151,63 @@ export default function TodayGlass() {
     
     const loadImages = async () => {
       // 收集所有景点ID
-      const spotIds: string[] = [];
+      const spotIds = new Set<string>();
+      const nameFallbacks = new Set<string>();
       for (const day of currentTrip.days) {
         for (const item of day.itineraryItems) {
-          if (item.spotId && !spotImages[item.spotId]) {
-            spotIds.push(item.spotId);
+          if (item.spotId) {
+            if (!spotImages[item.spotId]) {
+              spotIds.add(item.spotId);
+            }
+          } else if (item.name && !spotImagesByName[item.name]) {
+            nameFallbacks.add(item.name);
           }
         }
       }
       
-      if (spotIds.length === 0) return;
+      const idsToLoad = Array.from(spotIds);
       
       try {
-        // 使用批量API获取图片
-        const response = await batchGetSpotImagesByIds(spotIds);
-        if (response.success && response.data) {
-          setSpotImages(prev => ({ ...prev, ...response.data }));
+        if (idsToLoad.length > 0) {
+          // 使用批量API获取图片
+          const response = await batchGetSpotImagesByIds(idsToLoad);
+
+          // 兼容后端实际返回结构：{ success, data: { images, count } }
+          const imageMap = response?.data?.images || response?.images || response?.data || {};
+
+          if (response?.success && imageMap && Object.keys(imageMap).length > 0) {
+            setSpotImages(prev => ({ ...prev, ...imageMap }));
+          }
+
+          // 对批量接口未命中的景点，按名称走封面图兜底
+          for (const day of currentTrip.days) {
+            for (const item of day.itineraryItems) {
+              if (!item.name) continue;
+              if (!item.spotId) continue;
+              if (imageMap[item.spotId]) continue;
+              if (spotImagesByName[item.name]) continue;
+              nameFallbacks.add(item.name);
+            }
+          }
+        }
+
+        if (nameFallbacks.size > 0) {
+          const namesToLoad = Array.from(nameFallbacks);
+          const fallbackResults = await Promise.allSettled(
+            namesToLoad.map((name) => getSpotCoverImage(name, currentTrip.destination))
+          );
+
+          const fallbackMap: Record<string, string> = {};
+          fallbackResults.forEach((result, index) => {
+            if (result.status !== 'fulfilled') return;
+            const imageUrl = result.value?.data?.imageUrl;
+            if (!imageUrl) return;
+            fallbackMap[namesToLoad[index]] = imageUrl;
+          });
+
+          if (Object.keys(fallbackMap).length > 0) {
+            setSpotImagesByName(prev => ({ ...prev, ...fallbackMap }));
+          }
         }
       } catch (e) {
         console.error('加载景点图片失败:', e);
@@ -168,11 +215,78 @@ export default function TodayGlass() {
     };
     
     loadImages();
-  }, [currentTrip]);
+  }, [currentTrip, spotImages, spotImagesByName]);
+
+  // 加载当前城市景点坐标，用于修复历史行程中缺失的 latitude/longitude 字段
+  useEffect(() => {
+    if (!currentTrip?.destination) {
+      setCitySpotLookup({ byId: {}, byName: {} });
+      return;
+    }
+
+    const loadCitySpots = async () => {
+      try {
+        const response = await apiClient.get(`/spots/city/${encodeURIComponent(currentTrip.destination)}`, {
+          params: { limit: 500 },
+        });
+
+        const spots = response?.data?.data || [];
+        const byId: Record<string, [number, number]> = {};
+        const byName: Record<string, [number, number]> = {};
+
+        spots.forEach((spot: any) => {
+          if (!spot?.location || typeof spot.location !== 'string') return;
+          const [lng, lat] = spot.location.split(',').map(Number);
+          if (!Number.isFinite(lng) || !Number.isFinite(lat)) return;
+          byId[spot.id] = [lng, lat];
+          if (spot.name) {
+            byName[spot.name] = [lng, lat];
+          }
+        });
+
+        setCitySpotLookup({ byId, byName });
+      } catch (error) {
+        console.warn('加载城市景点坐标失败，将仅使用行程内坐标:', error);
+        setCitySpotLookup({ byId: {}, byName: {} });
+      }
+    };
+
+    loadCitySpots();
+  }, [currentTrip?.destination]);
+
+  const getItemCoordinates = (item: ItineraryItemData): [number, number] | null => {
+    const hasDirectCoords = Number.isFinite(item.longitude) && Number.isFinite(item.latitude) &&
+      item.longitude !== 0 && item.latitude !== 0;
+
+    if (hasDirectCoords) {
+      return [item.longitude as number, item.latitude as number];
+    }
+
+    if (item.spotId && citySpotLookup.byId[item.spotId]) {
+      return citySpotLookup.byId[item.spotId];
+    }
+
+    if (item.name && citySpotLookup.byName[item.name]) {
+      return citySpotLookup.byName[item.name];
+    }
+
+    return null;
+  };
+
+  const getAttractionImage = (item: ItineraryItemData): string | null => {
+    if (item.spotId && spotImages[item.spotId]) {
+      return spotImages[item.spotId];
+    }
+    if (item.name && spotImagesByName[item.name]) {
+      return spotImagesByName[item.name];
+    }
+    return null;
+  };
 
   // 初始化地图
   useEffect(() => {
-    if (!amapKey) return;
+    // 地图容器在 currentTrip 分支内渲染，必须等行程数据就绪后再初始化
+    if (!amapKey || !currentTrip) return;
 
     const initTimer = setTimeout(() => {
       window._AMapSecurityConfig = {
@@ -185,7 +299,10 @@ export default function TodayGlass() {
         plugins: ['AMap.ToolBar', 'AMap.Scale', 'AMap.Marker', 'AMap.Polyline', 'AMap.Geocoder']
       }).then((AMap) => {
         const container = document.getElementById('today-map');
-        if (!container) return;
+        if (!container) {
+          console.warn('today-map 容器未就绪，跳过本次地图初始化');
+          return;
+        }
 
         const map = new AMap.Map(container, {
           zoom: 12,
@@ -214,7 +331,7 @@ export default function TodayGlass() {
       }
       setMapLoaded(false);
     };
-  }, [amapKey, amapSecret]);
+  }, [amapKey, amapSecret, currentTrip]);
 
   // 更新地图标记
   useEffect(() => {
@@ -230,9 +347,11 @@ export default function TodayGlass() {
 
     const bounds: any[] = [];
     currentDay.itineraryItems.forEach((item, index) => {
-      if (!item.latitude || !item.longitude) return;
-      
-      bounds.push([item.longitude, item.latitude]);
+      const coords = getItemCoordinates(item);
+      if (!coords) return;
+
+      const [lng, lat] = coords;
+      bounds.push([lng, lat]);
 
       const isSelected = selectedAttraction?.id === item.id;
       const isVisited = visitedAttractions.has(item.id);
@@ -260,7 +379,7 @@ export default function TodayGlass() {
       `;
 
       const marker = new window.AMap.Marker({
-        position: [item.longitude, item.latitude],
+        position: [lng, lat],
         content: markerContent,
         offset: new window.AMap.Pixel(-16, -16),
         extData: item,
@@ -291,7 +410,7 @@ export default function TodayGlass() {
     if (bounds.length > 0) {
       mapRef.current.setFitView();
     }
-  }, [currentTrip, selectedDayIndex, selectedAttraction, mapLoaded, visitedAttractions]);
+  }, [currentTrip, selectedDayIndex, selectedAttraction, mapLoaded, visitedAttractions, citySpotLookup]);
 
   const loadUserTrips = async () => {
     try {
@@ -663,9 +782,9 @@ export default function TodayGlass() {
                     <div className="bg-white/80 backdrop-blur-xl border-2 border-white/50 rounded-3xl overflow-hidden shadow-xl">
                       {/* 景点图片 */}
                       <div className="relative h-56 bg-gradient-to-br from-amber-500/20 to-amber-600/20">
-                        {selectedAttraction.spotId && spotImages[selectedAttraction.spotId] ? (
+                        {getAttractionImage(selectedAttraction) ? (
                           <img 
-                            src={spotImages[selectedAttraction.spotId]} 
+                            src={getAttractionImage(selectedAttraction) as string} 
                             alt={selectedAttraction.name}
                             className="w-full h-full object-cover"
                           />
@@ -748,8 +867,9 @@ export default function TodayGlass() {
                       </button>
                       <button
                         onClick={() => {
-                          if (selectedAttraction.latitude && selectedAttraction.longitude) {
-                            mapRef.current?.setCenter([selectedAttraction.longitude, selectedAttraction.latitude]);
+                          const coords = getItemCoordinates(selectedAttraction);
+                          if (coords) {
+                            mapRef.current?.setCenter(coords);
                             mapRef.current?.setZoom(15);
                           }
                         }}
