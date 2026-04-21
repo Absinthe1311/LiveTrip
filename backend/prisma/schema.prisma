@@ -24,6 +24,8 @@ model User {
   totalCities         Int              @default(0)
   completedTrips      Int              @default(0)
   reviewedBlogs       BlogPost[]       @relation("BlogReviewer")
+  blogs               BlogPost[]       @relation("BlogAuthor")
+  blogComments        BlogComment[]
   collabMessages      CollabMessage[]
   collabRoomsAsHost   CollabRoom[]     @relation("HostRooms")
   draftRoutes         DraftRoute[]
@@ -378,6 +380,7 @@ model BlogPost {
   updatedAt    DateTime      @updatedAt
   comments     BlogComment[]
   likes        BlogLike[]
+  author       User          @relation("BlogAuthor", fields: [userId], references: [id])
   reviewer     User?         @relation("BlogReviewer", fields: [reviewedBy], references: [id])
 
   @@index([userId])
@@ -396,6 +399,7 @@ model BlogComment {
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
   post      BlogPost          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   likes     BlogCommentLike[]
 
   @@index([postId])

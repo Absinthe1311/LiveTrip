@@ -1,4 +1,5 @@
-﻿// 加入协同房间页面 - 通过邀请链接加入协同规划（毛玻璃风格优化版）
+﻿// AI辅助生成：GLM-5, 2026-4-7
+// 加入协同房间页面 - 通过邀请链接加入协同规划（毛玻璃风格优化版）
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Users, AlertCircle, Loader, Link, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
@@ -6,6 +7,7 @@ import { message } from 'antd';
 import { joinCollabRoom } from '../../api/collabApi';
 import { Sidebar } from '../../components/layout/SharedSidebar';
 
+// AI辅助生成：GLM-5, 2026-4-7
 export default function JoinCollabRoom() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

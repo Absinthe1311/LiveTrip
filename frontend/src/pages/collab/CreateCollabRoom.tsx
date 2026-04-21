@@ -1,4 +1,5 @@
-﻿// 创建协同房间页面 - Host创建协同规划房间（毛玻璃风格优化版）
+﻿// AI辅助生成：GLM-5, 2026-4-7
+// 创建协同房间页面 - Host创建协同规划房间（毛玻璃风格优化版）
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Users, Link, CheckCircle, AlertCircle, Sparkles, Share2, ArrowRight } from 'lucide-react';
@@ -6,6 +7,7 @@ import { message } from 'antd';
 import { createCollabRoom } from '../../api/collabApi';
 import { Sidebar } from '../../components/layout/SharedSidebar';
 
+// AI辅助生成：GLM-5, 2026-4-7
 export default function CreateCollabRoom() {
   const navigate = useNavigate();
   const { tripId } = useParams<{ tripId: string }>();

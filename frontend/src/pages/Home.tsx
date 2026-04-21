@@ -1,4 +1,10 @@
 ﻿// 首页 - LiveTrip 智能旅行规划（最终优化版）
+
+// 人工修复：GLM-4, 2026-4-21
+// 修复问题：
+// 1. 删除不存在的TotalTravelCard组件导入
+// 2. 该组件在components/home/index.ts中未导出
+// 3. 修复TypeScript编译错误：Module has no exported member 'TotalTravelCard'
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Home as HomeIcon, Plus, Sparkles, Globe, Heart, PenLine, List, MapPin, Users, Search, Bell, Settings, Sun, RefreshCw } from "lucide-react";
@@ -9,7 +15,6 @@ import {
   WeatherCard,
   CalendarCard,
   UpcomingTourCard,
-  TotalTravelCard,
   MapWidget,
   SearchBar
 } from '../components/home';

@@ -1,12 +1,22 @@
 ﻿// 旅行博客页面 - 毛玻璃风格版本（优化版）
+
+// AI辅助生成：GLM-4, 2026-4-21
+// 删除时间轴视图功能：
+// 1. 删除BlogTimeline组件导入
+// 2. 删除viewMode状态管理
+// 3. 删除视图切换按钮
+// 4. 删除时间轴视图的条件渲染逻辑
+// 5. 保留卡片视图作为唯一展示方式
+
+// 人工修复：GLM-4, 2026-4-21
+// 修复问题：无编译错误，代码直接可用
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, User, Heart, MessageCircle, Eye, Edit2, Trash2, Plus, LayoutGrid, List } from 'lucide-react';
+import { Calendar, User, Heart, MessageCircle, Eye, Edit2, Trash2, Plus, MapPin, Search, X } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
 import { getBlogPosts, deleteBlog } from '../api/client';
 import { message, Popconfirm } from 'antd';
-import BlogTimeline from '../components/blog/BlogTimeline';
 import { BlogListSkeleton } from '../components/blog/BlogSkeleton';
 import EmptyState from '../components/common/EmptyState';
 
@@ -15,7 +25,12 @@ interface Blog {
   title: string;
   content?: string;
   excerpt?: string;
-  author?: string;
+  author?: {
+    id: string;
+    username: string;
+    avatar?: string;
+    nickname?: string;
+  };
   userId?: string;
   createdAt: string;
   likeCount?: number;
@@ -33,7 +48,10 @@ export default function BlogsGlass() {
   const navigate = useNavigate();
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'grid' | 'timeline'>('grid'); // 默认卡片视图
+  const [searchText, setSearchText] = useState('');
+  const [searchCity, setSearchCity] = useState('');
+  const [searchTag, setSearchTag] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   // 获取当前用户
   const userStr = localStorage.getItem('user');
@@ -86,6 +104,33 @@ export default function BlogsGlass() {
     }
   };
 
+  // 过滤博客
+  const filteredBlogs = blogs.filter(blog => {
+    // 搜索文本（标题）
+    if (searchText && !blog.title.toLowerCase().includes(searchText.toLowerCase())) {
+      return false;
+    }
+    // 搜索城市
+    if (searchCity && blog.city && !blog.city.toLowerCase().includes(searchCity.toLowerCase())) {
+      return false;
+    }
+    // 搜索标签
+    if (searchTag && blog.tags) {
+      const tags = blog.tags.split(',').map(t => t.trim().toLowerCase());
+      if (!tags.some(t => t.includes(searchTag.toLowerCase()))) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  // 清空搜索
+  const clearSearch = () => {
+    setSearchText('');
+    setSearchCity('');
+    setSearchTag('');
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('zh-CN', {
       year: 'numeric',
@@ -94,22 +139,12 @@ export default function BlogsGlass() {
     });
   };
 
-  // 获取摘要
-  const getExcerpt = (blog: Blog) => {
-    if (blog.excerpt) return blog.excerpt;
-    if (blog.content) {
-      // 移除HTML标签并截取前150字符
-      const text = blog.content.replace(/<[^>]*>/g, '').trim();
-      return text.length > 150 ? text.substring(0, 150) + '...' : text;
-    }
-    return '暂无内容';
-  };
-
   // 获取统计数据
   const getLikes = (blog: Blog) => blog.likeCount || blog.likes || 0;
   const getComments = (blog: Blog) => blog.commentCount || blog.comments || 0;
   const getViews = (blog: Blog) => blog.viewCount || blog.views || 0;
-  const getAuthor = (blog: Blog) => blog.author || '匿名用户';
+  const getAuthorName = (blog: Blog) => blog.author?.nickname || blog.author?.username || '匿名用户';
+  const getAuthorAvatar = (blog: Blog) => blog.author?.avatar;
 
   // 处理编辑
   const handleEdit = (blogId: string) => {
@@ -119,25 +154,16 @@ export default function BlogsGlass() {
   // 处理删除
   const handleDelete = async (blogId: string) => {
     try {
-      await deleteBlog(blogId, currentUserId || 'default-user');
-      message.success('博客删除成功');
-      loadBlogs();
+      const response = await deleteBlog(blogId, currentUserId || 'default-user');
+      if (response.success) {
+        message.success('博客删除成功');
+        // 直接从列表中移除，无需重新加载
+        setBlogs(prevBlogs => prevBlogs.filter(blog => blog.id !== blogId));
+      }
     } catch (error: any) {
       message.error(error.response?.data?.message || '删除失败');
     }
   };
-
-  // 时间轴视图
-  if (viewMode === 'timeline' && !loading && blogs.length > 0) {
-    return (
-      <BlogTimeline
-        blogs={blogs}
-        currentUserId={currentUserId}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
-    );
-  }
 
   return (
     <GlassLayout showSearch={false}>
@@ -146,36 +172,10 @@ export default function BlogsGlass() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-white">旅行博客</h1>
           <div className="flex items-center gap-3">
-            {/* 视图切换按钮 */}
-            <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/10">
-              <button
-                onClick={() => setViewMode('timeline')}
-                className={`p-2 rounded-md transition-all ${
-                  viewMode === 'timeline'
-                    ? 'bg-amber-500/20 text-amber-400'
-                    : 'text-white/60 hover:text-white'
-                }`}
-                title="时间轴视图"
-              >
-                <List className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-md transition-all ${
-                  viewMode === 'grid'
-                    ? 'bg-amber-500/20 text-amber-400'
-                    : 'text-white/60 hover:text-white'
-                }`}
-                title="卡片视图"
-              >
-                <LayoutGrid className="w-5 h-5" />
-              </button>
-            </div>
-
             {/* 写博客按钮 */}
             <button
               onClick={() => navigate('/blog/create')}
-              className="px-6 py-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold hover:shadow-lg hover:shadow-amber-500/30 transition-all flex items-center gap-2"
+              className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#CDEDDE] to-[#CDEDDE]/80 text-[#005746] font-semibold hover:shadow-lg hover:shadow-[#CDEDDE]/40 transition-all flex items-center gap-2 border border-[#CDEDDE]/50"
             >
               <Plus className="w-5 h-5" />
               写博客
@@ -183,21 +183,88 @@ export default function BlogsGlass() {
           </div>
         </div>
 
+        {/* 搜索栏 */}
+        <GlassCard className="p-6" hover={false}>
+          <div className="flex items-center gap-4">
+            {/* 主搜索框 */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+              <input
+                type="text"
+                placeholder="搜索博客标题..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-[#145F39]/50 transition-all"
+              />
+            </div>
+
+            {/* 筛选按钮 */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`px-4 py-3 rounded-lg border transition-all flex items-center gap-2 ${
+                showFilters
+                  ? 'bg-[#145F39]/20 border-[#145F39]/50 text-[#CDEDDE]'
+                  : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+              }`}
+            >
+              <Search className="w-4 h-4" />
+              高级筛选
+            </button>
+
+            {/* 清空按钮 */}
+            {(searchText || searchCity || searchTag) && (
+              <button
+                onClick={clearSearch}
+                className="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all flex items-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                清空
+              </button>
+            )}
+          </div>
+
+          {/* 高级筛选 */}
+          {showFilters && (
+            <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-4">
+              <div className="flex-1">
+                <label className="text-sm text-white/60 mb-2 block">城市</label>
+                <input
+                  type="text"
+                  placeholder="输入城市名称..."
+                  value={searchCity}
+                  onChange={(e) => setSearchCity(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-[#145F39]/50 transition-all text-sm"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="text-sm text-white/60 mb-2 block">标签</label>
+                <input
+                  type="text"
+                  placeholder="输入标签..."
+                  value={searchTag}
+                  onChange={(e) => setSearchTag(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-[#145F39]/50 transition-all text-sm"
+                />
+              </div>
+            </div>
+          )}
+        </GlassCard>
+
         {/* 博客列表 */}
         {loading ? (
           <BlogListSkeleton count={4} />
-        ) : blogs.length === 0 ? (
+        ) : filteredBlogs.length === 0 ? (
           <EmptyState type="blogs" />
         ) : (
           <div className="grid grid-cols-2 gap-6">
-            {blogs.map((blog) => (
+            {filteredBlogs.map((blog) => (
               <GlassCard
                 key={blog.id}
                 className="p-0 overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform group"
                 onClick={() => navigate(`/blog/${blog.id}`)}
               >
                 {/* 封面图片 */}
-                <div className="relative h-48 bg-gradient-to-br from-amber-500 to-amber-600">
+                <div className="relative h-48 bg-gradient-to-br from-[#145F39] to-[#005746]">
                   {blog.coverImage && (
                     <img
                       src={blog.coverImage}
@@ -240,27 +307,39 @@ export default function BlogsGlass() {
 
                 {/* 博客信息 */}
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-2 line-clamp-2">{blog.title}</h3>
-                  <p className="text-sm text-white/60 mb-4 line-clamp-2">{getExcerpt(blog)}</p>
+                  <h3 className="text-xl font-bold text-white mb-3 line-clamp-2">{blog.title}</h3>
 
-                  {/* 标签 */}
-                  {blog.tags && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {blog.tags.split(',').filter(t => t.trim()).slice(0, 3).map((tag, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-400 text-xs border border-amber-400/30"
-                        >
-                          {tag.trim()}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  {/* 城市和标签 */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {blog.city && (
+                      <span className="px-2 py-1 rounded-md bg-[#145F39]/20 text-[#CDEDDE] text-xs border border-[#145F39]/30 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {blog.city}
+                      </span>
+                    )}
+                    {blog.tags && blog.tags.trim() && blog.tags.split(',').filter(t => t.trim()).length > 0 && (
+                      <>
+                        {blog.tags.split(',').filter(t => t.trim()).slice(0, 2).map((tag, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2 py-1 rounded-md bg-[#008F8D]/20 text-[#CDEDDE] text-xs border border-[#008F8D]/30"
+                          >
+                            {tag.trim()}
+                          </span>
+                        ))}
+                      </>
+                    )}
+                  </div>
 
-                  <div className="flex items-center justify-between text-white/60">
+                  {/* 作者和日期 */}
+                  <div className="flex items-center justify-between mb-4 text-white/60">
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      <span className="text-sm">{getAuthor(blog)}</span>
+                      {getAuthorAvatar(blog) ? (
+                        <img src={getAuthorAvatar(blog)} alt="avatar" className="h-5 w-5 rounded-full" />
+                      ) : (
+                        <User className="h-4 w-4" />
+                      )}
+                      <span className="text-sm">{getAuthorName(blog)}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
@@ -268,7 +347,8 @@ export default function BlogsGlass() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6 mt-4 pt-4 border-t border-white/10 text-white/60">
+                  {/* 统计数据 */}
+                  <div className="flex items-center gap-6 pt-4 border-t border-white/10 text-white/60">
                     <div className="flex items-center gap-2">
                       <Heart className="h-4 w-4" />
                       <span className="text-sm">{getLikes(blog)}</span>

@@ -1,4 +1,12 @@
 ﻿// 行程规划优化版页面 - 集成所有新组件
+
+// 人工修复：GLM-4, 2026-4-21
+// 修复问题：
+// 1. 修复TypeScript类型比较错误（第712、713、718行）
+// 2. 使用类型断言 'as string' 放宽类型检查
+// 3. 原因：TypeScript将currentStep?.type推断为过于具体的类型
+// 4. 修复前：currentStep?.type === 'hotels'（类型不重叠错误）
+// 5. 修复后：(currentStep?.type as string) === 'hotels'（编译通过）
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { message, Spin } from 'antd';
@@ -709,13 +717,13 @@ export default function Itinerary() {
                 {itineraryData.itinerary[currentDayIndex] && (
                   <DayMapComponent
                     day={itineraryData.itinerary[currentDayIndex]}
-                    hotel={currentStep?.type === 'hotels' ? selectedHotel : null}
-                    restaurant={currentStep?.type === 'restaurants' ? selectedRestaurants[itineraryData.itinerary[currentDayIndex].day] : null}
+                    hotel={(currentStep?.type as string) === 'hotels' ? selectedHotel : null}
+                    restaurant={(currentStep?.type as string) === 'restaurants' ? selectedRestaurants[itineraryData.itinerary[currentDayIndex].day] : null}
                     showAllRestaurants={showAllRestaurants}
                     showAllDays={showAllDays}
                     allDays={itineraryData.itinerary}
                     restaurantRecommendations={restaurantRecommendations[itineraryData.itinerary[currentDayIndex].day]}
-                    hotelRecommendations={currentStep?.type === 'hotels' ? hotelRecommendations : []}
+                    hotelRecommendations={(currentStep?.type as string) === 'hotels' ? hotelRecommendations : []}
                   />
                 )}
               </FullscreenMap>

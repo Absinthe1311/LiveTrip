@@ -24,6 +24,7 @@ interface RouteSpotWithTime {
   departureTime: string;
 }
 
+// AI辅助生成：GLM-5, 2026-3-26
 interface DayRoutePlannerProps {
   day: number;
   allMemberDrafts: any[]; // 所有成员的草案
@@ -45,6 +46,7 @@ export default function DayRoutePlanner({
   const [mealReminders, setMealReminders] = useState<{time: string, type: string}[]>([]);
   
   // 当路线变化时，通知父组件
+  // AI辅助生成：GLM-5, 2026-3-26
   useEffect(() => {
     if (onRouteChange) {
       onRouteChange(selectedSpots);

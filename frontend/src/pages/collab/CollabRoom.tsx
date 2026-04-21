@@ -1,4 +1,6 @@
-﻿// 协同编辑主页面 - 多人协同规划行程的核心界面（集成地图功能）
+﻿// AI辅助生成：GLM-5, 2026-4-7
+// AI辅助生成：GLM-5, 2026-4-7
+// 协同编辑主页面 - 多人协同规划行程的核心界面（集成地图功能）
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Menu, Users, MessageCircle, MapPin, Send, Lock, Eye, Loader, Copy, Check, Share2 } from 'lucide-react';
@@ -13,6 +15,8 @@ import SpotStatsPanel from '../../components/collab/SpotStatsPanel';
 import DayRoutePlanner from '../../components/collab/DayRoutePlanner';
 import MapCopyright from '../../components/map/MapCopyright';
 
+// AI辅助生成：GLM-5, 2026-4-7
+// AI辅助生成：GLM-5, 2026-4-7
 export default function CollabRoom() {
   const navigate = useNavigate();
   const { roomId } = useParams<{ roomId: string }>();
@@ -644,6 +648,7 @@ export default function CollabRoom() {
     }
   };
   
+// AI辅助生成：GLM-5, 2026-3-26
   // 保存最终路线
   const handleSaveFinalRoute = async (route: any[]) => {
     if (!roomId) return;
@@ -665,6 +670,7 @@ export default function CollabRoom() {
     }
   };
   
+// AI辅助生成：GLM-5, 2026-3-26
   // 处理最终路线变化（实时在地图上显示）
   const handleFinalRouteChange = (route: any[]) => {
     if (!isMapLoaded || route.length === 0) {

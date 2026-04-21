@@ -643,16 +643,6 @@ export const getBlogPostById = async (id: string) => {
 };
 
 /**
- * 增加博客浏览量
- * @param id 博客ID
- * @returns 增加浏览量结果
- */
-export const incrementBlogViewCount = async (id: string) => {
-  const response = await apiClient.post(`/blogs/${id}/view`);
-  return response.data;
-};
-
-/**
  * 更新博客文章
  * @param id 博客ID
  * @param userId 用户ID
@@ -737,6 +727,16 @@ export const getPopularTags = async (limit?: number) => {
   const params: any = {};
   if (limit) params.limit = limit;
   const response = await apiClient.get('/blogs/tags/popular', { params });
+  return response.data;
+};
+
+/**
+ * 增加博客浏览量
+ * @param id 博客ID
+ * @returns 操作结果
+ */
+export const incrementBlogViewCount = async (id: string) => {
+  const response = await apiClient.post(`/blogs/${id}/view`);
   return response.data;
 };
 

@@ -147,9 +147,27 @@ class BlogService {
         prisma.blogPost.findMany({
           where,
           include: {
+            author: {
+              select: {
+                id: true,
+                username: true,
+                avatar: true,
+                nickname: true,
+              },
+            },
             comments: {
               orderBy: { createdAt: 'desc' },
               take: 3,
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    username: true,
+                    avatar: true,
+                    nickname: true,
+                  },
+                },
+              },
             },
             likes: {
               select: {
@@ -184,8 +202,26 @@ class BlogService {
       const blog = await prisma.blogPost.findUnique({
         where: { id },
         include: {
+          author: {
+            select: {
+              id: true,
+              username: true,
+              avatar: true,
+              nickname: true,
+            },
+          },
           comments: {
             orderBy: { createdAt: 'desc' },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  avatar: true,
+                  nickname: true,
+                },
+              },
+            },
           },
           likes: {
             select: {
@@ -253,6 +289,16 @@ class BlogService {
         include: {
           comments: {
             orderBy: { createdAt: 'desc' },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  avatar: true,
+                  nickname: true,
+                },
+              },
+            },
           },
           likes: {
             select: {
