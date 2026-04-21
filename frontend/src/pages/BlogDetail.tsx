@@ -14,7 +14,7 @@ import {
   Heart,
   MessageCircle,
   Eye,
-  Share2,
+  Download,
   Calendar,
   User,
   Tag,
@@ -26,6 +26,7 @@ import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
 import { getBlogPostById, deleteBlog, toggleLike, incrementBlogViewCount, addBlogComment, deleteBlogComment } from '../api/client';
 import { message, Popconfirm } from 'antd';
+import { exportBlogToPDF } from '../utils/exportPDF';
 
 interface BlogDetail {
   id: string;
@@ -179,13 +180,32 @@ export default function BlogDetailGlass() {
     }
   };
 
-  const handleShare = () => {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
-      message.success('链接已复制到剪贴板');
-    }).catch(() => {
-      message.error('复制失败');
-    });
+  const handleExportPDF = async () => {
+    if (!blog) return;
+
+    try {
+      message.loading({ content: '正在生成PDF...', key: 'pdf' });
+
+      const authorName = blog.author?.nickname || blog.author?.username || '匿名用户';
+      const dateStr = new Date(blog.createdAt).toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+
+      await exportBlogToPDF(
+        blog.title,
+        blog.content,
+        authorName,
+        dateStr,
+        blog.city
+      );
+
+      message.success({ content: 'PDF导出成功！', key: 'pdf' });
+    } catch (error) {
+      message.error({ content: 'PDF导出失败，请重试', key: 'pdf' });
+      console.error('PDF导出错误:', error);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -324,11 +344,11 @@ export default function BlogDetailGlass() {
 
             <div className="flex items-center gap-3">
               <button
-                onClick={handleShare}
-                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all"
-                title="分享"
+                onClick={handleExportPDF}
+                className="p-2 rounded-lg bg-white/5 hover:bg-[#CDEDDE]/20 text-white/70 hover:text-[#CDEDDE] transition-all border border-transparent hover:border-[#145F39]/30"
+                title="导出PDF"
               >
-                <Share2 className="w-5 h-5" />
+                <Download className="w-5 h-5" />
               </button>
 
               {isAuthor && (
