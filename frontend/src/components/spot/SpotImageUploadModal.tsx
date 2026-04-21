@@ -70,8 +70,8 @@ export default function SpotImageUploadModal({
     setUploading(true);
     setUploadProgress(0);
 
-    // 优先使用id字段（后端返回的字段名），其次使用spotId（兼容旧数据）
-    let spotId: string | null = spot.id || spot.spotId || null;
+    // 使用spotId字段
+    let spotId: string | null = spot.spotId || null;
 
     if (spotId) {
       console.log(`✅ 使用已存储的景点ID: ${spot.name} -> ${spotId}`);

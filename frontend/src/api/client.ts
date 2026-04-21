@@ -58,7 +58,7 @@ apiClient.interceptors.response.use(
 
 // 景点项
 export interface AttractionItem {
-  id?: string; // 景点ID（spotId，用于图片上传）- 后端返回的字段名
+  spotId?: string; // 景点唯一标识（关联Spot表）
   name: string;
   time: string;
   location: string;
@@ -66,7 +66,6 @@ export interface AttractionItem {
   description: string;
   type?: string;
   address?: string;
-  spotId?: string; // 兼容旧字段名
   // 扩展字段
   duration?: number;
   city?: string;
@@ -105,6 +104,16 @@ export interface FullItinerary {
     start_date: string;
     end_date: string;
   };
+  // 个性化信息
+  customization?: {
+    tripName?: string;
+    tripDescription?: string;
+    coverImage?: string;
+  };
+  // 运行时字段
+  tripId?: string;
+  isSavedTrip?: boolean;
+  status?: string;
 }
 
 // 行程规划请求

@@ -183,8 +183,8 @@ export default function Itinerary() {
       const spotIds: string[] = [];
       itineraryData.itinerary.forEach(day => {
         day.attractions.forEach(attraction => {
-          if (attraction.id || attraction.spotId) {
-            spotIds.push(attraction.id || attraction.spotId!);
+          if (attraction.spotId) {
+            spotIds.push(attraction.spotId);
           }
         });
       });
@@ -207,8 +207,8 @@ export default function Itinerary() {
       const fallbackImages: Record<string, string> = {};
       itineraryData.itinerary.forEach(day => {
         day.attractions.forEach(attraction => {
-          if (attraction.id || attraction.spotId) {
-            fallbackImages[attraction.id || attraction.spotId!] = '';
+          if (attraction.spotId) {
+            fallbackImages[attraction.spotId] = '';
           }
         });
       });
@@ -423,9 +423,9 @@ export default function Itinerary() {
         })),
         // 添加个性化信息
         customization: {
-          tripName: '',
-          tripDescription: '',
-          coverImage: ''
+          tripName: itineraryData.customization?.tripName || '',
+          tripDescription: itineraryData.customization?.tripDescription || '',
+          coverImage: itineraryData.customization?.coverImage || ''
         }
       };
 

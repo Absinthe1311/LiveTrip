@@ -309,7 +309,7 @@ export const saveTrip = async (req: Request, res: Response) => {
         }
 
         // 优先使用传递过来的spotId（如果存在）
-        let spotId: string | null = item.id || null;
+        let spotId: string | null = item.spotId || null;
 
         // 如果没有spotId，则查找
         if (!spotId) {

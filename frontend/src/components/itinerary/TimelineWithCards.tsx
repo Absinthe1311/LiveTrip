@@ -223,7 +223,7 @@ export default function TimelineWithCards({
                       item={item}
                       index={index}
                       city={city}
-                      imageUrl={spotImages[item.id || item.spotId || '']}
+                      imageUrl={spotImages[item.spotId || '']}
                       onShowAlternatives={() => {
                         if (expandedAlternatives[attractionKey]) {
                           handleCloseAlternatives(item);

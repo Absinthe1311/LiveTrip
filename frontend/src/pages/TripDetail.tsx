@@ -45,6 +45,7 @@ function convertDbToItinerary(trip: any): FullItinerary {
       const endTime = `${String(endDateTime.getHours()).padStart(2, '0')}:${String(endDateTime.getMinutes()).padStart(2, '0')}`;
       
       return {
+        spotId: item.spotId, // 景点唯一标识
         name: item.name,
         time: `${startTime}-${endTime}`,
         location: item.longitude && item.latitude ? `${item.longitude},${item.latitude}` : '',
@@ -52,7 +53,6 @@ function convertDbToItinerary(trip: any): FullItinerary {
         description: item.description || item.type || '',
         type: item.type || '景点',
         address: item.address || '',
-        spotId: item.spotId,
       };
     }),
     daily_cost: day.itineraryItems.reduce((sum: number, item: any) => sum + item.cost, 0),
@@ -117,11 +117,13 @@ export default function TripDetailPage() {
       if (response.success && response.data) {
         const tripData = response.data;
         setTrip(tripData);
-        setItineraryData(convertDbToItinerary(tripData));
+        const convertedItinerary = convertDbToItinerary(tripData);
+        setItineraryData(convertedItinerary);
         setTripStatus(tripData.status);
         console.log('✅ 行程详情加载成功:', tripData);
         loadIoTData();
-        loadSpotImages();
+        // 直接使用转换后的数据加载图片，而不是依赖状态
+        loadSpotImagesForItinerary(convertedItinerary);
       } else {
         console.error('加载行程失败');
         message.error('加载行程失败');
@@ -169,6 +171,40 @@ export default function TripDetailPage() {
       if (response.success && response.data) {
         setSpotImages(response.data.images);
         console.log(`✅ 成功加载 ${Object.keys(response.data.images).length} 个景点的图片`);
+      }
+    } catch (error) {
+      console.error('批量获取景点图片失败:', error);
+    }
+  };
+
+  // 直接根据行程数据加载图片（不依赖状态）
+  const loadSpotImagesForItinerary = async (itinerary: FullItinerary) => {
+    try {
+      const spotIds: string[] = [];
+      itinerary.itinerary.forEach(day => {
+        day.attractions.forEach(attraction => {
+          if (attraction.spotId) {
+            spotIds.push(attraction.spotId);
+          }
+        });
+      });
+
+      if (spotIds.length === 0) {
+        console.log('⚠️ 没有景点ID，跳过图片加载');
+        console.log('行程数据:', itinerary);
+        return;
+      }
+
+      console.log(`📸 批量获取 ${spotIds.length} 个景点的图片`);
+      console.log('景点ID列表:', spotIds);
+      const response = await batchGetSpotImagesByIds(spotIds);
+
+      if (response.success && response.data) {
+        console.log(`✅ 成功加载 ${Object.keys(response.data.images).length} 个景点的图片`);
+        console.log('图片数据:', response.data.images);
+        setSpotImages(response.data.images);
+      } else {
+        console.log('❌ 图片加载失败:', response);
       }
     } catch (error) {
       console.error('批量获取景点图片失败:', error);
@@ -407,6 +443,17 @@ export default function TripDetailPage() {
   return (
     <GlassLayout showSearch={false}>
       <div className="max-w-7xl mx-auto pb-20">
+        {/* 封面图片 */}
+        {trip.coverImage && (
+          <div className="mb-6 rounded-xl overflow-hidden">
+            <img
+              src={trip.coverImage}
+              alt={trip.title}
+              className="w-full h-64 object-cover"
+            />
+          </div>
+        )}
+
         {/* 页面标题 */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-6">
