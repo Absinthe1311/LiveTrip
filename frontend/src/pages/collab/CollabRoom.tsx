@@ -1,6 +1,8 @@
 ﻿// AI辅助生成：GLM-5, 2026-4-7
 // AI辅助生成：GLM-5, 2026-4-7
 // 协同编辑主页面 - 多人协同规划行程的核心界面（集成地图功能）
+// AI辅助生成：GLM-5, 2026-04-22
+// 内容说明：添加封面图片显示功能、修复JSX结构错误、优化header布局适配
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Menu, Users, MessageCircle, MapPin, Send, Lock, Eye, Loader, Copy, Check, Share2 } from 'lucide-react';
@@ -781,59 +783,72 @@ export default function CollabRoom() {
       />
 
       {/* Top Navbar - 协同规划专用 */}
-      <header className={`fixed top-0 right-0 h-14 bg-white/5 backdrop-blur-md border-b border-white/10 z-40 flex items-center transition-all duration-300 ${
+      <header className={`fixed top-0 right-0 bg-white/5 backdrop-blur-md border-b border-white/10 z-40 flex flex-col transition-all duration-300 ${
         sidebarOpen ? 'left-[15%]' : 'left-0'
       }`}>
-        <div className="flex-1 flex items-center justify-between px-6">
-          <div className="flex items-center gap-3">
-            {/* 移动端菜单按钮 */}
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-white/10 transition-colors lg:hidden"
-            >
-              <Menu className="h-5 w-5 text-white" />
-            </button>
-
-            <h1 className="text-lg font-semibold text-white">
-              {currentRoom?.trip?.title || '协同规划'}
-            </h1>
-            {isLocked && (
-              <span className="px-2 py-1 bg-white/10 text-white/80 text-xs rounded flex items-center gap-1 border border-white/20">
-                <Lock className="h-3 w-3" />
-                已锁定
-              </span>
-            )}
+        {/* 封面图片 */}
+        {currentRoom?.trip?.coverImage && (
+          <div className="w-full h-48 overflow-hidden">
+            <img
+              src={currentRoom.trip.coverImage}
+              alt={currentRoom.trip.title}
+              className="w-full h-full object-cover"
+            />
           </div>
-          
-          {/* 天数切换 */}
-          <div className="flex items-center gap-2">
-            {Array.from({ length: totalDays }, (_, i) => i + 1).map((day) => (
+        )}
+        
+        <div className="h-14 flex items-center px-6">
+          <div className="flex-1 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* 移动端菜单按钮 */}
               <button
-                key={day}
-                onClick={() => {
-                  setCurrentDay(day);
-                  // 如果正在显示所有路线，重新绘制该天的路线
-                  if (showAllRoutes) {
-                    drawRoutesForDay(day);
-                  }
-                }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                  currentDay === day
-                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30 border border-white/20'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white border border-white/20'
-                }`}
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors lg:hidden"
               >
-                Day {day}
+                <Menu className="h-5 w-5 text-white" />
               </button>
-            ))}
+
+              <h1 className="text-lg font-semibold text-white">
+                {currentRoom?.trip?.title || '协同规划'}
+              </h1>
+              {isLocked && (
+                <span className="px-2 py-1 bg-white/10 text-white/80 text-xs rounded flex items-center gap-1 border border-white/20">
+                  <Lock className="h-3 w-3" />
+                  已锁定
+                </span>
+              )}
+            </div>
+
+            {/* 天数切换 */}
+            <div className="flex items-center gap-2">
+              {Array.from({ length: totalDays }, (_, i) => i + 1).map((day) => (
+                <button
+                  key={day}
+                  onClick={() => {
+                    setCurrentDay(day);
+                    // 如果正在显示所有路线，重新绘制该天的路线
+                    if (showAllRoutes) {
+                      drawRoutesForDay(day);
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                    currentDay === day
+                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30 border border-white/20'
+                      : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white border border-white/20'
+                  }`}
+                >
+                  Day {day}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className={`pt-14 min-h-screen flex relative z-10 transition-all duration-300 ${
+      <main className={`min-h-screen flex relative z-10 transition-all duration-300 ${
         sidebarOpen ? 'ml-[15%]' : ''
-      }`}>
+      }`} style={{ paddingTop: currentRoom?.trip?.coverImage ? '13rem' : '3.5rem' }}>
         {/* 左侧：地图区域 */}
         <div className="flex-1 p-4 flex flex-col">
           <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl flex-1 flex flex-col overflow-hidden">

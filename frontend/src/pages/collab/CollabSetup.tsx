@@ -1,12 +1,16 @@
 ﻿// 协同规划设置页面 - 填写必要信息后创建协同房间（毛玻璃风格）
-import { useState } from 'react';
+// AI辅助生成：GLM-5, 2026-04-22
+// 内容说明：添加封面图片上传功能、行程描述自定义功能、集成DoubleCalendar日历组件、添加调试日志
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Navigation, Calendar, Users, Sparkles, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
+import { MapPin, Navigation, Calendar, Users, Sparkles, ArrowRight, CheckCircle, AlertCircle, Upload, Image as ImageIcon, X, Type as TypeIcon } from 'lucide-react';
 import { message } from 'antd';
 import GlassLayout from '../../components/layout/GlassLayout';
 import { GlassCard } from '../../components/home';
 import { createCollabRoom } from '../../api/collabApi';
 import { API_BASE_URL } from '../../config/api';
+import { DoubleCalendar } from '../../components/input/DoubleCalendar';
+import ImageCropper from '../../components/media/ImageCropper';
 
 interface FormData {
   roomName: string;
@@ -14,6 +18,8 @@ interface FormData {
   startDate: string;
   endDate: string;
   groupSize: number;
+  tripDescription: string;
+  coverImage: string;
 }
 
 export default function CollabSetup() {
@@ -28,10 +34,122 @@ export default function CollabSetup() {
     startDate: '',
     endDate: '',
     groupSize: 2,
+    tripDescription: '',
+    coverImage: '',
   });
+
+  // 图片上传状态
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cropperVisible, setCropperVisible] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleInputChange = (field: keyof FormData, value: string | number) => {
     setFormData({ ...formData, [field]: value });
+  };
+
+  // 处理图片上传
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('📸 图片上传触发');
+    const file = event.target.files?.[0];
+    if (!file) {
+      console.log('❌ 没有选择文件');
+      return;
+    }
+
+    console.log('✅ 选择文件:', {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+
+    // 验证文件类型
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      console.log('❌ 文件类型不支持:', file.type);
+      message.error('仅支持 JPG、PNG、GIF、WebP 格式的图片');
+      return;
+    }
+
+    // 验证文件大小（10MB）
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      console.log('❌ 文件太大:', file.size);
+      message.error('图片大小不能超过 10MB');
+      return;
+    }
+
+    console.log('✅ 文件验证通过，打开裁剪器');
+    // 打开裁剪器
+    setSelectedFile(file);
+    setCropperVisible(true);
+  };
+
+  // 处理裁剪确认
+  const handleCropConfirm = async (croppedImage: string) => {
+    console.log('📸 裁剪确认，开始上传');
+    setUploading(true);
+    try {
+      // 将base64转换为Blob
+      const response = await fetch(croppedImage);
+      const blob = await response.blob();
+      const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
+
+      console.log('📦 准备上传文件:', {
+        name: file.name,
+        type: file.type,
+        size: file.size
+      });
+
+      // 上传裁剪后的图片
+      const formData = new FormData();
+      formData.append('image', file);
+
+      console.log('🚀 发送上传请求到:', `${API_BASE_URL}/upload/image`);
+      const uploadResponse = await fetch(`${API_BASE_URL}/upload/image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: formData,
+      });
+
+      const result = await uploadResponse.json();
+      console.log('📝 上传响应:', result);
+
+      if (result.success) {
+        const imageUrl = result.data.url;
+        console.log('✅ 图片上传成功，URL:', imageUrl);
+        setFormData((prevFormData) => ({ ...prevFormData, coverImage: imageUrl }));
+        setPreviewUrl(imageUrl);
+        setCropperVisible(false);
+        setSelectedFile(null);
+        message.success('图片上传成功');
+      } else {
+        message.error(result.error || '图片上传失败');
+      }
+    } catch (error) {
+      console.error('图片上传失败:', error);
+      message.error('图片上传失败，请重试');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // 处理裁剪取消
+  const handleCropCancel = () => {
+    setCropperVisible(false);
+    setSelectedFile(null);
+  };
+
+  // 删除上传的图片
+  const handleRemoveImage = () => {
+    setFormData((prevFormData) => ({ ...prevFormData, coverImage: '' }));
+    setPreviewUrl('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const validateStep1 = () => {
@@ -96,7 +214,8 @@ export default function CollabSetup() {
         title: formData.roomName, // 使用用户输入的房间名称
         customization: {
           tripName: formData.roomName, // 使用用户输入的房间名称
-          tripDescription: `协同规划 - ${formData.destination}`,
+          tripDescription: formData.tripDescription || `协同规划 - ${formData.destination}`,
+          coverImage: formData.coverImage, // 添加封面图片
         },
         summary: {
           origin: '',
@@ -123,6 +242,14 @@ export default function CollabSetup() {
         restaurants: []
       };
 
+      // 调试日志：检查封面图片数据
+      console.log('📝 准备创建协同行程，数据如下:');
+      console.log('  - roomName:', formData.roomName);
+      console.log('  - destination:', formData.destination);
+      console.log('  - coverImage:', formData.coverImage);
+      console.log('  - tripDescription:', formData.tripDescription);
+      console.log('  - 完整数据:', JSON.stringify(emptyTripData, null, 2));
+
       // 使用apiClient创建行程
       const saveResponse = await fetch(`${API_BASE_URL}/trips`, {
         method: 'POST',
@@ -134,6 +261,13 @@ export default function CollabSetup() {
       });
 
       const saveData = await saveResponse.json();
+
+      console.log('📝 后端响应:', saveData);
+      console.log('  - success:', saveData.success);
+      console.log('  - tripId:', saveData.data?.tripId);
+      if (saveData.data?.trip) {
+        console.log('  - 保存的coverImage:', saveData.data.trip.coverImage);
+      }
 
       if (!saveData.success) {
         throw new Error(saveData.error || '创建行程失败');
@@ -267,34 +401,18 @@ export default function CollabSetup() {
 
           {step === 2 && (
             <div className="space-y-6">
-              {/* 日期选择 */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-3">
-                    <Calendar className="inline h-4 w-4 mr-2" />
-                    出发日期
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => handleInputChange('startDate', e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-3">
-                    <Calendar className="inline h-4 w-4 mr-2" />
-                    返回日期
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => handleInputChange('endDate', e.target.value)}
-                    min={formData.startDate || new Date().toISOString().split('T')[0]}
-                    className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none"
-                  />
-                </div>
+              {/* 日期选择 - 使用DoubleCalendar组件 */}
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-3">
+                  <Calendar className="inline h-4 w-4 mr-2" />
+                  选择行程日期
+                </label>
+                <DoubleCalendar
+                  startDate={formData.startDate}
+                  endDate={formData.endDate}
+                  onStartDateChange={(date) => handleInputChange('startDate', date)}
+                  onEndDateChange={(date) => handleInputChange('endDate', date)}
+                />
               </div>
 
               {calculateDays() > 0 && (
@@ -336,6 +454,74 @@ export default function CollabSetup() {
                 <p className="text-xs text-white/50 mt-2">包括您在内，至少2人，最多20人</p>
               </div>
 
+              {/* 行程描述 */}
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  行程描述（可选）
+                </label>
+                <textarea
+                  value={formData.tripDescription}
+                  onChange={(e) => handleInputChange('tripDescription', e.target.value)}
+                  placeholder="简要描述您的行程主题或备注..."
+                  rows={3}
+                  className="w-full px-5 py-3 text-base rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none resize-none"
+                />
+              </div>
+
+              {/* 行程封面 */}
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  <ImageIcon className="inline h-4 w-4 mr-2" />
+                  行程封面（可选）
+                </label>
+
+                {/* 封面预览 */}
+                {(previewUrl || formData.coverImage) && (
+                  <div className="mb-3 relative rounded-xl overflow-hidden">
+                    <img
+                      src={previewUrl || formData.coverImage}
+                      alt="行程封面预览"
+                      className="w-full h-40 object-cover"
+                    />
+                    <button
+                      onClick={handleRemoveImage}
+                      className="absolute top-2 right-2 p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* 上传按钮 */}
+                <div className="flex gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    {uploading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        上传中...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        上传封面
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-white/50 mt-1">支持 JPG、PNG、GIF、WebP 格式，最大 10MB</p>
+              </div>
+
               {/* 操作按钮 */}
               <div className="grid grid-cols-2 gap-4">
                 <button
@@ -369,6 +555,16 @@ export default function CollabSetup() {
           )}
         </GlassCard>
       </div>
+
+      {/* 图片裁剪器 */}
+      {cropperVisible && selectedFile && (
+        <ImageCropper
+          visible={cropperVisible}
+          imageFile={selectedFile}
+          onConfirm={handleCropConfirm}
+          onCancel={handleCropCancel}
+        />
+      )}
     </GlassLayout>
   );
 }
