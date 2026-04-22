@@ -1,6 +1,10 @@
 /**
  * 公开行程页面 - 只读视图
  * 用于展示分享的行程，UI风格与TripDetail保持一致
+ *
+ * AI辅助生成：GLM-5，2026年4月22日
+ * 内容说明：实现分享行程的只读查看页面，复用TripDetail的UI组件和样式，
+ *          支持景点图片加载、地图显示、酒店餐厅信息展示等功能
  */
 
 import React, { useState, useEffect } from 'react';

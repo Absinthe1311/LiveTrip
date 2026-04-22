@@ -1,4 +1,8 @@
 ﻿// 时间轴和景点卡片整体部件 - 支持拖拽排序
+// AI辅助生成：GLM-5，2026年4月22日
+// 内容说明：为TimelineWithCards组件添加readOnly属性支持，在只读模式下禁用拖拽功能和备选景点按钮
+// AI辅助生成：GLM-5，2026年4月22日
+// 内容说明：为TimelineWithCards组件添加readOnly属性支持，在只读模式下禁用拖拽功能和备选景点按钮
 import React, { useState, useEffect } from 'react';
 import {
   DndContext,

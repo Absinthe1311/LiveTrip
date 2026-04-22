@@ -1,4 +1,7 @@
-﻿// 当前行程页面 - 三栏布局：左侧时间线、中间景点详情、右侧地图和预算
+﻿// AI辅助生成：GLM-5 2026-4-22
+// 内容说明：当前行程页面修复 - 补充景点IoT实时数据展示（温度、湿度、拥挤度等），
+// 完善打包清单编辑功能（添加、修改、删除、勾选），统一地图样式为dark主题并采用红色渐变水滴标记
+// 当前行程页面 - 三栏布局：左侧时间线、中间景点详情、右侧地图和预算
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
@@ -17,11 +20,15 @@ import {
   getPackingList,
   initializePackingList,
   updatePackingItem,
+  addPackingItem,
+  deletePackingItem,
   getSpotCoverImage,
   batchGetSpotImagesByIds,
   apiClient,
   AttractionItem,
-  PackingItem
+  PackingItem,
+  getIoTData,
+  IoTSpotData
 } from '../api/client';
 import { message, Modal, Input } from 'antd';
 import AMapLoader from '@amap/amap-jsapi-loader';
@@ -99,6 +106,9 @@ export default function TodayGlass() {
   const [packingItems, setPackingItems] = useState<PackingItem[]>([]);
   const [showPackingModal, setShowPackingModal] = useState(false);
   const [newItemName, setNewItemName] = useState('');
+  const [newItemCategory, setNewItemCategory] = useState('其他');
+  const [editingItem, setEditingItem] = useState<PackingItem | null>(null);
+  const [editItemName, setEditItemName] = useState('');
   
   // 预算编辑
   const [showBudgetModal, setShowBudgetModal] = useState(false);
@@ -114,6 +124,9 @@ export default function TodayGlass() {
     byId: Record<string, [number, number]>;
     byName: Record<string, [number, number]>;
   }>({ byId: {}, byName: {} });
+  
+  // IoT数据
+  const [iotData, setIotData] = useState<Record<string, IoTSpotData>>({});
   
   // 地图相关
   const mapRef = useRef<any>(null);
@@ -255,6 +268,29 @@ export default function TodayGlass() {
     loadCitySpots();
   }, [currentTrip?.destination]);
 
+  // 加载IoT数据
+  useEffect(() => {
+    const loadIoTData = async () => {
+      try {
+        const response = await getIoTData();
+        if (response.success && response.data?.spots) {
+          const iotMap: Record<string, IoTSpotData> = {};
+          response.data.spots.forEach((spot) => {
+            iotMap[spot.id] = spot;
+          });
+          setIotData(iotMap);
+        }
+      } catch (error) {
+        console.warn('加载IoT数据失败:', error);
+      }
+    };
+
+    loadIoTData();
+    // 每30秒刷新一次IoT数据
+    const interval = setInterval(loadIoTData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const getItemCoordinates = (item: ItineraryItemData): [number, number] | null => {
     const hasDirectCoords = Number.isFinite(item.longitude) && Number.isFinite(item.latitude) &&
       item.longitude !== 0 && item.latitude !== 0;
@@ -309,7 +345,7 @@ export default function TodayGlass() {
           zoom: 12,
           center: [116.397428, 39.90923],
           viewMode: '2D',
-          mapStyle: 'amap://styles/normal',
+          mapStyle: 'amap://styles/dark',
           features: ['bg', 'road', 'building', 'point'],
           showLabel: true,
           showBuildingBlock: true,
@@ -361,33 +397,59 @@ export default function TodayGlass() {
 
       const isSelected = selectedAttraction?.id === item.id;
       const isVisited = visitedAttractions.has(item.id);
-      const markerColor = isVisited ? '#9CA3AF' : (isSelected ? '#F59E0B' : '#3B82F6');
       
       const markerContent = `
-        <div style="
-          background: ${markerColor};
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: bold;
-          font-size: 14px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-          cursor: pointer;
-          ${isSelected ? 'transform: scale(1.2);' : ''}
-          ${isVisited ? 'opacity: 0.6;' : ''}
-        ">
-          ${isVisited ? '✓' : index + 1}
+        <div class="map-marker-container" style="position: relative; cursor: pointer;">
+          <div style="
+            width: 36px;
+            height: 36px;
+            background: ${isVisited 
+              ? 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)' 
+              : isSelected 
+                ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
+                : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'};
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            ${isSelected ? 'transform: rotate(-45deg) scale(1.2);' : ''}
+          ">
+            <div style="
+              transform: rotate(45deg);
+              color: #fff;
+              font-weight: bold;
+              font-size: 14px;
+            ">
+              ${isVisited ? '✓' : index + 1}
+            </div>
+          </div>
+          <div style="
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #1f2937;
+            white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+          ">
+            ${item.name}
+          </div>
         </div>
       `;
 
       const marker = new window.AMap.Marker({
         position: [lng, lat],
         content: markerContent,
-        offset: new window.AMap.Pixel(-16, -16),
+        offset: new window.AMap.Pixel(-18, -36),
         extData: item,
       });
 
@@ -402,12 +464,14 @@ export default function TodayGlass() {
     if (bounds.length > 1) {
       const polyline = new window.AMap.Polyline({
         path: bounds,
-        strokeColor: '#F59E0B',
+        strokeColor: '#f59e0b',
         strokeWeight: 4,
-        strokeOpacity: 0.8,
+        strokeOpacity: 0.9,
         lineJoin: 'round',
         lineCap: 'round',
         showDir: true,
+        borderWeight: 3,
+        strokeStyle: 'solid',
       });
       polyline.setMap(mapRef.current);
       polylinesRef.current.push(polyline);
@@ -506,6 +570,54 @@ export default function TodayGlass() {
       );
     } catch (error) {
       console.error('更新打包状态失败:', error);
+      message.error('更新打包状态失败');
+    }
+  };
+
+  const handleAddPackingItem = async () => {
+    if (!newItemName.trim() || !currentTrip) return;
+    try {
+      const response = await addPackingItem(currentTrip.id, newItemName.trim(), newItemCategory);
+      if (response.success && response.data) {
+        setPackingItems(items => [...items, response.data]);
+        setNewItemName('');
+        setNewItemCategory('其他');
+        message.success('添加成功');
+      }
+    } catch (error) {
+      console.error('添加打包物品失败:', error);
+      message.error('添加打包物品失败');
+    }
+  };
+
+  const handleEditPackingItem = async () => {
+    if (!editingItem || !editItemName.trim()) return;
+    try {
+      const response = await updatePackingItem(editingItem.id, { itemName: editItemName.trim() });
+      if (response.success) {
+        setPackingItems(items => 
+          items.map(i => i.id === editingItem.id ? { ...i, itemName: editItemName.trim() } : i)
+        );
+        setEditingItem(null);
+        setEditItemName('');
+        message.success('修改成功');
+      }
+    } catch (error) {
+      console.error('修改打包物品失败:', error);
+      message.error('修改打包物品失败');
+    }
+  };
+
+  const handleDeletePackingItem = async (itemId: string) => {
+    try {
+      const response = await deletePackingItem(itemId);
+      if (response.success) {
+        setPackingItems(items => items.filter(i => i.id !== itemId));
+        message.success('删除成功');
+      }
+    } catch (error) {
+      console.error('删除打包物品失败:', error);
+      message.error('删除打包物品失败');
     }
   };
 
@@ -825,6 +937,82 @@ export default function TodayGlass() {
                           </div>
                         </div>
                         
+                        {/* IoT实时数据 */}
+                        {selectedAttraction.spotId && iotData[selectedAttraction.spotId] && (
+                          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Thermometer className="h-4 w-4 text-blue-600" />
+                              <span className="text-sm font-semibold text-blue-800">实时数据</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              {/* 温度 */}
+                              <div className="flex items-center gap-2">
+                                <Thermometer className="h-4 w-4 text-red-500" />
+                                <div>
+                                  <div className="text-xs text-gray-500">温度</div>
+                                  <div className="text-sm font-semibold text-gray-800">
+                                    {iotData[selectedAttraction.spotId].temperature}°C
+                                  </div>
+                                </div>
+                              </div>
+                              {/* 湿度 */}
+                              {iotData[selectedAttraction.spotId].humidity !== undefined && (
+                                <div className="flex items-center gap-2">
+                                  <Droplets className="h-4 w-4 text-blue-500" />
+                                  <div>
+                                    <div className="text-xs text-gray-500">湿度</div>
+                                    <div className="text-sm font-semibold text-gray-800">
+                                      {iotData[selectedAttraction.spotId].humidity}%
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              {/* 拥挤度 */}
+                              <div className="flex items-center gap-2">
+                                <Users className="h-4 w-4 text-amber-500" />
+                                <div>
+                                  <div className="text-xs text-gray-500">拥挤度</div>
+                                  <div className="text-sm font-semibold text-gray-800">
+                                    {iotData[selectedAttraction.spotId].crowdLevel === 1 ? '宽松' :
+                                     iotData[selectedAttraction.spotId].crowdLevel === 2 ? '适中' :
+                                     iotData[selectedAttraction.spotId].crowdLevel === 3 ? '拥挤' : '非常拥挤'}
+                                  </div>
+                                </div>
+                              </div>
+                              {/* 降雨概率 */}
+                              <div className="flex items-center gap-2">
+                                <Cloud className="h-4 w-4 text-gray-500" />
+                                <div>
+                                  <div className="text-xs text-gray-500">降雨概率</div>
+                                  <div className="text-sm font-semibold text-gray-800">
+                                    {iotData[selectedAttraction.spotId].rainProbability}%
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            {/* 天气描述 */}
+                            {iotData[selectedAttraction.spotId].weatherDescription && (
+                              <div className="mt-3 pt-3 border-t border-blue-100 flex items-center gap-2">
+                                <Cloud className="h-4 w-4 text-blue-500" />
+                                <span className="text-sm text-gray-700">
+                                  {iotData[selectedAttraction.spotId].weatherDescription}
+                                </span>
+                              </div>
+                            )}
+                            {/* 开放状态 */}
+                            <div className="mt-3 pt-3 border-t border-blue-100 flex items-center justify-between">
+                              <span className="text-sm text-gray-600">开放状态</span>
+                              <span className={`text-sm font-semibold px-2 py-1 rounded ${
+                                iotData[selectedAttraction.spotId].isOpen 
+                                  ? 'bg-green-100 text-green-700' 
+                                  : 'bg-red-100 text-red-700'
+                              }`}>
+                                {iotData[selectedAttraction.spotId].isOpen ? '营业中' : '已关闭'}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                        
                         {/* 地址 */}
                         {selectedAttraction.address && (
                           <div className="flex items-center gap-3">
@@ -1078,26 +1266,142 @@ export default function TodayGlass() {
         <Modal
           title="打包清单"
           open={showPackingModal}
-          onCancel={() => setShowPackingModal(false)}
+          onCancel={() => {
+            setShowPackingModal(false);
+            setEditingItem(null);
+            setEditItemName('');
+          }}
           footer={null}
+          width={600}
         >
-          <div className="space-y-3">
-            {packingItems.map(item => (
-              <div 
-                key={item.id}
-                onClick={() => handlePackingToggle(item)}
-                className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
-              >
-                <div className={`w-5 h-5 rounded border-2 transition-all ${
-                  item.isPacked 
-                    ? 'bg-green-500 border-green-500' 
-                    : 'border-gray-300'
-                }`}>
-                  {item.isPacked && <CheckCircle className="w-5 h-5 text-white" />}
-                </div>
-                <span className={item.isPacked ? 'text-gray-400 line-through' : ''}>{item.itemName}</span>
+          <div className="space-y-4">
+            {/* 添加新物品 */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-semibold text-gray-800 mb-3">添加新物品</h4>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="物品名称"
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  onPressEnter={handleAddPackingItem}
+                  className="flex-1"
+                />
+                <select
+                  value={newItemCategory}
+                  onChange={(e) => setNewItemCategory(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                >
+                  <option value="衣物">衣物</option>
+                  <option value="电子设备">电子设备</option>
+                  <option value="洗漱用品">洗漱用品</option>
+                  <option value="证件">证件</option>
+                  <option value="药品">药品</option>
+                  <option value="其他">其他</option>
+                </select>
+                <button
+                  onClick={handleAddPackingItem}
+                  className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+                >
+                  添加
+                </button>
               </div>
-            ))}
+            </div>
+
+            {/* 物品列表 */}
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {packingItems.length > 0 ? (
+                packingItems.map(item => (
+                  <div 
+                    key={item.id}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 border border-gray-100"
+                  >
+                    {/* 勾选框 */}
+                    <div 
+                      onClick={() => handlePackingToggle(item)}
+                      className={`w-5 h-5 rounded border-2 transition-all cursor-pointer flex items-center justify-center ${
+                        item.isPacked 
+                          ? 'bg-green-500 border-green-500' 
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      {item.isPacked && <CheckCircle className="w-5 h-5 text-white" />}
+                    </div>
+                    
+                    {/* 物品信息 */}
+                    {editingItem?.id === item.id ? (
+                      <Input
+                        value={editItemName}
+                        onChange={(e) => setEditItemName(e.target.value)}
+                        onPressEnter={handleEditPackingItem}
+                        className="flex-1"
+                        autoFocus
+                      />
+                    ) : (
+                      <div className="flex-1">
+                        <span className={item.isPacked ? 'text-gray-400 line-through' : 'text-gray-800'}>
+                          {item.itemName}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-400">({item.category})</span>
+                      </div>
+                    )}
+                    
+                    {/* 操作按钮 */}
+                    <div className="flex gap-2">
+                      {editingItem?.id === item.id ? (
+                        <>
+                          <button
+                            onClick={handleEditPackingItem}
+                            className="text-green-500 hover:text-green-600"
+                          >
+                            保存
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingItem(null);
+                              setEditItemName('');
+                            }}
+                            className="text-gray-500 hover:text-gray-600"
+                          >
+                            取消
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => {
+                              setEditingItem(item);
+                              setEditItemName(item.itemName);
+                            }}
+                            className="text-blue-500 hover:text-blue-600"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeletePackingItem(item.id)}
+                            className="text-red-500 hover:text-red-600"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-gray-400 py-8">
+                  <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>暂无打包物品</p>
+                </div>
+              )}
+            </div>
+
+            {/* 统计信息 */}
+            {packingItems.length > 0 && (
+              <div className="pt-4 border-t border-gray-200 flex items-center justify-between text-sm text-gray-600">
+                <span>总计: {packingItems.length} 项</span>
+                <span>已打包: {packingItems.filter(i => i.isPacked).length} 项</span>
+              </div>
+            )}
           </div>
         </Modal>
 

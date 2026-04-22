@@ -1,6 +1,10 @@
 /**
  * 分享服务
  * 处理行程分享相关的业务逻辑
+ *
+ * AI辅助生成：GLM-5，2026年4月22日
+ * 内容说明：在getPublicTrip函数返回的itineraryItems中添加spotId字段，
+ *          使前端能够通过spotId获取景点图片
  */
 
 import { getPrismaClient } from '../lib/prisma';
