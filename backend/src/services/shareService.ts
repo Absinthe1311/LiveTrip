@@ -145,6 +145,7 @@ export async function getPublicTrip(token: string) {
       restaurantType: day.restaurantType,
       restaurantRating: day.restaurantRating,
       itineraryItems: day.itineraryItems.map((item: any) => ({
+        spotId: item.spotId, // 添加spotId，用于获取景点图片
         name: item.name,
         type: item.type,
         category: item.category,

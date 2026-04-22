@@ -11,7 +11,7 @@ import Profile from './pages/Profile';
 import DestinationDetail from './pages/DestinationDetail';
 import Favorites from './pages/Favorites';
 import Destinations from './pages/Destinations';
-import SharedTrip from './pages/SharedTrip';
+import SharedTrip from './pages/SharedTripNew';
 import Blogs from './pages/Blogs';
 import BlogCreate from './pages/BlogCreate';
 import BlogDetail from './pages/BlogDetail';

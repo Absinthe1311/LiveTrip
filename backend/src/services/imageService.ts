@@ -573,10 +573,12 @@ export class ImageService {
 
       // 构建图片映射
       spots.forEach(spot => {
+        // 只使用SpotImage表中的图片，不使用coverImage
         if (spot.images && spot.images.length > 0 && spot.images[0].url) {
           imageMap[spot.id] = spot.images[0].url;
         } else {
-          imageMap[spot.id] = spot.coverImage || '';
+          // 没有图片时返回空字符串
+          imageMap[spot.id] = '';
         }
       });
 

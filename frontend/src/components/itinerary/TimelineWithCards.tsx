@@ -33,6 +33,7 @@ interface TimelineWithCardsProps {
   handleCloseAlternatives: (item: AttractionItem) => void;
   handleReplaceAttraction: (newItem: any, originalItem: any) => void;
   onAttractionsReorder?: (newAttractions: AttractionItem[]) => void;
+  readOnly?: boolean; // 只读模式，禁用拖拽和编辑
 }
 
 // 可拖拽的景点卡片包装器
@@ -130,7 +131,8 @@ export default function TimelineWithCards({
   loadingAlternatives,
   handleCloseAlternatives,
   handleReplaceAttraction,
-  onAttractionsReorder
+  onAttractionsReorder,
+  readOnly = false
 }: TimelineWithCardsProps) {
   const [cardHeights, setCardHeights] = useState<number[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -185,7 +187,7 @@ export default function TimelineWithCards({
         <div className="w-2 h-2 rounded-full bg-green-400" />
         <span className="text-sm font-semibold text-white/60">今日行程</span>
         <span className="text-xs text-white/40">({attractions.length}个景点)</span>
-        <span className="text-xs text-white/30 ml-2">（可拖拽调整顺序）</span>
+        {!readOnly && <span className="text-xs text-white/30 ml-2">（可拖拽调整顺序）</span>}
       </div>
 
       {/* 时间轴和景点卡片 */}
@@ -199,52 +201,80 @@ export default function TimelineWithCards({
           />
         </div>
 
-        {/* 右侧：可拖拽的景点卡片列表 */}
+        {/* 右侧：景点卡片列表 */}
         <div className="flex-1 min-w-0">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={attractions.map((_, index) => index)}
-              strategy={verticalListSortingStrategy}
-            >
-              <div className="space-y-6">
-                {attractions.map((item, index) => {
-                  const attractionKey = `${item.name}-${item.time}`;
-                  const alternatives = expandedAlternatives[attractionKey];
-                  const isLoading = loadingAlternatives[attractionKey];
-                  const itemIoTData = getAttractionIoTData(item, iotData);
+          {readOnly ? (
+            // 只读模式：不使用拖拽，不显示备选按钮
+            <div className="space-y-6">
+              {attractions.map((item, index) => {
+                const attractionKey = `${item.name}-${item.time}`;
+                const alternatives = expandedAlternatives[attractionKey];
+                const isLoading = loadingAlternatives[attractionKey];
+                const itemIoTData = getAttractionIoTData(item, iotData);
 
-                  return (
-                    <SortableSpotCardWrapper
-                      key={index}
+                return (
+                  <div key={index}>
+                    <ImprovedSpotCard
                       item={item}
                       index={index}
                       city={city}
                       imageUrl={spotImages[item.spotId || '']}
-                      onShowAlternatives={() => {
-                        if (expandedAlternatives[attractionKey]) {
-                          handleCloseAlternatives(item);
-                        } else {
-                          onShowAlternatives(item, city);
-                        }
-                      }}
-                      showAlternatives={!!expandedAlternatives[attractionKey]}
+                      showAlternatives={false}
                       iotData={itemIoTData}
                       isHovered={currentCardIndex === index}
                       onHeightChange={handleCardHeightChange}
-                      alternatives={alternatives}
-                      isLoading={isLoading}
-                      handleCloseAlternatives={handleCloseAlternatives}
-                      handleReplaceAttraction={handleReplaceAttraction}
                     />
-                  );
-                })}
-              </div>
-            </SortableContext>
-          </DndContext>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            // 编辑模式：使用拖拽
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={attractions.map((_, index) => index)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-6">
+                  {attractions.map((item, index) => {
+                    const attractionKey = `${item.name}-${item.time}`;
+                    const alternatives = expandedAlternatives[attractionKey];
+                    const isLoading = loadingAlternatives[attractionKey];
+                    const itemIoTData = getAttractionIoTData(item, iotData);
+
+                    return (
+                      <SortableSpotCardWrapper
+                        key={index}
+                        item={item}
+                        index={index}
+                        city={city}
+                        imageUrl={spotImages[item.spotId || '']}
+                        onShowAlternatives={() => {
+                          if (expandedAlternatives[attractionKey]) {
+                            handleCloseAlternatives(item);
+                          } else {
+                            onShowAlternatives(item, city);
+                          }
+                        }}
+                        showAlternatives={!!expandedAlternatives[attractionKey]}
+                        iotData={itemIoTData}
+                        isHovered={currentCardIndex === index}
+                        onHeightChange={handleCardHeightChange}
+                        alternatives={alternatives}
+                        isLoading={isLoading}
+                        handleCloseAlternatives={handleCloseAlternatives}
+                        handleReplaceAttraction={handleReplaceAttraction}
+                      />
+                    );
+                  })}
+                </div>
+              </SortableContext>
+            </DndContext>
+          )}
         </div>
       </div>
     </div>
