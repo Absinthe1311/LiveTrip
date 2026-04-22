@@ -165,3 +165,17 @@ export const saveFinalTrip = async (roomId: string, finalRoute: any[]) => {
   const response = await apiClient.post('/collab/finalize', { roomId, finalRoute });
   return response.data;
 };
+
+/**
+ * 获取用户最新的协同行程
+ * @returns 最新的协同行程
+ */
+export const getLatestCollabTrip = async () => {
+  const response = await apiClient.get('/trips', {
+    params: {
+      source: 'collaborative',
+      limit: 1,
+    },
+  });
+  return response.data;
+};

@@ -8,7 +8,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Menu, Users, MessageCircle, MapPin, Send, Lock, Eye, Loader, Copy, Check, Share2 } from 'lucide-react';
 import GlobalSidebar from '../../components/layout/GlobalSidebar';
 import { useCollabStore } from '../../store/collabStore';
-import { getCollabRoomInfo, getUserDrafts, getCollabMessages, getSpotStats, lockCollabRoom, sendCollabMessage, upsertDraft, submitDraft, getCitySpots, getAllDrafts, saveFinalTrip } from '../../api/collabApi';
+import { getCollabRoomInfo, getUserDrafts, getCollabMessages, getSpotStats, lockCollabRoom, sendCollabMessage, upsertDraft, submitDraft, getCitySpots, getAllDrafts, saveFinalTrip, getLatestCollabTrip } from '../../api/collabApi';
 import { connectSocket, disconnectSocket, joinRoom, leaveRoom, updateDraft } from '../../services/collabSocket';
 import { useCollabMap, Spot, RoutePoint } from '../../hooks/useCollabMap';
 import LayerControl from '../../components/collab/LayerControl';
@@ -165,6 +165,55 @@ export default function CollabRoom() {
       window.removeEventListener('draft-submitted', handleDraftSubmitted);
     };
   }, [roomId]);
+
+  // 监听行程保存成功事件，自动跳转到行程详情页
+  useEffect(() => {
+    const handleTripSaved = async (event: any) => {
+      console.log('🎯 收到行程保存事件:', event.detail);
+      
+      try {
+        const { hostTripId, memberTripIds } = event.detail || {};
+        
+        // 获取当前用户ID
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const currentUserId = currentUser.id;
+        
+        // 判断当前用户是房主还是成员
+        let targetTripId = hostTripId;
+        
+        // 如果当前用户不是房主，需要找到属于自己的行程ID
+        if (currentRoom && currentRoom.hostId !== currentUserId) {
+          // 成员需要查询自己的行程
+          // 由于后端已经为每个成员创建了行程，我们需要找到属于当前用户的那个
+          // 这里可以通过API查询，或者直接使用memberTripIds（但需要知道哪个属于当前用户）
+          
+          // 简单方案：跳转到我的行程列表，让用户自己查看
+          // 更好的方案：查询当前用户的最新协同行程
+          
+          // 暂时使用简单方案：跳转到我的行程列表
+          alert('✅ 协同行程已保存！\n\n您可以在"我的行程"中查看协同行程。');
+          navigate('/my-trips');
+          return;
+        }
+
+        // 所有用户（房主和成员）都跳转到我的行程列表
+        alert('✅ 危同行程已保存！\n\n您可以在"我的行程"中查看协同行程。');
+        navigate('/my-trips');
+
+      } catch (err) {
+        console.error('处理行程保存事件失败:', err);
+        // 失败时跳转到我的行程列表
+        navigate('/my-trips');
+      }
+    };
+
+    // 监听自定义事件
+    window.addEventListener('trip-saved', handleTripSaved);
+
+    return () => {
+      window.removeEventListener('trip-saved', handleTripSaved);
+    };
+  }, [navigate, currentRoom]);
 
   // 当城市景点加载后，显示在地图上
   useEffect(() => {
@@ -654,17 +703,24 @@ export default function CollabRoom() {
   // 保存最终路线
   const handleSaveFinalRoute = async (route: any[]) => {
     if (!roomId) return;
-    
+
     try {
+      console.log('📝 开始保存最终行程，路线:', route);
+
       // 调用后端API保存最终行程
       const response = await saveFinalTrip(roomId, route);
-      
+
+      console.log('📝 保存响应:', response);
+
       if (response.success) {
-        alert('✅ 危同行程已保存！\n\n您可以在"我的行程"中查看协同行程。');
-        // 跳转到我的行程页面
-        navigate('/my-trips');
-      } else {
-        throw new Error(response.error || '保存失败');
+        // 显示成功提示
+        alert('✅ 危同行程保存成功！');
+
+        // 所有用户（房主和成员）都跳转到我的行程列表
+        console.log('🎯 跳转到我的行程列表');
+        setTimeout(() => {
+          navigate('/my-trips');
+        }, 500);
       }
     } catch (err: any) {
       console.error('保存最终路线失败:', err);
@@ -1160,5 +1216,7 @@ export default function CollabRoom() {
     </div>
   );
 }
+
+
 
 

@@ -165,6 +165,17 @@ export const connectSocket = (token: string) => {
     }
   });
 
+  /**
+   * 行程保存成功 - 通知所有成员跳转
+   */
+  socket.on('trip:saved', (data: { hostTripId: string; memberTripIds: string[]; timestamp: Date }) => {
+    console.log('✅ 协同行程已保存，准备跳转:', data);
+    // 触发自定义事件，通知CollabRoom组件跳转
+    window.dispatchEvent(new CustomEvent('trip-saved', {
+      detail: data
+    }));
+  });
+
   // ==================== 消息事件 ====================
 
   /**

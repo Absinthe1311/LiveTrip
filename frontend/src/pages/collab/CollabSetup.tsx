@@ -311,7 +311,7 @@ export default function CollabSetup() {
   };
 
   return (
-    <GlassLayout>
+    <GlassLayout showSearch={false}>
       <div className="max-w-2xl mx-auto py-8">
         {/* 页面标题 */}
         <div className="text-center mb-8">
