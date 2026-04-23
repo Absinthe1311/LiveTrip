@@ -18,9 +18,6 @@ export interface SpotWithIoT {
   description?: string;
   isOutdoor?: boolean;
   isHot: boolean;
-  coverImage?: string;
-  avgRating?: number;
-  reviewCount: number;
   source: string;
   createdAt: Date;
   updatedAt: Date;
@@ -127,7 +124,6 @@ ${index + 1}. ${spot.name}
    - 描述: ${spot.description || '暂无描述'}
    - 是否热门: ${spot.isHot ? '是' : '否'}
    - 是否户外: ${spot.isOutdoor ? '是' : '否'}
-   - 评价数: ${spot.reviewCount}
    IoT 数据:${iotInfo}
       `.trim();
     }).join('\n\n');

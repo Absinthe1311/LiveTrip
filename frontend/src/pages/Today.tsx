@@ -22,7 +22,6 @@ import {
   updatePackingItem,
   addPackingItem,
   deletePackingItem,
-  getSpotCoverImage,
   batchGetSpotImagesByIds,
   apiClient,
   AttractionItem,
@@ -205,24 +204,8 @@ export default function TodayGlass() {
           }
         }
 
-        if (nameFallbacks.size > 0) {
-          const namesToLoad = Array.from(nameFallbacks);
-          const fallbackResults = await Promise.allSettled(
-            namesToLoad.map((name) => getSpotCoverImage(name, currentTrip.destination))
-          );
-
-          const fallbackMap: Record<string, string> = {};
-          fallbackResults.forEach((result, index) => {
-            if (result.status !== 'fulfilled') return;
-            const imageUrl = result.value?.data?.imageUrl;
-            if (!imageUrl) return;
-            fallbackMap[namesToLoad[index]] = imageUrl;
-          });
-
-          if (Object.keys(fallbackMap).length > 0) {
-            setSpotImagesByName(prev => ({ ...prev, ...fallbackMap }));
-          }
-        }
+        // 移除通过景点名称获取图片的兜底方案
+        // 所有图片都通过景点ID批量获取
       } catch (e) {
         console.error('加载景点图片失败:', e);
       }

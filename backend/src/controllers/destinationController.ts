@@ -5,6 +5,7 @@ import { getPrismaClient } from '../lib/prisma';
 const prisma = getPrismaClient();
 
 // 硬编码的6个热门城市
+// 更新时间: 2026-04-23 17:10 - 触发重启
 const HOT_CITIES = [
   { name: '北京', coverImage: '/images/cities/beijing.jpg', description: '千年古都，现代都市' },
   { name: '上海', coverImage: '/images/cities/shanghai.jpg', description: '东方明珠，魔都风情' },
@@ -104,13 +105,9 @@ export const getCitySpots = async (req: Request, res: Response) => {
         isHot: true,
       },
       include: {
-        images: {
+        image: {
           where: {
             status: 'approved',
-          },
-          take: 1,
-          orderBy: {
-            priority: 'desc',
           },
         },
         iotData: true,
@@ -126,7 +123,7 @@ export const getCitySpots = async (req: Request, res: Response) => {
     const result = spots.map((spot: any) => ({
       id: spot.id,
       name: spot.name,
-      image: spot.images && spot.images.length > 0 ? spot.images[0].url : (spot.coverImage || ''),
+      image: spot.image ? spot.image.url : '',
       rating: spot.rating || 4.5,
       description: spot.description || '',
       openTime: spot.openTime || '全天开放',
@@ -179,13 +176,9 @@ export const getCityAllSpots = async (req: Request, res: Response) => {
         isHot: true,
       },
       include: {
-        images: {
+        image: {
           where: {
             status: 'approved',
-          },
-          take: 1,
-          orderBy: {
-            priority: 'desc',
           },
         },
         iotData: true,
@@ -202,7 +195,7 @@ export const getCityAllSpots = async (req: Request, res: Response) => {
     const result = spots.map((spot: any) => ({
       id: spot.id,
       name: spot.name,
-      image: spot.images && spot.images.length > 0 ? spot.images[0].url : (spot.coverImage || ''),
+      image: spot.image ? spot.image.url : '',
       rating: spot.rating || 4.5,
       description: spot.description || '',
       openTime: spot.openTime || '全天开放',

@@ -80,10 +80,8 @@ export class AdminController {
         prisma.spot.count(),
         prisma.spot.count({
           where: {
-            images: {
-              some: {
-                status: 'approved',
-              },
+            image: {
+              status: 'approved',
             },
           },
         }),
@@ -148,7 +146,7 @@ export class AdminController {
         skip: (Number(page) - 1) * Number(limit),
         take: Number(limit),
         include: {
-          images: {
+          image: {
             select: {
               status: true,
               isPrimary: true,
@@ -162,15 +160,15 @@ export class AdminController {
 
       // 处理每个景点的配图状态
       const spotStatuses = spots.map((spot) => {
-        const images = spot.images || [];
-        const approvedImages = images.filter(img => img.status === 'approved');
-        const pendingImages = images.filter(img => img.status === 'pending');
-        const hasPrimary = images.some(img => img.isPrimary);
+        const image = spot.image;
+        const hasApproved = image && image.status === 'approved';
+        const hasPending = image && image.status === 'pending';
+        const hasPrimary = image && image.isPrimary;
 
         let spotStatus: 'has-image' | 'no-image' | 'pending' = 'no-image';
-        if (approvedImages.length > 0) {
+        if (hasApproved) {
           spotStatus = 'has-image';
-        } else if (pendingImages.length > 0) {
+        } else if (hasPending) {
           spotStatus = 'pending';
         }
 
@@ -179,10 +177,10 @@ export class AdminController {
           name: spot.name,
           city: spot.city,
           rating: spot.rating || 0,
-          viewCount: spot.reviewCount || 0,
-          imageCount: images.length,
-          approvedCount: approvedImages.length,
-          hasPrimary,
+          viewCount: 0,  // reviewCount已删除
+          imageCount: image ? 1 : 0,
+          approvedCount: hasApproved ? 1 : 0,
+          hasPrimary: hasPrimary || false,
           status: spotStatus,
           isFromUserTrip: userTripSpotIds.includes(spot.id),
         };
@@ -325,7 +323,7 @@ export class AdminController {
           skip: (Number(page) - 1) * Number(limit),
           take: Number(limit),
           include: {
-            images: {
+          image: {
               select: {
                 status: true,
                 isPrimary: true,
@@ -337,18 +335,18 @@ export class AdminController {
       ]);
 
       const spotStatuses = spots.map((spot) => {
-        const images = spot.images || [];
-        const approvedImages = images.filter(img => img.status === 'approved');
+        const image = spot.image;
+        const hasApproved = image && image.status === 'approved';
 
         return {
           id: spot.id,
           name: spot.name,
           city: spot.city,
           rating: spot.rating || 0,
-          imageCount: images.length,
-          approvedCount: approvedImages.length,
-          hasPrimary: images.some(img => img.isPrimary),
-          status: approvedImages.length > 0 ? 'has-image' : 'no-image',
+          imageCount: image ? 1 : 0,
+          approvedCount: hasApproved ? 1 : 0,
+          hasPrimary: image && image.isPrimary,
+          status: hasApproved ? 'has-image' : 'no-image',
           isFromUserTrip: true,
         };
       });
@@ -417,7 +415,7 @@ export class AdminController {
           skip: (page - 1) * pageSize,
           take: pageSize,
           include: {
-            images: {
+          image: {
               select: {
                 id: true,
                 url: true,
@@ -437,16 +435,17 @@ export class AdminController {
       ]);
 
       const items: AdminSpotListItem[] = spots.map((spot) => {
-        const approvedImages = spot.images.filter((img) => img.status === 'approved');
-        const pendingImages = spot.images.filter((img) => img.status === 'pending');
-        const coverImage = approvedImages[0]?.url || null;
+        const image = spot.image;
+        const isApproved = image && image.status === 'approved';
+        const isPending = image && image.status === 'pending';
+        const coverImage = isApproved ? image.url : null;
 
         return {
           id: spot.id,
           name: spot.name,
           city: spot.city,
-          approvedImageCount: approvedImages.length,
-          pendingImageCount: pendingImages.length,
+          approvedImageCount: isApproved ? 1 : 0,
+          pendingImageCount: isPending ? 1 : 0,
           coverImageUrl: coverImage,
         };
       });

@@ -29,25 +29,11 @@ model User {
   collabMessages      CollabMessage[]
   collabRoomsAsHost   CollabRoom[]     @relation("HostRooms")
   draftRoutes         DraftRoute[]
-  reviewedImages      SpotImage[]      @relation("ImageReviewer")
   uploadedImages      SpotImage[]      @relation("ImageUploader")
+  reviewedImages      SpotImage[]      @relation("ImageReviewer")
   trips               Trip[]
   collabRoomsAsMember TripMember[]
-  preferences         UserPreferences?
   notifications       Notification[]
-}
-
-model UserPreferences {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  travelStyle    String   @default("balanced")
-  budgetRange    String   @default("medium")
-  accommodation  String   @default("hotel")
-  transportation String   @default("mixed")
-  dietaryPrefs   String   @default("")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Trip {
@@ -210,22 +196,19 @@ model Spot {
   description    String?
   isOutdoor      Boolean?        @default(true)
   isHot          Boolean         @default(false)
-  coverImage     String?
-  avgRating      Float?
-  reviewCount    Int             @default(0)
   source         String          @default("amap")
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   favorites      Favorite[]
   itineraryItems ItineraryItem[]
-  reviews        Review[]
-  images         SpotImage[]
+  image          SpotImage?
   iotData        SpotIoTData?
-  sensorLogs     EnvironmentSensorLog[]
 
   @@index([city])
   @@index([category])
   @@index([amapId])
+  @@index([name])
+  @@index([name, city])
 }
 
 model SpotIoTData {
@@ -248,73 +231,29 @@ model SpotIoTData {
 
 model SpotImage {
   id          String    @id @default(cuid())
-  spotId      String
-  url         String?   @default("")
-  source      String    @default("unsplash")
-  status      String    @default("approved")
-  priority    Int       @default(1)
+  spotId      String    @unique
+  url         String
+  source      String    @default("admin")
+  uploadedBy  String
+  status      String    @default("approved")  // approved/pending/rejected
   isPrimary   Boolean   @default(false)
-  fileHash    String    @default("")
-  uploadedBy  String    @default("system")
-  reviewedBy  String?
-  reviewedAt  DateTime?
-  reviewNote  String?
+  priority    Int       @default(0)
+  fileHash    String?
   viewCount   Int       @default(0)
   likeCount   Int       @default(0)
   reportCount Int       @default(0)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  reviewNote  String?
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @default(now())
-  reviewer    User?     @relation("ImageReviewer", fields: [reviewedBy], references: [id])
+  updatedAt   DateTime  @updatedAt
   uploader    User      @relation("ImageUploader", fields: [uploadedBy], references: [id])
   spot        Spot      @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  reviewer    User?     @relation("ImageReviewer", fields: [reviewedBy], references: [id])
 
   @@index([spotId])
   @@index([source])
   @@index([status])
-  @@index([priority])
-  @@index([uploadedBy])
-}
-
-model Review {
-  id        String        @id @default(cuid())
-  spotId    String
-  userId    String
-  rating    Float
-  comment   String?
-  likeCount Int           @default(0)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  spot      Spot          @relation(fields: [spotId], references: [id], onDelete: Cascade)
-  images    ReviewImage[]
-  likes     ReviewLike[]
-
-  @@index([spotId])
-  @@index([userId])
-  @@index([rating])
-  @@index([likeCount])
-}
-
-model ReviewImage {
-  id        String   @id @default(cuid())
-  reviewId  String
-  imageUrl  String
-  altText   String?
-  createdAt DateTime @default(now())
-  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-
-  @@index([reviewId])
-}
-
-model ReviewLike {
-  id        String   @id @default(cuid())
-  reviewId  String
-  userId    String
-  createdAt DateTime @default(now())
-  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-
-  @@unique([reviewId, userId])
-  @@index([reviewId])
-  @@index([userId])
 }
 
 model SpotAlternative {
@@ -565,36 +504,6 @@ model CollabMessage {
   @@index([createdAt])
 }
 
-// 环境感知日志表
-model EnvironmentSensorLog {
-  id        String   @id @default(cuid())
-  spotId    String
-  spot      Spot     @relation(fields: [spotId], references: [id], onDelete: Cascade)
-
-  // 感知类型: rain, crowd, temperature, close
-  type      String
-
-  // 感知级别: info, warning, danger
-  level     String
-
-  // 感知数据（JSON格式）
-  data      String   @default("{}")
-
-  // 感知消息
-  message   String
-
-  // 是否已通知用户
-  notified  Boolean  @default(false)
-
-  // 通知时间
-  notifiedAt DateTime?
-
-  createdAt DateTime @default(now())
-
-  @@index([spotId, type, createdAt])
-  @@index([level, createdAt])
-}
-
 // 站内通知表
 model Notification {
   id        String   @id @default(cuid())
@@ -623,4 +532,21 @@ model Notification {
 
   @@index([userId, isRead, createdAt])
   @@index([userId, createdAt])
+}
+
+// 环境传感器日志表
+model EnvironmentSensorLog {
+  id             String   @id @default(cuid())
+  spotId         String
+  crowdLevel     Float
+  temperature    Float
+  rainProbability Float
+  isOpen         Boolean
+  weatherDescription String?
+  weatherIcon    String?
+  generatedAt    DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([spotId])
+  @@index([generatedAt])
 }

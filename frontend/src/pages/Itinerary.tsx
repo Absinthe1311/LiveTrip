@@ -24,7 +24,7 @@ import DayMapComponent from '../components/itinerary/DayMap';
 import PackingStep, { PackingItemData } from '../components/itinerary/PackingStep';
 import { useAppStore } from '../store';
 import { FullItinerary, AttractionItem, calculateRealTimeBudget, completeTrip } from '../api/client';
-import { getIoTData, saveTrip, getSpotCoverImage, batchGetSpotImagesByIds, addPackingItem, updatePackingItem, getPackingList, savePackingList } from '../api/client';
+import { getIoTData, saveTrip, batchGetSpotImagesByIds, addPackingItem, updatePackingItem, getPackingList, savePackingList } from '../api/client';
 import { Hotel, Restaurant, getHotelRecommendations, getRestaurantRecommendations } from '../api/recommendationApi';
 import { alternativeRecommender } from '../services/alternativeRecommender';
 import AMapLoader from '@amap/amap-jsapi-loader';

@@ -428,124 +428,6 @@ export class ImageService {
   }
 
   /**
-   * 获取景点封面图片（带图片来源）
-   * @param spotName 景点名称
-   * @param city 城市名称（可选）
-   * @returns 图片对象，包含URL和来源信息
-   */
-  async getSpotCoverImageWithSource(spotName: string, city?: string): Promise<{ url: string; source: string } | null> {
-    try {
-      // 构建查询条件
-      const where: any = {
-        name: spotName,
-      };
-
-      if (city) {
-        where.city = city;
-      }
-
-      // 查找景点
-      const spot = await prisma.spot.findFirst({
-        where,
-      });
-
-      if (!spot) {
-        return null;
-      }
-
-      // 查找景点的图片（优先 admin approved）
-      const image = await prisma.spotImage.findFirst({
-        where: {
-          spotId: spot.id,
-          status: 'approved',
-          isPrimary: true,
-        },
-        orderBy: {
-          priority: 'desc',
-        },
-        select: {
-          url: true,
-          source: true,
-        },
-      });
-
-      // 如果没有主图，查找第一张图片
-      if (!image) {
-        const firstImage = await prisma.spotImage.findFirst({
-          where: {
-            spotId: spot.id,
-            status: 'approved',
-          },
-          orderBy: {
-            priority: 'desc',
-          },
-          select: {
-            url: true,
-            source: true,
-          },
-        });
-
-        if (firstImage?.url) {
-          return {
-            url: firstImage.url,
-            source: firstImage.source
-          };
-        }
-      }
-
-      if (image?.url) {
-        return {
-          url: image.url,
-          source: image.source
-        };
-      }
-
-      // 如果数据库中没有图片，返回null
-      console.log(`⚠️  景点 ${spotName} 没有图片`);
-      return null;
-    } catch (error) {
-      console.error('❌ 获取景点封面图片失败:', error);
-      return null;
-    }
-  }
-
-  /**
-   * 获取景点封面图片（兼容旧接口）
-   * @param spotName 景点名称
-   * @param city 城市名称（可选）
-   * @returns 图片URL，如果没有找到则返回null
-   */
-  async getSpotCoverImage(spotName: string, city?: string): Promise<string | null> {
-    const result = await this.getSpotCoverImageWithSource(spotName, city);
-    return result?.url || null;
-  }
-
-  /**
-   * 批量获取景点图片
-   * @param spots 景点数组，包含名称和城市
-   * @returns Map<景点标识, 图片URL>
-   */
-  async batchGetSpotImages(
-    spots: Array<{ name: string; city?: string }>
-  ): Promise<Map<string, string>> {
-    const imageMap = new Map<string, string>();
-
-    for (const spot of spots) {
-      try {
-        const imageUrl = await this.getSpotCoverImage(spot.name, spot.city);
-        const key = spot.city ? `${spot.name}_${spot.city}` : spot.name;
-        imageMap.set(key, imageUrl || '');
-      } catch (error) {
-        console.error(`获取景点 ${spot.name} 图片失败:`, error);
-        const key = spot.city ? `${spot.name}_${spot.city}` : spot.name;
-        imageMap.set(key, '');
-      }
-    }
-
-    return imageMap;
-  }
-
-  /**
    * 根据景点ID批量获取图片（从数据库查询）
    */
   async batchGetSpotImagesByIds(spotIds: string[]): Promise<Record<string, string>> {
@@ -559,13 +441,9 @@ export class ImageService {
           id: { in: spotIds }
         },
         include: {
-          images: {
+          image: {
             where: {
               status: 'approved'
-            },
-            take: 1,
-            orderBy: {
-              priority: 'desc'
             }
           }
         }
@@ -573,9 +451,9 @@ export class ImageService {
 
       // 构建图片映射
       spots.forEach(spot => {
-        // 只使用SpotImage表中的图片，不使用coverImage
-        if (spot.images && spot.images.length > 0 && spot.images[0].url) {
-          imageMap[spot.id] = spot.images[0].url;
+        // 使用SpotImage表中的图片
+        if (spot.image && spot.image.url) {
+          imageMap[spot.id] = spot.image.url;
         } else {
           // 没有图片时返回空字符串
           imageMap[spot.id] = '';

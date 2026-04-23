@@ -51,32 +51,27 @@ class UserProfileService {
       }
 
       // 并行查询多个数据源
-      const [trips, userPreferences] = await Promise.all([
-        prisma.trip.findMany({
-          where: { userId: targetUserId },
-          orderBy: { createdAt: 'desc' },
-          take: 20, // 最多取最近20个行程
-          select: {
-            destination: true,
-            startDate: true,
-            endDate: true,
-            status: true,
-            totalBudget: true,
-            actualBudget: true,
-          },
-        }),
-        prisma.userPreferences.findUnique({
-          where: { userId: targetUserId },
-        }),
-      ]);
+      const trips = await prisma.trip.findMany({
+        where: { userId: targetUserId },
+        orderBy: { createdAt: 'desc' },
+        take: 20, // 最多取最近20个行程
+        select: {
+          destination: true,
+          startDate: true,
+          endDate: true,
+          status: true,
+          totalBudget: true,
+          actualBudget: true,
+        },
+      });
 
       // 提取访问过的目的地
       const visitedDestinations = Array.from(
-        new Set(trips.map(trip => trip.destination))
+        new Set(trips.map((trip: any) => trip.destination))
       );
 
-      // 提取用户偏好
-      const preferences = this.extractPreferences(userPreferences);
+      // 提取用户偏好（暂时返回空数组）
+      const preferences: string[] = [];
 
       // 计算平均预算范围
       const budgetRange = this.calculateBudgetRange(trips);

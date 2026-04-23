@@ -79,14 +79,10 @@ export async function getUserFavoritesWithIoT(userId: string = 'default-user'): 
         spot: {
           include: {
             iotData: true,
-            images: {
+            image: {
               where: {
                 status: 'approved',
               },
-              orderBy: {
-                priority: 'desc',
-              },
-              take: 1, // 只取第一张图片
             },
           },
         },

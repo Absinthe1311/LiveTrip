@@ -25,13 +25,9 @@ export const getHotSpots = async (req: Request, res: Response) => {
     const hotSpots = await prisma.spot.findMany({
       where,
       include: {
-        images: {
+        image: {
           where: {
             status: 'approved',
-          },
-          take: 1,
-          orderBy: {
-            priority: 'desc',
           },
         },
         iotData: true,
@@ -47,8 +43,8 @@ export const getHotSpots = async (req: Request, res: Response) => {
     const result = hotSpots.map(spot => ({
       id: spot.id,
       name: spot.name,
-      // 优先使用images表中的图片，其次使用coverImage
-      image: spot.images.length > 0 ? spot.images[0].url : (spot.coverImage || ''),
+      // 使用image表中的图片
+      image: spot.image ? spot.image.url : '',
       rating: spot.rating || 4.5,
       description: spot.description || '',
       openTime: spot.openTime || '全天开放',

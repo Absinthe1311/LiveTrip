@@ -1,13 +1,13 @@
 ﻿// 紧凑版备选景点卡片 - 与ImprovedSpotCard样式一致但尺寸更小
-import React, { useState } from 'react';
+import React from 'react';
 import { Star, MapPin, Wallet, Image as ImageIcon } from 'lucide-react';
-import { getSpotCoverImage } from '../../api/client';
 
 interface CompactAlternativeSpotCardProps {
   item: any;
   city?: string;
   onReplace: () => void;
   isSelected?: boolean;
+  imageUrl?: string;  // 新增：图片URL由父组件提供
 }
 
 // 获取拥挤度颜色
@@ -28,29 +28,10 @@ export default function CompactAlternativeSpotCard({
   item,
   city,
   onReplace,
-  isSelected = false
+  isSelected = false,
+  imageUrl  // 图片URL由父组件提供
 }: CompactAlternativeSpotCardProps) {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [imageLoading, setImageLoading] = useState(false);
-
-  // 加载景点图片
-  React.useEffect(() => {
-    const loadImage = async () => {
-      if (!item.name) return;
-      setImageLoading(true);
-      try {
-        const response = await getSpotCoverImage(item.name, city);
-        if (response.success && response.data?.imageUrl) {
-          setImageUrl(response.data.imageUrl);
-        }
-      } catch (error) {
-        console.error(`加载景点图片失败 (${item.name}):`, error);
-      } finally {
-        setImageLoading(false);
-      }
-    };
-    loadImage();
-  }, [item.name, city]);
+  // 图片URL由父组件通过props传入，不再单独加载
 
   return (
     <div
@@ -62,11 +43,7 @@ export default function CompactAlternativeSpotCard({
     >
       {/* 景点图片 - 缩小尺寸 */}
       <div className="relative h-32 bg-gradient-to-br from-[#008F8D]/20 to-[#008F8D]/30">
-        {imageLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-400" />
-          </div>
-        ) : imageUrl ? (
+        {imageUrl ? (
           <img
             src={imageUrl}
             alt={item.name}

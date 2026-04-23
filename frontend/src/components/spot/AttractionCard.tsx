@@ -1,7 +1,5 @@
 ﻿import { Card, Button, Tag, Image, Empty } from 'antd';
 import { ThunderboltOutlined, TeamOutlined, CheckCircleOutlined, PictureOutlined } from '@ant-design/icons';
-import { useState, useEffect } from 'react';
-import { getSpotCoverImage } from '../../api/client';
 
 interface AttractionCardProps {
   time: string;
@@ -21,32 +19,11 @@ interface AttractionCardProps {
   };
   item?: any;
   city?: string;
+  imageUrl?: string;  // 新增：图片URL由父组件提供
 }
 
-export default function AttractionCard({ time, name, desc, onShowAlternatives, iotData, item, city }: AttractionCardProps) {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [imageLoading, setImageLoading] = useState(false);
-
-  useEffect(() => {
-    const loadImage = async () => {
-      if (!name) return;
-      
-      setImageLoading(true);
-      try {
-        const response = await getSpotCoverImage(name, city);
-        if (response.success && response.data?.imageUrl) {
-          setImageUrl(response.data.imageUrl);
-          console.log(`✅ 加载景点图片: ${name}`);
-        }
-      } catch (error) {
-        console.error(`❌ 加载景点图片失败 (${name}):`, error);
-      } finally {
-        setImageLoading(false);
-      }
-    };
-
-    loadImage();
-  }, [name, city]);
+export default function AttractionCard({ time, name, desc, onShowAlternatives, iotData, item, city, imageUrl }: AttractionCardProps) {
+  // 图片URL由父组件通过props传入，不再单独加载
 
   const getWeatherStatus = () => {
     if (!iotData) return null;
@@ -115,10 +92,10 @@ export default function AttractionCard({ time, name, desc, onShowAlternatives, i
         </div>
       )}
       
-      {!imageUrl && !imageLoading && (
-        <div style={{ 
-          marginBottom: 16, 
-          padding: 20, 
+      {!imageUrl && (
+        <div style={{
+          marginBottom: 16,
+          padding: 20,
           textAlign: 'center',
           backgroundColor: '#f5f5f5',
           borderRadius: 8,

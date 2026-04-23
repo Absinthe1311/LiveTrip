@@ -23,18 +23,6 @@ router.post('/blog-upload', authenticateToken, uploadSingleImage, ImageControlle
 router.post('/upload', authenticateToken, uploadSingleImage, ImageController.uploadImage);
 
 /**
- * 获取景点封面图片
- * GET /images/spot/:spotName/cover
- */
-router.get('/spot/:spotName/cover', ImageController.getSpotCoverImage);
-
-/**
- * 批量获取景点图片
- * POST /images/batch
- */
-router.post('/batch', ImageController.batchGetSpotImages);
-
-/**
  * 根据景点ID批量获取图片（从数据库查询）
  * POST /images/batch-by-ids
  */

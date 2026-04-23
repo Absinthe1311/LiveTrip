@@ -303,10 +303,12 @@ class EnvironmentSensorService {
       await prisma.environmentSensorLog.create({
         data: {
           spotId: result.spotId,
-          type: result.type,
-          level: result.level,
-          data: JSON.stringify(result.data),
-          message: result.message,
+          crowdLevel: result.data.crowdLevel || 0,
+          temperature: result.data.temperature || 0,
+          rainProbability: result.data.rainProbability || 0,
+          isOpen: result.data.isOpen || false,
+          weatherDescription: result.data.weatherDescription,
+          weatherIcon: result.data.weatherIcon,
         },
       });
     } catch (error) {

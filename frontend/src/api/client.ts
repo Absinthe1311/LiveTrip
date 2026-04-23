@@ -490,29 +490,6 @@ export const completeTrip = async (tripId: string) => {
 // ==================== 图片相关 ====================
 
 /**
- * 获取景点封面图片（带来源信息）
- * @param spotName 景点名称
- * @param city 城市（可选）
- * @returns 景点图片URL和来源信息
- */
-export const getSpotCoverImage = async (spotName: string, city?: string) => {
-  const params: any = {};
-  if (city) params.city = city;
-  const response = await apiClient.get(`/images/spot/${encodeURIComponent(spotName)}/cover`, { params });
-  return response.data;
-};
-
-/**
- * 批量获取景点图片
- * @param spots 景点列表
- * @returns 图片映射
- */
-export const batchGetSpotImages = async (spots: Array<{ name: string; city?: string }>) => {
-  const response = await apiClient.post('/images/batch', { spots });
-  return response.data;
-};
-
-/**
  * 根据景点ID批量获取图片（从数据库查询）
  * @param spotIds 景点ID列表
  * @returns 图片映射 { spotId: imageUrl }
