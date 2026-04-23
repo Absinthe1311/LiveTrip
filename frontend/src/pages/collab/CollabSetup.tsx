@@ -360,7 +360,7 @@ export default function CollabSetup() {
                     value={formData.roomName}
                     onChange={(e) => handleInputChange('roomName', e.target.value)}
                     placeholder="例如：北京三日游"
-                    className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none"
+                    className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-green-400/50 focus:shadow-[0_0_20px_rgba(34,197,94,0.3)] focus:outline-none"
                   />
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-livetrip-primary/0 via-livetrip-primary/20 to-livetrip-primary/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 </div>
@@ -378,7 +378,7 @@ export default function CollabSetup() {
                     value={formData.destination}
                     onChange={(e) => handleInputChange('destination', e.target.value)}
                     placeholder="输入目的地城市（如：北京、上海、杭州）"
-                    className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none"
+                    className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-green-400/50 focus:shadow-[0_0_20px_rgba(34,197,94,0.3)] focus:outline-none"
                   />
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-livetrip-primary/0 via-livetrip-primary/20 to-livetrip-primary/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 </div>
@@ -388,7 +388,7 @@ export default function CollabSetup() {
               {/* 下一步按钮 */}
               <button
                 onClick={handleNext}
-                className="relative w-full py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold text-lg border border-white/20 shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden"
+                className="relative w-full py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold text-lg border border-white/20 shadow-lg shadow-green-600/30 hover:shadow-xl hover:shadow-green-600/40 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
                 <span className="relative flex items-center justify-center gap-2">
@@ -415,13 +415,7 @@ export default function CollabSetup() {
                 />
               </div>
 
-              {calculateDays() > 0 && (
-                <div className="text-center py-3 bg-livetrip-primary/10 rounded-xl border border-livetrip-primary/20">
-                  <span className="text-livetrip-primary font-semibold">
-                    行程共 {calculateDays()} 天
-                  </span>
-                </div>
-              )}
+
 
               {/* 人数选择 */}
               <div>
@@ -533,7 +527,7 @@ export default function CollabSetup() {
                 <button
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="relative py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold text-lg border border-white/20 shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="relative py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold text-lg border border-white/20 shadow-lg shadow-green-600/30 hover:shadow-xl hover:shadow-green-600/40 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
                   <span className="relative flex items-center justify-center gap-2">

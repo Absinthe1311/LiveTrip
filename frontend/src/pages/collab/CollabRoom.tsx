@@ -889,7 +889,7 @@ export default function CollabRoom() {
                   }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                     currentDay === day
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30 border border-white/20'
+                      ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-600/30 border border-white/20'
                       : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white border border-white/20'
                   }`}
                 >
@@ -911,7 +911,7 @@ export default function CollabRoom() {
             <div className="p-4 border-b border-white/10">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold flex items-center gap-2 text-white">
-                  <MapPin className="h-5 w-5 text-amber-400" />
+                  <MapPin className="h-5 w-5 text-green-400" />
                   第 {currentDay} 天路线规划
                 </h3>
                 <div className="flex items-center gap-2">
@@ -1000,13 +1000,13 @@ export default function CollabRoom() {
           {/* 成员列表 */}
           <div className="p-4 border-b border-white/10">
             <h3 className="font-semibold mb-3 flex items-center gap-2 text-white">
-              <Users className="h-5 w-5 text-amber-400" />
+              <Users className="h-5 w-5 text-green-400" />
               成员 ({members.length})
             </h3>
             <div className="space-y-2 max-h-[150px] overflow-y-auto">
               {members.map((member) => (
                 <div key={member.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/10 transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500/20 to-amber-600/20 flex items-center justify-center border border-white/20">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-600/20 to-emerald-600/20 flex items-center justify-center border border-white/20">
                     {member.user.username.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1">
@@ -1027,7 +1027,7 @@ export default function CollabRoom() {
           <div className="flex-1 flex flex-col border-b border-white/10 min-h-0">
             <div className="p-4 border-b border-white/10">
               <h3 className="font-semibold flex items-center gap-2 text-white">
-                <MessageCircle className="h-5 w-5 text-amber-400" />
+                <MessageCircle className="h-5 w-5 text-green-400" />
                 建议频道
               </h3>
             </div>
@@ -1048,7 +1048,7 @@ export default function CollabRoom() {
                       <div
                         className={`px-3 py-2 rounded-xl text-sm backdrop-blur-md border ${
                           msg.userId === currentUser.id
-                            ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-white border-amber-500/30'
+                            ? 'bg-gradient-to-r from-green-600/20 to-emerald-600/20 text-white border-green-600/30'
                             : 'bg-white/10 text-white/80 border-white/20'
                         }`}
                       >
@@ -1067,11 +1067,11 @@ export default function CollabRoom() {
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
                   placeholder="输入建议..."
-                  className="flex-1 px-4 py-2 border border-white/20 rounded-xl bg-white/10 backdrop-blur-md text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] text-sm transition-all duration-300"
+                  className="flex-1 px-4 py-2 border border-white/20 rounded-xl bg-white/10 backdrop-blur-md text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:shadow-[0_0_20px_rgba(34,197,94,0.3)] text-sm transition-all duration-300"
                 />
                 <button
                   type="submit"
-                  className="p-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/40 hover:scale-105 active:scale-95 transition-all duration-300 border border-white/20"
+                  className="p-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-lg hover:shadow-green-600/40 hover:scale-105 active:scale-95 transition-all duration-300 border border-white/20"
                 >
                   <Send className="h-4 w-4" />
                 </button>

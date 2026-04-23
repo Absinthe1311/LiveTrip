@@ -1,45 +1,16 @@
 ﻿// 协同规划入口页面 - 毛玻璃风格版本
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Plus, Search, Clock, CheckCircle, UserPlus, Lock, Unlock, ChevronRight } from 'lucide-react';
+import { Plus, UserPlus } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
 import { joinCollabRoom } from '../api/collabApi';
 import { message } from 'antd';
 
-interface CollabRoom {
-  id: string;
-  name: string;
-  tripId: string;
-  hostId: string;
-  memberCount: number;
-  isLocked: boolean;
-  createdAt: string;
-}
-
 export default function CollabEntryGlass() {
   const navigate = useNavigate();
-  const [rooms, setRooms] = useState<CollabRoom[]>([]);
-  const [loading, setLoading] = useState(false);
   const [joinToken, setJoinToken] = useState('');
   const [showJoinInput, setShowJoinInput] = useState(false);
-
-  useEffect(() => {
-    loadUserRooms();
-  }, []);
-
-  const loadUserRooms = async () => {
-    try {
-      setLoading(true);
-      // TODO: 调用获取用户房间列表的API
-      // 暂时设置为空数组，等API实现后再启用
-      setRooms([]);
-    } catch (error) {
-      console.error('加载房间列表失败:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCreateRoom = () => {
     // 跳转到协同规划设置页面
@@ -80,10 +51,6 @@ export default function CollabEntryGlass() {
       console.error('加入房间失败:', error);
       message.error(error.response?.data?.error || '加入房间失败');
     }
-  };
-
-  const handleRoomClick = (roomId: string) => {
-    navigate(`/collab/room/${roomId}`);
   };
 
   return (
@@ -193,59 +160,6 @@ export default function CollabEntryGlass() {
             </div>
           </GlassCard>
         )}
-
-        {/* 房间列表 */}
-        <GlassCard className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-white">我的房间</h3>
-            <button
-              onClick={loadUserRooms}
-              className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"
-            >
-              刷新
-            </button>
-          </div>
-
-          {loading ? (
-            <div className="text-center text-white/60 py-8">加载中...</div>
-          ) : rooms.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="text-6xl mb-4">🏠</div>
-              <p className="text-white/60">还没有加入任何协同房间</p>
-              <p className="text-white/40 text-sm mt-2">创建房间或加入朋友的房间开始协同规划</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {rooms.map((room) => (
-                <div
-                  key={room.id}
-                  onClick={() => handleRoomClick(room.id)}
-                  className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 cursor-pointer transition-all"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 rounded-full bg-livetrip-primary/20 flex items-center justify-center">
-                      <Users className="h-6 w-6 text-livetrip-primary" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-white">{room.name}</h4>
-                      <div className="flex items-center gap-3 text-sm text-white/60 mt-1">
-                        <span className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          {room.memberCount} 人
-                        </span>
-                        <span className="flex items-center gap-1">
-                          {room.isLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
-                          {room.isLocked ? '已锁定' : '开放'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-white/60" />
-                </div>
-              ))}
-            </div>
-          )}
-        </GlassCard>
       </div>
     </GlassLayout>
   );
