@@ -71,6 +71,7 @@ class AlternativeRecommender {
           rating: spot.rating,
           description: spot.description,
           isOutdoor: spot.isOutdoor,
+          image: (spot as any).image, // 添加图片URL
           iotData: iotData ? {
             crowdLevel: iotData.crowdLevel,
             temperature: iotData.temperature,

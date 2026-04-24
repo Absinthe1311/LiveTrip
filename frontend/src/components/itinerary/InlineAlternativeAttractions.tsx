@@ -54,6 +54,7 @@ export default function InlineAlternativeAttractions({
             }}
             city={city}
             onReplace={() => handleReplace(attraction)}
+            imageUrl={attraction.image} // 传递图片URL
           />
         ))}
       </div>

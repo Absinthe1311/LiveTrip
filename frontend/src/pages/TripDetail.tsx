@@ -319,11 +319,21 @@ export default function TripDetailPage() {
     const newItinerary = { ...itineraryData };
     newItinerary.itinerary[currentDayIndex].attractions = newItinerary.itinerary[currentDayIndex].attractions.map((attr: any, idx: number) => {
       if (originalItem && (attr.name === originalItem.name && attr.time === originalItem.time)) {
-        return { ...newItem, time: attr.time };
+        // 替换景点，保留原时间，更新spotId和图片信息
+        return {
+          ...newItem,
+          time: attr.time,
+          spotId: newItem.id, // 更新spotId
+          image: newItem.image, // 确保图片字段存在
+        };
       }
       return attr;
     });
     setItineraryData(newItinerary);
+
+    // 重新加载图片映射，包含新景点的图片
+    await loadSpotImagesForItinerary(newItinerary);
+
     message.success(`已替换为 ${newItem.name}`);
   };
 

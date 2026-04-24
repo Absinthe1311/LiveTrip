@@ -39,13 +39,14 @@ export default function DestinationDetail() {
               // 将API返回的景点数据转换为前端格式
               const attractions: Attraction[] = data.data.map((item: any) => ({
                 id: item.id || `api-${Date.now()}-${Math.random()}`,
+                spotId: item.id, // 保存spotId用于收藏判断
                 name: item.name,
-                image: '',
+                image: item.image || '', // 使用API返回的图片URL
                 rating: item.rating || 4.5,
                 description: item.description || item.type || '热门景点',
-                openTime: '全天开放',
-                ticketPrice: item.cost ? parseInt(item.cost) : 0,
-                category: item.type || '景点',
+                openTime: item.openTime || '全天开放', // 使用API返回的开放时间
+                ticketPrice: item.ticketPrice || (item.cost ? parseInt(item.cost) : 0),
+                category: item.category || item.type || '景点',
                 location: item.location, // 保留真实坐标
               }));
 
@@ -101,23 +102,24 @@ export default function DestinationDetail() {
   // 切换收藏状态（使用后端数据库）
   const handleToggleFavorite = async (attraction: Attraction) => {
     try {
+      const spotId = (attraction as any).spotId;
+
+      if (!spotId) {
+        message.error('景点ID缺失，无法收藏');
+        return;
+      }
+
       // 检查是否已收藏
       const isFavorited = favorites.some((fav: any) =>
-        fav.spot.name === attraction.name && fav.spot.city === destination?.name
+        fav.spotId === spotId
       );
 
       if (isFavorited) {
         // 取消收藏
-        const fav = favorites.find((f: any) =>
-          f.spot.name === attraction.name && f.spot.city === destination?.name
-        );
-        if (fav) {
-          await removeFavorite(fav.spotId);
-          message.success('已取消收藏');
-        }
+        await removeFavorite(spotId);
+        message.success('已取消收藏');
       } else {
         // 添加收藏
-        const spotId = await syncAttractionToBackend(attraction);
         await addFavorite(spotId, attraction.description);
         message.success('收藏成功');
       }
@@ -441,9 +443,9 @@ export default function DestinationDetail() {
         {/* 景点列表 - 固定3x3布局 */}
         <Row gutter={[24, 24]}>
           {filteredAttractions.map((attraction) => {
-            // 检查是否已收藏（通过景点名称匹配）
+            // 检查是否已收藏（通过spotId匹配）
             const isFavorited = favorites.some((fav: any) =>
-              fav.spot && fav.spot.name === attraction.name && fav.spot.city === destination?.name
+              fav.spotId === (attraction as any).spotId
             );
 
             return (

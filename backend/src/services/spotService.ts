@@ -427,13 +427,20 @@ class SpotService {
 
       if (existingAlternatives.length > 0) {
         console.log(`✅ 找到 ${existingAlternatives.length} 个已存储的备选景点`);
-        
-        // 获取备选景点的详细信息
+
+        // 获取备选景点的详细信息（包含图片）
         const alternativeIds = existingAlternatives.map(a => a.alternativeSpotId);
         const alternatives = await prisma.spot.findMany({
           where: {
             id: {
               in: alternativeIds,
+            },
+          },
+          include: {
+            image: {
+              where: {
+                status: 'approved',
+              },
             },
           },
         });
@@ -458,6 +465,7 @@ class SpotService {
           source: spot.source,
           createdAt: spot.createdAt,
           updatedAt: spot.updatedAt,
+          image: spot.image ? spot.image.url : null, // 添加图片URL
         }));
       }
 
@@ -477,12 +485,19 @@ class SpotService {
 
       console.log(`✅ 生成了 ${newAlternatives.length} 个备选景点`);
 
-      // 4. 获取备选景点的详细信息
+      // 4. 获取备选景点的详细信息（包含图片）
       const alternativeIds = newAlternatives.map(a => a.alternativeSpotId);
       const alternatives = await prisma.spot.findMany({
         where: {
           id: {
             in: alternativeIds,
+          },
+        },
+        include: {
+          image: {
+            where: {
+              status: 'approved',
+            },
           },
         },
       });
@@ -503,6 +518,7 @@ class SpotService {
         source: spot.source,
         createdAt: spot.createdAt,
         updatedAt: spot.updatedAt,
+        image: spot.image ? spot.image.url : null, // 添加图片URL
       }));
     } catch (error: any) {
       console.error(`❌ 获取备选景点失败:`, error);

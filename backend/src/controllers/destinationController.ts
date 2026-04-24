@@ -26,19 +26,17 @@ export const getHotCities = async (req: Request, res: Response) => {
     const citiesData = [];
 
     for (const city of HOT_CITIES) {
-      // 查询该城市的热门景点数量
+      // 查询该城市的所有景点数量
       const spotCount = await prisma.spot.count({
         where: {
           city: city.name,
-          isHot: true,
         },
       });
 
-      // 查询该城市的热门景点平均评分
+      // 查询该城市的所有景点平均评分
       const spots = await prisma.spot.findMany({
         where: {
           city: city.name,
-          isHot: true,
         },
         select: {
           rating: true,
@@ -53,7 +51,6 @@ export const getHotCities = async (req: Request, res: Response) => {
       const allSpotsForCategory = await prisma.spot.findMany({
         where: {
           city: city.name,
-          isHot: true,
         },
         select: {
           category: true,

@@ -5,7 +5,7 @@ import { MapPin, Star, ChevronRight } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
 import { SpotCard } from '../components/spot/SpotCardLegacy';
-import { getHotCities, getCitySpots, getCityAllSpots, HotCity, HotSpot } from '../api/client';
+import { getHotCities, getCitySpots, getCityAllSpots, getFavorites, HotCity, HotSpot } from '../api/client';
 import { message } from 'antd';
 
 // 根据分类生成标签颜色
@@ -49,10 +49,12 @@ export default function DestinationsGlass() {
   const [cityAllSpotsLoading, setCityAllSpotsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [favorites, setFavorites] = useState<any[]>([]); // 收藏数据
 
   // 加载热门城市和每个城市的景点
   useEffect(() => {
     loadInitialData();
+    loadFavoritesData();
   }, []);
 
   // 当选择城市时，加载该城市的所有景点
@@ -116,6 +118,36 @@ export default function DestinationsGlass() {
     } finally {
       setCityAllSpotsLoading(false);
     }
+  };
+
+  // 加载收藏数据
+  const loadFavoritesData = async () => {
+    try {
+      const response = await getFavorites(true);
+      if (response.success && response.data) {
+        setFavorites(response.data);
+        console.log('✅ 收藏数据加载成功:', response.data.length, '个');
+      }
+    } catch (error) {
+      console.error('加载收藏数据失败:', error);
+    }
+  };
+
+  // 监听收藏更新事件
+  useEffect(() => {
+    const handleFavoritesUpdate = () => {
+      loadFavoritesData();
+    };
+
+    window.addEventListener('favoritesUpdated', handleFavoritesUpdate);
+    return () => {
+      window.removeEventListener('favoritesUpdated', handleFavoritesUpdate);
+    };
+  }, []);
+
+  // 检查景点是否已收藏
+  const isSpotFavorited = (spotId: string) => {
+    return favorites.some((fav: any) => fav.spotId === spotId);
   };
 
   // 城市详情页
@@ -182,6 +214,7 @@ export default function DestinationsGlass() {
                     spot={spot}
                     getTagColor={getTagColor}
                     generateDescription={generateDescription}
+                    isFavorited={isSpotFavorited(spot.id)}
                   />
                 ))}
               </div>
@@ -258,7 +291,7 @@ export default function DestinationsGlass() {
                         <h2 className="text-2xl font-bold text-white">{city.name}</h2>
                       </div>
                       <div className="flex items-center gap-3 text-sm text-white/60">
-                        <span>{city.spotCount} 个热门景点</span>
+                        <span>{city.spotCount} 个景点</span>
                         <span className="flex items-center gap-1">
                           <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
                           平均 {city.avgRating} 分
@@ -291,6 +324,7 @@ export default function DestinationsGlass() {
                           spot={spot}
                           getTagColor={getTagColor}
                           generateDescription={generateDescription}
+                          isFavorited={isSpotFavorited(spot.id)}
                         />
                       ))
                     ) : (

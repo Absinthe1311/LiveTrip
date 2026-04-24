@@ -29,8 +29,7 @@ interface FavoriteItem {
     description: string | null;
     isOutdoor: boolean | null;
     source: string;
-    coverImage?: string | null;
-    images?: Array<{ url: string }>;
+    image?: { url: string } | null; // SpotImage关联
   };
 }
 
@@ -128,10 +127,8 @@ export default function FavoritesGlass() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {favorites.map((item) => {
-              // 获取图片URL
-              const imageUrl = item.spot.coverImage ||
-                (item.spot.images && item.spot.images.length > 0 ? item.spot.images[0].url : '') ||
-                '';
+              // 获取图片URL - 从SpotImage关联获取
+              const imageUrl = item.spot.image?.url || '';
 
               return (
                 <div key={item.id} className="relative group">

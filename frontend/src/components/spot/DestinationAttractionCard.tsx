@@ -1,6 +1,7 @@
 import { Card, Rate, Button, Tag } from 'antd';
 import { HeartOutlined, HeartFilled } from '@ant-design/icons';
 import { Attraction } from '../../types/destination';
+import { useState } from 'react';
 
 interface DestinationAttractionCardProps {
   attraction: Attraction;
@@ -9,6 +10,14 @@ interface DestinationAttractionCardProps {
 }
 
 export default function DestinationAttractionCard({ attraction, isFavorite, onToggleFavorite }: DestinationAttractionCardProps) {
+  const [imageError, setImageError] = useState(false);
+
+  // 处理图片加载失败
+  const handleImageError = () => {
+    console.error(`图片加载失败: ${attraction.name}`);
+    setImageError(true);
+  };
+
   return (
     <Card
       hoverable
@@ -42,10 +51,12 @@ export default function DestinationAttractionCard({ attraction, isFavorite, onTo
         fontSize: '60px',
         position: 'relative'
       }}>
-        {attraction.image ? (
+        {attraction.image && !imageError ? (
           <img
             src={attraction.image}
             alt={attraction.name}
+            onError={handleImageError}
+            loading="lazy"
             style={{
               width: '100%',
               height: '100%',
