@@ -1,6 +1,7 @@
-// 真实天气数据服务 - 使用 OpenWeatherMap API
+// 真实天气数据服务 - 使用 OpenWeatherMap API + 微气候调整
 import axios from 'axios';
 import { PrismaClient } from '@prisma/client';
+import { getSpotWeatherWithMicroclimate } from './microclimateService';
 
 const prisma = new PrismaClient();
 
@@ -191,12 +192,31 @@ export async function getSpotWeatherData(spotId: string): Promise<WeatherData> {
   // 获取未来24小时的降雨概率
   const rainProbability = await getOpenWeatherForecast(coordinates.lat, coordinates.lon);
 
-  const weatherData: WeatherData = {
+  // 基础天气数据（从OpenWeatherMap获取）
+  const baseWeatherData: WeatherData = {
     temperature: currentWeather.temperature,
     humidity: currentWeather.humidity,
     rainProbability: rainProbability * 100, // 转换为百分比
     description: currentWeather.description,
     icon: currentWeather.icon,
+    updatedAt: new Date(),
+  };
+
+  // 应用微气候调整
+  const adjustedWeather = await getSpotWeatherWithMicroclimate(spotId, {
+    temperature: baseWeatherData.temperature,
+    humidity: baseWeatherData.humidity,
+    rainProbability: baseWeatherData.rainProbability,
+    description: baseWeatherData.description,
+    icon: baseWeatherData.icon
+  });
+
+  const weatherData: WeatherData = {
+    temperature: adjustedWeather.temperature,
+    humidity: adjustedWeather.humidity,
+    rainProbability: adjustedWeather.rainProbability,
+    description: adjustedWeather.description,
+    icon: adjustedWeather.icon || baseWeatherData.icon,
     updatedAt: new Date(),
   };
 

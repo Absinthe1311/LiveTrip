@@ -1,10 +1,16 @@
-// 定时任务调度器 - 定时执行环境感知任务
+// 定时任务调度器 - 定时执行环境感知任务（增强版）
 import cron from 'node-cron';
 import { PrismaClient } from '@prisma/client';
 import { environmentSensorService, SensorLevel } from './environmentSensorService';
 import { notificationService, NotificationChannel } from './notificationService';
 import { getBatchWeatherData } from './weatherService';
 import { getBatchCrowdData, updateSpotIoTData } from './crowdSimulator';
+import {
+  batchDetectAndNotify,
+  recordIoTStatus,
+  detectCriticalStatus,
+  sendIoTNotifications
+} from './iotNotificationService';
 
 const prisma = new PrismaClient();
 
@@ -15,7 +21,7 @@ class SensorScheduler {
    * 启动定时感知任务
    */
   start(): void {
-    console.log('\n🚀 启动环境感知定时任务...');
+    console.log('\n🚀 启动环境感知定时任务（增强版）...');
 
     // 每15分钟执行一次IoT数据更新
     cron.schedule('*/15 * * * *', async () => {
@@ -32,10 +38,16 @@ class SensorScheduler {
       await this.runGlobalSensing();
     });
 
+    // 新增：每20分钟执行一次用户收藏景点感知
+    cron.schedule('*/20 * * * *', async () => {
+      await this.runFavoriteSpotsSensing();
+    });
+
     console.log('✅ 环境感知定时任务已启动');
     console.log('   - IoT数据更新：每15分钟');
     console.log('   - 用户行程感知：每15分钟');
     console.log('   - 全局感知：每30分钟');
+    console.log('   - 收藏景点感知：每20分钟（新增）');
   }
 
   /**
@@ -101,11 +113,12 @@ class SensorScheduler {
   }
 
   /**
-   * 用户行程感知
+   * 用户行程感知（增强版）
    * 检测用户即将访问的景点，提前提醒
+   * 新增：状态变化检测、趋势预警、多维度通知
    */
   private async runUserTripSensing(): Promise<void> {
-    console.log('\n🔍 开始用户行程环境感知...');
+    console.log('\n🔍 开始用户行程环境感知（增强版）...');
 
     try {
       // 获取即将开始的行程（未来24小时内）
@@ -147,24 +160,31 @@ class SensorScheduler {
 
         console.log(`\n  行程: ${trip.title} (${spotIds.length} 个景点)`);
 
-        // 执行感知
+        // 获取景点IoT数据
+        const spots = await prisma.spot.findMany({
+          where: { id: { in: spotIds } },
+          include: { iotData: true }
+        });
+
+        // 准备状态列表
+        const spotStatusList = spots.map(spot => ({
+          spotId: spot.id,
+          spotName: spot.name,
+          status: {
+            crowdLevel: spot.iotData?.crowdLevel || 50,
+            temperature: spot.iotData?.temperature || 20,
+            rainProbability: spot.iotData?.rainProbability || 0,
+            isOpen: spot.iotData?.isOpen ?? true
+          },
+          userId: trip.userId
+        }));
+
+        // 批量检测并发送通知（新逻辑）
+        await batchDetectAndNotify(spotStatusList);
+
+        // 保留原有感知逻辑（用于日志记录）
         const sensorResults = await environmentSensorService.sense(spotIds);
-
-        // 记录感知日志
         await environmentSensorService.logSensorResults(sensorResults);
-
-        // 发送通知（仅warning和danger级别）
-        const dangerousResults = sensorResults.filter(
-          r => r.level === SensorLevel.WARNING || r.level === SensorLevel.DANGER
-        );
-
-        if (dangerousResults.length > 0) {
-          await notificationService.notifyBatch(
-            trip.userId,
-            dangerousResults,
-            [NotificationChannel.WEBSOCKET, NotificationChannel.IN_APP]
-          );
-        }
       }
 
       console.log('✅ 用户行程环境感知完成');
@@ -203,6 +223,75 @@ class SensorScheduler {
       console.log('✅ 全局环境感知完成');
     } catch (error) {
       console.error('❌ 全局环境感知失败:', error);
+    }
+  }
+
+  /**
+   * 用户收藏景点感知（新增）
+   * 监控用户收藏景点的状态变化，及时通知
+   */
+  private async runFavoriteSpotsSensing(): Promise<void> {
+    console.log('\n❤️  开始用户收藏景点感知...');
+
+    try {
+      // 获取所有用户的收藏景点
+      const favorites = await prisma.favorite.findMany({
+        include: {
+          spot: {
+            include: {
+              iotData: true
+            }
+          }
+        }
+      });
+
+      if (favorites.length === 0) {
+        console.log('ℹ️  没有用户收藏景点');
+        return;
+      }
+
+      console.log(`📍 共 ${favorites.length} 个收藏景点记录`);
+
+      // 按用户分组
+      const userFavoritesMap = new Map<string, Array<{
+        spotId: string;
+        spotName: string;
+        status: any;
+      }>>();
+
+      for (const favorite of favorites) {
+        // 只关注有IoT数据的景点
+        if (!favorite.spot.iotData) continue;
+
+        if (!userFavoritesMap.has(favorite.userId)) {
+          userFavoritesMap.set(favorite.userId, []);
+        }
+
+        userFavoritesMap.get(favorite.userId)!.push({
+          spotId: favorite.spotId,
+          spotName: favorite.spot.name,
+          status: {
+            crowdLevel: favorite.spot.iotData.crowdLevel || 50,
+            temperature: favorite.spot.iotData.temperature || 20,
+            rainProbability: favorite.spot.iotData.rainProbability || 0,
+            isOpen: favorite.spot.iotData.isOpen ?? true
+          }
+        });
+      }
+
+      // 对每个用户的收藏景点进行感知
+      for (const [userId, spotList] of userFavoritesMap) {
+        const spotStatusList = spotList.map(item => ({
+          ...item,
+          userId
+        }));
+
+        await batchDetectAndNotify(spotStatusList);
+      }
+
+      console.log('✅ 用户收藏景点感知完成');
+    } catch (error) {
+      console.error('❌ 用户收藏景点感知失败:', error);
     }
   }
 
