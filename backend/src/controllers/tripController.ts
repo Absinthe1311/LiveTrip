@@ -240,16 +240,18 @@ export const saveTrip = async (req: Request, res: Response) => {
     await prisma.budget.create({
       data: {
         tripId: trip.id,
-        transportation: budget_breakdown?.transportation || 0,
-        accommodation: budget_breakdown?.accommodation || 0,
-        food: budget_breakdown?.dining || 0,
-        tickets: budget_breakdown?.tickets || 0,
+        // 初始化为0，表示还没有实际花费
+        // budget_breakdown是预算分配，不是实际花费
+        transportation: 0,
+        accommodation: 0,
+        food: 0,
+        tickets: 0,
         shopping: 0,
         other: 0,
       },
     });
 
-    console.log('✅ 预算记录已创建');
+    console.log('✅ 预算记录已创建（初始值为0，表示尚未花费）');
 
     // 创建每天的行程记录
     for (const day of itinerary.itinerary) {

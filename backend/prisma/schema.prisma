@@ -58,6 +58,7 @@ model Trip {
   hotelRating               Float?
   actualBudget              Float         @default(0)
   budgetStatus              String        @default("under_budget")
+  remainingBudget           Float         @default(0)  // 剩余预算
   isPublic                  Boolean       @default(false)
   shareToken                String?       @unique
   hotelRecommendationsCache String?       @default("")
@@ -67,6 +68,7 @@ model Trip {
   collabRoom                CollabRoom?
   days                      Day[]
   packingItems              PackingItem[]
+  budgetRecords             BudgetRecord[]
   user                      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -139,6 +141,38 @@ model Budget {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   trip           Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
+
+// AI辅助生成：GLM-5, 2026-04-24 21:31
+// 描述：预算变更记录表，用于追踪预算调整历史，支持预算功能的实时更新和记录追踪
+model BudgetRecord {
+  id              String   @id @default(cuid())
+  tripId          String
+
+  // 变更类型
+  changeType      String   // 'total_budget_adjusted', 'item_price_updated', 'hotel_selected', 'restaurant_selected', 'attraction_added', 'attraction_removed'
+  category        String?  // 'transportation', 'accommodation', 'dining', 'tickets', 'shopping', 'other'
+
+  // 变更详情
+  previousAmount  Float    // 变更前金额
+  newAmount       Float    // 变更后金额
+  difference      Float    // 差额
+
+  // 描述信息
+  description     String   // 变更描述
+  relatedItemName String?  // 关联项目名称
+
+  // 预算快照
+  totalBudget     Float    // 当时的总预算
+  usedBudget      Float    // 当时的已用预算
+  remainingBudget Float    // 当时的剩余预算
+
+  createdAt       DateTime @default(now())
+
+  trip            Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@index([createdAt])
 }
 
 model AmapPOICache {

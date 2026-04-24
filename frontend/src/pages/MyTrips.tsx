@@ -1,12 +1,13 @@
 ﻿// 我的行程页面 - 毛玻璃风格版本
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Users, Clock, MoreVertical, Trash2, Share2, Search, Filter, FileText, Share as ShareIcon, Trash, Plane } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, MoreVertical, Trash2, Share2, Search, Filter, FileText, Share as ShareIcon, Trash, Plane, Wallet } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
 import { getUserTrips, deleteTrip, getTripById, shareTrip } from '../api/client';
 import { message, Dropdown, Modal, Checkbox } from 'antd';
 import { generateTripPDF } from '../utils/pdfGenerator';
+import BudgetDetailModal from '../components/budget/BudgetDetailModal';
 
 // 后端返回的 Trip 数据结构（days 是数组）
 interface BackendTrip {
@@ -67,6 +68,10 @@ export default function MyTripsGlass() {
   const [selectedTrips, setSelectedTrips] = useState<Set<string>>(new Set()); // 选中的行程ID
   const [deleteModalVisible, setDeleteModalVisible] = useState(false); // 删除确认弹窗
   const [deleteAllModalVisible, setDeleteAllModalVisible] = useState(false); // 全部删除确认弹窗
+
+  // 预算详情弹窗
+  const [budgetModalVisible, setBudgetModalVisible] = useState(false);
+  const [selectedTripForBudget, setSelectedTripForBudget] = useState<{ id: string; title: string } | null>(null);
 
   useEffect(() => {
     loadTrips();
@@ -432,6 +437,11 @@ export default function MyTripsGlass() {
                       menu={{
                         items: [
                           {
+                            key: 'budget',
+                            icon: <Wallet className="h-4 w-4" />,
+                            label: '预算详情',
+                          },
+                          {
                             key: 'pdf',
                             icon: <FileText className="h-4 w-4" />,
                             label: '导出PDF',
@@ -450,7 +460,10 @@ export default function MyTripsGlass() {
                         ],
                         onClick: (e) => {
                           e.domEvent.stopPropagation();
-                          if (e.key === 'delete') {
+                          if (e.key === 'budget') {
+                            setSelectedTripForBudget({ id: trip.id, title: trip.title });
+                            setBudgetModalVisible(true);
+                          } else if (e.key === 'delete') {
                             handleDelete(trip.id);
                           } else if (e.key === 'pdf') {
                             handleExportPDF(trip.id);
@@ -515,6 +528,23 @@ export default function MyTripsGlass() {
         >
           <p>确定要删除所有行程吗？此操作不可恢复。</p>
         </Modal>
+
+        {/* 预算详情弹窗 */}
+        {selectedTripForBudget && (
+          <BudgetDetailModal
+            visible={budgetModalVisible}
+            tripId={selectedTripForBudget.id}
+            tripTitle={selectedTripForBudget.title}
+            onClose={() => {
+              setBudgetModalVisible(false);
+              setSelectedTripForBudget(null);
+            }}
+            onUpdate={() => {
+              // 预算更新后可以刷新行程列表
+              loadTrips();
+            }}
+          />
+        )}
       </div>
     </GlassLayout>
   );

@@ -338,6 +338,53 @@ export const calculateRealTimeBudget = async (options: {
   return response.data;
 };
 
+// ==================== 预算管理 API ====================
+
+/**
+ * 获取行程的实时预算状态
+ */
+export const getBudgetStatus = async (tripId: string) => {
+  const response = await apiClient.get(`/trips/${tripId}/budget`);
+  return response.data;
+};
+
+/**
+ * 调整总预算
+ */
+export const adjustBudget = async (tripId: string, newBudget: number, reason: string) => {
+  const response = await apiClient.put(`/trips/${tripId}/budget`, { newBudget, reason });
+  return response.data;
+};
+
+/**
+ * 更新项目价格
+ */
+export const updateItemPrice = async (
+  tripId: string,
+  category: string,
+  itemName: string,
+  previousPrice: number,
+  newPrice: number
+) => {
+  const response = await apiClient.put(`/trips/${tripId}/budget/item`, {
+    category,
+    itemName,
+    previousPrice,
+    newPrice
+  });
+  return response.data;
+};
+
+/**
+ * 获取预算变更历史
+ */
+export const getBudgetHistory = async (tripId: string, limit: number = 20) => {
+  const response = await apiClient.get(`/trips/${tripId}/budget/history`, {
+    params: { limit }
+  });
+  return response.data;
+};
+
 // ==================== 地点缓存 API ====================
 
 /**

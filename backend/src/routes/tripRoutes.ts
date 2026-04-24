@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { getUserTrips, getTripById, deleteTrip, saveTrip, updateTripHotel, updateDayRestaurant, calculateRealTimeBudget, completeTrip } from '../controllers/tripController';
 import { PackingController } from '../controllers/packingController';
 import { authenticateToken } from '../controllers/authController';
+import { getBudgetStatus, adjustBudget, updateItemPrice, getBudgetHistory } from '../controllers/budgetController';
 
 const router = Router();
 
@@ -43,5 +44,19 @@ router.post('/:tripId/packing', authenticateToken, PackingController.addPackingI
 
 // GET /api/trips/:tripId/packing/progress - 获取打包进度
 router.get('/:tripId/packing/progress', authenticateToken, PackingController.getPackingProgress);
+
+// ==================== 预算管理路由 ====================
+
+// GET /api/trips/:tripId/budget - 获取行程的实时预算状态
+router.get('/:tripId/budget', authenticateToken, getBudgetStatus);
+
+// PUT /api/trips/:tripId/budget - 调整总预算
+router.put('/:tripId/budget', authenticateToken, adjustBudget);
+
+// PUT /api/trips/:tripId/budget/item - 更新项目价格
+router.put('/:tripId/budget/item', authenticateToken, updateItemPrice);
+
+// GET /api/trips/:tripId/budget/history - 获取预算变更历史
+router.get('/:tripId/budget/history', authenticateToken, getBudgetHistory);
 
 export default router;

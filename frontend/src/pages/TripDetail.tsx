@@ -20,6 +20,9 @@ import PDFExportButton from '../components/common/PDFExportButton';
 import SpotImageUploadModal from '../components/spot/SpotImageUploadModal';
 import PackingListDrawer from '../components/trip/PackingListDrawer';
 import { PackingListWidget } from '../components/itinerary/PackingListWidget';
+import SimpleBudgetAdjustModal from '../components/budget/SimpleBudgetAdjustModal';
+import ExpenseRecordModal from '../components/budget/ExpenseRecordModal';
+import BudgetWidget from '../components/budget/BudgetWidget';
 
 // 辅助函数
 const formatShortDate = (date: string) => {
@@ -60,7 +63,11 @@ function convertDbToItinerary(trip: any): FullItinerary {
 
   return {
     itinerary,
-    total_cost: trip.totalBudget || 0,
+    // 计算实际花费（Budget表中的数据）
+    total_cost: trip.budget
+      ? trip.budget.transportation + trip.budget.accommodation + trip.budget.food +
+        trip.budget.tickets + trip.budget.shopping + trip.budget.other
+      : 0,
     budget_breakdown: {
       transportation: trip.budget?.transportation || 0,
       accommodation: trip.budget?.accommodation || 0,
@@ -98,6 +105,12 @@ export default function TripDetailPage() {
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [packingListVisible, setPackingListVisible] = useState(false);
   const [selectedSpot, setSelectedSpot] = useState<AttractionItem | null>(null);
+
+  // 预算调整弹窗
+  const [budgetAdjustVisible, setBudgetAdjustVisible] = useState(false);
+
+  // 开支记录弹窗（记账本）
+  const [expenseRecordVisible, setExpenseRecordVisible] = useState(false);
 
   // 步骤导航状态
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -621,16 +634,13 @@ export default function TripDetailPage() {
                 )}
               </FullscreenMap>
 
-              {/* 改进的预算分布 */}
-              <BudgetBar
-                categories={[
-                  { name: '交通', amount: itineraryData.budget_breakdown.transportation, color: 'bg-blue-500' },
-                  { name: '住宿', amount: itineraryData.budget_breakdown.accommodation, color: 'bg-purple-500' },
-                  { name: '餐饮', amount: itineraryData.budget_breakdown.dining, color: 'bg-amber-500' },
-                  { name: '门票', amount: itineraryData.budget_breakdown.tickets, color: 'bg-green-500' },
-                ]}
-                totalBudget={itineraryData.summary?.budget || 5000}
-                usedBudget={itineraryData.total_cost || 0}
+              {/* 预算管理 */}
+              <BudgetWidget
+                tripId={id || ''}
+                totalBudget={trip?.totalBudget || 0}
+                budget={trip?.budget}
+                onRecordExpense={() => setExpenseRecordVisible(true)}
+                onAdjustBudget={() => setBudgetAdjustVisible(true)}
               />
 
               {/* 行李清单 */}
@@ -684,6 +694,42 @@ export default function TripDetailPage() {
         onClose={() => setPackingListVisible(false)}
         tripId={id || ''}
       />
+
+      {/* 预算调整弹窗 */}
+      {id && (
+        <SimpleBudgetAdjustModal
+          visible={budgetAdjustVisible}
+          tripId={id}
+          currentBudget={trip?.totalBudget || 0}
+          onClose={() => setBudgetAdjustVisible(false)}
+          onUpdate={() => {
+            // 预算调整后重新加载行程数据
+            loadTripDetail(id);
+          }}
+        />
+      )}
+
+      {/* 开支记录弹窗（记账本） */}
+      {id && (
+        <ExpenseRecordModal
+          visible={expenseRecordVisible}
+          tripId={id}
+          onClose={() => setExpenseRecordVisible(false)}
+          onUpdate={async () => {
+            // 开支记录后重新加载行程数据以更新预算显示
+            try {
+              const response = await getTripById(id);
+              if (response.success && response.data) {
+                setTrip(response.data);
+                const converted = convertDbToItinerary(response.data);
+                setItineraryData(converted);
+              }
+            } catch (error) {
+              console.error('重新加载行程数据失败:', error);
+            }
+          }}
+        />
+      )}
     </GlassLayout>
   );
 }

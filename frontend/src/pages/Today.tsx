@@ -13,10 +13,10 @@ import {
 import GlassLayout from '../components/layout/GlassLayout';
 import MapCopyright from '../components/map/MapCopyright';
 import { GlassCard } from '../components/home';
-import { 
-  getTripById, 
-  getUserTrips, 
-  completeTrip, 
+import {
+  getTripById,
+  getUserTrips,
+  completeTrip,
   getPackingList,
   initializePackingList,
   updatePackingItem,
@@ -31,6 +31,9 @@ import {
 } from '../api/client';
 import { message, Modal, Input } from 'antd';
 import AMapLoader from '@amap/amap-jsapi-loader';
+import SimpleBudgetAdjustModal from '../components/budget/SimpleBudgetAdjustModal';
+import ExpenseRecordModal from '../components/budget/ExpenseRecordModal';
+import BudgetWidget from '../components/budget/BudgetWidget';
 
 // 行程数据类型
 interface TripData {
@@ -112,7 +115,13 @@ export default function TodayGlass() {
   // 预算编辑
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [budgetEdit, setBudgetEdit] = useState({ spent: 0, note: '' });
-  
+
+  // 预算调整弹窗
+  const [showBudgetAdjustModal, setShowBudgetAdjustModal] = useState(false);
+
+  // 开支记录弹窗（记账本）
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
+
   // 已访问景点状态
   const [visitedAttractions, setVisitedAttractions] = useState<Set<string>>(new Set());
   
@@ -1166,45 +1175,13 @@ export default function TodayGlass() {
                   </div>
                   
                   {/* 预算管理 */}
-                  <div className="bg-white/5 rounded-xl p-3">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Wallet className="h-4 w-4 text-amber-500" />
-                        <span className="text-sm font-semibold text-white">预算管理</span>
-                      </div>
-                      <button 
-                        onClick={() => {
-                          setBudgetEdit({ spent: budget.spent, note: '' });
-                          setShowBudgetModal(true);
-                        }}
-                        className="text-xs text-amber-400 hover:text-amber-300"
-                      >
-                        编辑
-                      </button>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-white/60">总预算</span>
-                        <span className="text-sm font-semibold text-white">¥{(currentTrip.totalBudget || 0).toFixed(0)}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-white/60">已花费</span>
-                        <span className="text-sm font-semibold text-amber-400">¥{budget.spent.toFixed(0)}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-white/60">剩余预算</span>
-                        <span className={`text-sm font-semibold ${budget.remaining >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          ¥{budget.remaining.toFixed(0)}
-                        </span>
-                      </div>
-                      <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                        <div 
-                          className="bg-amber-500 h-full transition-all"
-                          style={{ width: `${Math.min((budget.spent / (currentTrip.totalBudget || 1)) * 100, 100)}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
+                  <BudgetWidget
+                    tripId={currentTrip.id}
+                    totalBudget={currentTrip.totalBudget || 0}
+                    budget={currentTrip.budget}
+                    onRecordExpense={() => setShowExpenseModal(true)}
+                    onAdjustBudget={() => setShowBudgetAdjustModal(true)}
+                  />
                 </div>
               </div>
             </div>
@@ -1423,6 +1400,49 @@ export default function TodayGlass() {
             </div>
           </div>
         </Modal>
+
+        {/* 预算调整弹窗 */}
+        {currentTrip && (
+          <SimpleBudgetAdjustModal
+            visible={showBudgetAdjustModal}
+            tripId={currentTrip.id}
+            currentBudget={currentTrip.totalBudget || 0}
+            onClose={() => setShowBudgetAdjustModal(false)}
+            onUpdate={async () => {
+              // 预算调整后重新加载行程数据
+              try {
+                const response = await getTripById(currentTrip.id);
+                if (response.success && response.data) {
+                  setCurrentTrip(response.data);
+                }
+              } catch (error) {
+                console.error('重新加载行程数据失败:', error);
+              }
+            }}
+          />
+        )}
+
+        {/* 开支记录弹窗（记账本） */}
+        {currentTrip && (
+          <ExpenseRecordModal
+            visible={showExpenseModal}
+            tripId={currentTrip.id}
+            onClose={() => setShowExpenseModal(false)}
+            onUpdate={async () => {
+              // 开支记录后重新加载行程数据以更新预算显示
+              if (currentTrip) {
+                try {
+                  const response = await getTripById(currentTrip.id);
+                  if (response.success && response.data) {
+                    setCurrentTrip(response.data);
+                  }
+                } catch (error) {
+                  console.error('重新加载行程数据失败:', error);
+                }
+              }
+            }}
+          />
+        )}
 
         {/* 加载状态 */}
         {loading && (
