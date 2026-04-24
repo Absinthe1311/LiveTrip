@@ -144,7 +144,7 @@ export default function DestinationsGlass() {
                   <h1 className="text-3xl font-bold text-white">{city.name}</h1>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-white/60">
-                  <span>{city.spotCount} 个热门景点</span>
+                  <span>{city.spotCount} 个景点</span>
                   <span className="flex items-center gap-1">
                     <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
                     平均 {city.avgRating} 分

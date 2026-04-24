@@ -159,21 +159,21 @@ export const getCityAllSpots = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1;
     const pageSize = parseInt(req.query.pageSize as string) || 12;
 
-    console.log(`📍 获取城市 ${city} 的所有热门景点，页码 ${page}，每页 ${pageSize} 个`);
+    console.log(`📍 获取城市 ${city} 的所有景点，页码 ${page}，每页 ${pageSize} 个`);
 
-    // 查询总数
+    // 查询总数（所有有图片的景点）
     const total = await prisma.spot.count({
       where: {
         city: city,
-        isHot: true,
+        image: { isNot: null },
       },
     });
 
-    // 查询景点
+    // 查询景点（所有有图片的景点，不区分isHot）
     const spots = await prisma.spot.findMany({
       where: {
         city: city,
-        isHot: true,
+        image: { isNot: null },
       },
       include: {
         image: {
@@ -206,7 +206,7 @@ export const getCityAllSpots = async (req: Request, res: Response) => {
       address: spot.address,
     }));
 
-    console.log(`✅ 找到 ${result.length} 个热门景点，总共 ${total} 个`);
+    console.log(`✅ 找到 ${result.length} 个景点，总共 ${total} 个`);
 
     res.json({
       success: true,
