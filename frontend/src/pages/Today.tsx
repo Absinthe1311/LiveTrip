@@ -1184,12 +1184,32 @@ export default function TodayGlass() {
                   />
                 </div>
               </div>
+              
+              {/* 操作按钮 - 放在实时看板外面 */}
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCompleteTrip}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white font-medium hover:from-green-600 hover:to-green-700 transition-all shadow-lg shadow-green-500/30 flex items-center justify-center gap-2"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  完成行程
+                </button>
+                <button
+                  onClick={() => navigate(`/trip/${currentTrip.id}`)}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  查看详情
+                </button>
+              </div>
             </div>
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">
             <GlassCard className="p-8 text-center max-w-md">
-              <div className="text-6xl mb-4">📅</div>
+              <div className="flex justify-center mb-4">
+                <Calendar className="w-16 h-16 text-amber-500" />
+              </div>
               <h3 className="text-xl font-semibold text-white mb-2">还没有行程</h3>
               <p className="text-white/60 mb-4">创建一个新行程开始您的旅行吧！</p>
               <button
@@ -1202,25 +1222,7 @@ export default function TodayGlass() {
           </div>
         )}
 
-        {/* 右下角浮动按钮 */}
-        {currentTrip && (
-          <div className="fixed bottom-8 right-8 z-30 flex flex-col gap-2">
-            <button
-              onClick={handleCompleteTrip}
-              className="px-4 py-2 rounded-lg bg-green-500/90 backdrop-blur-md text-white hover:bg-green-600 transition-colors shadow-lg flex items-center gap-2"
-            >
-              <CheckCircle className="h-4 w-4" />
-              完成行程
-            </button>
-            <button
-              onClick={() => navigate(`/trip/${currentTrip.id}`)}
-              className="px-4 py-2 rounded-lg bg-amber-500/90 backdrop-blur-md text-white hover:bg-amber-600 transition-colors shadow-lg flex items-center gap-2"
-            >
-              <Edit className="h-4 w-4" />
-              查看详情
-            </button>
-          </div>
-        )}
+
 
         {/* 打包清单编辑弹窗 */}
         <Modal

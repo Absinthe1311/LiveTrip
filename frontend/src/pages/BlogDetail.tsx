@@ -172,8 +172,8 @@ export default function BlogDetailGlass() {
       const response = await deleteBlog(blog.id, currentUserId || 'default-user');
       if (response.success) {
         message.success('博客删除成功');
-        // 直接跳转到博客列表页
-        navigate('/blogs');
+        // 使用 replace 而不是 push，避免回退到已删除的页面
+        navigate('/blogs', { replace: true });
       }
     } catch (error: any) {
       message.error(error.response?.data?.message || '删除失败');

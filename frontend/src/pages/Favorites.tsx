@@ -113,7 +113,9 @@ export default function FavoritesGlass() {
         ) : favorites.length === 0 ? (
           <GlassCard className="p-8">
             <div className="text-center">
-              <div className="text-6xl mb-4">❤️</div>
+              <div className="flex justify-center mb-4">
+                <Heart className="w-16 h-16 text-red-400" />
+              </div>
               <h3 className="text-xl font-semibold text-white mb-2">还没有收藏</h3>
               <p className="text-white/60 mb-4">去发现感兴趣的景点吧！</p>
               <button
