@@ -29,7 +29,7 @@ class AdvisorService {
   private apiKey: string;
   private apiUrl: string = 'open.bigmodel.cn';
   private apiPath: string = '/api/paas/v4/chat/completions';
-  private model: string = 'glm-4';
+  private model: string = 'glm-4.6v'; // 原模型: 'glm-4' (Token已耗尽，替换为GLM-4.6v)
 
   constructor() {
     this.apiKey = process.env.ZHIPUAI_API_KEY || '';

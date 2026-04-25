@@ -1,5 +1,6 @@
 // Agent 服务 - 实现 Function Calling 功能
 import https from 'https';
+import { marked } from 'marked';
 import { chatHistoryService } from './chatHistoryService';
 import { getPrismaClient } from '../lib/prisma';
 import { parseDate, formatDate } from '../utils/dateParser';
@@ -141,16 +142,16 @@ class AgentService {
   /**
    * 调用智谱AI API（支持 Function Calling，带重试机制）
    */
-  private async callZhipuAI(messages: any[], tools?: any[], toolChoice: any = 'auto'): Promise<any> {
+  private async callZhipuAI(messages: any[], tools?: any[], toolChoice: any = 'auto', maxTokens: number = 2000, timeout: number = 30000): Promise<any> {
     if (!ZHIPUAI_API_KEY) {
       throw new Error('AI服务未配置');
     }
 
     const data = {
-      model: 'glm-4',
+      model: 'glm-4.6v', // 原模型: 'glm-4' (Token已耗尽，替换为GLM-4.6v)
       messages: messages,
       temperature: 0.7,
-      max_tokens: 2000,
+      max_tokens: maxTokens, // 原值: 2000 (博客生成需要更多输出Token，通过参数控制)
       ...(tools && { tools }),
       ...(toolChoice && { tool_choice: toolChoice }),
     };
@@ -163,6 +164,8 @@ class AgentService {
     console.log('   最后一条用户消息:', messages[messages.length - 1]?.content);
     console.log('   工具数量:', tools?.length || 0);
     console.log('   tool_choice:', toolChoice);
+    console.log('   max_tokens:', maxTokens);
+    console.log('   timeout:', timeout);
 
     const options = {
       hostname: ZHIPUAI_API_URL,
@@ -174,7 +177,7 @@ class AgentService {
         'Authorization': `Bearer ${ZHIPUAI_API_KEY}`,
         'Content-Length': Buffer.byteLength(jsonData),
       },
-      timeout: 30000,
+      timeout: timeout, // 原值: 30000 (博客生成等长文本任务需要更长超时)
     };
 
     // 使用重试机制调用 API
@@ -253,18 +256,24 @@ class AgentService {
           },
         },
       },
-      // 工具 2: 列出行程（保持不变）
+      // 工具 2: 列出行程（优化版）
       {
         type: 'function',
         function: {
           name: 'list_user_trips',
-          description: `查看用户的行程列表。
+          description: `查看用户的行程列表，返回行程数量和详细信息。
 
 【触发条件】
 - 用户想查看行程（如"查看我的行程"、"有哪些行程"）
+- 用户询问行程数量（如"我有多少个行程"、"行程数量"）
+- 用户想了解行程概况（如"我的行程列表"、"行程统计"）
+
+【返回信息】
+- 行程数量统计
+- 每个行程的详细信息（标题、目的地、日期、状态等）
 
 【参数说明】
-- status: 行程状态筛选（可选）`,
+- status: 行程状态筛选（可选），可选值："planning"（规划中）、"ongoing"（进行中）、"completed"（已完成）`,
           parameters: {
             type: 'object',
             properties: {
@@ -277,7 +286,7 @@ class AgentService {
           },
         },
       },
-      // 工具 3: 管理博客（合并 generate_blog + publish_blog）
+      // 工具 3: 管理博客（优化版）
       {
         type: 'function',
         function: {
@@ -285,15 +294,28 @@ class AgentService {
           description: `管理旅行博客：生成或发布博客。
 
 【触发条件】
-- 用户想写游记（如"为上次旅行写游记"）
-- 用户想发布博客（如"发布这篇博客"）
+- 用户想写游记、生成博客（如"为上次旅行写游记"、"写一篇游记"、"生成博客"、"为XX行程生成博客"）
+  → 设置 action=generate，必须提供 tripId
+- 用户想发布、发表博客（如"发布这篇博客"、"发表博客"、"发布游记"）
+  → 设置 action=publish，需要提供 blogId
 
 【参数说明】
 - action: 操作类型（必填）
-  * generate: 生成博客
-  * publish: 发布博客
+  * generate: 生成博客（必须提供tripId）
+  * publish: 发布博客（需要blogId）
 - tripId: 行程ID（生成博客时必填）
-- blogId: 博客ID（发布博客时必填）`,
+  * 从list_user_trips的返回结果中获取
+  * 根据用户指定的目的地匹配行程
+  * 或选择最近的已完成行程
+- blogId: 博客ID（发布博客时必填，从当前会话的博客草稿中获取）
+- title: 博客标题（可选）
+- style: 博客风格（可选）：详细记录/简洁总结/情感抒情
+
+【重要】
+- 生成博客前，必须先调用list_user_trips获取行程列表
+- 从行程列表中提取正确的tripId
+- 只能为已完成的行程生成博客
+- 发布博客前，需要先有博客草稿（通过生成博客创建）`,
           parameters: {
             type: 'object',
             properties: {
@@ -304,7 +326,7 @@ class AgentService {
               },
               tripId: {
                 type: 'string',
-                description: '行程 ID（生成博客时必填）',
+                description: '行程 ID（生成博客时必填，从list_user_trips结果中获取）',
               },
               blogId: {
                 type: 'string',
@@ -405,13 +427,28 @@ ${profilePrompt}
 
 【工具使用规则】
 
-1. 用户提到具体景点 → 调用extract_must_visit_spots提取景点,然后自动创建行程
+1. 用户明确表达创建行程意图（如"我想去北京"、"计划旅行"、"去XX玩"）→ 调用create_smart_trip
 
-2. 用户未提到具体景点 → 直接调用create_trip创建行程
+2. 用户提到具体景点并表达旅行意图 → 调用extract_must_visit_spots提取景点,然后自动创建行程
 
-3. 用户要查看行程 → 调用list_user_trips
+3. 用户想查看、询问行程（如"查看我的行程"、"有哪些行程"、"我有多少个行程"、"行程列表"、"行程统计"）→ 调用list_user_trips
 
-4. 用户要生成博客 → 调用generate_blog
+4. 用户想写游记、生成博客（如"为上次旅行写游记"、"写一篇游记"、"生成博客"、"为XX行程生成博客"）→ 调用manage_blog,action=generate
+   - 如果用户指定了具体行程（如"为上海行程生成博客"），需要先调用list_user_trips获取行程列表，然后从中找到匹配的行程ID
+   - 如果用户说"上次旅行"，需要先调用list_user_trips，然后选择最近的已完成行程
+   - 调用manage_blog时，必须提供tripId参数
+
+5. 用户想发布、发表博客（如"发布这篇博客"、"发表博客"、"发布游记"）→ 调用manage_blog,action=publish
+
+6. 用户确认操作（如"保存"、"确认"、"好的"）→ 调用confirm_action
+
+7. 用户不满意想重新生成（如"重新规划"、"重新生成"）→ 调用regenerate
+
+【重要警告】
+- 不要在用户询问行程数量或查看行程时创建新行程！
+- 不要在用户想发布博客时创建行程！
+- 生成博客时，必须先获取行程列表，从中提取正确的tripId！
+- 仔细理解用户意图，选择正确的工具！
 
 【智能参数提取 - 使用默认值减少确认】
 
@@ -520,6 +557,10 @@ ${profilePrompt}
 
         case 'create_trip_with_constraints':
           return await this.createTripWithConstraints(params, userId);
+
+        case 'confirm_action':
+          // ✅ 确认操作工具（保存行程或发布博客）
+          return await this.handleConfirmAction(params, userId, sessionId);
 
         default:
           return {
@@ -1364,14 +1405,37 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
 
       console.log(`✅ 找到 ${formattedTrips.length} 个行程`);
 
+      // 构建详细的行程列表信息
+      let detailedMessage = '';
+      if (formattedTrips.length === 0) {
+        detailedMessage = '您还没有任何行程。';
+      } else {
+        detailedMessage = `您目前有 ${formattedTrips.length} 个行程：\n\n`;
+        formattedTrips.forEach((trip, index) => {
+          const statusText = {
+            'planning': '规划中',
+            'ongoing': '进行中',
+            'completed': '已完成'
+          }[trip.status] || trip.status;
+          
+          detailedMessage += `${index + 1}. ${trip.title}\n`;
+          detailedMessage += `   - 目的地：${trip.destination}\n`;
+          detailedMessage += `   - 时间：${trip.startDate} 至 ${trip.endDate}（${trip.days}天）\n`;
+          detailedMessage += `   - 状态：${statusText}\n`;
+          detailedMessage += `   - 预算：${trip.budget}元\n`;
+          if (trip.actualBudget > 0) {
+            detailedMessage += `   - 实际花费：${trip.actualBudget}元\n`;
+          }
+          detailedMessage += '\n';
+        });
+      }
+
       return {
         success: true,
         data: {
           trips: formattedTrips,
           count: formattedTrips.length,
-          message: formattedTrips.length > 0
-            ? '找到您的行程列表'
-            : '您还没有任何行程',
+          message: detailedMessage,
         },
       };
     } catch (error: any) {
@@ -1456,42 +1520,56 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
       };
 
       // 使用 AI 生成博客内容
-      const blogPrompt = `请为一次旅行生成一篇博客文章。
+      const blogPrompt = `请为以下旅行生成一篇博客，直接输出正文，不要有任何应答语。
 
-【行程信息】
-目的地：${tripInfo.destination}
-时间：${tripInfo.startDate} 至 ${tripInfo.endDate}（共 ${tripInfo.days} 天）
-预算：${tripInfo.budget} 元
-实际花费：${tripInfo.actualBudget} 元
+# ${blogTitle}
 
-【游览景点】
-${tripInfo.spots.map((spot, index) => `${index + 1}. ${spot.name}${spot.category ? `（${spot.category}）` : ''}`).join('\n')}
+目的地：${tripInfo.destination}，${tripInfo.days}天
+景点：${tripInfo.spots.map(s => s.name).join('、')}
+风格：${blogStyle}
+字数：600-800字
 
-【博客要求】
-- 标题：${blogTitle}
-- 风格：${blogStyle}
-- 内容生动有趣，包含旅行感受和体验
-- 字数：800-1200 字
-- 结构清晰，有开头、中间、结尾
+写作要求：
+- 每个景点写2-3句真实感受，不要泛泛而谈
+- 用第一人称，像给朋友讲旅行故事
+- 加入具体细节（如时间、天气、味道、声音）
+- 不要用"首先/其次/最后"这种连接词
 
-请生成博客内容：`;
+段落格式（严格遵守）：
+- 用 ## 按天分段，如"## 第一天：xxx"
+- 每个景点描述自成一段（空行分隔）
+- 景点名称用**加粗**
+- 开头一段总起（2-3句），结尾一段总结（2-3句）
+- 不要输出分隔线`;
 
       try {
         const aiStartTime = Date.now();
         const result = await this.callZhipuAI([
           {
             role: 'system',
-            content: '你是一位专业的旅行博主，擅长创作生动有趣的旅行游记。',
+            content: `你是一位旅行博主。用户会给你行程信息，请直接输出博客正文，不要输出任何应答语、寒暄、解释。
+
+输出格式：
+- 直接以 # 标题 开头
+- 用 ## 按天分段
+- 景点名称**加粗**，段落间空行分隔
+- 不要输出分隔线(---或***)`,
           },
           {
             role: 'user',
             content: blogPrompt,
           },
-        ]);
+        ], undefined, undefined, 4096, 60000); // 博客生成: max_tokens=4096(原2000,确保内容不被截断), timeout=60s
         const aiElapsed = Date.now() - aiStartTime;
         console.log(`⏱️  AI 生成博客耗时: ${aiElapsed}ms`);
 
-        const blogContent = result.choices[0]?.message?.content || '';
+        let blogContent = result.choices[0]?.message?.content || '';
+
+        // 后处理：清理AI应答语和格式问题
+        blogContent = this.cleanBlogContent(blogContent);
+
+        // Markdown转HTML（前端用dangerouslySetInnerHTML渲染，需要HTML格式）
+        const blogContentHtml = await marked(blogContent);
 
         const blogStartTime = Date.now();
         // 创建博客草稿
@@ -1499,7 +1577,7 @@ ${tripInfo.spots.map((spot, index) => `${index + 1}. ${spot.name}${spot.category
           data: {
             userId: trip.userId,
             title: blogTitle,
-            content: blogContent,
+            content: blogContentHtml,
             city: trip.destination,
             spotIds: tripInfo.spots.map(s => s.name).join(','), // 存储景点名称
             tags: '旅行,游记', // 默认标签
@@ -1519,8 +1597,38 @@ ${tripInfo.spots.map((spot, index) => `${index + 1}. ${spot.name}${spot.category
         const blogElapsed = Date.now() - blogStartTime;
         console.log(`⏱️  博客创建和图片关联耗时: ${blogElapsed}ms`);
 
+        // 构建博客预览数据
+        const blogPreviewData = {
+          blogId: blog.id,
+          title: blog.title,
+          content: blogContent,
+          contentPreview: blogContent.substring(0, 200) + '...',
+          status: blog.status,
+          city: trip.destination,
+          imageCount: imageAssociationResult.associatedImages,
+          tripId: params.tripId,
+        };
+
+        // 保存临时数据到会话（用于后续确认发布）
+        // 注意：这里需要从上下文获取sessionId，我们通过messages推断
+        const lastSessionId = await this.getLatestSessionId(userId);
+        if (lastSessionId) {
+          const expiresAt = new Date();
+          expiresAt.setHours(expiresAt.getHours() + 24); // 24小时后过期
+          
+          await chatHistoryService.updateSessionTempData(lastSessionId, {
+            type: 'blog_draft' as any,
+            data: blogPreviewData,
+            createdAt: new Date(),
+            expiresAt,
+          });
+          console.log('   ✅ 博客临时数据已保存到会话:', lastSessionId);
+        }
+
         return {
           success: true,
+          needsConfirmation: true,
+          previewData: blogPreviewData,
           data: {
             id: blog.id,
             title: blog.title,
@@ -1528,7 +1636,6 @@ ${tripInfo.spots.map((spot, index) => `${index + 1}. ${spot.name}${spot.category
             content: blogContent,
             imageCount: imageAssociationResult.associatedImages,
             contentPreview: blogContent.substring(0, 200) + '...',
-            needsConfirmation: true, // 标记需要用户确认
             message: `✅ 博客生成成功！
 
 📝 博客信息：
@@ -1539,9 +1646,7 @@ ${tripInfo.spots.map((spot, index) => `${index + 1}. ${spot.name}${spot.category
 📄 内容预览：
 ${blogContent.substring(0, 200)}...
 
-现在为您发布博客，请确认是否发布？
-
-回复"确认"或"发布"即可发布博客。`,
+是否发布这篇博客？回复"确认"或"发布"即可发布。`,
           },
         };
       } catch (aiError: any) {
@@ -1700,6 +1805,14 @@ ${blogContent.substring(0, 200)}...
         };
       }
 
+      // 检查是否是可发布的状态（draft或pending）
+      if (blog.status !== 'draft' && blog.status !== 'pending') {
+        return {
+          success: false,
+          error: `博客状态异常：${blog.status}，无法发布。只有草稿(draft)或待审核(pending)状态的博客才能发布。`,
+        };
+      }
+
       // 验证博客所有权
       if (userId && blog.userId !== userId) {
         return {
@@ -1815,6 +1928,55 @@ ${blogContent.substring(0, 200)}...
   }
 
   /**
+   * 清理博客内容：去除AI应答语、分隔线等非正文内容
+   */
+  private cleanBlogContent(content: string): string {
+    if (!content) return content;
+
+    let cleaned = content;
+
+    // 1. 去除开头的AI应答语（在第一个 # 标题之前的所有内容）
+    const titleMatch = cleaned.match(/^#\s/m);
+    if (titleMatch) {
+      const titleIndex = cleaned.indexOf('# ');
+      if (titleIndex > 0) {
+        cleaned = cleaned.substring(titleIndex);
+      }
+    }
+    // 也处理开头没有换行的情况
+    const titleMatch2 = cleaned.match(/^(.*?)#\s/s);
+    if (titleMatch2 && titleMatch2[1].length > 0 && !titleMatch2[1].trim().startsWith('#')) {
+      const titleIndex = cleaned.indexOf('# ');
+      if (titleIndex > 0) {
+        cleaned = cleaned.substring(titleIndex);
+      }
+    }
+
+    // 2. 去除分隔线 (---, ***, ===)
+    cleaned = cleaned.replace(/^[\s]*[-]{3,}[\s]*$/gm, '');
+    cleaned = cleaned.replace(/^[\s]*[*]{3,}[\s]*$/gm, '');
+    cleaned = cleaned.replace(/^[\s]*[=]{3,}[\s]*$/gm, '');
+
+    // 3. 去除末尾的AI应答语（如"希望你喜欢！"等寒暄）
+    const closingPatterns = [
+      /希望[你您]喜欢[！!。].*$/s,
+      /如果[你您].*需要.*[！!。].*$/s,
+      /祝[你您].*旅途愉快[！!。].*$/s,
+    ];
+    for (const pattern of closingPatterns) {
+      const match = cleaned.match(pattern);
+      if (match && match.index && match.index > cleaned.length * 0.8) {
+        cleaned = cleaned.substring(0, match.index).trimEnd();
+      }
+    }
+
+    // 4. 清理多余空行（超过2个连续空行压缩为1个）
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+
+    return cleaned.trim();
+  }
+
+  /**
    * 处理 Agent 请求（性能优化版）
    */
   async processRequest(request: AgentRequest): Promise<AgentResponse> {
@@ -1863,6 +2025,58 @@ ${blogContent.substring(0, 200)}...
         role: 'user',
         content: question,
       });
+
+      // ✅ 优先检查：用户是否在确认/取消操作（在调用AI之前检查，避免浪费AI调用）
+      const confirmKeywords = ['确认', '发布', '好的', '是的', '保存', '同意'];
+      const cancelKeywords = ['取消', '不要', '算了', '放弃'];
+      const isConfirm = confirmKeywords.some(k => question.includes(k));
+      const isCancel = cancelKeywords.some(k => question.includes(k));
+
+      if (isConfirm || isCancel) {
+        // 检查会话中是否有待确认的临时数据
+        const sessionData = await chatHistoryService.getSession(session.id);
+        if (sessionData?.tempData) {
+          const tempData = typeof sessionData.tempData === 'string'
+            ? JSON.parse(sessionData.tempData)
+            : sessionData.tempData;
+
+          if (isConfirm) {
+            console.log('\n✅ [检测到用户确认操作，直接执行]');
+            const confirmResult = await this.executeDirectConfirmAction(question, userId, session.id);
+            if (confirmResult) {
+              const finalAnswer = confirmResult.success
+                ? confirmResult.data?.message || '操作成功'
+                : confirmResult.error || '操作失败';
+
+              await chatHistoryService.createMessage({
+                sessionId: session.id,
+                role: 'assistant',
+                content: finalAnswer,
+              });
+
+              return {
+                answer: finalAnswer,
+                toolCalls: [{ name: 'confirm_action', result: confirmResult }],
+              };
+            }
+          } else if (isCancel) {
+            console.log('\n❌ [检测到用户取消操作，直接执行]');
+            const cancelResult = await this.cancelDraft(session.id);
+            const finalAnswer = cancelResult.success ? '已取消' : cancelResult.error || '取消失败';
+
+            await chatHistoryService.createMessage({
+              sessionId: session.id,
+              role: 'assistant',
+              content: finalAnswer,
+            });
+
+            return {
+              answer: finalAnswer,
+              toolCalls: [{ name: 'cancel_action', result: cancelResult }],
+            };
+          }
+        }
+      }
 
       // 调用智谱 AI，启用工具调用
       console.log('\n📡 [调用智谱AI] 启用工具调用...');
@@ -1962,12 +2176,73 @@ ${blogContent.substring(0, 200)}...
           }
         }
 
-        // ✅ P2优化: 直接返回工具结果，不再调用 AI 生成最终回复
-        // 这样可以减少一次 AI 调用，提升性能
-        const toolResult = toolCallResults[0]?.result;
-        const finalAnswer = toolResult?.success
-          ? toolResult?.data?.message || '操作成功'
-          : toolResult?.error || '操作失败';
+        // ✅ 优化: 检查是否是用户确认操作，直接执行而不调用AI
+        const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
+        const isConfirmAction = this.checkIfConfirmAction(lastUserMessage, toolCallResults);
+        
+        if (isConfirmAction) {
+          console.log('\n✅ [检测到用户确认操作，直接执行]');
+          
+          // 直接执行确认操作，不调用AI
+          const confirmResult = await this.executeDirectConfirmAction(lastUserMessage, userId, session.id);
+          
+          if (confirmResult) {
+            toolCallResults.push({
+              name: 'confirm_action',
+              result: confirmResult,
+            });
+          }
+        } else {
+          // 判断是否需要继续调用AI（多步骤任务）
+          const toolResult = toolCallResults[0]?.result;
+          const toolName = toolCallResults[0]?.name;
+          const needsContinue = this.shouldContinueAIProcessing(toolName, toolResult, messages);
+          
+          if (needsContinue) {
+            console.log('\n🔄 [需要AI继续处理多步骤任务]');
+            
+            // 再次调用AI，让它决定下一步操作
+            const continueResult = await this.callZhipuAI(
+              messages,
+              this.getTools(),
+              'auto'
+            );
+            
+            const continueMessage = continueResult.choices[0]?.message;
+            
+            // 如果AI决定继续调用工具
+            if (continueMessage?.tool_calls && continueMessage.tool_calls.length > 0) {
+              console.log('   AI决定继续调用工具');
+              
+              // 执行后续工具调用
+              for (const continueToolCall of continueMessage.tool_calls) {
+                const continueToolResult = await this.executeToolCall(
+                  continueToolCall,
+                  userId,
+                  messages,
+                  session.id
+                );
+                
+                toolCallResults.push({
+                  name: (continueToolCall as any).function?.name || continueToolCall.type,
+                  result: continueToolResult,
+                });
+                
+                messages.push({
+                  role: 'tool',
+                  tool_call_id: continueToolCall.id,
+                  content: JSON.stringify(continueToolResult),
+                });
+              }
+            }
+          }
+        }
+        
+        // 生成最终回复
+        const finalToolResult = toolCallResults[toolCallResults.length - 1]?.result;
+        const finalAnswer = finalToolResult?.success
+          ? finalToolResult?.data?.message || '操作成功'
+          : finalToolResult?.error || '操作失败';
 
         // 保存最终回复
         await chatHistoryService.createMessage({
@@ -2000,6 +2275,122 @@ ${blogContent.substring(0, 200)}...
       console.error('❌ Agent 处理失败:', error);
       throw new Error(error.message || 'Agent 服务暂时不可用');
     }
+  }
+
+  /**
+   * 检查是否是用户确认操作
+   */
+  private checkIfConfirmAction(userMessage: string, toolCallResults: any[]): boolean {
+    const confirmKeywords = ['确认', '发布', '好的', '是的', '保存', '同意'];
+    const isConfirm = confirmKeywords.some(keyword => userMessage.includes(keyword));
+    
+    // 检查上一个工具调用是否需要确认
+    const lastToolResult = toolCallResults[toolCallResults.length - 1]?.result;
+    const needsConfirmation = lastToolResult?.needsConfirmation || lastToolResult?.data?.needsConfirmation;
+    
+    return isConfirm && needsConfirmation;
+  }
+
+  /**
+   * 直接执行确认操作（不调用AI）
+   */
+  private async executeDirectConfirmAction(
+    userMessage: string,
+    userId?: string,
+    sessionId?: string
+  ): Promise<ToolExecutionResult | null> {
+    try {
+      console.log('\n🔧 [直接执行确认操作]');
+      console.log('   用户消息:', userMessage);
+      
+      // 获取会话临时数据
+      if (!sessionId) {
+        const latestSessionId = await this.getLatestSessionId(userId);
+        if (!latestSessionId) {
+          return null;
+        }
+        sessionId = latestSessionId;
+      }
+      
+      if (!sessionId) {
+        return null;
+      }
+      
+      const session = await chatHistoryService.getSession(sessionId);
+      if (!session || !session.tempData) {
+        return {
+          success: false,
+          error: '未找到待确认的数据',
+        };
+      }
+      
+      const tempData = typeof session.tempData === 'string' 
+        ? JSON.parse(session.tempData) 
+        : session.tempData;
+      
+      // 根据临时数据类型执行相应操作
+      if (tempData.type === 'blog_draft') {
+        // 发布博客
+        return await this.confirmBlogPublish(sessionId, userId);
+      } else if (tempData.type === 'trip_draft') {
+        // 保存行程
+        return await this.confirmTrip(sessionId, userId);
+      }
+      
+      return null;
+      
+    } catch (error: any) {
+      console.error('❌ 直接执行确认操作失败:', error);
+      return {
+        success: false,
+        error: error.message || '确认操作失败',
+      };
+    }
+  }
+
+  /**
+   * 判断是否需要AI继续处理（多步骤任务）
+   */
+  private shouldContinueAIProcessing(
+    toolName: string,
+    toolResult: ToolExecutionResult,
+    messages: any[]
+  ): boolean {
+    // 获取最后一条用户消息
+    const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
+    
+    console.log('\n🔍 [判断是否需要继续处理]');
+    console.log('   工具名称:', toolName);
+    console.log('   工具结果成功:', toolResult?.success);
+    console.log('   用户消息:', lastUserMessage);
+    
+    // 场景1: 用户想写游记/生成博客，但还没有提供tripId
+    if (lastUserMessage.includes('游记') || lastUserMessage.includes('博客')) {
+      // 如果manage_blog被调用但没有tripId，需要继续
+      if (toolName === 'manage_blog' && toolResult?.success === false && 
+          toolResult?.error?.includes('tripId')) {
+        console.log('   ✅ 需要继续：博客生成缺少tripId');
+        return true;
+      }
+      
+      // 如果list_user_trips被调用，说明AI在查找行程，需要继续
+      if (toolName === 'list_user_trips') {
+        console.log('   ✅ 需要继续：查找行程后需要生成博客');
+        return true;
+      }
+    }
+    
+    // 场景2: 用户想发布博客，但还没有提供blogId
+    if (lastUserMessage.includes('发布') || lastUserMessage.includes('发表')) {
+      if (toolName === 'manage_blog' && toolResult?.success === false && 
+          toolResult?.error?.includes('blogId')) {
+        console.log('   ✅ 需要继续：博客发布缺少blogId');
+        return true;
+      }
+    }
+    
+    console.log('   ❌ 不需要继续处理');
+    return false;
   }
 
   /**
@@ -2329,6 +2720,83 @@ ${blogContent.substring(0, 200)}...
   }
 
   /**
+   * 处理确认操作（保存行程或发布博客）
+   */
+  private async handleConfirmAction(
+    params: any,
+    userId?: string,
+    sessionId?: string
+  ): Promise<ToolExecutionResult> {
+    try {
+      console.log('\n✅ [处理确认操作]');
+      console.log('   操作类型:', params.action);
+      console.log('   会话ID:', sessionId);
+
+      if (!params.action) {
+        return {
+          success: false,
+          error: '缺少操作类型参数',
+        };
+      }
+
+      if (!sessionId) {
+        // 尝试获取最新会话
+        const latestSessionId = await this.getLatestSessionId(userId);
+        if (!latestSessionId) {
+          return {
+            success: false,
+            error: '未找到会话信息',
+          };
+        }
+        sessionId = latestSessionId;
+      }
+
+      switch (params.action) {
+        case 'save_trip':
+          return await this.confirmTrip(sessionId, userId);
+
+        case 'publish_blog':
+          return await this.confirmBlogPublish(sessionId, userId);
+
+        default:
+          return {
+            success: false,
+            error: `未知的确认操作: ${params.action}`,
+          };
+      }
+
+    } catch (error: any) {
+      console.error('❌ 处理确认操作失败:', error);
+      return {
+        success: false,
+        error: error.message || '确认操作失败',
+      };
+    }
+  }
+
+  /**
+   * 获取用户最新的会话ID
+   */
+  private async getLatestSessionId(userId?: string): Promise<string | null> {
+    try {
+      if (!userId) {
+        return null;
+      }
+      
+      const session = await prisma.chatSession.findFirst({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true },
+      });
+      
+      return session?.id || null;
+    } catch (error) {
+      console.error('获取最新会话ID失败:', error);
+      return null;
+    }
+  }
+
+  /**
    * 确认保存行程
    */
   async confirmTrip(sessionId: string, userId?: string): Promise<ToolExecutionResult> {
@@ -2420,6 +2888,109 @@ ${blogContent.substring(0, 200)}...
       return {
         success: false,
         error: error.message || '保存失败',
+      };
+    }
+  }
+
+  /**
+   * 确认发布博客
+   */
+  async confirmBlogPublish(sessionId: string, userId?: string): Promise<ToolExecutionResult> {
+    try {
+      console.log('\n✅ [确认发布博客]');
+      console.log('   会话ID:', sessionId);
+
+      // 获取会话临时数据
+      const session = await chatHistoryService.getSession(sessionId);
+      if (!session || !session.tempData) {
+        return {
+          success: false,
+          error: '未找到博客草稿数据，请重新生成',
+        };
+      }
+
+      // tempData 可能是字符串或对象
+      const tempData = typeof session.tempData === 'string' 
+        ? JSON.parse(session.tempData) 
+        : session.tempData;
+        
+      if (tempData.type !== 'blog_draft') {
+        return {
+          success: false,
+          error: '临时数据类型不正确',
+        };
+      }
+
+      // 从临时数据中获取博客ID
+      const blogPreviewData = tempData.data;
+      const blogId = blogPreviewData.blogId;
+      
+      console.log('   📝 发布博客，ID:', blogId);
+
+      // 查询博客
+      const blog = await prisma.blogPost.findUnique({
+        where: { id: blogId },
+      });
+
+      if (!blog) {
+        return {
+          success: false,
+          error: '博客不存在',
+        };
+      }
+
+      // 验证博客状态
+      if (blog.status === 'published') {
+        return {
+          success: true,
+          data: {
+            id: blog.id,
+            title: blog.title,
+            status: blog.status,
+            message: '博客已经是发布状态',
+          },
+        };
+      }
+
+      // 发布博客
+      const updatedBlog = await prisma.blogPost.update({
+        where: { id: blogId },
+        data: {
+          status: 'published',
+          isPublished: true,
+          publishedAt: new Date(),
+        },
+      });
+
+      // 清除临时数据
+      await chatHistoryService.clearSessionTempData(sessionId);
+
+      console.log('   ✅ 博客发布成功:', updatedBlog.id);
+
+      return {
+        success: true,
+        data: {
+          id: updatedBlog.id,
+          title: updatedBlog.title,
+          status: updatedBlog.status,
+          publishedAt: updatedBlog.publishedAt?.toISOString().split('T')[0],
+          url: `/blog/${updatedBlog.id}`,
+          message: `✅ 博客发布成功！
+
+📢 发布信息：
+- 博客标题：${updatedBlog.title}
+- 发布时间：${updatedBlog.publishedAt?.toISOString().split('T')[0]}
+- 访问链接：https://livetrip.com/blog/${updatedBlog.id}
+
+用户现在可以查看您的博客了！`,
+        },
+      };
+
+    } catch (error: any) {
+      console.error('❌ 确认发布博客失败:', error);
+      return {
+        success: false,
+        error: error.message || '发布失败',
       };
     }
   }

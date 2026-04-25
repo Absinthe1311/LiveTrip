@@ -56,7 +56,7 @@ export class AiTripRecommender {
       console.log('\n步骤1: 获取景点数据...');
       const spots = await this.spotDataSvc.getCitySpotsWithIoTData(
         params.destination,
-        100 // 获取更多景点供 AI 选择
+        30 // 原值: 100 (30个景点足够AI规划行程，减少约60%输入Token)
       );
       console.log(`✅ 获取到 ${spots.length} 个景点`);
 
@@ -190,7 +190,7 @@ ${spotsInfo}
     };
 
     const data = JSON.stringify({
-      model: 'glm-4',
+      model: 'glm-4.6v', // 原模型: 'glm-4' (Token已耗尽，替换为GLM-4.6v)
       messages: [
         {
           role: 'user',
