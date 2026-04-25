@@ -3,6 +3,9 @@ import { Request, Response } from 'express';
 import { getPrismaClient } from '../lib/prisma';
 import { hotelRecommender, HotelRecommendRequest } from '../services/hotelRecommender';
 import { restaurantRecommender, RestaurantRecommendRequest } from '../services/restaurantRecommender';
+import { amapService } from '../services/amapService';
+import { restaurantCacheService } from '../services/restaurantCacheService';
+import { hotelCacheService } from '../services/hotelCacheService';
 
 const prisma = getPrismaClient();
 
@@ -247,6 +250,183 @@ export const getRestaurantRecommendations = async (req: Request, res: Response) 
     res.status(500).json({
       success: false,
       error: error.message || '餐厅推荐失败，请稍后重试',
+    });
+  }
+};
+
+/**
+ * 自定义餐厅搜索
+ * POST /api/recommendations/restaurants/custom
+ * 
+ * 请求体:
+ * {
+ *   name: string,    // 餐厅名称
+ *   city: string     // 城市名称
+ * }
+ */
+export const searchCustomRestaurant = async (req: Request, res: Response) => {
+  try {
+    const { name, city, location } = req.body;
+
+    // 验证必填字段
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        error: '缺少必填字段：name（餐厅名称）',
+      });
+    }
+
+    if (!city || typeof city !== 'string' || city.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        error: '缺少必填字段：city（城市名称）',
+      });
+    }
+
+    console.log(`📡 [高德API] 自定义餐厅搜索 - 名称: ${name}, 城市: ${city}, 中心位置: ${location || '无'}`);
+
+    const amapServiceInstance = amapService();
+
+    try {
+      let finalRestaurants: any[] = [];
+
+      // 如果提供了中心位置，使用周边搜索
+      if (location) {
+        console.log(`🔍 使用周边搜索 - 中心: ${location}, 关键词: ${name}, 半径: 5000m`);
+        finalRestaurants = await amapServiceInstance.searchAround(location, name, '050000', 5000, 20);
+        console.log(`✅ [高德API] 周边搜索 - 返回 ${finalRestaurants.length} 个结果`);
+
+        // 如果周边搜索无结果，扩大搜索半径
+        if (finalRestaurants.length === 0) {
+          console.log(`⚠️  5km范围内无结果，扩大到10km`);
+          finalRestaurants = await amapServiceInstance.searchAround(location, name, '050000', 10000, 20);
+          console.log(`✅ [高德API] 扩大范围搜索 - 返回 ${finalRestaurants.length} 个结果`);
+        }
+      }
+
+      // 如果没有提供位置或周边搜索无结果，使用城市搜索
+      if (finalRestaurants.length === 0) {
+        console.log(`🔍 使用城市搜索 - 城市: ${city}, 关键词: ${name}, types: 050000`);
+        finalRestaurants = await amapServiceInstance.getAttractions(city, name, '050000', 20);
+        console.log(`✅ [高德API] 城市搜索 - 返回 ${finalRestaurants.length} 个结果`);
+
+        // 如果还没有结果，不限制types
+        if (finalRestaurants.length === 0) {
+          console.log(`⚠️  城市搜索无结果，尝试不限制types`);
+          finalRestaurants = await amapServiceInstance.getAttractions(city, name, '', 20);
+          console.log(`✅ [高德API] 不限制types搜索 - 返回 ${finalRestaurants.length} 个结果`);
+        }
+      }
+
+      console.log(`📊 最终返回 ${finalRestaurants.length} 个餐厅`);
+
+      // 保存到数据库缓存
+      if (finalRestaurants.length > 0) {
+        const restaurantCaches = finalRestaurants.map((r: any) => ({
+          name: r.name,
+          address: r.address,
+          location: r.location,
+          tel: r.tel,
+          type: r.type,
+          rating: r.rating,
+        }));
+        await restaurantCacheService.saveRestaurants(restaurantCaches, city);
+        console.log(`💾 [数据库] 保存 ${finalRestaurants.length} 个餐厅到缓存`);
+      }
+
+      res.json({
+        success: true,
+        data: finalRestaurants,
+        count: finalRestaurants.length,
+      });
+    } catch (error: any) {
+      console.error('❌ 高德API调用失败:', error);
+      console.error('❌ 错误堆栈:', error.stack);
+      res.status(500).json({
+        success: false,
+        error: error.message || '高德API调用失败',
+        data: [],
+        count: 0,
+      });
+    }
+  } catch (error: any) {
+    console.error('❌ 自定义餐厅搜索失败:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || '自定义餐厅搜索失败，请稍后重试',
+    });
+  }
+};
+
+/**
+ * 自定义酒店搜索
+ * POST /api/recommendations/hotels/custom
+ * 
+ * 请求体:
+ * {
+ *   name: string,    // 酒店名称
+ *   city: string     // 城市名称
+ * }
+ */
+export const searchCustomHotel = async (req: Request, res: Response) => {
+  try {
+    const { name, city } = req.body;
+
+    // 验证必填字段
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        error: '缺少必填字段：name（酒店名称）',
+      });
+    }
+
+    if (!city || typeof city !== 'string' || city.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        error: '缺少必填字段：city（城市名称）',
+      });
+    }
+
+    console.log(`📡 [高德API] 自定义酒店搜索 - 名称: ${name}, 城市: ${city}`);
+
+    // 调用高德API搜索酒店
+    const amapServiceInstance = amapService();
+    const hotels = await amapServiceInstance.getAttractions(city, name, '100101', 20);
+
+    console.log(`✅ [高德API] 自定义酒店搜索成功 - 返回 ${hotels.length} 个结果`);
+
+    // 如果没有结果，尝试不限制types再搜索一次
+    let finalHotels = hotels;
+    if (hotels.length === 0) {
+      console.log(`⚠️  第一次搜索无结果，尝试不限制types搜索`);
+      finalHotels = await amapServiceInstance.getAttractions(city, name, '', 20);
+      console.log(`✅ [高德API] 第二次搜索 - 返回 ${finalHotels.length} 个结果`);
+    }
+
+    // 保存到数据库缓存
+    if (finalHotels.length > 0) {
+      const hotelCaches = finalHotels.map(h => ({
+        name: h.name,
+        address: h.address,
+        location: h.location,
+        tel: h.tel,
+        type: h.type,
+        rating: h.rating,
+      }));
+      await hotelCacheService.saveHotels(hotelCaches, city);
+      console.log(`💾 [数据库] 保存 ${finalHotels.length} 个酒店到缓存`);
+    }
+
+    res.json({
+      success: true,
+      data: finalHotels,
+      count: finalHotels.length,
+    });
+  } catch (error: any) {
+    console.error('❌ 自定义酒店搜索失败:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || '自定义酒店搜索失败，请稍后重试',
     });
   }
 };

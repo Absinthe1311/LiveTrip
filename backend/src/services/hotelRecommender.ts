@@ -122,8 +122,8 @@ class HotelRecommender {
       // 步骤8: 综合评分排序
       const sortedHotels = this.sortHotels(hotelsWithDistance);
 
-      // 步骤9: 返回3个推荐
-      return sortedHotels.slice(0, Math.min(3, sortedHotels.length));
+      // 步骤9: 返回5个推荐
+      return sortedHotels.slice(0, Math.min(5, sortedHotels.length));
     } catch (error) {
       console.error('❌ 酒店推荐失败:', error);
       throw error;

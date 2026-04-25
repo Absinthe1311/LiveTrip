@@ -77,18 +77,32 @@ class AmapService {
     pageSize: number = 20
   ): Promise<AmapAttraction[]> {
     try {
-      console.log(`📡 [高德API] 关键字搜索 - 城市: ${city}, 关键词: ${keywords}, 用途: 获取景点数据`);
+      console.log(`📡 [高德API] 关键字搜索 - 城市: ${city}, 关键词: ${keywords}, 类型: ${types}, 用途: 获取景点数据`);
+
+      const params: Record<string, any> = {
+        keywords: keywords || '景点',
+        offset: pageSize,
+        page: 1,
+        extensions: 'all', // 获取详细信息（包含评分等）
+      };
+
+      // 如果types不为空，添加types参数
+      if (types && types.trim() !== '') {
+        params.types = types;
+      }
+
+      // 如果city不为空，添加city参数
+      if (city && city.trim() !== '') {
+        params.city = city;
+      }
+
+      console.log(`🔍 高德API请求参数:`, JSON.stringify(params, null, 2));
 
       const response = await this.client.get<AmapPOIResponse>('/place/text', {
-        params: {
-          keywords: keywords || '景点',
-          city: city,
-          types: types,
-          offset: pageSize,
-          page: 1,
-          extensions: 'base', // 基础信息
-        },
+        params,
       });
+
+      console.log(`📊 高德API响应状态: ${response.data.status}, 信息: ${response.data.info}, 数量: ${response.data.count}`);
 
       if (response.data.status !== '1') {
         throw new Error(`高德 API 错误: ${response.data.info} (${response.data.infocode})`);

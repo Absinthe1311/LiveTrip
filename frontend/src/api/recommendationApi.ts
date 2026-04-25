@@ -118,3 +118,42 @@ export const getRestaurantRecommendations = async (
 
   return response.data;
 };
+
+/**
+ * 自定义餐厅搜索
+ * @param name 餐厅名称
+ * @param city 城市名称
+ * @param location 中心位置坐标（可选，格式："lng,lat"）
+ * @returns 匹配的餐厅列表
+ */
+export const searchCustomRestaurant = async (
+  name: string,
+  city: string,
+  location?: string
+): Promise<RestaurantRecommendResponse> => {
+  const response = await apiClient.post<RestaurantRecommendResponse>('/recommendations/restaurants/custom', {
+    name,
+    city,
+    location,
+  });
+
+  return response.data;
+};
+
+/**
+ * 自定义酒店搜索
+ * @param name 酒店名称
+ * @param city 城市名称
+ * @returns 匹配的酒店列表
+ */
+export const searchCustomHotel = async (
+  name: string,
+  city: string
+): Promise<HotelRecommendResponse> => {
+  const response = await apiClient.post<HotelRecommendResponse>('/recommendations/hotels/custom', {
+    name,
+    city,
+  });
+
+  return response.data;
+};

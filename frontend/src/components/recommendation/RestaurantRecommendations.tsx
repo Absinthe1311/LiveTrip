@@ -1,8 +1,8 @@
 ﻿// 餐厅推荐组件 - 按天展示推荐的餐厅列表供用户选择
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Card, Spin, Empty, Tag, Rate, Button, message, Tabs } from 'antd';
-import { EnvironmentOutlined, PhoneOutlined, StarOutlined } from '@ant-design/icons';
-import { Restaurant, DayRestaurantRecommendation, getRestaurantRecommendations } from '../../api/recommendationApi';
+import { Card, Spin, Empty, Tag, Rate, Button, message, Tabs, Input, Modal } from 'antd';
+import { EnvironmentOutlined, PhoneOutlined, StarOutlined, SearchOutlined } from '@ant-design/icons';
+import { Restaurant, DayRestaurantRecommendation, getRestaurantRecommendations, searchCustomRestaurant } from '../../api/recommendationApi';
 
 interface RestaurantRecommendationsProps {
   days: Array<{
@@ -21,6 +21,7 @@ interface RestaurantRecommendationsProps {
   groupSize?: number;
   tripId?: string;
   onLoadData?: (recommendations: DayRestaurantRecommendation[]) => void; // 新增：加载推荐数据回调
+  destination?: string; // 目的地城市，用于自定义搜索
 }
 
 export default function RestaurantRecommendations({
@@ -33,12 +34,20 @@ export default function RestaurantRecommendations({
   groupSize = 1,
   tripId,
   onLoadData, // 新增
+  destination, // 目的地城市
 }: RestaurantRecommendationsProps) {
   const [recommendations, setRecommendations] = useState<DayRestaurantRecommendation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('0');
-  
+
+  // 自定义搜索相关状态
+  const [customSearchVisible, setCustomSearchVisible] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchResults, setSearchResults] = useState<Restaurant[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [currentSearchDay, setCurrentSearchDay] = useState<number>(1);
+
   // 使用 ref 防止重复请求
   const lastRequestKeyRef = useRef<string>('');
   const isRequestingRef = useRef(false);
@@ -105,6 +114,55 @@ export default function RestaurantRecommendations({
   const handleSkip = (day: number) => {
     if (onSkip) {
       onSkip(day);
+    }
+  };
+
+  // 打开自定义搜索弹窗
+  const openCustomSearch = (day: number) => {
+    setCurrentSearchDay(day);
+    setCustomSearchVisible(true);
+    setSearchKeyword('');
+    setSearchResults([]);
+  };
+
+  // 执行自定义搜索
+  const handleCustomSearch = async () => {
+    if (!searchKeyword.trim()) {
+      message.warning('请输入餐厅名称');
+      return;
+    }
+
+    if (!destination) {
+      message.warning('无法获取目的地城市信息');
+      return;
+    }
+
+    setSearchLoading(true);
+    try {
+      const response = await searchCustomRestaurant(searchKeyword, destination);
+      if (response.success && response.data) {
+        // 将搜索结果转换为餐厅格式
+        const restaurants: Restaurant[] = response.data.flatMap(dayRec => dayRec.restaurants);
+        setSearchResults(restaurants);
+        if (restaurants.length === 0) {
+          message.info('未找到匹配的餐厅');
+        }
+      } else {
+        message.error(response.error || '搜索失败');
+      }
+    } catch (error: any) {
+      message.error(error.message || '搜索失败，请稍后重试');
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // 选择自定义搜索的餐厅
+  const handleSelectCustomRestaurant = (restaurant: Restaurant) => {
+    if (onSelect) {
+      onSelect(currentSearchDay, restaurant);
+      message.success(`第${currentSearchDay}天: 已选择 ${restaurant.name}`);
+      setCustomSearchVisible(false);
     }
   };
 
@@ -304,6 +362,14 @@ export default function RestaurantRecommendations({
         {showSkip && onSkip && (
           <div style={{ textAlign: 'center', marginTop: '12px' }}>
             <Button
+              onClick={() => openCustomSearch(dayRecommendation.day)}
+              type="primary"
+              icon={<SearchOutlined />}
+              style={{ marginRight: '8px' }}
+            >
+              自定义搜索
+            </Button>
+            <Button
               onClick={() => handleSkip(dayRecommendation.day)}
               type="text"
               style={{ color: '#666' }}
@@ -389,31 +455,97 @@ export default function RestaurantRecommendations({
   }));
 
   return (
-    <Card
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '18px' }}>🍽️</span>
-            <span>餐厅推荐（午餐）</span>
-            <Tag color="orange" style={{ marginLeft: '8px' }}>
-              {recommendations.length} 天
-            </Tag>
+    <>
+      <Card
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '18px' }}>🍽️</span>
+              <span>餐厅推荐（午餐）</span>
+              <Tag color="orange" style={{ marginLeft: '8px' }}>
+                {recommendations.length} 天
+              </Tag>
+            </div>
+            <Button size="small" onClick={fetchRestaurants}>
+              刷新
+            </Button>
           </div>
-          <Button size="small" onClick={fetchRestaurants}>
-            刷新
-          </Button>
+        }
+        style={{ marginBottom: '24px', borderRadius: '12px' }}
+        styles={{ body: { padding: '16px' } }}
+      >
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={tabItems}
+          size="small"
+        />
+      </Card>
+
+      {/* 自定义搜索弹窗 */}
+      <Modal
+        title={`第${currentSearchDay}天 - 自定义搜索餐厅`}
+        open={customSearchVisible}
+        onCancel={() => setCustomSearchVisible(false)}
+        footer={null}
+        width={700}
+      >
+        <div style={{ marginBottom: '16px' }}>
+          <Input.Search
+            placeholder="请输入餐厅名称，如：海底捞"
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            onSearch={handleCustomSearch}
+            enterButton="搜索"
+            loading={searchLoading}
+            size="large"
+          />
         </div>
-      }
-      style={{ marginBottom: '24px', borderRadius: '12px' }}
-      styles={{ body: { padding: '16px' } }}
-    >
-      <Tabs
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        items={tabItems}
-        size="small"
-      />
-    </Card>
+
+        {searchLoading ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <Spin tip="正在搜索..." />
+          </div>
+        ) : searchResults.length > 0 ? (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: '12px',
+            maxHeight: '400px',
+            overflowY: 'auto',
+          }}>
+            {searchResults.map((restaurant, index) => (
+              <Card
+                key={`${restaurant.name}-${index}`}
+                hoverable
+                onClick={() => handleSelectCustomRestaurant(restaurant)}
+                style={{ borderRadius: '8px', cursor: 'pointer' }}
+                styles={{ body: { padding: '12px' } }}
+              >
+                <div style={{ marginBottom: '8px' }}>
+                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 600 }}>
+                    {restaurant.name}
+                  </h4>
+                </div>
+                <Tag color="orange" style={{ marginBottom: '8px' }}>
+                  {restaurant.type}
+                </Tag>
+                {restaurant.rating && (
+                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                    评分: {restaurant.rating}分
+                  </div>
+                )}
+                <div style={{ fontSize: '12px', color: '#999' }}>
+                  {restaurant.address}
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Empty description="输入餐厅名称开始搜索" />
+        )}
+      </Modal>
+    </>
   );
 }
 

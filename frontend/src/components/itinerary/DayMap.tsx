@@ -337,8 +337,8 @@ export default function OptimizedDayMap({
                   <div style="
                     width: ${isHotelSelected ? '40px' : '32px'};
                     height: ${isHotelSelected ? '40px' : '32px'};
-                    background: ${isHotelSelected 
-                      ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' 
+                    background: ${isHotelSelected
+                      ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'
                       : 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'};
                     border-radius: 50% 50% 50% 0;
                     transform: rotate(-45deg);
@@ -383,6 +383,60 @@ export default function OptimizedDayMap({
         });
       }
 
+      // 如果选中的酒店不在推荐列表中，单独显示
+      if (hotel?.location && hotelRecommendations && !hotelRecommendations.some((h: Hotel) => h.name === hotel.name)) {
+        const hotelCoords = hotel.location.split(',').map(Number);
+
+        const hotelMarker = new AMap.Marker({
+          position: hotelCoords,
+          title: hotel.name,
+          content: `
+            <div class="map-marker-container" style="position: relative; cursor: pointer;">
+              <div style="
+                width: 40px;
+                height: 40px;
+                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                border-radius: 50% 50% 50% 0;
+                transform: rotate(-45deg);
+                border: 3px solid #fff;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
+                <div style="transform: rotate(45deg); font-size: 18px;">🏨</div>
+              </div>
+              <div style="
+                position: absolute;
+                top: -30px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(255, 255, 255, 0.95);
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: 500;
+                color: #1f2937;
+                white-space: nowrap;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                border: 1px solid #e5e7eb;
+              ">
+                ${hotel.name}
+              </div>
+            </div>
+          `,
+          offset: new AMap.Pixel(-20, -40),
+          zIndex: 90
+        });
+
+        hotelMarker.on('click', () => {
+          handleMarkerClick(hotel, hotelCoords);
+        });
+
+        map.add(hotelMarker);
+        markersRef.current.push(hotelMarker);
+      }
+
       // 添加餐厅标记
       if (showAllRestaurants && restaurantRecommendations) {
         // 显示所有推荐餐厅
@@ -399,8 +453,8 @@ export default function OptimizedDayMap({
                   <div style="
                     width: ${isRestaurant ? '40px' : '32px'};
                     height: ${isRestaurant ? '40px' : '32px'};
-                    background: ${isRestaurant 
-                      ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' 
+                    background: ${isRestaurant
+                      ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
                       : 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)'};
                     border-radius: 50% 50% 50% 0;
                     transform: rotate(-45deg);
@@ -443,6 +497,60 @@ export default function OptimizedDayMap({
             markersRef.current.push(restMarker);
           }
         });
+
+        // 如果选中的餐厅不在推荐列表中，单独显示
+        if (restaurant?.location && !restaurantRecommendations.some((r: Restaurant) => r.name === restaurant.name)) {
+          const restCoords = restaurant.location.split(',').map(Number);
+
+          const restMarker = new AMap.Marker({
+            position: restCoords,
+            title: restaurant.name,
+            content: `
+              <div class="map-marker-container" style="position: relative; cursor: pointer;">
+                <div style="
+                  width: 40px;
+                  height: 40px;
+                  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                  border-radius: 50% 50% 50% 0;
+                  transform: rotate(-45deg);
+                  border: 3px solid #fff;
+                  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                ">
+                  <div style="transform: rotate(45deg); font-size: 18px;">🍽️</div>
+                </div>
+                <div style="
+                  position: absolute;
+                  top: -30px;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  background: rgba(255, 255, 255, 0.95);
+                  padding: 4px 8px;
+                  border-radius: 4px;
+                  font-size: 12px;
+                  font-weight: 500;
+                  color: #1f2937;
+                  white-space: nowrap;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                  border: 1px solid #e5e7eb;
+                ">
+                  ${restaurant.name}
+                </div>
+              </div>
+            `,
+            offset: new AMap.Pixel(-20, -40),
+            zIndex: 95
+          });
+
+          restMarker.on('click', () => {
+            handleMarkerClick(restaurant, restCoords);
+          });
+
+          map.add(restMarker);
+          markersRef.current.push(restMarker);
+        }
       } else if (restaurant?.location) {
         // 只显示选中的餐厅
         const restCoords = restaurant.location.split(',').map(Number);

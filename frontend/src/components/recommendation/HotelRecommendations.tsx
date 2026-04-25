@@ -1,8 +1,8 @@
 ﻿// 酒店推荐组件 - 展示推荐的酒店列表供用户选择
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Card, Spin, Empty, Tag, Rate, Button, message } from 'antd';
-import { EnvironmentOutlined, PhoneOutlined, StarOutlined, CloseOutlined } from '@ant-design/icons';
-import { Hotel, getHotelRecommendations } from '../../api/recommendationApi';
+import { Card, Spin, Empty, Tag, Rate, Button, message, Input, Modal } from 'antd';
+import { EnvironmentOutlined, PhoneOutlined, StarOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons';
+import { Hotel, getHotelRecommendations, searchCustomHotel } from '../../api/recommendationApi';
 
 interface HotelRecommendationsProps {
   spots: Array<{
@@ -18,6 +18,7 @@ interface HotelRecommendationsProps {
   onLoadData?: (hotels: Hotel[]) => void; // 新增：加载推荐数据回调
   days?: number;
   tripId?: string;
+  destination?: string; // 目的地城市，用于自定义搜索
 }
 
 export default function HotelRecommendations({
@@ -31,11 +32,18 @@ export default function HotelRecommendations({
   onLoadData, // 新增
   days = 3, // 默认3天
   tripId, // 行程ID
+  destination, // 目的地城市
 }: HotelRecommendationsProps) {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
+  // 自定义搜索相关状态
+  const [customSearchVisible, setCustomSearchVisible] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchResults, setSearchResults] = useState<Hotel[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+
   // 使用 ref 防止重复请求
   const lastRequestKeyRef = useRef<string>('');
   const isRequestingRef = useRef(false);
@@ -112,6 +120,52 @@ export default function HotelRecommendations({
     }
   };
 
+  // 打开自定义搜索弹窗
+  const openCustomSearch = () => {
+    setCustomSearchVisible(true);
+    setSearchKeyword('');
+    setSearchResults([]);
+  };
+
+  // 执行自定义搜索
+  const handleCustomSearch = async () => {
+    if (!searchKeyword.trim()) {
+      message.warning('请输入酒店名称');
+      return;
+    }
+
+    if (!destination) {
+      message.warning('无法获取目的地城市信息');
+      return;
+    }
+
+    setSearchLoading(true);
+    try {
+      const response = await searchCustomHotel(searchKeyword, destination);
+      if (response.success && response.data) {
+        setSearchResults(response.data);
+        if (response.data.length === 0) {
+          message.info('未找到匹配的酒店');
+        }
+      } else {
+        message.error(response.error || '搜索失败');
+      }
+    } catch (error: any) {
+      message.error(error.message || '搜索失败，请稍后重试');
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // 选择自定义搜索的酒店
+  const handleSelectCustomHotel = (hotel: Hotel) => {
+    if (onSelect) {
+      onSelect(hotel);
+      message.success(`已选择: ${hotel.name}`);
+      setCustomSearchVisible(false);
+    }
+  };
+
   // 估算酒店价格
   const estimateHotelPrice = (hotel: Hotel): number => {
     const type = hotel.type.toLowerCase();
@@ -144,7 +198,7 @@ export default function HotelRecommendations({
 
   // 渲染加载状态
   if (loading) {
-    return (
+    const loadingContent = (
       <Card
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -159,11 +213,12 @@ export default function HotelRecommendations({
         </div>
       </Card>
     );
+    return <>{loadingContent}</>;
   }
 
   // 渲染错误状态
   if (error) {
-    return (
+    const errorContent = (
       <Card
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -181,11 +236,12 @@ export default function HotelRecommendations({
         </div>
       </Card>
     );
+    return <>{errorContent}</>;
   }
 
   // 渲染空状态
   if (hotels.length === 0) {
-    return (
+    const emptyContent = (
       <Card
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -197,15 +253,92 @@ export default function HotelRecommendations({
       >
         <Empty description="暂无符合条件的酒店推荐" />
         {showSkip && onSkip && (
-          <Button type="primary" onClick={handleSkip} style={{ marginTop: '16px' }}>
-            跳过，暂不选择酒店
-          </Button>
+          <div style={{ marginTop: '16px' }}>
+            <Button
+              onClick={openCustomSearch}
+              type="primary"
+              icon={<SearchOutlined />}
+              style={{ marginRight: '8px' }}
+            >
+              自定义搜索
+            </Button>
+            <Button onClick={handleSkip}>
+              跳过，暂不选择酒店
+            </Button>
+          </div>
         )}
       </Card>
     );
+    return (
+      <>
+        {emptyContent}
+        {/* 自定义搜索弹窗 */}
+        <Modal
+          title="自定义搜索酒店"
+          open={customSearchVisible}
+          onCancel={() => setCustomSearchVisible(false)}
+          footer={null}
+          width={700}
+        >
+          <div style={{ marginBottom: '16px' }}>
+            <Input.Search
+              placeholder="请输入酒店名称，如：如家酒店"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              onSearch={handleCustomSearch}
+              enterButton="搜索"
+              loading={searchLoading}
+              size="large"
+            />
+          </div>
+          {searchLoading ? (
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <Spin tip="正在搜索..." />
+            </div>
+          ) : searchResults.length > 0 ? (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+              gap: '12px',
+              maxHeight: '400px',
+              overflowY: 'auto',
+            }}>
+              {searchResults.map((hotel, index) => (
+                <Card
+                  key={`${hotel.name}-${index}`}
+                  hoverable
+                  onClick={() => handleSelectCustomHotel(hotel)}
+                  style={{ borderRadius: '8px', cursor: 'pointer' }}
+                  styles={{ body: { padding: '12px' } }}
+                >
+                  <div style={{ marginBottom: '8px' }}>
+                    <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 600 }}>
+                      {hotel.name}
+                    </h4>
+                  </div>
+                  <Tag color={getTierColor(hotel.type)} style={{ marginBottom: '8px' }}>
+                    {hotel.type}
+                  </Tag>
+                  {hotel.rating && (
+                    <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                      评分: {hotel.rating}分
+                    </div>
+                  )}
+                  <div style={{ fontSize: '12px', color: '#999' }}>
+                    {hotel.address}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Empty description="输入酒店名称开始搜索" />
+          )}
+        </Modal>
+      </>
+    );
   }
 
-  return (
+  const mainContent = (
     <Card
       title={
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
@@ -381,12 +514,91 @@ export default function HotelRecommendations({
       {/* 跳过按钮 */}
       {showSkip && onSkip && (
         <div style={{ textAlign: 'center', marginTop: '16px' }}>
+          <Button
+            onClick={openCustomSearch}
+            type="primary"
+            icon={<SearchOutlined />}
+            style={{ marginRight: '8px' }}
+          >
+            自定义搜索
+          </Button>
           <Button onClick={handleSkip} type="text" style={{ color: '#666' }}>
             跳过，暂不选择酒店
           </Button>
         </div>
       )}
     </Card>
+  );
+
+  // 返回包含自定义搜索弹窗的完整组件
+  return (
+    <>
+      {mainContent}
+
+      {/* 自定义搜索弹窗 */}
+      <Modal
+        title="自定义搜索酒店"
+        open={customSearchVisible}
+        onCancel={() => setCustomSearchVisible(false)}
+        footer={null}
+        width={700}
+      >
+        <div style={{ marginBottom: '16px' }}>
+          <Input.Search
+            placeholder="请输入酒店名称，如：如家酒店"
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            onSearch={handleCustomSearch}
+            enterButton="搜索"
+            loading={searchLoading}
+            size="large"
+          />
+        </div>
+
+        {searchLoading ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <Spin tip="正在搜索..." />
+          </div>
+        ) : searchResults.length > 0 ? (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: '12px',
+            maxHeight: '400px',
+            overflowY: 'auto',
+          }}>
+            {searchResults.map((hotel, index) => (
+              <Card
+                key={`${hotel.name}-${index}`}
+                hoverable
+                onClick={() => handleSelectCustomHotel(hotel)}
+                style={{ borderRadius: '8px', cursor: 'pointer' }}
+                styles={{ body: { padding: '12px' } }}
+              >
+                <div style={{ marginBottom: '8px' }}>
+                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 600 }}>
+                    {hotel.name}
+                  </h4>
+                </div>
+                <Tag color={getTierColor(hotel.type)} style={{ marginBottom: '8px' }}>
+                  {hotel.type}
+                </Tag>
+                {hotel.rating && (
+                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                    评分: {hotel.rating}分
+                  </div>
+                )}
+                <div style={{ fontSize: '12px', color: '#999' }}>
+                  {hotel.address}
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Empty description="输入酒店名称开始搜索" />
+        )}
+      </Modal>
+    </>
   );
 }
 

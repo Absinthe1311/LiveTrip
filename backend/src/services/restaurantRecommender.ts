@@ -162,8 +162,8 @@ class RestaurantRecommender {
         // 排序：有评分的优先，按评分降序；无评分的排在后面
         const sortedRestaurants = this.sortRestaurants(finalRestaurants);
 
-        // 返回最多3个推荐
-        const recommendations = sortedRestaurants.slice(0, Math.min(3, sortedRestaurants.length));
+        // 返回最多5个推荐
+        const recommendations = sortedRestaurants.slice(0, Math.min(5, sortedRestaurants.length));
 
         results.push({
           day: dayData.day,
@@ -244,7 +244,10 @@ class RestaurantRecommender {
       '美容', '美发', '理发', '洗衣', '照相', '复印',
       '快递', '物流', '停车场', '加油站', '汽修', '洗车',
       '药店', '医院', '诊所', '宠物', '花店', '水果',
-      '超市', '商场', '市场', '摊位', '大排档', '路边摊'
+      '超市', '商场', '市场', '摊位', '大排档', '路边摊',
+      // 连锁快餐品牌
+      '肯德基', 'KFC', '麦当劳', "McDonald's", '必胜客', 'Pizza Hut',
+      '德克士', 'Dicos', '华莱士', '汉堡王', 'Burger King'
     ];
 
     // 优先保留的餐厅类型关键词
