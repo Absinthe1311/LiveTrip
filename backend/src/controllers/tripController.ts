@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import { getPrismaClient } from '../lib/prisma';
 import { budgetCalculator } from '../services/budgetCalculator';
 import { spotService } from '../services/spotService';
+import { traditionalRecommender } from '../services/traditionalRecommender';
 
 const prisma = getPrismaClient();
 
@@ -103,9 +104,79 @@ export const getTripById = async (req: Request, res: Response) => {
 
     console.log('✅ 行程详情获取成功');
 
+    // 生成备选景点池
+    let alternativePools: Record<string, any[]> = {};
+    
+    try {
+      // 获取所有景点ID
+      const allSpotIds = trip.days.flatMap(day =>
+        day.itineraryItems.map(item => item.spotId).filter(id => id !== null)
+      ) as string[];
+
+      // 获取行程中的景点信息（包含图片）
+      const itinerarySpots = await prisma.spot.findMany({
+        where: {
+          id: { in: allSpotIds },
+        },
+        include: {
+          image: true, // ✅ 包含图片关系
+        },
+      });
+
+      // 获取同一城市的其他景点作为候选（最多50个，包含图片）
+      const candidateSpots = await prisma.spot.findMany({
+        where: {
+          city: trip.destination,
+          id: { notIn: allSpotIds }, // 排除行程中的景点
+        },
+        include: {
+          image: true, // ✅ 包含图片关系
+        },
+        take: 50,
+      });
+
+      // 合并所有景点（行程景点 + 候选景点）
+      const allSpots = [...itinerarySpots, ...candidateSpots];
+
+      // 获取IoT数据
+      const allSpotIdsForIoT = allSpots.map(s => s.id);
+      const iotDataMap = await spotService.getBatchIoTData(allSpotIdsForIoT);
+
+      // 构造评分景点列表
+      const scoredSpots = allSpots.map(spot => ({
+        spot,
+        spotId: spot.id,
+        totalScore: (spot.rating || 0) * 20, // 简单评分
+        iotData: iotDataMap.get(spot.id),
+      }));
+
+      // 构造选中景点列表
+      const selectedSpots = trip.days.flatMap(day =>
+        day.itineraryItems.map(item => ({
+          spotId: item.spotId,
+          spot: itinerarySpots.find(s => s.id === item.spotId),
+        }))
+      );
+
+      console.log(`   行程景点数: ${itinerarySpots.length}`);
+      console.log(`   候选景点数: ${candidateSpots.length}`);
+      console.log(`   总景点数: ${allSpots.length}`);
+
+      // 使用traditionalRecommender的generateAlternativePools方法
+      alternativePools = traditionalRecommender().generateAlternativePools(scoredSpots, selectedSpots);
+      
+      console.log(`✅ 生成备选景点池: ${Object.keys(alternativePools).length} 个景点`);
+    } catch (error) {
+      console.error('⚠️  生成备选景点池失败:', error);
+      // 失败时返回空的备选池
+    }
+
     res.json({
       success: true,
-      data: trip,
+      data: {
+        ...trip,
+        alternativePools, // 添加备选景点池
+      },
     });
   } catch (error: any) {
     console.error('❌ 获取行程详情失败:', error);

@@ -302,6 +302,9 @@ class TraditionalRecommender {
       const duration = 120; // 默认每个景点游览 2 小时
       const endTime = currentTime + duration;
 
+      // 获取图片URL（spot.image是SpotImage对象，需要取url字段）
+      const imageUrl = spot.image?.url || spot.image || null;
+      
       attractions.push({
         id: spot.id,
         spotId: spot.id,
@@ -312,6 +315,10 @@ class TraditionalRecommender {
         description: spot.description || spot.category || '热门景点',
         type: spot.category,
         address: spot.address,
+        image: imageUrl, // 使用正确的图片URL
+        iotData: spotScore.iotData, // 添加IoT数据
+        rating: spot.rating, // 添加评分
+        category: spot.category, // 添加分类
       });
 
       currentTime = endTime + 60; // 每个景点之间间隔 1 小时
@@ -321,35 +328,136 @@ class TraditionalRecommender {
   }
 
   /**
-   * 生成备选景点池
+   * 生成备选景点池（新方案：未选中景点自动成为备选）
+   * 核心思想：
+   * 1. 所有景点已评分排序
+   * 2. 选中的景点作为行程展示
+   * 3. 未选中的景点按评分分配给选中的景点作为备选
+   * 4. 确保备选景点唯一性（每个未选中景点只对应一个选中景点）
+   * 5. 每个景点最多2个备选
    */
-  private generateAlternativePools(
+  public generateAlternativePools(
     scoredSpots: any[],
     selectedSpots: any[]
   ): Record<string, any[]> {
+    console.log('\n🔄 生成备选景点池（新方案）...');
+    console.log(`   总景点数: ${scoredSpots.length}`);
+    console.log(`   选中景点数: ${selectedSpots.length}`);
+
     const alternativePools: Record<string, any[]> = {};
+    const MAX_ALTERNATIVES = 2; // 每个景点最多2个备选
 
+    // 初始化每个选中景点的备选池
     for (const selectedSpot of selectedSpots) {
-      // 找到同类别的备选景点
-      const alternatives = scoredSpots
-        .filter((spot: any) => {
-          // 排除已选中的景点
-          if (spot.spotId === selectedSpot.spotId) return false;
+      alternativePools[selectedSpot.spotId] = [];
+    }
 
-          // 找到有相同类别的景点
-          const hasCommonCategory = spot.categories.some((cat: CategoryTag) =>
-            selectedSpot.categories.includes(cat)
-          );
+    // 找出未选中的景点
+    const selectedSpotIds = new Set(selectedSpots.map(s => s.spotId));
+    const unselectedSpots = scoredSpots.filter(spot => !selectedSpotIds.has(spot.spotId));
 
-          return hasCommonCategory;
-        })
-        .sort((a: any, b: any) => b.totalScore - a.totalScore)
-        .slice(0, 3); // 取前 3 个
+    console.log(`   未选中景点数: ${unselectedSpots.length}`);
 
-      alternativePools[selectedSpot.spotId] = alternatives;
+    // 按评分降序排序未选中景点
+    const sortedUnselectedSpots = unselectedSpots.sort((a, b) => b.totalScore - a.totalScore);
+
+    // 将未选中景点分配给选中景点作为备选
+    // 策略：轮询分配，每个景点最多MAX_ALTERNATIVES个备选
+    let selectedIndex = 0;
+    for (const unselectedSpot of sortedUnselectedSpots) {
+      // 找到对应的选中景点（轮询）
+      const selectedSpot = selectedSpots[selectedIndex % selectedSpots.length];
+      const spotId = selectedSpot.spotId;
+
+      // 检查该选中景点是否已达到最大备选数量
+      if (alternativePools[spotId].length >= MAX_ALTERNATIVES) {
+        // 跳过已满的景点，找下一个未满的
+        let found = false;
+        for (let i = 0; i < selectedSpots.length; i++) {
+          const nextIndex = (selectedIndex + i) % selectedSpots.length;
+          const nextSpotId = selectedSpots[nextIndex].spotId;
+          if (alternativePools[nextSpotId].length < MAX_ALTERNATIVES) {
+            // 构造完整的备选景点信息
+            const alternativeData = this.buildAlternativeData(unselectedSpot);
+            alternativePools[nextSpotId].push(alternativeData);
+            found = true;
+            selectedIndex = nextIndex + 1;
+            break;
+          }
+        }
+        if (!found) {
+          // 所有选中景点都已满，停止分配
+          break;
+        }
+      } else {
+        // 构造完整的备选景点信息
+        const alternativeData = this.buildAlternativeData(unselectedSpot);
+        alternativePools[spotId].push(alternativeData);
+        selectedIndex++;
+      }
+    }
+
+    // 打印分配结果
+    console.log('\n📊 备选景点分配结果：');
+    for (const selectedSpot of selectedSpots) {
+      const alternatives = alternativePools[selectedSpot.spotId];
+      console.log(`   ${selectedSpot.spot.name}: ${alternatives.length} 个备选`);
+    }
+
+    // 验证：确保没有重复
+    const allAlternativeIds = new Set<string>();
+    let hasDuplicate = false;
+    for (const alternatives of Object.values(alternativePools)) {
+      for (const alt of alternatives) {
+        if (allAlternativeIds.has(alt.spotId)) {
+          hasDuplicate = true;
+          console.error(`   ❌ 发现重复：${alt.name}`);
+        }
+        allAlternativeIds.add(alt.spotId);
+      }
+    }
+
+    if (!hasDuplicate) {
+      console.log('   ✅ 验证通过：没有重复的备选景点');
     }
 
     return alternativePools;
+  }
+
+  /**
+   * 构造备选景点数据（确保包含完整信息）
+   */
+  private buildAlternativeData(scoredSpot: any): any {
+    const spot = scoredSpot.spot;
+    // 获取图片URL（spot.image是SpotImage对象，需要取url字段）
+    const imageUrl = spot.image?.url || spot.image || null;
+    
+    // 调试日志
+    if (spot.image) {
+      console.log(`   📸 ${spot.name} 图片数据:`, {
+        hasImage: !!spot.image,
+        imageType: typeof spot.image,
+        hasUrl: !!spot.image?.url,
+        imageUrl: imageUrl ? imageUrl.substring(0, 60) + '...' : null
+      });
+    }
+    
+    return {
+      spotId: spot.id,
+      id: spot.id,
+      name: spot.name,
+      location: spot.location,
+      address: spot.address || '',
+      estimated_cost: spot.ticketPrice || 0,
+      description: spot.description || spot.category || '热门景点',
+      type: spot.category,
+      category: spot.category,
+      rating: spot.rating,
+      ticketPrice: spot.ticketPrice,
+      image: imageUrl, // 使用正确的图片URL
+      totalScore: scoredSpot.totalScore,
+      iotData: scoredSpot.iotData,
+    };
   }
 
   /**

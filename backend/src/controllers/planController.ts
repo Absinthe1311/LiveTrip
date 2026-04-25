@@ -59,7 +59,7 @@ export const createPlan = async (req: Request, res: Response) => {
     }
 
     // 转换为AI推荐服务需要的格式
-    const attractions = spots.map(spot => ({
+    const attractions = spots.map((spot: any) => ({
       id: spot.id, // 添加spotId
       name: spot.name,
       location: spot.location,
@@ -69,6 +69,7 @@ export const createPlan = async (req: Request, res: Response) => {
       rating: spot.rating || 3.5,
       cost: spot.ticketPrice ? `${spot.ticketPrice}元` : '免费',
       description: spot.description || spot.category || '热门景点', // 添加description字段
+      image: spot.image, // ✅ 添加图片字段
     }));
 
     console.log(`✅ 获取并存储了 ${spots.length} 个景点到数据库`);

@@ -81,6 +81,7 @@ function convertDbToItinerary(trip: any): FullItinerary {
       budget: trip.totalBudget || 0,
       days: itinerary.length,
     },
+    alternativePools: trip.alternativePools || {}, // ✅ 添加备选景点池
   };
 }
 
@@ -275,6 +276,7 @@ export default function TripDetailPage() {
     }
   };
 
+  // 处理显示备选景点（新方案：从行程数据中获取）
   const handleShowAlternatives = async (item: AttractionItem, city?: string) => {
     console.log('🔍 查看备选景点:', item.name);
     console.log('   城市:', city || '未指定');
@@ -289,24 +291,39 @@ export default function TripDetailPage() {
     setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: true }));
 
     try {
-      const allSpotNames = itineraryData!.itinerary.flatMap(day =>
-        day.attractions.map(attr => attr.name)
-      );
+      // 新方案：从行程数据的alternativePools中获取备选景点
+      const spotId = item.spotId || item.id;
+      
+      if (!itineraryData?.alternativePools || !spotId) {
+        console.warn('⚠️  没有备选景点数据');
+        message.info('暂无备选景点');
+        setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: false }));
+        return;
+      }
 
-      console.log('   行程中的景点:', allSpotNames.join(', '));
+      // 从alternativePools获取备选景点
+      const alternatives = itineraryData.alternativePools[spotId] || [];
+      
+      console.log(`✅ 从行程数据获取到 ${alternatives.length} 个备选景点`);
+      
+      // 调试：打印备选景点数据结构
+      if (alternatives.length > 0) {
+        console.log('📦 备选景点数据示例:', {
+          name: alternatives[0].name,
+          image: alternatives[0].image,
+          iotData: alternatives[0].iotData,
+          rating: alternatives[0].rating,
+          estimated_cost: alternatives[0].estimated_cost
+        });
+      }
 
-      const recommendations = await alternativeRecommender.getRecommendations(
-        item,
-        iotData,
-        city,
-        allSpotNames
-      );
-
-      console.log('✅ 获取到备选景点:', recommendations.length);
+      if (alternatives.length === 0) {
+        message.info('暂无备选景点');
+      }
 
       setExpandedAlternatives(prev => ({
         ...prev,
-        [attractionKey]: recommendations
+        [attractionKey]: alternatives
       }));
     } catch (error: any) {
       console.error('❌ 获取备选景点失败:', error);

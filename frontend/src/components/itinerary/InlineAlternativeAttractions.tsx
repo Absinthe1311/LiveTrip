@@ -1,7 +1,8 @@
 // 内联备选景点组件 - 展开在景点卡片下方，使用紧凑版卡片样式
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import CompactAlternativeSpotCard from './CompactAlternativeSpotCard';
+import { batchGetSpotImagesByIds } from '../../api/client';
 
 interface InlineAlternativeAttractionsProps {
   alternatives: any[];
@@ -19,6 +20,41 @@ export default function InlineAlternativeAttractions({
   onReplace
 }: InlineAlternativeAttractionsProps) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [spotImages, setSpotImages] = useState<Record<string, string>>({});
+
+  // 加载备选景点图片
+  useEffect(() => {
+    const loadImages = async () => {
+      if (alternatives.length === 0) return;
+
+      // 收集所有景点ID
+      const spotIds = alternatives
+        .map(alt => alt.spotId || alt.id)
+        .filter(id => id);
+
+      if (spotIds.length === 0) return;
+
+      try {
+        console.log('📸 加载备选景点图片，景点数:', spotIds.length);
+        const response = await batchGetSpotImagesByIds(spotIds);
+        
+        if (response.success && response.data) {
+          const imageMap: Record<string, string> = {};
+          response.data.forEach((item: any) => {
+            if (item.image) {
+              imageMap[item.spotId] = item.image;
+            }
+          });
+          setSpotImages(imageMap);
+          console.log('✅ 备选景点图片加载成功:', Object.keys(imageMap).length);
+        }
+      } catch (error) {
+        console.error('❌ 加载备选景点图片失败:', error);
+      }
+    };
+
+    loadImages();
+  }, [alternatives]);
 
   const handleReplace = async (attraction: any) => {
     setLoadingId(attraction.id);
@@ -44,19 +80,24 @@ export default function InlineAlternativeAttractions({
 
       {/* 备选卡片网格 - 使用紧凑版卡片 */}
       <div className="grid grid-cols-2 gap-4">
-        {alternatives.map((attraction, index) => (
-          <CompactAlternativeSpotCard
-            key={attraction.id || index}
-            item={{
-              ...attraction,
-              index: index + 1,
-              iotData: attraction.iotData // 传递IoT数据
-            }}
-            city={city}
-            onReplace={() => handleReplace(attraction)}
-            imageUrl={attraction.image} // 传递图片URL
-          />
-        ))}
+        {alternatives.map((attraction, index) => {
+          const spotId = attraction.spotId || attraction.id;
+          const imageUrl = spotImages[spotId] || attraction.image; // 优先使用加载的图片
+          
+          return (
+            <CompactAlternativeSpotCard
+              key={spotId || index}
+              item={{
+                ...attraction,
+                index: index + 1,
+                iotData: attraction.iotData // 传递IoT数据
+              }}
+              city={city}
+              onReplace={() => handleReplace(attraction)}
+              imageUrl={imageUrl} // 传递图片URL
+            />
+          );
+        })}
       </div>
 
       {/* 空状态 */}

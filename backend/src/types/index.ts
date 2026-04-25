@@ -58,6 +58,10 @@ export interface RecommendedAttraction {
   type?: string;
   address?: string;
   spotId?: string; // 兼容旧字段名
+  image?: string | null; // 景点图片URL
+  iotData?: any; // IoT实时数据
+  rating?: number; // 景点评分
+  category?: string; // 景点分类
 }
 
 // 每日行程
@@ -104,6 +108,7 @@ export interface SpotScore {
   iotScore: number;
   crowdScore: number;
   categories: CategoryTag[];
+  iotData?: any; // IoT实时数据
 }
 
 // 景点聚类结果

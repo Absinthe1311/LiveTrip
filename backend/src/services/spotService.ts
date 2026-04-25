@@ -97,6 +97,9 @@ class SpotService {
       where: {
         city: city,
       },
+      include: {
+        image: true, // ✅ 包含图片关系
+      },
       take: limit,
       orderBy: {
         rating: 'desc', // 按评分排序
@@ -117,6 +120,7 @@ class SpotService {
       description: spot.description,
       isOutdoor: spot.isOutdoor,
       source: spot.source,
+      image: spot.image, // ✅ 包含图片关系
       createdAt: spot.createdAt,
       updatedAt: spot.updatedAt,
     }));
@@ -448,8 +452,15 @@ class SpotService {
         // 获取IoT数据
         const iotDataMap = await this.getIoTDataMap(alternativeIds);
 
+        // 动态过滤：排除当前行程中的其他景点
+        const filteredAlternatives = alternatives.filter(spot => 
+          !excludeSpotIds.includes(spot.id)
+        );
+
+        console.log(`   动态过滤后: ${filteredAlternatives.length} 个备选景点（排除了 ${alternatives.length - filteredAlternatives.length} 个行程中的景点）`);
+
         // 组装返回数据
-        return alternatives.map(spot => ({
+        return filteredAlternatives.map(spot => ({
           id: spot.id,
           amapId: spot.amapId,
           name: spot.name,
@@ -585,35 +596,50 @@ class SpotService {
         !usedAlternativeIds.includes(spot.id)
       );
 
-      // 8. 随机选择1-2个备选景点（实现分散推荐）
-      const numAlternatives = Math.random() > 0.5 ? 2 : 1;
+      // 8. 选择3-5个备选景点（增加备选数量，提升用户体验）
+      const numAlternatives = Math.min(5, Math.max(3, Math.floor(candidates.length * 0.3)));
       let selectedAlternatives: any[] = [];
 
       if (availableHealthySpots.length >= numAlternatives) {
         // 有足够的健康备选景点
         const topSpots = availableHealthySpots
           .sort((a: any, b: any) => b.score - a.score)
-          .slice(0, Math.min(5, availableHealthySpots.length));
-        
+          .slice(0, Math.min(10, availableHealthySpots.length));
+
         selectedAlternatives = this.shuffleArray(topSpots).slice(0, numAlternatives);
+      } else if (availableHealthySpots.length > 0) {
+        // 健康景点不足，混合健康景点和其他景点
+        const allAvailableSpots = scoredSpots.filter(spot =>
+          !usedAlternativeIds.includes(spot.id)
+        );
+
+        const topSpots = allAvailableSpots
+          .sort((a: any, b: any) => b.score - a.score)
+          .slice(0, Math.min(10, allAvailableSpots.length));
+
+        // 优先选择健康景点，然后补充其他景点
+        selectedAlternatives = [
+          ...availableHealthySpots.sort((a: any, b: any) => b.score - a.score).slice(0, 2),
+          ...topSpots.filter(s => !availableHealthySpots.includes(s)).slice(0, numAlternatives - availableHealthySpots.length)
+        ];
       } else {
-        // 健康景点不足，使用所有候选景点（包括不健康的）
-        const allAvailableSpots = scoredSpots.filter(spot => 
+        // 没有健康景点，使用所有候选景点
+        const allAvailableSpots = scoredSpots.filter(spot =>
           !usedAlternativeIds.includes(spot.id)
         );
 
         if (allAvailableSpots.length > 0) {
           const topSpots = allAvailableSpots
             .sort((a: any, b: any) => b.score - a.score)
-            .slice(0, Math.min(5, allAvailableSpots.length));
-          
+            .slice(0, Math.min(10, allAvailableSpots.length));
+
           selectedAlternatives = this.shuffleArray(topSpots).slice(0, numAlternatives);
         } else {
           // 兜底机制：推荐评分最高的景点（即使已被推荐）
           const topSpots = scoredSpots
             .sort((a, b) => b.score - a.score)
             .slice(0, numAlternatives);
-          
+
           selectedAlternatives = topSpots;
           console.log(`⚠️  使用兜底机制，推荐评分最高的景点`);
         }

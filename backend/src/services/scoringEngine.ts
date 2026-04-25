@@ -131,6 +131,7 @@ class ScoringEngine {
       iotScore: Math.round(iotScore * 100) / 100,
       crowdScore: Math.round(crowdScore * 100) / 100,
       categories,
+      iotData: iotDataMap.get(spot.id), // 添加IoT数据
     };
   }
 

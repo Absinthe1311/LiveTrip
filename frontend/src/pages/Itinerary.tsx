@@ -482,7 +482,7 @@ export default function Itinerary() {
     }
   };
 
-  // 处理显示备选景点
+  // 处理显示备选景点（新方案：从行程数据中获取）
   const handleShowAlternatives = async (item: AttractionItem, city?: string) => {
     console.log('🔍 查看备选景点:', item.name);
     console.log('   城市:', city || '未指定');
@@ -498,26 +498,39 @@ export default function Itinerary() {
     setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: true }));
 
     try {
-      // 获取行程中所有景点的名称（用于排除）
-      const allSpotNames = itineraryData!.itinerary.flatMap(day =>
-        day.attractions.map(attr => attr.name)
-      );
+      // 新方案：从行程数据的alternativePools中获取备选景点
+      const spotId = item.spotId || item.id;
+      
+      if (!itineraryData?.alternativePools || !spotId) {
+        console.warn('⚠️  没有备选景点数据');
+        message.info('暂无备选景点');
+        setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: false }));
+        return;
+      }
 
-      console.log('   行程中的景点:', allSpotNames.join(', '));
+      // 从alternativePools获取备选景点
+      const alternatives = itineraryData.alternativePools[spotId] || [];
+      
+      console.log(`✅ 从行程数据获取到 ${alternatives.length} 个备选景点`);
+      
+      // 调试：打印备选景点数据结构
+      if (alternatives.length > 0) {
+        console.log('📦 备选景点数据示例:', {
+          name: alternatives[0].name,
+          image: alternatives[0].image,
+          iotData: alternatives[0].iotData,
+          rating: alternatives[0].rating,
+          estimated_cost: alternatives[0].estimated_cost
+        });
+      }
 
-      // 使用推荐服务获取备选景点
-      const recommendations = await alternativeRecommender.getRecommendations(
-        item,
-        iotData,
-        city,
-        allSpotNames
-      );
-
-      console.log('✅ 获取到备选景点:', recommendations.length);
+      if (alternatives.length === 0) {
+        message.info('暂无备选景点');
+      }
 
       setExpandedAlternatives(prev => ({
         ...prev,
-        [attractionKey]: recommendations
+        [attractionKey]: alternatives
       }));
     } catch (error: any) {
       console.error('❌ 获取备选景点失败:', error);
@@ -683,16 +696,31 @@ export default function Itinerary() {
                   loadingAlternatives={loadingAlternatives}
                   handleCloseAlternatives={handleCloseAlternatives}
                   handleReplaceAttraction={(newItem: any, originalItem: any) => {
+                    console.log('🔄 替换景点:', originalItem.name, '→', newItem.name);
+                    console.log('原景点:', originalItem);
+                    console.log('新景点:', newItem);
+                    
                     const newItinerary = { ...itineraryData };
                     newItinerary.itinerary[currentDayIndex].attractions = newItinerary.itinerary[currentDayIndex].attractions.map((attr: any, idx: number) => {
                       // 通过原始景点信息来找到要替换的景点
                       if (originalItem && (attr.name === originalItem.name && attr.time === originalItem.time)) {
-                        return { ...newItem, time: attr.time }; // 保持原有的时间
+                        // 完整替换，保留必要字段
+                        return {
+                          ...newItem,
+                          time: attr.time, // 保持原有的时间
+                          spotId: newItem.id || newItem.spotId, // 确保spotId正确传递
+                          estimated_cost: newItem.estimated_cost || newItem.ticketPrice || 0, // 确保费用字段
+                          image: newItem.image || null, // 确保图片字段
+                        };
                       }
                       return attr;
                     });
                     setItineraryData(newItinerary);
+                    setCurrentItinerary(newItinerary); // 同步更新store
                     message.success(`已替换为 ${newItem.name}`);
+                    
+                    // 关闭备选景点展开状态
+                    handleCloseAlternatives(originalItem);
                   }}
                   onAttractionsReorder={(newAttractions) => {
                     const newItinerary = { ...itineraryData };

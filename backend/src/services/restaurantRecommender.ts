@@ -140,8 +140,27 @@ class RestaurantRecommender {
           distance: r.distance ? parseInt(r.distance) : this.calculateDistanceFromLocation(r.location, centerSpot.location),
         }));
 
+        // 过滤不合适的餐厅（快餐、学校餐厅等）
+        const filteredRestaurants = this.filterInappropriateRestaurants(processedRestaurants);
+
+        console.log(`🔍 过滤前: ${processedRestaurants.length} 个餐厅`);
+        console.log(`✅ 过滤后: ${filteredRestaurants.length} 个合适餐厅`);
+
+        // 如果过滤后数量不足，放宽过滤条件，保留部分餐厅
+        let finalRestaurants = filteredRestaurants;
+        if (filteredRestaurants.length < 3) {
+          console.log(`⚠️  过滤后餐厅不足3个，放宽过滤条件`);
+          // 重新过滤，仅排除明显不合适的（学校、医院等）
+          const relaxedFiltered = processedRestaurants.filter(r => {
+            const nameAndType = `${r.name} ${r.type} ${r.address}`;
+            const severeExcluded = ['学校', '医院', '诊所', '药店', '便利店', '停车场', '加油站'];
+            return !severeExcluded.some(keyword => nameAndType.includes(keyword));
+          });
+          finalRestaurants = relaxedFiltered;
+        }
+
         // 排序：有评分的优先，按评分降序；无评分的排在后面
-        const sortedRestaurants = this.sortRestaurants(processedRestaurants);
+        const sortedRestaurants = this.sortRestaurants(finalRestaurants);
 
         // 返回最多3个推荐
         const recommendations = sortedRestaurants.slice(0, Math.min(3, sortedRestaurants.length));
@@ -209,6 +228,48 @@ class RestaurantRecommender {
 
     // 如果没有匹配到，返回最后一个部分或"餐厅"
     return typeParts[typeParts.length - 1] || '餐厅';
+  }
+
+  /**
+   * 过滤不合适的餐厅类型
+   * @param restaurants 餐厅列表
+   * @returns 过滤后的餐厅列表
+   */
+  private filterInappropriateRestaurants(restaurants: Restaurant[]): Restaurant[] {
+    // 不合适的餐厅类型关键词（排除快餐、学校餐厅等）
+    const excludedKeywords = [
+      '快餐', '小吃店', '学校', '食堂', '外卖', '便利店',
+      '咖啡厅', '咖啡店', '奶茶', '甜品', '酒吧', '夜总会',
+      'KTV', '网吧', '棋牌', '足浴', '按摩', 'SPA',
+      '美容', '美发', '理发', '洗衣', '照相', '复印',
+      '快递', '物流', '停车场', '加油站', '汽修', '洗车',
+      '药店', '医院', '诊所', '宠物', '花店', '水果',
+      '超市', '商场', '市场', '摊位', '大排档', '路边摊'
+    ];
+
+    // 优先保留的餐厅类型关键词
+    const preferredKeywords = [
+      '中餐厅', '西餐厅', '餐厅', '饭店', '酒楼', '酒家',
+      '日料', '日式', '韩料', '韩式', '料理',
+      '火锅', '烧烤', '烤肉', '海鲜', '自助餐',
+      '川菜', '湘菜', '粤菜', '鲁菜', '苏菜', '浙菜', '闽菜', '徽菜',
+      '私房菜', '特色菜', '地方菜', '家常菜', '土菜馆',
+      '茶餐厅', '港式', '台湾菜', '东南亚', '泰国菜', '印度菜'
+    ];
+
+    return restaurants.filter(restaurant => {
+      const nameAndType = `${restaurant.name} ${restaurant.type} ${restaurant.address}`;
+
+      // 检查是否包含排除关键词
+      for (const keyword of excludedKeywords) {
+        if (nameAndType.includes(keyword)) {
+          console.log(`🚫 过滤不合适餐厅: ${restaurant.name} (包含: ${keyword})`);
+          return false;
+        }
+      }
+
+      return true;
+    });
   }
 
   /**
