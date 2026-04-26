@@ -544,12 +544,11 @@ ${profilePrompt}
           return await this.listUserTrips(params, userId);
 
         case 'manage_blog':
-          // ✅ 新的统一工具：管理博客
-          return await this.manageBlog(params, userId);
+          return await this.manageBlog(params, userId, stepCallback);
 
         case 'generate_blog':
           // ✅ 保留旧工具兼容性
-          return await this.generateBlog(params, userId);
+          return await this.generateBlog(params, userId, stepCallback);
 
         case 'publish_blog':
           // ✅ 保留旧工具兼容性
@@ -827,7 +826,7 @@ ${profilePrompt}
    * ✅ P0优化: 管理博客（统一工具）
    * 合并了 generate_blog + publish_blog
    */
-  private async manageBlog(params: any, userId?: string): Promise<ToolExecutionResult> {
+  private async manageBlog(params: any, userId?: string, stepCallback?: (step: string) => void): Promise<ToolExecutionResult> {
     try {
       console.log('\n📝 [管理博客]');
       console.log('   操作:', params.action);
@@ -1336,9 +1335,10 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
   /**
    * 生成博客工具
    */
-  private async generateBlog(params: any, userId?: string): Promise<ToolExecutionResult> {
+  private async generateBlog(params: any, userId?: string, stepCallback?: (step: string) => void): Promise<ToolExecutionResult> {
     try {
       console.log('✍️ 生成博客:', params);
+      stepCallback?.('📝 正在生成博客内容...');
 
       // 验证必填参数
       if (!params.tripId) {
@@ -1430,6 +1430,7 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
 
       try {
         const aiStartTime = Date.now();
+        stepCallback?.('🤖 正在调用AI生成博客正文...');
         const result = await this.callZhipuAI([
           {
             role: 'system',
@@ -1504,6 +1505,7 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
           
           await chatHistoryService.updateSessionTempData(lastSessionId, {
             type: 'blog_draft' as any,
+            blogId: blog.id,
             data: blogPreviewData,
             createdAt: new Date(),
             expiresAt,
@@ -1515,6 +1517,7 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
           success: true,
           needsConfirmation: true,
           previewData: blogPreviewData,
+          sessionId: lastSessionId || undefined,
           data: {
             id: blog.id,
             title: blog.title,
@@ -2814,7 +2817,7 @@ ${blogContent.substring(0, 200)}...
 
       // 从临时数据中获取博客ID
       const blogPreviewData = tempData.data;
-      const blogId = blogPreviewData.blogId;
+      const blogId = tempData.blogId || blogPreviewData.blogId;
       
       console.log('   📝 发布博客，ID:', blogId);
 
@@ -2902,7 +2905,6 @@ ${blogContent.substring(0, 200)}...
           : session.tempData;
 
         if (tempData.tripId && tempData.type === 'trip_draft') {
-          // 删除 draft 行程及其关联数据
           try {
             const trip = await prisma.trip.findUnique({
               where: { id: tempData.tripId },
@@ -2918,6 +2920,16 @@ ${blogContent.substring(0, 200)}...
             }
           } catch (deleteError) {
             console.warn('   ⚠️ 删除 draft 行程失败（非致命）:', deleteError);
+          }
+        } else if (tempData.blogId && tempData.type === 'blog_draft') {
+          try {
+            const blog = await prisma.blogPost.findUnique({ where: { id: tempData.blogId } });
+            if (blog && blog.status === 'draft') {
+              await prisma.blogPost.delete({ where: { id: tempData.blogId } });
+              console.log('   🗑️ 已删除 draft 博客:', tempData.blogId);
+            }
+          } catch (deleteError) {
+            console.warn('   ⚠️ 删除 draft 博客失败（非致命）:', deleteError);
           }
         }
       }

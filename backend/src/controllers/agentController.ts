@@ -61,24 +61,27 @@ export const chatWithAgent = async (req: Request, res: Response) => {
 
     console.log('✅ Agent 回答完成');
 
-    // 检查工具调用结果中是否有预览数据
-    const toolResult = response.toolCalls?.[0]?.result;
+    // 检查工具调用结果中是否有预览数据（遍历所有toolCalls，不限于第一个）
+    const confirmationTool = response.toolCalls?.find(
+      (tc: any) => tc.result?.needsConfirmation
+    );
+    const moreInfoTool = response.toolCalls?.find(
+      (tc: any) => tc.result?.needsMoreInfo
+    );
     const resBody: any = {
       success: true,
       data: response,
     };
 
-    // 如果工具返回了预览数据，添加到顶层
-    if (toolResult?.needsConfirmation) {
+    if (confirmationTool?.result?.needsConfirmation) {
       resBody.needsConfirmation = true;
-      resBody.previewData = toolResult.previewData;
-      resBody.sessionId = toolResult.sessionId;
+      resBody.previewData = confirmationTool.result.previewData;
+      resBody.sessionId = confirmationTool.result.sessionId;
     }
 
-    // 如果工具需要更多信息
-    if (toolResult?.needsMoreInfo) {
+    if (moreInfoTool?.result?.needsMoreInfo) {
       resBody.needsMoreInfo = true;
-      resBody.error = toolResult.error;
+      resBody.error = moreInfoTool.result.error;
     }
 
     res.json(resBody);

@@ -42,22 +42,28 @@ export const chatWithAgentSSE = async (req: Request, res: Response) => {
       sendStep
     );
 
-    const toolResult = response.toolCalls?.[0]?.result;
+    const confirmationTool = response.toolCalls?.find(
+      (tc: any) => tc.result?.needsConfirmation
+    );
+    const moreInfoTool = response.toolCalls?.find(
+      (tc: any) => tc.result?.needsMoreInfo
+    );
+    const toolResult = confirmationTool?.result || moreInfoTool?.result || response.toolCalls?.[0]?.result;
     const resultData: any = {
       type: 'result',
       success: true,
       data: response,
     };
 
-    if (toolResult?.needsConfirmation) {
+    if (confirmationTool?.result?.needsConfirmation) {
       resultData.needsConfirmation = true;
-      resultData.previewData = toolResult.previewData;
-      resultData.sessionId = toolResult.sessionId;
+      resultData.previewData = confirmationTool.result.previewData;
+      resultData.sessionId = confirmationTool.result.sessionId;
     }
 
-    if (toolResult?.needsMoreInfo) {
+    if (moreInfoTool?.result?.needsMoreInfo) {
       resultData.needsMoreInfo = true;
-      resultData.error = toolResult.error;
+      resultData.error = moreInfoTool.result.error;
     }
 
     res.write(`data: ${JSON.stringify(resultData)}\n\n`);

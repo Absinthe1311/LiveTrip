@@ -39,6 +39,7 @@ interface GetMessagesParams {
 interface TempData {
   type: TempDataType;
   tripId?: string;
+  blogId?: string;
   data: any;
   createdAt: Date;
   expiresAt: Date;

@@ -69,4 +69,29 @@ router.post('/cancel-draft', async (req, res) => {
   }
 });
 
+/**
+ * @route   POST /api/agent/confirm-blog
+ * @desc    确认发布博客
+ * @access  Public
+ */
+router.post('/confirm-blog', async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    const userId = (req as any).user?.id || req.headers['x-user-id'] as string;
+
+    const result = await agentService.confirmBlogPublish(sessionId, userId);
+
+    res.json({
+      success: result.success,
+      data: result.data,
+      error: result.error,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || '发布失败',
+    });
+  }
+});
+
 export default router;

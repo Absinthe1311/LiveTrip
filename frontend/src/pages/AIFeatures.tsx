@@ -459,52 +459,83 @@ export default function AIFeaturesGlass() {
                     {/* 预览卡片 */}
                     {(msg as any).previewData && (
                       <div className="mt-4 p-4 rounded-xl bg-white/5 border border-white/10">
-                        <div className="text-sm font-bold text-white/90 mb-3">行程预览</div>
-                        <div className="space-y-1.5 text-sm text-white/70">
-                          <div className="font-medium">📍 目的地：<span className="text-white/90 font-semibold">{(msg as any).previewData.destination}</span></div>
-                          <div className="font-medium">📅 日期：<span className="text-white/90">{(msg as any).previewData.startDate} - {(msg as any).previewData.endDate}</span></div>
-                          <div className="font-medium">⏱️ 天数：<span className="text-white/90">{(msg as any).previewData.days}天</span></div>
-                          <div className="font-medium">💰 预算：<span className="text-white/90 font-semibold">¥{(msg as any).previewData.budget?.toLocaleString()}</span></div>
-                        </div>
-                        
-                        {/* 每日计划 */}
-                        {(msg as any).previewData.dailyPlans && (
-                          <div className="mt-3 space-y-2">
-                            {(msg as any).previewData.dailyPlans.map((day: any, idx: number) => (
-                              <div key={idx} className="text-sm">
-                                <span className="text-white/80 font-semibold">第{day.day}天</span>
-                                <span className="text-white/50 ml-2">{day.spots.map((s: any) => s.name).join(' → ')}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {/* 行程总结 */}
-                        {(msg as any).previewData.summary && (
-                          <div className="mt-3 pt-3 border-t border-white/10">
-                            <div className="text-sm font-bold text-white/80 mb-1.5">📝 行程总结</div>
-                            <div className="text-sm text-white/60 leading-relaxed">{(msg as any).previewData.summary}</div>
-                          </div>
-                        )}
-                        
-                        {/* 旅行建议 */}
-                        {(msg as any).previewData.tips && (msg as any).previewData.tips.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-white/10">
-                            <div className="text-sm font-bold text-white/80 mb-1.5">💡 旅行建议</div>
-                            <div className="space-y-1">
-                              {(msg as any).previewData.tips.map((tip: string, idx: number) => (
-                                <div key={idx} className="text-sm text-white/60">· {tip}</div>
-                              ))}
+                        {(msg as any).previewData.destination ? (
+                          <>
+                            {/* 行程预览 */}
+                            <div className="text-sm font-bold text-white/90 mb-3">行程预览</div>
+                            <div className="space-y-1.5 text-sm text-white/70">
+                              <div className="font-medium">📍 目的地：<span className="text-white/90 font-semibold">{(msg as any).previewData.destination}</span></div>
+                              <div className="font-medium">📅 日期：<span className="text-white/90">{(msg as any).previewData.startDate} - {(msg as any).previewData.endDate}</span></div>
+                              <div className="font-medium">⏱️ 天数：<span className="text-white/90">{(msg as any).previewData.days}天</span></div>
+                              <div className="font-medium">💰 预算：<span className="text-white/90 font-semibold">¥{(msg as any).previewData.budget?.toLocaleString()}</span></div>
                             </div>
-                          </div>
+                            
+                            {(msg as any).previewData.dailyPlans && (
+                              <div className="mt-3 space-y-2">
+                                {(msg as any).previewData.dailyPlans.map((day: any, idx: number) => (
+                                  <div key={idx} className="text-sm">
+                                    <span className="text-white/80 font-semibold">第{day.day}天</span>
+                                    <span className="text-white/50 ml-2">{day.spots.map((s: any) => s.name).join(' → ')}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            
+                            {(msg as any).previewData.summary && (
+                              <div className="mt-3 pt-3 border-t border-white/10">
+                                <div className="text-sm font-bold text-white/80 mb-1.5">📝 行程总结</div>
+                                <div className="text-sm text-white/60 leading-relaxed">{(msg as any).previewData.summary}</div>
+                              </div>
+                            )}
+                            
+                            {(msg as any).previewData.tips && (msg as any).previewData.tips.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-white/10">
+                                <div className="text-sm font-bold text-white/80 mb-1.5">💡 旅行建议</div>
+                                <div className="space-y-1">
+                                  {(msg as any).previewData.tips.map((tip: string, idx: number) => (
+                                    <div key={idx} className="text-sm text-white/60">· {tip}</div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {/* 博客预览 */}
+                            <div className="text-sm font-bold text-white/90 mb-3">博客预览</div>
+                            <div className="space-y-1.5 text-sm text-white/70">
+                              {(msg as any).previewData.title && (
+                                <div className="font-medium">📝 标题：<span className="text-white/90 font-semibold">{(msg as any).previewData.title}</span></div>
+                              )}
+                              {(msg as any).previewData.city && (
+                                <div className="font-medium">📍 城市：<span className="text-white/90">{(msg as any).previewData.city}</span></div>
+                              )}
+                              {(msg as any).previewData.imageCount > 0 && (
+                                <div className="font-medium">🖼️ 关联图片：<span className="text-white/90">{(msg as any).previewData.imageCount} 张</span></div>
+                              )}
+                            </div>
+                            {(msg as any).previewData.content && (
+                              <div className="mt-3 pt-3 border-t border-white/10">
+                                <div className="text-sm font-bold text-white/80 mb-1.5">📄 内容预览</div>
+                                <div className="text-sm text-white/60 leading-relaxed max-h-40 overflow-y-auto whitespace-pre-wrap">{(msg as any).previewData.content}</div>
+                              </div>
+                            )}
+                          </>
                         )}
                         
                         {/* 确认/取消按钮 */}
                         <div className="flex gap-3 mt-4">
                           <button
                             onClick={async () => {
+                              const isBlog = !(msg as any).previewData.destination;
+                              const confirmUrl = isBlog
+                                ? `${API_BASE_URL}/agent/confirm-blog`
+                                : `${API_BASE_URL}/agent/confirm-trip`;
+                              const successMsg = isBlog
+                                ? '✅ 博客已成功发布！'
+                                : '✅ 行程已成功保存到"我的行程"中！';
                               try {
-                                const res = await fetch(`${API_BASE_URL}/agent/confirm-trip`, {
+                                const res = await fetch(confirmUrl, {
                                   method: 'POST',
                                   headers: { 
                                     'Content-Type': 'application/json',
@@ -516,22 +547,22 @@ export default function AIFeaturesGlass() {
                                 if (result.success) {
                                   setMessages(prev => prev.map(m => 
                                     m.id === msg.id 
-                                      ? { ...m, content: '✅ 行程已成功保存到"我的行程"中！', previewData: null, needsConfirmation: false }
+                                      ? { ...m, content: successMsg, previewData: null, needsConfirmation: false }
                                       : m
                                   ));
                                   loadSessions();
                                 } else {
                                   console.error('确认失败:', result.error);
-                                  alert(result.error || '保存失败');
+                                  alert(result.error || '操作失败');
                                 }
                               } catch (error) {
                                 console.error('确认失败:', error);
-                                alert('保存失败，请重试');
+                                alert('操作失败，请重试');
                               }
                             }}
                             className="flex-1 px-4 py-2 rounded-lg bg-[#AE1C31]/20 text-[#AE1C31] text-sm font-semibold hover:bg-[#AE1C31]/30 transition-all"
                           >
-                            确认保存
+                            {(msg as any).previewData.destination ? '确认保存' : '确认发布'}
                           </button>
                           <button
                             onClick={async () => {
@@ -545,7 +576,7 @@ export default function AIFeaturesGlass() {
                                 if (result.success) {
                                   setMessages(prev => prev.map(m => 
                                     m.id === msg.id 
-                                      ? { ...m, content: '已取消保存', previewData: null, needsConfirmation: false }
+                                      ? { ...m, content: '已取消', previewData: null, needsConfirmation: false }
                                       : m
                                   ));
                                 }
