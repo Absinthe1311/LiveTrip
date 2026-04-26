@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Star, ChevronRight } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
-import { SpotCard } from '../components/spot/SpotCardLegacy';
+import { SpotCard } from '../components/spot/SpotCard';
 import { getHotCities, getCitySpots, getCityAllSpots, getFavorites, HotCity, HotSpot } from '../api/client';
 import { message } from 'antd';
 

@@ -58,6 +58,7 @@ apiClient.interceptors.response.use(
 
 // 景点项
 export interface AttractionItem {
+  id?: string;
   spotId?: string; // 景点唯一标识（关联Spot表）
   name: string;
   time: string;
@@ -114,6 +115,10 @@ export interface FullItinerary {
   tripId?: string;
   isSavedTrip?: boolean;
   status?: string;
+  destination?: string;
+  alternativePools?: Record<string, AlternativeSpot[]>;
+  hotel?: any;
+  restaurants?: any[];
 }
 
 // 行程规划请求
@@ -170,6 +175,8 @@ export interface AlternativeSpot {
   rating: number | null;
   description: string | null;
   isOutdoor: boolean | null;
+  image?: string;
+  estimated_cost?: number;
   iotData?: {
     crowdLevel: number;
     temperature: number;

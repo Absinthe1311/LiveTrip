@@ -292,7 +292,7 @@ export default function Itinerary() {
       return;
     }
 
-    const destination = itineraryData?.destination || '北京';
+    const destination = itineraryData?.destination || itineraryData?.summary?.destination || '北京';
     setSearchLoading(true);
 
     try {
@@ -981,7 +981,7 @@ export default function Itinerary() {
                         </div>
                         <div className="flex items-center justify-between text-xs">
                           {selectedRestaurants[currentStep.day || 0].rating && (
-                            <span className="text-amber-400">⭐ {selectedRestaurants[currentStep.day || 0].rating.toFixed(1)}</span>
+                            <span className="text-amber-400">⭐ {selectedRestaurants[currentStep.day || 0].rating?.toFixed(1)}</span>
                           )}
                         </div>
                         {selectedRestaurants[currentStep.day || 0].address && (

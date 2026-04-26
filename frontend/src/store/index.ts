@@ -1,20 +1,25 @@
 import { create } from 'zustand';
+import type { FullItinerary } from '../api/client';
 
-// 全局状态管理
+interface UserProfile {
+  id: string;
+  username: string;
+  email?: string;
+  role?: string;
+  avatar?: string;
+  nickname?: string;
+}
+
 interface AppState {
-  // 当前行程
-  currentItinerary: any | null;
-  setCurrentItinerary: (itinerary: any) => void;
+  currentItinerary: FullItinerary | null;
+  setCurrentItinerary: (itinerary: FullItinerary | null) => void;
 
-  // 用户信息
-  user: any | null;
-  setUser: (user: any) => void;
+  user: UserProfile | null;
+  setUser: (user: UserProfile | null) => void;
 
-  // 加载状态
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
 
-  // 完成行程
   completeTrip: () => void;
 }
 
@@ -34,7 +39,6 @@ export const useAppStore = create<AppState>((set) => ({
         currentItinerary: {
           ...state.currentItinerary,
           status: 'completed',
-          completedAt: new Date().toISOString(),
         },
       };
     }
