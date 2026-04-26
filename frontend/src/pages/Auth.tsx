@@ -157,7 +157,7 @@ export default function Auth() {
                 className="object-contain"
               />
             </div>
-            <h2 className="text-2xl text-gray-600">Welcome to LiveTrip</h2>
+            <h2 className="text-2xl text-gray-600">欢迎来到 LiveTrip</h2>
           </div>
 
           {/* Tab Switcher */}
@@ -198,7 +198,7 @@ export default function Auth() {
 
             <div className="space-y-2">
               <label className="text-base text-gray-600" htmlFor="email">
-                {isLogin ? 'Users name or Email' : '邮箱'}
+                {isLogin ? '用户名或邮箱' : '邮箱'}
               </label>
               <Input
                 id="email"
@@ -212,7 +212,7 @@ export default function Auth() {
 
             <div className="space-y-2">
               <label className="text-base text-gray-600" htmlFor="password">
-                Password
+                密码
               </label>
               <Input
                 id="password"
@@ -225,7 +225,7 @@ export default function Auth() {
               {isLogin && (
                 <div className="text-right">
                   <button type="button" className="text-sm text-gray-500 hover:text-gray-700">
-                    Forget password?
+                    忘记密码?
                   </button>
                 </div>
               )}
@@ -252,30 +252,30 @@ export default function Auth() {
               disabled={loading}
               className="w-full py-3 text-base bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/30"
             >
-              {loading ? (isLogin ? '登录中...' : '注册中...') : (isLogin ? 'Sign in' : '注册')}
+              {loading ? (isLogin ? '登录中...' : '注册中...') : (isLogin ? '登录' : '注册')}
             </Button>
 
             <p className="text-center text-sm text-gray-500">
               {isLogin ? (
                 <>
-                  New to LiveTrip?{" "}
+                  还没有账号？{" "}
                   <button 
                     type="button"
                     onClick={() => setIsLogin(false)}
                     className="text-gray-600 hover:text-gray-800"
                   >
-                    Create Account
+                    创建账号
                   </button>
                 </>
               ) : (
                 <>
-                  Already have an account?{" "}
+                  已有账号？{" "}
                   <button 
                     type="button"
                     onClick={() => setIsLogin(true)}
                     className="text-gray-600 hover:text-gray-800"
                   >
-                    Sign in
+                    去登录
                   </button>
                 </>
               )}
