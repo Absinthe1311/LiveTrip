@@ -851,30 +851,66 @@ export default function Itinerary() {
                   loadingAlternatives={loadingAlternatives}
                   handleCloseAlternatives={handleCloseAlternatives}
                   handleReplaceAttraction={(newItem: any, originalItem: any) => {
-                    console.log('🔄 替换景点:', originalItem.name, '→', newItem.name);
-                    console.log('原景点:', originalItem);
-                    console.log('新景点:', newItem);
-                    
                     const newItinerary = { ...itineraryData };
+                    const newSpotId = newItem.id || newItem.spotId;
+                    const originalSpotId = originalItem.spotId || originalItem.id;
+
                     newItinerary.itinerary[currentDayIndex].attractions = newItinerary.itinerary[currentDayIndex].attractions.map((attr: any, idx: number) => {
-                      // 通过原始景点信息来找到要替换的景点
                       if (originalItem && (attr.name === originalItem.name && attr.time === originalItem.time)) {
-                        // 完整替换，保留必要字段
                         return {
                           ...newItem,
-                          time: attr.time, // 保持原有的时间
-                          spotId: newItem.id || newItem.spotId, // 确保spotId正确传递
-                          estimated_cost: newItem.estimated_cost || newItem.ticketPrice || 0, // 确保费用字段
-                          image: newItem.image || null, // 确保图片字段
+                          time: attr.time,
+                          spotId: newSpotId,
+                          estimated_cost: newItem.estimated_cost || newItem.ticketPrice || 0,
+                          image: newItem.image || null,
                         };
                       }
                       return attr;
                     });
+
+                    if (newItinerary.alternativePools && originalSpotId && newSpotId) {
+                      const newPools = { ...newItinerary.alternativePools };
+                      const originalAlternatives = newPools[originalSpotId] || [];
+
+                      const allCurrentSpotIds = newItinerary.itinerary
+                        .flatMap((day: any) => day.attractions)
+                        .map((a: any) => a.spotId || a.id)
+                        .filter(Boolean);
+
+                      const originalAsAlternative = {
+                        id: originalSpotId,
+                        amapId: originalItem.amapId || originalSpotId,
+                        name: originalItem.name,
+                        location: originalItem.location || '',
+                        address: originalItem.address || null,
+                        city: originalItem.city || newItem.city || null,
+                        category: originalItem.category || originalItem.type || null,
+                        ticketPrice: originalItem.estimated_cost || originalItem.ticketPrice || null,
+                        openTime: originalItem.openTime || null,
+                        rating: originalItem.rating || null,
+                        description: originalItem.description || null,
+                        isOutdoor: originalItem.isOutdoor ?? null,
+                        image: originalItem.image || null,
+                        estimated_cost: originalItem.estimated_cost || originalItem.ticketPrice || 0,
+                      };
+
+                      const newAlternatives = [
+                        ...originalAlternatives.filter((alt: any) => {
+                          const altId = alt.id || alt.spotId;
+                          return altId !== newSpotId && !allCurrentSpotIds.includes(altId);
+                        }),
+                        originalAsAlternative,
+                      ];
+
+                      delete newPools[originalSpotId];
+                      newPools[newSpotId] = newAlternatives;
+                      newItinerary.alternativePools = newPools;
+                    }
+
                     setItineraryData(newItinerary);
-                    setCurrentItinerary(newItinerary); // 同步更新store
+                    setCurrentItinerary(newItinerary);
                     message.success(`已替换为 ${newItem.name}`);
                     
-                    // 关闭备选景点展开状态
                     handleCloseAlternatives(originalItem);
                   }}
                   onAttractionsReorder={(newAttractions) => {
@@ -1211,8 +1247,6 @@ export default function Itinerary() {
                 }
               }
             }}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
           />
         )}
       </div>

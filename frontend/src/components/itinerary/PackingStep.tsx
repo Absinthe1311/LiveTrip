@@ -21,16 +21,12 @@ interface PackingStepProps {
   tripId?: string;
   initialItems?: PackingItemData[];
   onSave: (items: PackingItemData[]) => Promise<void>;
-  onNext: () => void;
-  onPrevious: () => void;
 }
 
 export default function PackingStep({
   tripId,
   initialItems = [],
   onSave,
-  onNext,
-  onPrevious
 }: PackingStepProps) {
   const [packingItems, setPackingItems] = useState<PackingItemData[]>(initialItems);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
@@ -191,7 +187,6 @@ export default function PackingStep({
     try {
       await onSave(packingItems);
       message.success('打包清单已保存');
-      onNext();
     } catch (error: any) {
       message.error(error.message || '保存失败');
     } finally {
@@ -370,22 +365,6 @@ export default function PackingStep({
         })}
       </div>
 
-      {/* 操作按钮 */}
-      <div className="flex gap-4">
-        <button
-          onClick={onPrevious}
-          className="flex-1 px-6 py-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white/70 font-medium hover:bg-white/15 hover:text-white transition-all duration-300"
-        >
-          上一步
-        </button>
-        <button
-          onClick={onNext}
-          className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-[#CDEDDE] to-[#CDEDDE]/80 text-[#005746] font-semibold text-lg border border-[#CDEDDE]/50 shadow-lg shadow-[#CDEDDE]/30 hover:shadow-xl hover:shadow-[#CDEDDE]/40 hover:scale-105 active:scale-95 transition-all duration-300"
-        >
-          下一步
-        </button>
-      </div>
-
       {/* 添加自定义物品模态框 */}
       <Modal
         title="添加自定义物品"
@@ -450,5 +429,3 @@ export default function PackingStep({
     </div>
   );
 }
-
-
