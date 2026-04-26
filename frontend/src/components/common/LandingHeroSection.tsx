@@ -201,63 +201,24 @@ const LandingHeroSection = () => {
         initial={{ y: -40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 1.2, delay: 2.5, ease: "easeOut" }}
-        className="fixed top-6 left-0 right-0 z-50 flex items-center justify-center px-6"
+        className="fixed top-6 left-0 right-0 z-50 flex items-center justify-between px-6"
       >
-        <div className="flex items-center justify-between w-full max-w-5xl">
-          {/* Logo */}
-          <div className="flex items-center justify-center cursor-pointer" onClick={() => navigate('/')}>
-            <img
-              src="/logo.png"
-              alt="LiveTrip Logo"
-              className="h-12 w-auto object-contain"
-            />
-          </div>
-
-          {/* Center pill */}
-          <div 
-            className="rounded-full px-8 py-3 flex items-center gap-8"
-            style={{
-              background: 'rgba(255, 255, 255, 0.15)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              boxShadow: 'inset 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 4px 30px rgba(0, 0, 0, 0.08)',
-            }}
-          >
-            <a
-              href="#explore"
-              className="text-sm font-sans font-light text-white/80 hover:text-white transition-colors tracking-wide"
-            >
-              探索
-            </a>
-            <a
-              href="#plan"
-              className="text-sm font-sans font-light text-white/80 hover:text-white transition-colors tracking-wide"
-            >
-              规划
-            </a>
-            <a
-              href="#ai-guide"
-              className="text-sm font-sans font-light text-white/80 hover:text-white transition-colors tracking-wide"
-            >
-              AI 导游
-            </a>
-            <a
-              href="#about"
-              className="text-sm font-sans font-light text-white/80 hover:text-white transition-colors tracking-wide"
-            >
-              关于
-            </a>
-          </div>
-
-          {/* CTA */}
-          <button 
-            onClick={() => navigate('/auth')}
-            className="bg-white text-gray-900 rounded-full px-6 py-2.5 text-sm font-sans font-normal tracking-wide hover:opacity-90 transition-opacity"
-          >
-            开始旅程
-          </button>
+        {/* Logo */}
+        <div className="flex items-center justify-center cursor-pointer" onClick={() => navigate('/')}>
+          <img
+            src="/logo.png"
+            alt="LiveTrip Logo"
+            className="h-12 w-auto object-contain"
+          />
         </div>
+
+        {/* CTA */}
+        <button 
+          onClick={() => navigate('/auth')}
+          className="bg-white text-gray-900 rounded-full px-6 py-2.5 text-sm font-sans font-normal tracking-wide hover:opacity-90 transition-opacity"
+        >
+          开始旅程
+        </button>
       </motion.nav>
 
       {/* Content overlay */}
@@ -292,36 +253,21 @@ const LandingHeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 2.8, ease: "easeOut" }}
           >
-            你的旅程，由光与 AI 重新定义
+            Live to see, Live to go.
           </motion.p>
           
           {/* CTA 按钮 */}
           <motion.div
-            className="mt-8 flex items-center justify-center gap-4 pointer-events-auto"
+            className="mt-10 flex items-center justify-center pointer-events-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 3.2, ease: "easeOut" }}
           >
             <button
               onClick={() => navigate('/auth')}
-              className="px-8 py-4 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold text-lg shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40 hover:scale-105 active:scale-95 transition-all duration-300"
+              className="px-10 py-4 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold text-xl shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40 hover:scale-105 active:scale-95 transition-all duration-300"
             >
               立即开始
-            </button>
-            <button
-              onClick={() => {
-                const testUser = {
-                  id: 'test-user-1',
-                  username: 'Zhang Lei',
-                  role: 'user'
-                };
-                localStorage.setItem('user', JSON.stringify(testUser));
-                localStorage.setItem('token', 'test-token-123');
-                window.location.reload();
-              }}
-              className="px-6 py-4 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 font-medium hover:bg-white/15 hover:text-white transition-all duration-300"
-            >
-              测试登录
             </button>
           </motion.div>
         </motion.div>
