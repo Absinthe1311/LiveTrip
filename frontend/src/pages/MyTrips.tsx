@@ -1,12 +1,11 @@
 ﻿// 我的行程页面 - 毛玻璃风格版本
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Users, Clock, MoreVertical, Trash2, Share2, Search, Filter, FileText, Share as ShareIcon, Trash, Plane, Wallet } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, MoreVertical, Trash2, Share2, Search, Filter, Share as ShareIcon, Trash, Plane, Wallet } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
-import { getUserTrips, deleteTrip, getTripById, shareTrip } from '../api/client';
+import { getUserTrips, deleteTrip, shareTrip } from '../api/client';
 import { message, Dropdown, Modal, Checkbox } from 'antd';
-import { generateTripPDF } from '../utils/pdfGenerator';
 import BudgetDetailModal from '../components/budget/BudgetDetailModal';
 
 // 后端返回的 Trip 数据结构（days 是数组）
@@ -194,26 +193,6 @@ export default function MyTripsGlass() {
       setSelectedTrips(new Set());
     } else {
       setSelectedTrips(new Set(filteredTrips.map(trip => trip.id)));
-    }
-  };
-
-  // 导出PDF
-  const handleExportPDF = async (tripId: string) => {
-    try {
-      message.loading('正在生成PDF...', 0);
-      const response = await getTripById(tripId);
-      if (response.success) {
-        const tripData = response.data;
-        await generateTripPDF(tripData);
-        message.destroy();
-        message.success('PDF导出成功');
-      } else {
-        message.destroy();
-        message.error('获取行程数据失败');
-      }
-    } catch (error) {
-      message.destroy();
-      message.error('PDF导出失败');
     }
   };
 
@@ -442,11 +421,6 @@ export default function MyTripsGlass() {
                             label: '预算详情',
                           },
                           {
-                            key: 'pdf',
-                            icon: <FileText className="h-4 w-4" />,
-                            label: '导出PDF',
-                          },
-                          {
                             key: 'share',
                             icon: <ShareIcon className="h-4 w-4" />,
                             label: '分享行程',
@@ -465,8 +439,6 @@ export default function MyTripsGlass() {
                             setBudgetModalVisible(true);
                           } else if (e.key === 'delete') {
                             handleDelete(trip.id);
-                          } else if (e.key === 'pdf') {
-                            handleExportPDF(trip.id);
                           } else if (e.key === 'share') {
                             handleShare(trip.id);
                           }

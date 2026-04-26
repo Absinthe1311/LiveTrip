@@ -16,7 +16,6 @@ import { getTripById, completeTrip, getIoTData, updateAlternativeRelations, batc
 import { FullItinerary, AttractionItem } from '../api/client';
 import { alternativeRecommender } from '../services/alternativeRecommender';
 import ShareButton from '../components/common/ShareButton';
-import PDFExportButton from '../components/common/PDFExportButton';
 import SpotImageUploadModal from '../components/spot/SpotImageUploadModal';
 import PackingListDrawer from '../components/trip/PackingListDrawer';
 import { PackingListWidget } from '../components/itinerary/PackingListWidget';
@@ -508,31 +507,7 @@ export default function TripDetailPage() {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              {id && <ShareButton tripId={id} />}
-              <PDFExportButton tripData={{
-                id: trip.id,
-                title: trip.title,
-                destination: trip.destination,
-                startDate: trip.startDate,
-                endDate: trip.endDate,
-                totalBudget: trip.totalBudget,
-                days: trip.days?.map((day: any) => ({
-                  dayNumber: day.dayNumber,
-                  date: day.date,
-                  itineraryItems: day.itineraryItems,
-                  restaurantName: day.restaurantName,
-                  restaurantAddress: day.restaurantAddress,
-                  restaurantLocation: day.restaurantLocation,
-                  restaurantType: day.restaurantType,
-                  restaurantRating: day.restaurantRating,
-                })),
-                budget: trip.budget,
-                hotelName: trip.hotelName,
-                hotelAddress: trip.hotelAddress,
-                hotelLocation: trip.hotelLocation,
-                hotelType: trip.hotelType,
-                hotelRating: trip.hotelRating,
-              }} />
+              {id && <ShareButton tripId={id} style={{ height: 40, fontSize: 15, paddingInline: 20 }} />}
             </div>
           </div>
 
