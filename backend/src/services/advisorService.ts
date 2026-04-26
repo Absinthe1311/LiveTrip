@@ -1,3 +1,5 @@
+// AI辅助生成：GLM-5, 2026-04-26 21:36
+// 描述：将Advisor的API请求超时从15s增加到30s，适配glm-4.6v模型的响应速度。
 // 旅行顾问服务 - 使用智谱AI（ChatGLM）提供旅行规划建议
 import https from 'https';
 import { getPrismaClient } from '../lib/prisma';
@@ -65,7 +67,7 @@ class AdvisorService {
         'Authorization': `Bearer ${this.apiKey}`,
         'Content-Length': Buffer.byteLength(data),
       },
-      timeout: 15000,
+      timeout: 30000,
     };
 
     // 使用重试机制调用 API

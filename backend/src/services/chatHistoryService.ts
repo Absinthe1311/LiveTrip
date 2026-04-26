@@ -1,3 +1,5 @@
+// AI辅助生成：GLM-5, 2026-04-26 21:36
+// 描述：TempData接口新增tripId可选字段，用于行程确认流程中保存draft行程的引用。
 // 对话历史服务 - 管理对话会话和消息
 import { getPrismaClient } from '../lib/prisma';
 
@@ -36,6 +38,7 @@ interface GetMessagesParams {
 // ✅ P0优化: 临时数据结构
 interface TempData {
   type: TempDataType;
+  tripId?: string;
   data: any;
   createdAt: Date;
   expiresAt: Date;

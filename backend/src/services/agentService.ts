@@ -1,3 +1,6 @@
+// AI辅助生成：GLM-5, 2026-04-26 21:36
+// 描述：优化Agent行程创建的二次确认流程，将"先创建再删除"改为draft状态保留，
+// 确认时直接更新状态而非重建，避免AI调用耗时叠加导致超时。
 // Agent 服务 - 实现 Function Calling 功能
 import https from 'https';
 import { marked } from 'marked';
@@ -142,7 +145,7 @@ class AgentService {
   /**
    * 调用智谱AI API（支持 Function Calling，带重试机制）
    */
-  private async callZhipuAI(messages: any[], tools?: any[], toolChoice: any = 'auto', maxTokens: number = 2000, timeout: number = 30000): Promise<any> {
+  private async callZhipuAI(messages: any[], tools?: any[], toolChoice: any = 'auto', maxTokens: number = 2000, timeout: number = 60000): Promise<any> {
     if (!ZHIPUAI_API_KEY) {
       throw new Error('AI服务未配置');
     }
@@ -488,7 +491,7 @@ ${profilePrompt}
   /**
    * 执行工具调用
    */
-  private async executeToolCall(toolCall: any, userId?: string, messages?: any[], sessionId?: string): Promise<ToolExecutionResult> {
+  private async executeToolCall(toolCall: any, userId?: string, messages?: any[], sessionId?: string, stepCallback?: (step: string) => void): Promise<ToolExecutionResult> {
     // 只处理 function 类型的工具调用
     if (toolCall.type !== 'function') {
       return {
@@ -531,7 +534,7 @@ ${profilePrompt}
       switch (name) {
         case 'create_smart_trip':
           // ✅ 新的统一工具：创建智能行程
-          return await this.createSmartTrip(params, userId, sessionId);
+          return await this.createSmartTrip(params, userId, sessionId, stepCallback);
 
         case 'create_trip':
           // ✅ 保留旧工具兼容性
@@ -582,7 +585,7 @@ ${profilePrompt}
    * 合并了 create_trip + create_trip_with_constraints + extract_must_visit_spots
    * 支持二次确认：先返回预览，用户确认后再保存
    */
-  private async createSmartTrip(params: any, userId?: string, sessionId?: string): Promise<ToolExecutionResult> {
+  private async createSmartTrip(params: any, userId?: string, sessionId?: string, stepCallback?: (step: string) => void): Promise<ToolExecutionResult> {
     try {
       console.log('\n🎯 [创建智能行程]');
       console.log('   参数:', JSON.stringify(params, null, 2));
@@ -608,7 +611,7 @@ ${profilePrompt}
         budget: params.budget,
         preferences: params.preferences || '',
         mustVisitSpots: params.mustVisitSpots || [],
-      }, userId);
+      }, userId, true, stepCallback);
 
       if (!tripResult.success) {
         return tripResult;
@@ -620,6 +623,7 @@ ${profilePrompt}
       console.log('   ✅ AI 推荐完成，行程ID:', tripId);
 
       // 4. 构建预览数据（从数据库查询完整行程）
+      stepCallback?.('📊 正在生成行程预览...');
       const trip = await prisma.trip.findUnique({
         where: { id: tripId },
         include: {
@@ -651,6 +655,8 @@ ${profilePrompt}
         endDate: trip.endDate.toISOString().split('T')[0],
         days: Math.ceil((trip.endDate.getTime() - trip.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1,
         budget: trip.totalBudget,
+        summary: tripData.summary || '',
+        tips: tripData.tips || [],
         dailyPlans: trip.days.map((day: any) => ({
           day: day.dayNumber,
           date: day.date.toISOString().split('T')[0],
@@ -664,23 +670,22 @@ ${profilePrompt}
         })),
       };
 
-      // 6. 保存临时数据到会话（用于后续确认）
+      // 6. 保存临时数据到会话（用于后续确认），包含 tripId 引用
       if (sessionId) {
         const expiresAt = new Date();
-        expiresAt.setHours(expiresAt.getHours() + 24); // 24小时后过期
+        expiresAt.setHours(expiresAt.getHours() + 24);
         
         await chatHistoryService.updateSessionTempData(sessionId, {
           type: 'trip_draft' as any,
+          tripId: trip.id,
           data: previewData,
           createdAt: new Date(),
           expiresAt,
         });
-        console.log('   ✅ 临时数据已保存到会话:', sessionId);
+        console.log('   ✅ 临时数据已保存到会话:', sessionId, 'tripId:', trip.id);
       }
 
-      // 7. 删除临时创建的行程（因为用户还没确认）
-      await prisma.trip.delete({ where: { id: trip.id } });
-      console.log('   🗑️  已删除临时行程，等待用户确认');
+      // 7. 行程以 draft 状态保留，确认时直接更新状态（不再删除后重建）
 
       // 8. 返回预览数据，等待用户确认
       return {
@@ -942,139 +947,9 @@ ${profilePrompt}
   }
 
   /**
-   * 创建行程工具（使用 AI 推荐）
-   */
-  private extractTripParamsFromMessages(messages: any[], mustVisitSpots: any[]): any {
-    // 获取用户消息
-    const userMessage = messages.find(m => m.role === 'user')?.content || '';
-    
-    console.log('\n📝 [参数提取]');
-    console.log('   用户消息:', userMessage);
-    
-    // 提取参数
-    const params: any = {
-      mustVisitSpots: mustVisitSpots,
-    };
-    
-    // ✅ 优先从mustVisitSpots提取城市
-    if (mustVisitSpots && mustVisitSpots.length > 0 && mustVisitSpots[0].city) {
-      params.destination = mustVisitSpots[0].city;
-      console.log('   从必选景点提取城市:', params.destination);
-    } else {
-      // 从用户消息提取目的地
-      const cityMatch = userMessage.match(/北京|上海|武汉|广州|深圳|杭州|成都|西安|南京|苏州|重庆|天津|青岛|大连|厦门|昆明|三亚/);
-      if (cityMatch) {
-        params.destination = cityMatch[0];
-        console.log('   从消息提取城市:', params.destination);
-      }
-    }
-    
-    // ✅ 智能日期提取
-    const today = new Date();
-    const thisYear = today.getFullYear();
-    let startDate = new Date(today);
-    startDate.setDate(startDate.getDate() + 1); // 默认明天
-    
-    // 检查各种日期格式
-    if (userMessage.includes('明天')) {
-      // 明天
-    } else if (userMessage.includes('后天')) {
-      startDate.setDate(startDate.getDate() + 1);
-    } else if (userMessage.includes('下周')) {
-      const weekDayMatch = userMessage.match(/下周([一二三四五六日天])/);
-      if (weekDayMatch) {
-        const weekDays: Record<string, number> = {'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'日':0,'天':0};
-        const targetDay = weekDays[weekDayMatch[1]];
-        const currentDay = today.getDay();
-        let daysUntil = targetDay - currentDay;
-        if (daysUntil <= 0) daysUntil += 7;
-        startDate = new Date(today);
-        startDate.setDate(startDate.getDate() + daysUntil);
-      }
-    } else {
-      // 检查具体日期
-      const dateMatch = userMessage.match(/(\d{1,2})月(\d{1,2})日/) || 
-                       userMessage.match(/(\d{4})[年-](\d{1,2})[月-](\d{1,2})/);
-      if (dateMatch) {
-        if (dateMatch.length === 3) {
-          const month = parseInt(dateMatch[1]) - 1;
-          const day = parseInt(dateMatch[2]);
-          startDate = new Date(thisYear, month, day);
-        } else if (dateMatch.length === 4) {
-          startDate = new Date(parseInt(dateMatch[1]), parseInt(dateMatch[2]) - 1, parseInt(dateMatch[3]));
-        }
-      }
-    }
-    
-    params.startDate = startDate.toISOString().split('T')[0];
-    
-    // ✅ 智能天数提取
-    const daysMatch = userMessage.match(/(\d+)\s*天/) || userMessage.match(/三天|三日/) || userMessage.match(/两天|两日|2天/);
-    let days = 3; // 默认3天
-    if (daysMatch) {
-      if (daysMatch[0].includes('三') || daysMatch[0].includes('3')) {
-        days = 3;
-      } else if (daysMatch[0].includes('两') || daysMatch[0].includes('2')) {
-        days = 2;
-      } else if (daysMatch[1]) {
-        days = parseInt(daysMatch[1]);
-      }
-    }
-    
-    const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + days - 1);
-    params.endDate = endDate.toISOString().split('T')[0];
-    
-    console.log('   日期:', params.startDate, '到', params.endDate, '(', days, '天)');
-    
-    // ✅ 智能预算提取
-    const budgetMatch = userMessage.match(/预算[在约]?(\d+)/) || userMessage.match(/(\d+)\s*元/);
-    if (budgetMatch) {
-      params.budget = parseInt(budgetMatch[1]);
-    } else {
-      params.budget = 5000; // 默认预算
-      console.log('   使用默认预算: 5000元');
-    }
-    
-    // ✅ 智能人数提取
-    if (userMessage.includes('爱人') || userMessage.includes('情侣') || userMessage.includes('两个人') || userMessage.includes('2人')) {
-      params.travelers = 2;
-    } else if (userMessage.includes('一个人') || userMessage.includes('独自') || userMessage.includes('1人')) {
-      params.travelers = 1;
-    } else if (userMessage.includes('全家') || userMessage.includes('家庭')) {
-      params.travelers = 4;
-    } else {
-      const travelersMatch = userMessage.match(/(\d+)\s*人/);
-      if (travelersMatch) {
-        params.travelers = parseInt(travelersMatch[1]);
-      } else {
-        params.travelers = 2; // 默认2人
-        console.log('   使用默认人数: 2人');
-      }
-    }
-    
-    // ✅ 智能偏好提取
-    if (userMessage.includes('历史') || userMessage.includes('文化') || userMessage.includes('故宫') || userMessage.includes('博物馆')) {
-      params.preferences = '历史文化';
-    } else if (userMessage.includes('自然') || userMessage.includes('风景') || userMessage.includes('山水')) {
-      params.preferences = '自然风光';
-    } else if (userMessage.includes('美食') || userMessage.includes('吃货')) {
-      params.preferences = '美食之旅';
-    } else if (userMessage.includes('购物') || userMessage.includes('逛街')) {
-      params.preferences = '购物娱乐';
-    } else {
-      params.preferences = '休闲观光'; // 默认偏好
-    }
-    
-    console.log('   ✅ 提取结果:', JSON.stringify(params, null, 2));
-    
-    return params;
-  }
-
-  /**
    * 创建行程（AI 推荐）
    */
-  private async createTrip(params: any, userId?: string): Promise<ToolExecutionResult> {
+  private async createTrip(params: any, userId?: string, draftMode: boolean = false, stepCallback?: (step: string) => void): Promise<ToolExecutionResult> {
     try {
       console.log('🗓️  创建行程（AI 推荐）:', params);
 
@@ -1141,16 +1016,17 @@ ${profilePrompt}
           destination: params.destination,
           startDate: startDate,
           endDate: endDate,
-          status: 'planning',
+          status: draftMode ? 'draft' : 'planning',
           totalBudget: params.budget || 0,
           aiGenerated: true,
         },
       });
 
-      console.log(`✅ 行程基础信息创建成功，ID: ${trip.id}`);
+      console.log(`✅ 行程基础信息创建成功，ID: ${trip.id}, 状态: ${draftMode ? 'draft' : 'planning'}`);
 
       // 调用 AI 推荐算法填充景点数据
       console.log('🔍 正在调用 AI 推荐系统，为 ' + params.destination + ' 规划 ' + daysDiff + ' 天行程...');
+      stepCallback?.('🔍 正在获取景点数据和AI推荐...');
 
       try {
         // 导入 AI 推荐服务
@@ -1206,11 +1082,21 @@ ${profilePrompt}
 
         // 创建 Day 和 ItineraryItem 记录
         for (const dayPlan of recommendation.dailyPlans) {
+          let dayDate: Date;
+          try {
+            dayDate = parseDate(dayPlan.date);
+          } catch {
+            const fallbackDate = new Date(startDate);
+            fallbackDate.setDate(fallbackDate.getDate() + (dayPlan.day - 1));
+            dayDate = fallbackDate;
+            console.warn(`   ⚠️ AI返回日期格式无效: "${dayPlan.date}"，使用推算日期: ${dayDate.toISOString().split('T')[0]}`);
+          }
+
           const day = await prisma.day.create({
             data: {
               tripId: trip.id,
               dayNumber: dayPlan.day,
-              date: new Date(dayPlan.date),
+              date: dayDate,
             },
           });
 
@@ -1559,7 +1445,7 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
             role: 'user',
             content: blogPrompt,
           },
-        ], undefined, undefined, 4096, 60000); // 博客生成: max_tokens=4096(原2000,确保内容不被截断), timeout=60s
+        ], undefined, undefined, 4096, 120000); // 博客生成: max_tokens=4096, timeout=120s
         const aiElapsed = Date.now() - aiStartTime;
         console.log(`⏱️  AI 生成博客耗时: ${aiElapsed}ms`);
 
@@ -1979,12 +1865,15 @@ ${blogContent.substring(0, 200)}...
   /**
    * 处理 Agent 请求（性能优化版）
    */
-  async processRequest(request: AgentRequest): Promise<AgentResponse> {
+  async processRequest(request: AgentRequest, stepCallback?: (step: string) => void): Promise<AgentResponse> {
     const { question, userId } = request;
 
-    console.log('🤖 收到 Agent 请求');
-    console.log('   问题:', question);
-    console.log('   userId:', userId);
+    const emitStep = (step: string) => {
+      console.log(step);
+      stepCallback?.(step);
+    };
+
+    emitStep('🤖 正在分析您的需求...');
 
     try {
       // 获取或创建 Agent 会话
@@ -2079,7 +1968,7 @@ ${blogContent.substring(0, 200)}...
       }
 
       // 调用智谱 AI，启用工具调用
-      console.log('\n📡 [调用智谱AI] 启用工具调用...');
+      emitStep('📡 正在调用AI助手...');
       console.log('   用户问题:', question);
       console.log('   消息数量:', messages.length);
       
@@ -2116,7 +2005,16 @@ ${blogContent.substring(0, 200)}...
 
       // 检查是否有工具调用
       if (assistantMessage?.tool_calls && assistantMessage.tool_calls.length > 0) {
-        console.log(`🔧 检测到 ${assistantMessage.tool_calls.length} 个工具调用`);
+        const toolName = assistantMessage.tool_calls[0]?.function?.name || '';
+        const stepMap: Record<string, string> = {
+          'create_smart_trip': '🎯 正在为您规划行程...',
+          'create_trip': '🗓️ 正在创建行程...',
+          'list_user_trips': '📋 正在查找您的行程...',
+          'manage_blog': '📝 正在生成内容...',
+          'confirm_action': '✅ 正在确认操作...',
+          'regenerate': '🔄 正在重新生成...',
+        };
+        emitStep(stepMap[toolName] || '🔧 正在执行操作...');
 
         // 保存包含工具调用的 assistant 消息
         await chatHistoryService.createMessage({
@@ -2128,7 +2026,7 @@ ${blogContent.substring(0, 200)}...
 
         // 执行所有工具调用
         for (const toolCall of assistantMessage.tool_calls) {
-          const toolResult = await this.executeToolCall(toolCall, userId, messages, session.id);
+          const toolResult = await this.executeToolCall(toolCall, userId, messages, session.id, emitStep);
           const toolName = (toolCall as any).function?.name || toolCall.type;
           toolCallResults.push({
             name: toolName,
@@ -2141,39 +2039,6 @@ ${blogContent.substring(0, 200)}...
             tool_call_id: toolCall.id,
             content: JSON.stringify(toolResult),
           });
-          
-          // ✅ 自动触发第二个工具调用
-          // 如果extract_must_visit_spots成功,自动调用create_trip_with_constraints
-          console.log('\n🔍 [检查自动触发条件]');
-          console.log('   工具名称:', toolName);
-          console.log('   成功:', toolResult.success);
-          console.log('   有data:', !!toolResult.data);
-          console.log('   有mustVisitSpots:', !!toolResult.data?.mustVisitSpots);
-          console.log('   mustVisitSpots长度:', toolResult.data?.mustVisitSpots?.length || 0);
-          
-          if (toolName === 'extract_must_visit_spots' && toolResult.success && toolResult.data?.mustVisitSpots?.length > 0) {
-            console.log('\n🔗 自动触发create_trip_with_constraints工具...');
-            
-            // 从对话中提取参数
-            const params = this.extractTripParamsFromMessages(messages, toolResult.data.mustVisitSpots);
-            
-            // 调用create_trip_with_constraints
-            const createTripResult = await this.createTripWithConstraints(params, userId);
-            
-            toolCallResults.push({
-              name: 'create_trip_with_constraints',
-              result: createTripResult,
-            });
-            
-            // 添加到消息历史
-            messages.push({
-              role: 'tool',
-              tool_call_id: 'auto_create_trip',
-              content: JSON.stringify(createTripResult),
-            });
-          } else {
-            console.log('   ❌ 不满足自动触发条件');
-          }
         }
 
         // ✅ 优化: 检查是否是用户确认操作，直接执行而不调用AI
@@ -2220,7 +2085,8 @@ ${blogContent.substring(0, 200)}...
                   continueToolCall,
                   userId,
                   messages,
-                  session.id
+                  session.id,
+                  emitStep
                 );
                 
                 toolCallResults.push({
@@ -2825,9 +2691,34 @@ ${blogContent.substring(0, 200)}...
         };
       }
 
-      // 从 temp 数据中直接保存到数据库
+      // 从 temp 数据中确认行程
       const previewData = tempData.data;
-      console.log('   📝 从临时数据保存行程...');
+      const tripId = tempData.tripId;
+
+      if (tripId) {
+        // 优先路径：draft 行程已存在，直接更新状态为 planning
+        console.log('   ✅ 找到 draft 行程，直接更新状态:', tripId);
+        const trip = await prisma.trip.update({
+          where: { id: tripId },
+          data: { status: 'planning' },
+        });
+
+        // 清除临时数据
+        await chatHistoryService.clearSessionTempData(sessionId);
+
+        console.log('   ✅ 行程确认成功（状态 draft→planning）:', trip.id);
+
+        return {
+          success: true,
+          data: {
+            tripId: trip.id,
+            message: '行程已成功保存到"我的行程"中！',
+          },
+        };
+      }
+
+      // 降级路径：旧 tempData 无 tripId，从预览数据重建行程
+      console.log('   ⚠️ tempData 中无 tripId，从预览数据重建行程...');
 
       // 创建行程
       const trip = await prisma.trip.create({
@@ -3002,6 +2893,34 @@ ${blogContent.substring(0, 200)}...
     try {
       console.log('\n❌ [取消草稿]');
       console.log('   会话ID:', sessionId);
+
+      // 获取会话临时数据，清理 draft 行程
+      const session = await chatHistoryService.getSession(sessionId);
+      if (session && session.tempData) {
+        const tempData = typeof session.tempData === 'string'
+          ? JSON.parse(session.tempData)
+          : session.tempData;
+
+        if (tempData.tripId && tempData.type === 'trip_draft') {
+          // 删除 draft 行程及其关联数据
+          try {
+            const trip = await prisma.trip.findUnique({
+              where: { id: tempData.tripId },
+              include: { days: true },
+            });
+            if (trip && trip.status === 'draft') {
+              for (const day of trip.days) {
+                await prisma.itineraryItem.deleteMany({ where: { dayId: day.id } });
+              }
+              await prisma.day.deleteMany({ where: { tripId: trip.id } });
+              await prisma.trip.delete({ where: { id: trip.id } });
+              console.log('   🗑️ 已删除 draft 行程:', tempData.tripId);
+            }
+          } catch (deleteError) {
+            console.warn('   ⚠️ 删除 draft 行程失败（非致命）:', deleteError);
+          }
+        }
+      }
 
       // 清除临时数据
       await chatHistoryService.clearSessionTempData(sessionId);

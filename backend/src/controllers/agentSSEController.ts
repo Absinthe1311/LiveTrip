@@ -1,0 +1,69 @@
+// AI辅助生成：GLM-5, 2026-04-26 21:36
+// 描述：新增SSE流式响应控制器，将Agent处理步骤实时推送到前端，并兼容普通JSON响应。
+// Agent SSE 控制器 - 支持步骤实时推送
+import { Request, Response } from 'express';
+import { agentService } from '../services/agentService';
+
+export const chatWithAgentSSE = async (req: Request, res: Response) => {
+  const { question } = req.body;
+
+  if (!question || typeof question !== 'string' || question.trim().length === 0) {
+    return res.status(400).json({ success: false, error: '缺少必填字段：question（字符串）' });
+  }
+
+  const userId = req.headers['x-user-id'] as string;
+  if (!userId) {
+    return res.status(401).json({ success: false, error: '请先登录以使用 AI 助手', needLogin: true });
+  }
+
+  const { getPrismaClient } = await import('../lib/prisma');
+  const prisma = getPrismaClient();
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, username: true }
+  });
+  if (!user) {
+    return res.status(401).json({ success: false, error: '用户信息无效，请重新登录', needLogin: true });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  const sendStep = (step: string) => {
+    res.write(`data: ${JSON.stringify({ type: 'step', message: step })}\n\n`);
+  };
+
+  try {
+    const response = await agentService.processRequest(
+      { question: question.trim(), userId },
+      sendStep
+    );
+
+    const toolResult = response.toolCalls?.[0]?.result;
+    const resultData: any = {
+      type: 'result',
+      success: true,
+      data: response,
+    };
+
+    if (toolResult?.needsConfirmation) {
+      resultData.needsConfirmation = true;
+      resultData.previewData = toolResult.previewData;
+      resultData.sessionId = toolResult.sessionId;
+    }
+
+    if (toolResult?.needsMoreInfo) {
+      resultData.needsMoreInfo = true;
+      resultData.error = toolResult.error;
+    }
+
+    res.write(`data: ${JSON.stringify(resultData)}\n\n`);
+    res.end();
+  } catch (error: any) {
+    res.write(`data: ${JSON.stringify({ type: 'error', message: 'AI 服务暂时不可用，请稍后重试' })}\n\n`);
+    res.end();
+  }
+};

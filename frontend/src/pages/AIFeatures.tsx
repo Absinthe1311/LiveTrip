@@ -98,6 +98,7 @@ export default function AIFeaturesGlass() {
   const [showExamples, setShowExamples] = useState(true);
   const [showHistory, setShowHistory] = useState(true);
   const [userInfo, setUserInfo] = useState(getUserInfo());
+  const [currentStep, setCurrentStep] = useState<string>('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -188,7 +189,9 @@ export default function AIFeaturesGlass() {
     try {
       let data;
       if (mode === 'agent') {
-        data = await aiService.sendAgentMessage(currentInput);
+        data = await aiService.sendAgentMessageSSE(currentInput, (step) => {
+          setCurrentStep(step);
+        });
       } else {
         data = await aiService.sendAdvisorMessage(currentInput, {});
       }
@@ -242,6 +245,7 @@ export default function AIFeaturesGlass() {
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setLoading(false);
+      setCurrentStep('');
       textareaRef.current?.focus();
     }
   };
@@ -454,28 +458,49 @@ export default function AIFeaturesGlass() {
                     
                     {/* 预览卡片 */}
                     {(msg as any).previewData && (
-                      <div className="mt-3 p-3 rounded-lg bg-white/5 border border-white/10">
-                        <div className="text-xs font-medium text-white/80 mb-2">行程预览</div>
-                        <div className="space-y-1 text-xs text-white/60">
-                          <div>📍 目的地：{(msg as any).previewData.destination}</div>
-                          <div>📅 日期：{(msg as any).previewData.startDate} - {(msg as any).previewData.endDate}</div>
-                          <div>⏱️ 天数：{(msg as any).previewData.days}天</div>
-                          <div>💰 预算：¥{(msg as any).previewData.budget?.toLocaleString()}</div>
+                      <div className="mt-4 p-4 rounded-xl bg-white/5 border border-white/10">
+                        <div className="text-sm font-bold text-white/90 mb-3">行程预览</div>
+                        <div className="space-y-1.5 text-sm text-white/70">
+                          <div className="font-medium">📍 目的地：<span className="text-white/90 font-semibold">{(msg as any).previewData.destination}</span></div>
+                          <div className="font-medium">📅 日期：<span className="text-white/90">{(msg as any).previewData.startDate} - {(msg as any).previewData.endDate}</span></div>
+                          <div className="font-medium">⏱️ 天数：<span className="text-white/90">{(msg as any).previewData.days}天</span></div>
+                          <div className="font-medium">💰 预算：<span className="text-white/90 font-semibold">¥{(msg as any).previewData.budget?.toLocaleString()}</span></div>
                         </div>
                         
                         {/* 每日计划 */}
                         {(msg as any).previewData.dailyPlans && (
-                          <div className="mt-2 space-y-1">
+                          <div className="mt-3 space-y-2">
                             {(msg as any).previewData.dailyPlans.map((day: any, idx: number) => (
-                              <div key={idx} className="text-xs text-white/50">
-                                第{day.day}天：{day.spots.map((s: any) => s.name).join('、')}
+                              <div key={idx} className="text-sm">
+                                <span className="text-white/80 font-semibold">第{day.day}天</span>
+                                <span className="text-white/50 ml-2">{day.spots.map((s: any) => s.name).join(' → ')}</span>
                               </div>
                             ))}
                           </div>
                         )}
                         
+                        {/* 行程总结 */}
+                        {(msg as any).previewData.summary && (
+                          <div className="mt-3 pt-3 border-t border-white/10">
+                            <div className="text-sm font-bold text-white/80 mb-1.5">📝 行程总结</div>
+                            <div className="text-sm text-white/60 leading-relaxed">{(msg as any).previewData.summary}</div>
+                          </div>
+                        )}
+                        
+                        {/* 旅行建议 */}
+                        {(msg as any).previewData.tips && (msg as any).previewData.tips.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-white/10">
+                            <div className="text-sm font-bold text-white/80 mb-1.5">💡 旅行建议</div>
+                            <div className="space-y-1">
+                              {(msg as any).previewData.tips.map((tip: string, idx: number) => (
+                                <div key={idx} className="text-sm text-white/60">· {tip}</div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
                         {/* 确认/取消按钮 */}
-                        <div className="flex gap-2 mt-3">
+                        <div className="flex gap-3 mt-4">
                           <button
                             onClick={async () => {
                               try {
@@ -489,7 +514,6 @@ export default function AIFeaturesGlass() {
                                 });
                                 const result = await res.json();
                                 if (result.success) {
-                                  // 更新消息
                                   setMessages(prev => prev.map(m => 
                                     m.id === msg.id 
                                       ? { ...m, content: '✅ 行程已成功保存到"我的行程"中！', previewData: null, needsConfirmation: false }
@@ -505,7 +529,7 @@ export default function AIFeaturesGlass() {
                                 alert('保存失败，请重试');
                               }
                             }}
-                            className="flex-1 px-3 py-1.5 rounded-lg bg-[#008F8D]/20 text-[#008F8D] text-xs font-medium hover:bg-[#008F8D]/30 transition-all"
+                            className="flex-1 px-4 py-2 rounded-lg bg-[#AE1C31]/20 text-[#AE1C31] text-sm font-semibold hover:bg-[#AE1C31]/30 transition-all"
                           >
                             确认保存
                           </button>
@@ -529,7 +553,7 @@ export default function AIFeaturesGlass() {
                                 console.error('取消失败:', error);
                               }
                             }}
-                            className="flex-1 px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-xs font-medium hover:bg-white/10 transition-all"
+                            className="flex-1 px-4 py-2 rounded-lg bg-white/5 text-white/60 text-sm font-medium hover:bg-white/10 transition-all"
                           >
                             取消
                           </button>
@@ -567,11 +591,18 @@ export default function AIFeaturesGlass() {
                     <Bot className={`w-5 h-5 ${currentModeConfig.textColor}`} />
                   </div>
                   <div className="bg-white/10 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/10">
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" />
-                      <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0.1s' }} />
-                      <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0.2s' }} />
-                    </div>
+                    {currentStep ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse" />
+                        <span className="text-sm text-white/80">{currentStep}</span>
+                      </div>
+                    ) : (
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" />
+                        <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0.1s' }} />
+                        <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0.2s' }} />
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
