@@ -1,4 +1,6 @@
 // 创建管理员账号脚本
+// 这个脚本应该是过时的，可以删除
+
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 

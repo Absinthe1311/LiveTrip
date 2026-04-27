@@ -3,7 +3,12 @@
 
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { marked } from 'marked';
+import marked from 'marked';
+
+marked.setOptions({
+  breaks: true,
+  gfm: true,
+});
 
 /**
  * 将Markdown内容转换为PDF
@@ -70,7 +75,7 @@ export async function exportBlogToPDF(
     `;
 
     // 将Markdown转换为HTML
-    const contentHtml = await marked(content);
+    const contentHtml = marked(content) as string;
     htmlContent += `<div class="markdown-content">${contentHtml}</div>`;
 
     // 添加页脚

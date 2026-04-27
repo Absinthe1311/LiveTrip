@@ -3,7 +3,6 @@
 // 确认时直接更新状态而非重建，避免AI调用耗时叠加导致超时。
 // Agent 服务 - 实现 Function Calling 功能
 import https from 'https';
-import { marked } from 'marked';
 import { chatHistoryService } from './chatHistoryService';
 import { getPrismaClient } from '../lib/prisma';
 import { parseDate, formatDate } from '../utils/dateParser';
@@ -13,6 +12,11 @@ import { httpsRequestWithRetry } from '../utils/retry';
 import { mustVisitSpotExtractor } from './mustVisitSpotExtractor';
 import { constraintAwarePlanner } from './constraintAwarePlanner';
 import { userProfileService } from './userProfileService';
+
+const marked: any = require('marked');
+if (marked.setOptions) {
+  marked.setOptions({ breaks: true, gfm: true });
+}
 
 const prisma = getPrismaClient();
 
@@ -1456,7 +1460,7 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
         blogContent = this.cleanBlogContent(blogContent);
 
         // Markdown转HTML（前端用dangerouslySetInnerHTML渲染，需要HTML格式）
-        const blogContentHtml = await marked(blogContent);
+        const blogContentHtml = marked(blogContent) as string;
 
         const blogStartTime = Date.now();
         // 创建博客草稿
