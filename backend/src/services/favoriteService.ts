@@ -79,11 +79,7 @@ export async function getUserFavoritesWithIoT(userId: string = 'default-user'): 
         spot: {
           include: {
             iotData: true,
-            image: {
-              where: {
-                status: 'approved',
-              },
-            },
+            image: true,
           },
         },
       },
