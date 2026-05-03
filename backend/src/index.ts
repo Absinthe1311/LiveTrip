@@ -1,4 +1,7 @@
-// 后端主入口文件 - 配置Express服务器和中间件
+// 后端主入口文件
+// 负责初始化Express应用、配置中间件、挂载路由
+// 启动Http服务器和Socket.io实时通信。
+// 作为整个后端服务的启动点，协调各模块的初始化流程
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -29,15 +32,6 @@ initSocketIO(httpServer);
 // 启动环境感知定时任务
 sensorScheduler.start();
 
-// 测试 Cloudinary 配置
-app.get('/test/cloudinary', (req, res) => {
-  res.json({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key_set: !!process.env.CLOUDINARY_API_KEY,
-    api_secret_set: !!process.env.CLOUDINARY_API_SECRET,
-  });
-});
-
 // 中间件
 app.use(helmet());
 
@@ -57,8 +51,6 @@ const corsOptions = {
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn(`CORS blocked origin: ${origin}`);
-      console.log(`Allowed origins: ${allowedOrigins.join(', ')}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -103,10 +95,7 @@ app.use(errorHandler);
 
 // 启动服务器（使用HTTP服务器而非Express app）
 httpServer.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
-  console.log(`API Documentation: http://localhost:${PORT}/api-docs`);
-  console.log(`Socket.io is ready for WebSocket connections`);
+  console.log(`Server is running on http://localhost:${PORT}`);                                                                                                                                                                                                                                                                                                       
 });
 
 export default app;

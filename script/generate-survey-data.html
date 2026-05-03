@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图1.1 用户调研数据</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'PingFang SC', sans-serif;
+      background: #fff;
+      padding: 30px 40px;
+      color: #333;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #145F39;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      font-size: 12px;
+      color: #666;
+    }
+    .charts-container {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+    }
+    .chart-box {
+      flex: 1;
+      max-width: 320px;
+      background: #fafafa;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .chart-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #145F39;
+      margin-bottom: 12px;
+    }
+    canvas {
+      max-width: 100%;
+    }
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 10px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>图1.1 用户调研数据</h1>
+    <p class="subtitle">有效样本：386份 | 调研时间：2024年</p>
+  </div>
+  
+  <div class="charts-container">
+    <div class="chart-box">
+      <div class="chart-title">规划耗时分布</div>
+      <canvas id="timeChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">团队出行痛点</div>
+      <canvas id="painChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">用户期待功能</div>
+      <canvas id="featureChart"></canvas>
+    </div>
+  </div>
+  
+  <div class="footer">
+    数据来源：线上问卷（有效样本386份）+ 深度访谈（12人） | LiveTrip用户研究
+  </div>
+
+  <script>
+    const colors = {
+      primary: '#145F39',
+      secondary: '#CDEDDE',
+      accent: '#AE1C31',
+      light: '#73AE52',
+      muted: '#6b7280'
+    };
+
+    // 图1: 规划耗时分布（饼图）
+    new Chart(document.getElementById('timeChart'), {
+      type: 'pie',
+      data: {
+        labels: ['耗时3小时以上', '查阅9+平台', '耗时1-3小时', '查阅5-8平台'],
+        datasets: [{
+          data: [62, 68, 28, 32],
+          backgroundColor: [colors.primary, colors.accent, colors.secondary, colors.light],
+          borderWidth: 2,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { font: { size: 11 }, padding: 8 }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.label}: ${ctx.raw}%`
+            }
+          }
+        }
+      }
+    });
+
+    // 图2: 团队出行痛点（柱状图）
+    new Chart(document.getElementById('painChart'), {
+      type: 'bar',
+      data: {
+        labels: ['信息碎片化', '版本混乱', '沟通低效', '决策困难', '信息遗漏'],
+        datasets: [{
+          data: [78, 65, 52, 48, 41],
+          backgroundColor: [colors.primary, colors.accent, colors.light, colors.secondary, colors.muted],
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.raw}%`
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              callback: (val) => val + '%',
+              font: { size: 10 }
+            }
+          },
+          x: {
+            ticks: { font: { size: 10 } }
+          }
+        }
+      }
+    });
+
+    // 图3: 用户期待功能（横向条形图）
+    new Chart(document.getElementById('featureChart'), {
+      type: 'bar',
+      data: {
+        labels: ['一键生成行程', '多人实时协同', '天气人流提醒', 'AI智能推荐', '预算优化'],
+        datasets: [{
+          data: [82, 71, 68, 58, 52],
+          backgroundColor: colors.primary,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `期待度: ${ctx.raw}%`
+            }
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              callback: (val) => val + '%',
+              font: { size: 10 }
+            }
+          },
+          y: {
+            ticks: { font: { size: 10 } }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

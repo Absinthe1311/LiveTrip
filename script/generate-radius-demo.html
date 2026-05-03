@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图3.13 圆角</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'PingFang SC', sans-serif;
+      background: #fff;
+      padding: 30px 40px;
+      color: #333;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #145F39;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .radius-config {
+      background: #f8f9fa;
+      padding: 10px 16px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 11px;
+      color: #555;
+      text-align: center;
+    }
+    .radius-config code {
+      background: #e9ecef;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-family: 'Fira Code', monospace;
+    }
+    
+    .main-grid {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .column {
+      flex: 1;
+    }
+    
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #145F39;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::before {
+      content: '';
+      width: 3px;
+      height: 14px;
+      background: #145F39;
+      border-radius: 2px;
+    }
+    
+    .radius-grid {
+      display: flex;
+      gap: 10px;
+    }
+    .radius-card {
+      flex: 1;
+      background: #fafafa;
+      padding: 12px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .radius-demo {
+      background: #145F39;
+      color: white;
+      padding: 14px 8px;
+      margin-bottom: 8px;
+      font-weight: 500;
+      font-size: 13px;
+    }
+    .radius-sm { border-radius: 8px; }
+    .radius-md { border-radius: 10px; }
+    .radius-xl { border-radius: 12px; }
+    .radius-2xl { border-radius: 16px; }
+    .radius-full { border-radius: 9999px; }
+    
+    .radius-value {
+      font-size: 11px;
+      font-weight: 600;
+      color: #333;
+    }
+    .radius-tailwind {
+      font-size: 9px;
+      color: #666;
+      margin-top: 2px;
+    }
+    .radius-usage {
+      font-size: 9px;
+      color: #999;
+      margin-top: 3px;
+    }
+    
+    .component-grid {
+      display: flex;
+      gap: 12px;
+    }
+    .component-card {
+      flex: 1;
+      background: #fafafa;
+      padding: 14px;
+      border-radius: 6px;
+    }
+    .component-title {
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #145F39;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      margin: 3px;
+    }
+    .btn-primary { background: #145F39; color: white; }
+    .btn-secondary { background: #CDEDDE; color: #145F39; }
+    
+    .input-demo {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 12px;
+      border: 1px solid #e5e7eb;
+      background: white;
+      margin-bottom: 6px;
+      border-radius: 12px;
+    }
+    
+    .card-demo {
+      background: white;
+      padding: 12px;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 6px;
+      border-radius: 16px;
+    }
+    
+    .tag-demo {
+      display: inline-block;
+      padding: 4px 8px;
+      font-size: 10px;
+      margin: 3px;
+      background: #CDEDDE;
+      color: #145F39;
+      border-radius: 8px;
+    }
+    
+    .avatar-demo {
+      width: 36px;
+      height: 36px;
+      background: #145F39;
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 12px;
+      margin: 3px;
+    }
+    
+    .glass-demo {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 12px;
+      margin-bottom: 6px;
+      border-radius: 16px;
+      background-image: linear-gradient(135deg, rgba(109,213,202,0.3), rgba(255,255,255,0.1));
+    }
+    
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 10px;
+      color: #999;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>图3.13 圆角</h1>
+    <p class="subtitle">LiveTrip设计系统圆角规范 | 基于CSS变量 --radius: 0.75rem (12px)</p>
+  </div>
+  
+  <div class="radius-config">
+    圆角变量：<code>--radius: 0.75rem</code> = 12px | Glass-morphism风格：卡片采用 <code>rounded-2xl</code> (16px) + 半透明背景
+  </div>
+  
+  <div class="main-grid">
+    <div class="column">
+      <div class="section-title">圆角系统</div>
+      <div class="radius-grid">
+        <div class="radius-card">
+          <div class="radius-demo radius-sm">8px</div>
+          <div class="radius-value">rounded-sm</div>
+          <div class="radius-tailwind">var(--radius) - 4px</div>
+          <div class="radius-usage">标签、小按钮</div>
+        </div>
+        <div class="radius-card">
+          <div class="radius-demo radius-xl">12px</div>
+          <div class="radius-value">rounded-xl</div>
+          <div class="radius-tailwind">var(--radius)</div>
+          <div class="radius-usage">主按钮、输入框</div>
+        </div>
+        <div class="radius-card">
+          <div class="radius-demo radius-2xl">16px</div>
+          <div class="radius-value">rounded-2xl</div>
+          <div class="radius-tailwind">var(--radius) + 4px</div>
+          <div class="radius-usage">Glass卡片、弹窗</div>
+        </div>
+        <div class="radius-card">
+          <div class="radius-demo radius-full">全圆</div>
+          <div class="radius-value">rounded-full</div>
+          <div class="radius-tailwind">50%</div>
+          <div class="radius-usage">头像、徽章</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="column">
+      <div class="section-title">组件应用示例</div>
+      <div class="component-grid">
+        <div class="component-card">
+          <div class="component-title">按钮 Buttons</div>
+          <button class="btn btn-primary" style="border-radius: 12px;">主按钮</button>
+          <button class="btn btn-secondary" style="border-radius: 12px;">次按钮</button>
+          <div style="margin-top: 8px;">
+            <span class="tag-demo">标签</span>
+            <span class="tag-demo">旅行</span>
+          </div>
+        </div>
+        <div class="component-card">
+          <div class="component-title">输入框 & 卡片</div>
+          <input type="text" class="input-demo" placeholder="输入框 12px圆角">
+          <div class="card-demo">
+            <div style="font-size: 11px; font-weight: 500;">Glass卡片 16px圆角</div>
+            <div style="font-size: 9px; color: #666; margin-top: 2px;">半透明 + 毛玻璃效果</div>
+          </div>
+        </div>
+        <div class="component-card">
+          <div class="component-title">头像 Avatars</div>
+          <div class="avatar-demo" style="border-radius: 50%;">A</div>
+          <div class="avatar-demo" style="border-radius: 12px;">B</div>
+          <div class="avatar-demo" style="border-radius: 8px;">C</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="footer">
+    LiveTrip设计系统 © 2024 | Tailwind CSS圆角系统 + Glass-morphism
+  </div>
+</body>
+</html>

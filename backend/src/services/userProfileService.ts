@@ -109,11 +109,6 @@ class UserProfileService {
         completedTripCount,
       };
 
-      console.log(`✅ 用户画像构建完成`);
-      console.log(`   访问目的地: ${visitedDestinations.join(', ') || '无'}`);
-      console.log(`   偏好: ${preferences.join(', ') || '无'}`);
-      console.log(`   行程数: ${tripCount} (已完成: ${completedTripCount})`);
-
       return profile;
     } catch (error: any) {
       console.error('❌ 构建用户画像失败:', error);

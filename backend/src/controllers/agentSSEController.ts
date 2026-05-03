@@ -1,12 +1,8 @@
-// AI辅助生成：GLM-5, 2026-04-26 21:36
-// 描述：新增SSE流式响应控制器，将Agent处理步骤实时推送到前端，并兼容普通JSON响应。
-// Agent SSE 控制器 - 支持步骤实时推送
 import { Request, Response } from 'express';
 import { agentService } from '../services/agentService';
 
 export const chatWithAgentSSE = async (req: Request, res: Response) => {
   const { question } = req.body;
-
   if (!question || typeof question !== 'string' || question.trim().length === 0) {
     return res.status(400).json({ success: false, error: '缺少必填字段：question（字符串）' });
   }
@@ -42,23 +38,18 @@ export const chatWithAgentSSE = async (req: Request, res: Response) => {
       sendStep
     );
 
-    const confirmationTool = response.toolCalls?.find(
-      (tc: any) => tc.result?.needsConfirmation
-    );
-    const moreInfoTool = response.toolCalls?.find(
-      (tc: any) => tc.result?.needsMoreInfo
-    );
-    const toolResult = confirmationTool?.result || moreInfoTool?.result || response.toolCalls?.[0]?.result;
+    const confirmTool = response.toolCalls?.find((tc: any) => tc.result?.needsConfirmation);
+    const moreInfoTool = response.toolCalls?.find((tc: any) => tc.result?.needsMoreInfo);
     const resultData: any = {
       type: 'result',
       success: true,
-      data: response,
+      data: response
     };
 
-    if (confirmationTool?.result?.needsConfirmation) {
+    if (confirmTool?.result?.needsConfirmation) {
       resultData.needsConfirmation = true;
-      resultData.previewData = confirmationTool.result.previewData;
-      resultData.sessionId = confirmationTool.result.sessionId;
+      resultData.previewData = confirmTool.result.previewData;
+      resultData.sessionId = confirmTool.result.sessionId;
     }
 
     if (moreInfoTool?.result?.needsMoreInfo) {
@@ -68,7 +59,7 @@ export const chatWithAgentSSE = async (req: Request, res: Response) => {
 
     res.write(`data: ${JSON.stringify(resultData)}\n\n`);
     res.end();
-  } catch (error: any) {
+  } catch (err: any) {
     res.write(`data: ${JSON.stringify({ type: 'error', message: 'AI 服务暂时不可用，请稍后重试' })}\n\n`);
     res.end();
   }
