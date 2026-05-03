@@ -1,9 +1,6 @@
-/**
- * 用户信息控制器
- * 处理用户信息的CRUD操作
- */
-
+// 用户信息控制器 - 处理用户信息的CRUD操作
 import { Request, Response } from 'express';
+
 import { getPrismaClient } from '../lib/prisma';
 import { cloudinaryService } from '../services/cloudinaryService';
 

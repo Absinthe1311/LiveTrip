@@ -1,7 +1,6 @@
 // 行程管理控制器 - 处理行程的增删改查
-// AI辅助生成：GLM-5, 2026-04-22
-// 内容说明：优化saveTrip响应数据结构，返回完整trip对象（包含coverImage字段）
 import { Request, Response } from 'express';
+
 import { getPrismaClient } from '../lib/prisma';
 import { budgetCalculator } from '../services/budgetCalculator';
 import { spotService } from '../services/spotService';

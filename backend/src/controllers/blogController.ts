@@ -1,9 +1,6 @@
-/**
- * Blog控制器
- * 处理博客相关的API请求
- */
-
+// Blog控制器 - 处理博客相关的API请求
 import { Request, Response } from 'express';
+
 import { blogService } from '../services/blogService';
 
 export class BlogController {

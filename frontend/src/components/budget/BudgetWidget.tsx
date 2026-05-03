@@ -1,8 +1,7 @@
-// AI辅助生成：GLM-5, 2026-04-24 21:31
-// 描述：统一的预算管理组件，用于Today和MyTrips页面，显示预算状态并提供记账和调整预算功能
-
+// 预算管理组件 - 用于Today和MyTrips页面
 import React, { useState, useEffect } from 'react';
 import { Wallet, Plus, Settings } from 'lucide-react';
+
 import { getBudgetStatus } from '../../api/client';
 
 interface BudgetWidgetProps {

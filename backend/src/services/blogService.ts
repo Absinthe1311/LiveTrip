@@ -1,8 +1,4 @@
-/**
- * Blog服务
- * 处理博客文章的创建、查询、更新、删除和社交功能
- */
-
+// Blog服务 - 处理博客文章的创建、查询、更新、删除和社交功能
 import { getPrismaClient } from '../lib/prisma';
 
 const prisma = getPrismaClient();

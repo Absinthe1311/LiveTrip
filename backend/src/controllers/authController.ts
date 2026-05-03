@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import { getPrismaClient } from '../lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
+
+import { getPrismaClient } from '../lib/prisma';
 
 const prisma = getPrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'livetrip-secret-key-2024';

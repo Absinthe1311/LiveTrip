@@ -1,5 +1,6 @@
-import { getPrismaClient } from '../lib/prisma';
 import { Request, Response } from 'express';
+
+import { getPrismaClient } from '../lib/prisma';
 import { cloudinaryService } from '../services/cloudinaryService';
 import { imageService } from '../services/imageService';
 
