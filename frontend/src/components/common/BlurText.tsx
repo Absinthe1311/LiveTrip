@@ -1,5 +1,5 @@
 // 模糊文字动画组件
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
 
 interface BlurTextProps {
   text: string;
@@ -7,8 +7,8 @@ interface BlurTextProps {
   delay?: number;
 }
 
-const BlurText = ({ text, className = "", delay = 0 }: BlurTextProps) => {
-  const words = text.split(" ");
+const BlurText = ({ text, className = '', delay = 0 }: BlurTextProps) => {
+  const words = text.split(' ');
 
   return (
     <span className={className}>
@@ -16,8 +16,8 @@ const BlurText = ({ text, className = "", delay = 0 }: BlurTextProps) => {
         <motion.span
           key={i}
           className="inline-block mr-[0.3em]"
-          initial={{ opacity: 0, filter: "blur(12px)", y: 30 }}
-          animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+          initial={{ opacity: 0, filter: 'blur(12px)', y: 30 }}
+          animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
           transition={{
             duration: 0.8,
             delay: delay + i * 0.12,

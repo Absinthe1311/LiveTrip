@@ -78,7 +78,7 @@ export default function SettingsModal({
       const uploadResponse = await fetch(`${API_BASE_URL}/upload/image`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: formData,
       });
@@ -125,20 +125,14 @@ export default function SettingsModal({
   return (
     <>
       {/* 遮罩层 */}
-      <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
 
       {/* 弹窗 */}
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl z-50 overflow-hidden">
         {/* 头部 */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <h2 className="text-2xl font-bold text-white">设置</h2>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-          >
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
             <X className="h-5 w-5 text-white/60" />
           </button>
         </div>
@@ -180,11 +174,7 @@ export default function SettingsModal({
             <div className="space-y-3">
               {/* 当前背景预览 */}
               <div className="relative w-full h-40 rounded-xl overflow-hidden border border-white/20">
-                <img
-                  src={bgImage}
-                  alt="当前背景"
-                  className="w-full h-full object-cover"
-                />
+                <img src={bgImage} alt="当前背景" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                   <span className="text-white text-sm font-medium">当前背景</span>
                 </div>
@@ -229,9 +219,7 @@ export default function SettingsModal({
                   <Upload className="w-4 h-4" />
                   <span>选择本地图片</span>
                 </label>
-                <p className="text-xs text-white/40">
-                  支持 JPG、PNG、GIF、WebP 格式，最大 10MB
-                </p>
+                <p className="text-xs text-white/40">支持 JPG、PNG、GIF、WebP 格式，最大 10MB</p>
               </div>
 
               {/* 重置按钮 */}
@@ -280,6 +268,3 @@ export default function SettingsModal({
     </>
   );
 }
-
-
-

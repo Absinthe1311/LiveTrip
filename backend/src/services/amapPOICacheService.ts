@@ -33,7 +33,7 @@ export class AmapPOICacheService {
 
       // 更新命中次数
       await Promise.all(
-        cachedPOIs.map(poi =>
+        cachedPOIs.map((poi) =>
           prisma.amapPOICache.update({
             where: { id: poi.id },
             data: {
@@ -44,7 +44,7 @@ export class AmapPOICacheService {
       );
 
       // 转换为 AmapAttraction 格式
-      return cachedPOIs.map(poi => ({
+      return cachedPOIs.map((poi) => ({
         name: poi.name,
         location: poi.location,
         address: poi.address || '',
@@ -128,7 +128,7 @@ export class AmapPOICacheService {
       });
 
       const byCity: Record<string, number> = {};
-      byCityGroup.forEach(group => {
+      byCityGroup.forEach((group) => {
         byCity[group.city] = group._count.city;
       });
 

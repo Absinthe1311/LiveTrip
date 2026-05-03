@@ -25,7 +25,12 @@ interface SpotCardProps {
   isFavorited?: boolean; // 外部传入的收藏状态
 }
 
-export function SpotCard({ spot, getTagColor, generateDescription, isFavorited }: Omit<SpotCardProps, 'onClick'>) {
+export function SpotCard({
+  spot,
+  getTagColor,
+  generateDescription,
+  isFavorited,
+}: Omit<SpotCardProps, 'onClick'>) {
   const [isLiked, setIsLiked] = useState(isFavorited || false);
   const [showFullDescription, setShowFullDescription] = useState(false);
 
@@ -77,10 +82,10 @@ export function SpotCard({ spot, getTagColor, generateDescription, isFavorited }
     }
   };
 
-  const fullDescription = spot.description || generateDescription(spot.name, spot.category, spot.city);
-  const shortDescription = fullDescription.length > 100 
-    ? fullDescription.substring(0, 100) + '...' 
-    : fullDescription;
+  const fullDescription =
+    spot.description || generateDescription(spot.name, spot.category, spot.city);
+  const shortDescription =
+    fullDescription.length > 100 ? fullDescription.substring(0, 100) + '...' : fullDescription;
   const shouldShowReadMore = fullDescription.length > 100;
 
   return (
@@ -88,17 +93,13 @@ export function SpotCard({ spot, getTagColor, generateDescription, isFavorited }
       {/* 景点图片 */}
       <div className="relative h-40 bg-gradient-to-br from-amber-500/20 to-amber-600/20">
         {spot.image ? (
-          <img
-            src={spot.image}
-            alt={spot.name}
-            className="w-full h-full object-cover"
-          />
+          <img src={spot.image} alt={spot.name} className="w-full h-full object-cover" />
         ) : (
           <div className="flex items-center justify-center h-full">
             <ImageIcon className="w-10 h-10 text-white/20" />
           </div>
         )}
-        
+
         {/* 收藏按钮 */}
         <button
           onClick={handleToggleFavorite}
@@ -106,9 +107,7 @@ export function SpotCard({ spot, getTagColor, generateDescription, isFavorited }
         >
           <Heart
             className={`w-4 h-4 transition-colors ${
-              isLiked
-                ? 'text-red-500 fill-red-500'
-                : 'text-white/80 group-hover:text-white'
+              isLiked ? 'text-red-500 fill-red-500' : 'text-white/80 group-hover:text-white'
             }`}
           />
         </button>
@@ -120,21 +119,28 @@ export function SpotCard({ spot, getTagColor, generateDescription, isFavorited }
       {/* 景点信息 */}
       <div className="p-3 space-y-2">
         {/* 标题 */}
-        <h3 className="text-sm font-bold text-white truncate">
-          {spot.name}
-        </h3>
+        <h3 className="text-sm font-bold text-white truncate">{spot.name}</h3>
 
         {/* 分类标签 - 多色系，去重 */}
         {spot.category && (
           <div className="flex flex-wrap gap-1.5">
-            {Array.from(new Set(spot.category.split(';').map(c => c.trim()).filter(c => c))).slice(0, 2).map((cat, index) => (
-              <span
-                key={index}
-                className={`px-2 py-0.5 rounded-full text-xs font-medium ${getTagColor(cat)}`}
-              >
-                {cat}
-              </span>
-            ))}
+            {Array.from(
+              new Set(
+                spot.category
+                  .split(';')
+                  .map((c) => c.trim())
+                  .filter((c) => c)
+              )
+            )
+              .slice(0, 2)
+              .map((cat, index) => (
+                <span
+                  key={index}
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${getTagColor(cat)}`}
+                >
+                  {cat}
+                </span>
+              ))}
           </div>
         )}
 
@@ -192,6 +198,3 @@ export function SpotCard({ spot, getTagColor, generateDescription, isFavorited }
     </GlassCard>
   );
 }
-
-
-

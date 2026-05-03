@@ -19,7 +19,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '科教文化服务;博物馆;博物馆',
     category: '博物馆',
     isOutdoor: false,
-    description: '北京大型综合性博物馆，收藏丰富'
+    description: '北京大型综合性博物馆，收藏丰富',
   },
   {
     id: 'alt-1-2',
@@ -28,7 +28,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '科教文化服务;博物馆;博物馆',
     category: '博物馆',
     isOutdoor: false,
-    description: '国家级美术馆，展示中国近现代艺术'
+    description: '国家级美术馆，展示中国近现代艺术',
   },
   {
     id: 'alt-1-3',
@@ -37,7 +37,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '科教文化服务;博物馆;博物馆',
     category: '博物馆',
     isOutdoor: false,
-    description: '展示北京城市规划和发展历程'
+    description: '展示北京城市规划和发展历程',
   },
 
   // 天安门广场的备选景点
@@ -48,7 +48,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '科教文化服务;博物馆;博物馆',
     category: '博物馆',
     isOutdoor: false,
-    description: '全国人民代表大会召开地'
+    description: '全国人民代表大会召开地',
   },
   {
     id: 'alt-2-2',
@@ -57,7 +57,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '科教文化服务;博物馆;博物馆',
     category: '博物馆',
     isOutdoor: false,
-    description: '纪念毛泽东同志的场所'
+    description: '纪念毛泽东同志的场所',
   },
   {
     id: 'alt-2-3',
@@ -66,7 +66,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '科教文化服务;展览馆;展览馆',
     category: '展览馆',
     isOutdoor: false,
-    description: '国家表演艺术中心'
+    description: '国家表演艺术中心',
   },
 
   // 国家博物馆的备选景点
@@ -77,7 +77,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '科教文化服务;博物馆;博物馆',
     category: '博物馆',
     isOutdoor: false,
-    description: '展示中国军事历史和武器装备'
+    description: '展示中国军事历史和武器装备',
   },
   {
     id: 'alt-3-2',
@@ -86,7 +86,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '科教文化服务;博物馆;博物馆',
     category: '博物馆',
     isOutdoor: false,
-    description: '展示自然历史和生物多样性'
+    description: '展示自然历史和生物多样性',
   },
   {
     id: 'alt-3-3',
@@ -95,7 +95,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '科教文化服务;博物馆;博物馆',
     category: '博物馆',
     isOutdoor: false,
-    description: '展示天文学知识和天文观测'
+    description: '展示天文学知识和天文观测',
   },
 
   // 颐和园的备选景点
@@ -106,7 +106,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;公园',
     category: '公园',
     isOutdoor: true,
-    description: '北京著名山地公园，秋季红叶闻名'
+    description: '北京著名山地公园，秋季红叶闻名',
   },
   {
     id: 'alt-4-2',
@@ -115,7 +115,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;公园',
     category: '公园',
     isOutdoor: true,
-    description: '展示各种植物和花卉'
+    description: '展示各种植物和花卉',
   },
   {
     id: 'alt-4-3',
@@ -124,7 +124,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;公园',
     category: '公园',
     isOutdoor: true,
-    description: '2008年奥运会主场馆所在地'
+    description: '2008年奥运会主场馆所在地',
   },
 
   // 天坛公园的备选景点
@@ -135,7 +135,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;公园',
     category: '公园',
     isOutdoor: true,
-    description: '明清两代祭祀地神的场所'
+    description: '明清两代祭祀地神的场所',
   },
   {
     id: 'alt-5-2',
@@ -144,7 +144,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;公园',
     category: '公园',
     isOutdoor: true,
-    description: '明清两代祭祀日神的场所'
+    description: '明清两代祭祀日神的场所',
   },
   {
     id: 'alt-5-3',
@@ -153,7 +153,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;公园',
     category: '公园',
     isOutdoor: true,
-    description: '明清两代祭祀月神的场所'
+    description: '明清两代祭祀月神的场所',
   },
 
   // 圆明园的备选景点
@@ -164,7 +164,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;公园',
     category: '公园',
     isOutdoor: true,
-    description: '以《红楼梦》为主题的文化公园'
+    description: '以《红楼梦》为主题的文化公园',
   },
   {
     id: 'alt-6-2',
@@ -173,7 +173,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;公园',
     category: '公园',
     isOutdoor: true,
-    description: '展示世界著名建筑微缩景观'
+    description: '展示世界著名建筑微缩景观',
   },
   {
     id: 'alt-6-3',
@@ -182,7 +182,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;公园',
     category: '公园',
     isOutdoor: true,
-    description: '中国最大的动物园之一'
+    description: '中国最大的动物园之一',
   },
 
   // 北海公园的备选景点
@@ -193,7 +193,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;公园',
     category: '公园',
     isOutdoor: true,
-    description: '俯瞰故宫全景的最佳地点'
+    description: '俯瞰故宫全景的最佳地点',
   },
   {
     id: 'alt-7-2',
@@ -202,7 +202,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;公园',
     category: '公园',
     isOutdoor: true,
-    description: '纪念孙中山先生的公园'
+    description: '纪念孙中山先生的公园',
   },
   {
     id: 'alt-7-3',
@@ -211,7 +211,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;公园',
     category: '公园',
     isOutdoor: true,
-    description: '春季樱花盛开，秋季银杏金黄'
+    description: '春季樱花盛开，秋季银杏金黄',
   },
 
   // 景山公园的备选景点
@@ -222,7 +222,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;公园',
     category: '公园',
     isOutdoor: true,
-    description: '中国现存最古老、最完整的皇家园林'
+    description: '中国现存最古老、最完整的皇家园林',
   },
   {
     id: 'alt-8-2',
@@ -231,7 +231,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;历史街区',
     category: '历史街区',
     isOutdoor: true,
-    description: '北京最古老的街区之一'
+    description: '北京最古老的街区之一',
   },
   {
     id: 'alt-8-3',
@@ -240,7 +240,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;风景区',
     category: '风景区',
     isOutdoor: true,
-    description: '北京著名的历史文化旅游风景区'
+    description: '北京著名的历史文化旅游风景区',
   },
 
   // 雍和宫的备选景点
@@ -251,7 +251,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;宗教场所',
     category: '宗教场所',
     isOutdoor: false,
-    description: '道教全真派第一丛林'
+    description: '道教全真派第一丛林',
   },
   {
     id: 'alt-9-2',
@@ -260,7 +260,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;宗教场所',
     category: '宗教场所',
     isOutdoor: false,
-    description: '北京城内历史最悠久的名刹'
+    description: '北京城内历史最悠久的名刹',
   },
   {
     id: 'alt-9-3',
@@ -269,7 +269,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;宗教场所',
     category: '宗教场所',
     isOutdoor: false,
-    description: '中国佛教协会所在地'
+    description: '中国佛教协会所在地',
   },
 
   // 孔庙和国子监的备选景点
@@ -280,7 +280,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;历史建筑',
     category: '历史建筑',
     isOutdoor: false,
-    description: '明清两代祭祀历代帝王的场所'
+    description: '明清两代祭祀历代帝王的场所',
   },
   {
     id: 'alt-10-2',
@@ -289,7 +289,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '风景名胜;风景名胜;宗教场所',
     category: '宗教场所',
     isOutdoor: false,
-    description: '藏传佛教格鲁派寺院'
+    description: '藏传佛教格鲁派寺院',
   },
   {
     id: 'alt-10-3',
@@ -298,7 +298,7 @@ export const ALTERNATIVE_SPOTS: Array<{
     type: '科教文化服务;博物馆;博物馆',
     category: '博物馆',
     isOutdoor: false,
-    description: '纪念鲁迅先生的专题博物馆'
+    description: '纪念鲁迅先生的专题博物馆',
   },
 ];
 
@@ -339,10 +339,12 @@ export const filterAlternativeSpots = (
 /**
  * 将备选景点转换为行程景点格式
  */
-export const convertToItineraryAttraction = (spot: typeof ALTERNATIVE_SPOTS[0]): RecommendedAttraction => {
+export const convertToItineraryAttraction = (
+  spot: (typeof ALTERNATIVE_SPOTS)[0]
+): RecommendedAttraction => {
   // 解析时间范围
   const [start, end] = spot.location.split(',').map(Number);
-  
+
   // 估算费用
   const estimatedCost = spot.isOutdoor ? 35 : 60;
 

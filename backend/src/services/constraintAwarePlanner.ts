@@ -64,7 +64,8 @@ class ConstraintAwarePlanner {
       }
 
       // 计算天数
-      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      const daysDiff =
+        Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
       if (daysDiff > 30) {
         throw new Error('行程天数不能超过 30 天');
@@ -210,7 +211,9 @@ class ConstraintAwarePlanner {
 
       if (dayRecord) {
         // 解析经纬度
-        const [longitude, latitude] = spot.location.split(',').map(coord => parseFloat(coord.trim()));
+        const [longitude, latitude] = spot.location
+          .split(',')
+          .map((coord) => parseFloat(coord.trim()));
 
         // 创建行程项目
         await prisma.itineraryItem.create({
@@ -277,7 +280,7 @@ class ConstraintAwarePlanner {
       console.log(`✅ 获取到 ${attractions.length} 个候选景点`);
 
       // 过滤掉必选景点
-      const mustVisitIds = mustVisitSpots.map(s => s.id);
+      const mustVisitIds = mustVisitSpots.map((s) => s.id);
       const filteredAttractions = attractions.filter(
         (attr: any) => !mustVisitIds.includes(attr.id)
       );
@@ -338,7 +341,9 @@ class ConstraintAwarePlanner {
             const attraction = dayItinerary.attractions[i];
 
             // 解析经纬度
-            const [longitude, latitude] = attraction.location.split(',').map(coord => parseFloat(coord.trim()));
+            const [longitude, latitude] = attraction.location
+              .split(',')
+              .map((coord) => parseFloat(coord.trim()));
 
             await prisma.itineraryItem.create({
               data: {
@@ -379,20 +384,20 @@ class ConstraintAwarePlanner {
     }
 
     const preferenceMap: Record<string, string> = {
-      '历史': 'history',
-      '文化': 'art',
-      '艺术': 'art',
-      '自然': 'nature',
-      '风景': 'nature',
-      '公园': 'nature',
-      '美食': 'food',
-      '购物': 'shopping',
-      '城市': 'city',
-      '海滩': 'beach',
-      '海岛': 'beach',
-      '冒险': 'adventure',
-      '主题乐园': 'theme_park',
-      '宗教': 'religious',
+      历史: 'history',
+      文化: 'art',
+      艺术: 'art',
+      自然: 'nature',
+      风景: 'nature',
+      公园: 'nature',
+      美食: 'food',
+      购物: 'shopping',
+      城市: 'city',
+      海滩: 'beach',
+      海岛: 'beach',
+      冒险: 'adventure',
+      主题乐园: 'theme_park',
+      宗教: 'religious',
     };
 
     const categories: string[] = [];

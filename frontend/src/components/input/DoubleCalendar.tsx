@@ -9,7 +9,12 @@ interface DoubleCalendarProps {
   onEndDateChange: (date: string) => void;
 }
 
-export function DoubleCalendar({ startDate, endDate, onStartDateChange, onEndDateChange }: DoubleCalendarProps) {
+export function DoubleCalendar({
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
+}: DoubleCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // 监控props变化
@@ -99,9 +104,7 @@ export function DoubleCalendar({ startDate, endDate, onStartDateChange, onEndDat
         >
           <ChevronLeft className="w-5 h-5 text-white" />
         </button>
-        <div className="text-lg font-medium text-white">
-          {currentMonth.getFullYear()}年
-        </div>
+        <div className="text-lg font-medium text-white">{currentMonth.getFullYear()}年</div>
         <button
           onClick={() => {
             const newMonth = new Date(currentMonth);
@@ -141,10 +144,10 @@ export function DoubleCalendar({ startDate, endDate, onStartDateChange, onEndDat
                   isPast
                     ? 'text-white/20 cursor-not-allowed'
                     : isSelected
-                    ? 'bg-[#FFD9A3] text-[#718771]'
-                    : isInRange
-                    ? 'bg-[#FFD9A3]/40 text-[#718771]'
-                    : 'text-white/80 hover:bg-white/10'
+                      ? 'bg-[#FFD9A3] text-[#718771]'
+                      : isInRange
+                        ? 'bg-[#FFD9A3]/40 text-[#718771]'
+                        : 'text-white/80 hover:bg-white/10'
                 }`}
               >
                 {day}
@@ -159,7 +162,10 @@ export function DoubleCalendar({ startDate, endDate, onStartDateChange, onEndDat
               </div>
               <div className="grid grid-cols-7 gap-1">
                 {weekDays.map((day) => (
-                  <div key={day} className="w-10 h-8 flex items-center justify-center text-xs text-white/40">
+                  <div
+                    key={day}
+                    className="w-10 h-8 flex items-center justify-center text-xs text-white/40"
+                  >
                     {day}
                   </div>
                 ))}
@@ -175,22 +181,23 @@ export function DoubleCalendar({ startDate, endDate, onStartDateChange, onEndDat
         {/* 开始日期 */}
         <div className="flex items-center justify-between py-2 px-4 rounded-lg bg-white/5 border border-white/10">
           <span className="text-sm text-white/60">开始日期</span>
-          <span className="text-base font-medium text-white">
-            {startDate || '未选择'}
-          </span>
+          <span className="text-base font-medium text-white">{startDate || '未选择'}</span>
         </div>
         {/* 结束日期 */}
         <div className="flex items-center justify-between py-2 px-4 rounded-lg bg-white/5 border border-white/10">
           <span className="text-sm text-white/60">结束日期</span>
-          <span className="text-base font-medium text-white">
-            {endDate || '未选择'}
-          </span>
+          <span className="text-base font-medium text-white">{endDate || '未选择'}</span>
         </div>
         {/* 总天数 */}
         {startDate && endDate && (
           <div className="text-center py-3 rounded-xl bg-[#FFD9A3]/20 border border-[#FFD9A3]/40">
             <span className="text-[#718771] font-medium">
-              共 {Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1} 天行程
+              共{' '}
+              {Math.ceil(
+                (new Date(endDate).getTime() - new Date(startDate).getTime()) /
+                  (1000 * 60 * 60 * 24)
+              ) + 1}{' '}
+              天行程
             </span>
           </div>
         )}

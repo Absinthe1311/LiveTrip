@@ -3,11 +3,11 @@ import React from 'react';
 
 /**
  * 高德地图审图号组件
- * 
+ *
  * 根据中国地图出版管理规定，互联网地图服务必须显示审图号
  * 高德地图 JS API 2.0 官方样式会自动显示审图号
  * 此组件作为补充，确保审图号清晰可见
- * 
+ *
  * 审图号说明：
  * - 高德地图官方审图号：GS(2024)0592号
  * - 显示位置：地图右下角
@@ -18,15 +18,12 @@ interface MapCopyrightProps {
   style?: React.CSSProperties;
 }
 
-const MapCopyright: React.FC<MapCopyrightProps> = ({ 
-  position = 'bottom-right',
-  style = {} 
-}) => {
+const MapCopyright: React.FC<MapCopyrightProps> = ({ position = 'bottom-right', style = {} }) => {
   // 高德地图官方审图号
   // 来源：高德地图开放平台
   // 更新时间：2024年
   const copyrightText = 'GS(2024)0592号';
-  
+
   // 位置样式
   const positionStyles: Record<string, React.CSSProperties> = {
     'bottom-right': {

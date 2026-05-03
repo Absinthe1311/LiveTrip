@@ -40,7 +40,7 @@ export const getHotSpots = async (req: Request, res: Response) => {
     });
 
     // 转换为前端需要的格式
-    const result = hotSpots.map(spot => ({
+    const result = hotSpots.map((spot) => ({
       id: spot.id,
       name: spot.name,
       // 使用image表中的图片
@@ -90,7 +90,7 @@ export const getHotCities = async (req: Request, res: Response) => {
 
     // 统计城市
     const cityCount: Record<string, number> = {};
-    hotSpots.forEach(spot => {
+    hotSpots.forEach((spot) => {
       cityCount[spot.city] = (cityCount[spot.city] || 0) + 1;
     });
 
@@ -138,7 +138,7 @@ export const getHotCitiesWithSpots = async (req: Request, res: Response) => {
 
     // 按城市分组
     const cityGroups: Record<string, typeof hotSpots> = {};
-    hotSpots.forEach(spot => {
+    hotSpots.forEach((spot) => {
       if (!cityGroups[spot.city]) {
         cityGroups[spot.city] = [];
       }
@@ -154,7 +154,7 @@ export const getHotCitiesWithSpots = async (req: Request, res: Response) => {
         city,
         count: spots.length,
         avgRating: parseFloat(avgRating.toFixed(1)),
-        spots: spots.map(spot => ({
+        spots: spots.map((spot) => ({
           id: spot.id,
           name: spot.name,
           city: spot.city,

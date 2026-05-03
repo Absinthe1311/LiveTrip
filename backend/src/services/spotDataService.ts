@@ -80,10 +80,7 @@ export class SpotDataService {
               iotData: true,
             },
             take: limit,
-            orderBy: [
-              { isHot: 'desc' },
-              { rating: 'desc' },
-            ],
+            orderBy: [{ isHot: 'desc' }, { rating: 'desc' }],
           });
 
           console.log(`✅ 最终获取到 ${spotsWithIoT.length} 个景点（包含 IoT 数据）`);
@@ -106,15 +103,15 @@ export class SpotDataService {
    * 格式化景点数据为 AI 可理解的格式
    */
   formatSpotsForAI(spots: SpotWithIoT[]): string {
-    return spots.map((spot, index) => {
-      // 原格式包含: 地址、描述、是否户外、IoT详细数据(拥挤度/温度/下雨概率/是否开放/天气)
-      // 精简后只保留AI规划行程必需的字段，减少约75%的景点Token消耗
-      const iotSummary = spot.iotData
-        ? `拥挤${spot.iotData.crowdLevel.toFixed(1)}`
-        : '';
+    return spots
+      .map((spot, index) => {
+        // 原格式包含: 地址、描述、是否户外、IoT详细数据(拥挤度/温度/下雨概率/是否开放/天气)
+        // 精简后只保留AI规划行程必需的字段，减少约75%的景点Token消耗
+        const iotSummary = spot.iotData ? `拥挤${spot.iotData.crowdLevel.toFixed(1)}` : '';
 
-      return `${index + 1}. ${spot.name} | ${spot.category || '未分类'} | 门票${spot.ticketPrice || '免费'}元 | 评分${spot.rating || '-'} | ${spot.isHot ? '热门' : ''}${iotSummary ? ' | ' + iotSummary : ''}`;
-    }).join('\n');
+        return `${index + 1}. ${spot.name} | ${spot.category || '未分类'} | 门票${spot.ticketPrice || '免费'}元 | 评分${spot.rating || '-'} | ${spot.isHot ? '热门' : ''}${iotSummary ? ' | ' + iotSummary : ''}`;
+      })
+      .join('\n');
   }
 
   /**

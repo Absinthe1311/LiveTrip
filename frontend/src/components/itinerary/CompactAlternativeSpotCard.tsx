@@ -7,7 +7,7 @@ interface CompactAlternativeSpotCardProps {
   city?: string;
   onReplace: () => void;
   isSelected?: boolean;
-  imageUrl?: string;  // 新增：图片URL由父组件提供
+  imageUrl?: string; // 新增：图片URL由父组件提供
 }
 
 // 获取拥挤度颜色
@@ -29,35 +29,29 @@ export default function CompactAlternativeSpotCard({
   city,
   onReplace,
   isSelected = false,
-  imageUrl  // 图片URL由父组件提供
+  imageUrl, // 图片URL由父组件提供
 }: CompactAlternativeSpotCardProps) {
   // 图片URL由父组件通过props传入，不再单独加载
 
   return (
     <div
       className={`bg-white/10 backdrop-blur-xl border rounded-2xl overflow-hidden transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer ${
-        isSelected
-          ? 'ring-2 ring-[#008F8D]/50 border-[#008F8D]/50'
-          : 'border-white/20'
+        isSelected ? 'ring-2 ring-[#008F8D]/50 border-[#008F8D]/50' : 'border-white/20'
       }`}
     >
       {/* 景点图片 - 缩小尺寸 */}
       <div className="relative h-32 bg-gradient-to-br from-[#008F8D]/20 to-[#008F8D]/30">
         {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={item.name}
-            className="w-full h-full object-cover"
-          />
+          <img src={imageUrl} alt={item.name} className="w-full h-full object-cover" />
         ) : (
           <div className="flex items-center justify-center h-full">
             <ImageIcon className="w-8 h-8 text-white/20" />
           </div>
         )}
-        
+
         {/* 图片底部渐变遮罩 */}
         <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/70 to-transparent" />
-        
+
         {/* 序号标签 - 缩小 */}
         <div className="absolute top-2 left-2 w-8 h-8 rounded-full bg-gradient-to-r from-[#008F8D] to-[#008F8D]/80 flex items-center justify-center text-white font-bold text-xs shadow-lg">
           {item.index || '备选'}
@@ -67,9 +61,7 @@ export default function CompactAlternativeSpotCard({
       {/* 景点信息 - 缩小内边距 */}
       <div className="p-3 space-y-2">
         {/* 标题 - 缩小字体 */}
-        <h3 className="text-sm font-bold text-white truncate">
-          {item.name}
-        </h3>
+        <h3 className="text-sm font-bold text-white truncate">{item.name}</h3>
 
         {/* 位置信息 */}
         {item.address && (
@@ -88,8 +80,7 @@ export default function CompactAlternativeSpotCard({
           )}
           {item.estimated_cost && item.estimated_cost > 0 ? (
             <span className="bg-[#FFD9A3]/20 text-[#FFD9A3] px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-0.5 border border-[#FFD9A3]/30">
-              <Wallet className="w-3 h-3" />
-              ¥{item.estimated_cost}
+              <Wallet className="w-3 h-3" />¥{item.estimated_cost}
             </span>
           ) : (
             <span className="bg-[#008F8D]/20 text-[#008F8D] px-2 py-0.5 rounded-full text-xs font-medium border border-[#008F8D]/30">
@@ -102,9 +93,7 @@ export default function CompactAlternativeSpotCard({
         {item.rating && (
           <div className="flex items-center gap-1">
             <Star className="w-3 h-3 text-[#FFD9A3] fill-[#FFD9A3]" />
-            <span className="text-xs font-semibold text-white">
-              {item.rating.toFixed(1)}
-            </span>
+            <span className="text-xs font-semibold text-white">{item.rating.toFixed(1)}</span>
           </div>
         )}
 
@@ -123,9 +112,7 @@ export default function CompactAlternativeSpotCard({
               {/* 温度 */}
               <div className="text-center">
                 <div className="text-xs text-white/50">温度</div>
-                <div className="text-xs font-semibold text-white">
-                  {item.iotData.temperature}°C
-                </div>
+                <div className="text-xs font-semibold text-white">{item.iotData.temperature}°C</div>
               </div>
             </div>
           </div>
@@ -142,5 +129,3 @@ export default function CompactAlternativeSpotCard({
     </div>
   );
 }
-
-

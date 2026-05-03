@@ -25,7 +25,7 @@ export default function CalendarCard({
   month = new Date().getMonth() + 1,
   onDateClick,
   onMonthChange,
-  className = ''
+  className = '',
 }: CalendarCardProps) {
   const [currentYear, setCurrentYear] = useState(year);
   const [currentMonth, setCurrentMonth] = useState(month);
@@ -33,11 +33,11 @@ export default function CalendarCard({
   // 计算当前月份需要高亮的日期
   const highlightedDates = useMemo(() => {
     const dates = new Set<number>();
-    
-    tripDates.forEach(trip => {
+
+    tripDates.forEach((trip) => {
       const start = new Date(trip.startDate);
       const end = new Date(trip.endDate);
-      
+
       // 遍历行程的每一天
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         // 只添加当前月份的日期
@@ -46,14 +46,24 @@ export default function CalendarCard({
         }
       }
     });
-    
+
     return Array.from(dates);
   }, [tripDates, currentYear, currentMonth]);
 
   // 月份名称
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 
   // 星期名称
@@ -130,9 +140,10 @@ export default function CalendarCard({
     const today = new Date();
     for (let day = 1; day <= daysInMonth; day++) {
       const isHighlighted = highlightedDates.includes(day);
-      const isToday = day === today.getDate() &&
-                      currentMonth === today.getMonth() + 1 &&
-                      currentYear === today.getFullYear();
+      const isToday =
+        day === today.getDate() &&
+        currentMonth === today.getMonth() + 1 &&
+        currentYear === today.getFullYear();
 
       calendar.push(
         <button
@@ -142,8 +153,8 @@ export default function CalendarCard({
             isHighlighted
               ? 'bg-yellow-500/20 border border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/30'
               : isToday
-              ? 'bg-blue-500/30 border-2 border-blue-400 text-white font-bold hover:bg-blue-500/40'
-              : 'text-white/60 hover:bg-white/10 hover:text-white'
+                ? 'bg-blue-500/30 border-2 border-blue-400 text-white font-bold hover:bg-blue-500/40'
+                : 'text-white/60 hover:bg-white/10 hover:text-white'
           }`}
         >
           {day}
@@ -193,24 +204,18 @@ export default function CalendarCard({
       </div>
 
       {/* 日历网格 */}
-      <div className="grid grid-cols-7 gap-1">
-        {generateCalendar()}
-      </div>
+      <div className="grid grid-cols-7 gap-1">{generateCalendar()}</div>
 
       {/* 图例 */}
       <div className="mt-4 pt-4 border-t border-white/10">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-yellow-500/20 border border-yellow-500/40" />
-            <span className="text-xs text-white/60">
-              行程日期
-            </span>
+            <span className="text-xs text-white/60">行程日期</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-blue-500/30 border-2 border-blue-400" />
-            <span className="text-xs text-white/60">
-              今天
-            </span>
+            <span className="text-xs text-white/60">今天</span>
           </div>
         </div>
       </div>

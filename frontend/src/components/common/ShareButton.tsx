@@ -76,11 +76,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ tripId, style }) => {
           </p>
 
           <Space.Compact style={{ width: '100%', marginBottom: 24 }}>
-            <Input
-              value={shareUrl}
-              readOnly
-              style={{ flex: 1 }}
-            />
+            <Input value={shareUrl} readOnly style={{ flex: 1 }} />
             <Button
               type="primary"
               icon={copied ? <CheckOutlined /> : <CopyOutlined />}
@@ -101,4 +97,3 @@ const ShareButton: React.FC<ShareButtonProps> = ({ tripId, style }) => {
 };
 
 export default ShareButton;
-

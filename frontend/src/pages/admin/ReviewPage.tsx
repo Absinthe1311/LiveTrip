@@ -1,7 +1,28 @@
 // 图片审核页面 - 新UI设计
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, PenLine, List, MapPin, ChevronRight, Navigation, Route, Search as SearchIcon, ChevronDown, Image as ImageIcon, Check, X, Eye, Clock } from "lucide-react";
+import {
+  Menu,
+  Search,
+  Bell,
+  Heart,
+  Home as HomeIcon,
+  Plus,
+  Globe,
+  PenLine,
+  List,
+  MapPin,
+  ChevronRight,
+  Navigation,
+  Route,
+  Search as SearchIcon,
+  ChevronDown,
+  Image as ImageIcon,
+  Check,
+  X,
+  Eye,
+  Clock,
+} from 'lucide-react';
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
 import { getPendingImages, reviewImage } from '../../api/adminApi';
 import type { PendingImageItem } from '../../types/admin';
@@ -11,7 +32,7 @@ export default function ReviewPage() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
-  
+
   const [images, setImages] = useState<PendingImageItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -101,7 +122,7 @@ export default function ReviewPage() {
     <div className="min-h-screen flex flex-col font-sans">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-border z-50 flex items-center shadow-subtle">
-        <div 
+        <div
           className="w-[240px] h-full flex items-center px-5 border-r border-border shrink-0 cursor-pointer"
           onClick={() => navigate('/')}
         >
@@ -109,8 +130,12 @@ export default function ReviewPage() {
             <span className="text-lg">✈️</span>
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="text-lg font-semibold text-livetrip-primary-dark font-serif">LiveTrip</span>
-            <span className="text-[10px] text-livetrip-primary font-medium tracking-wide">Admin</span>
+            <span className="text-lg font-semibold text-livetrip-primary-dark font-serif">
+              LiveTrip
+            </span>
+            <span className="text-[10px] text-livetrip-primary font-medium tracking-wide">
+              Admin
+            </span>
           </div>
         </div>
 
@@ -122,14 +147,22 @@ export default function ReviewPage() {
           <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
             <Bell className="h-5 w-5 text-muted-foreground" />
           </button>
-          <button onClick={() => navigate('/favorites')} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+          <button
+            onClick={() => navigate('/favorites')}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
             <Heart className="h-5 w-5 text-muted-foreground" />
           </button>
         </div>
       </header>
 
       {/* Sidebar */}
-      <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} isLargeScreen={isLargeScreen} currentPage={location.pathname} />
+      <AdminSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        isLargeScreen={isLargeScreen}
+        currentPage={location.pathname}
+      />
 
       {/* Main Content */}
       <main className={`pt-14 min-h-screen ${isLargeScreen ? 'lg:pl-[240px]' : ''}`}>
@@ -158,7 +191,10 @@ export default function ReviewPage() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 {images.map((item) => (
-                  <div key={item.id} className="bg-white rounded-lg border border-border overflow-hidden hover:shadow-lg transition-shadow">
+                  <div
+                    key={item.id}
+                    className="bg-white rounded-lg border border-border overflow-hidden hover:shadow-lg transition-shadow"
+                  >
                     {/* Image */}
                     <div className="aspect-[4/3] overflow-hidden">
                       <img
@@ -170,7 +206,9 @@ export default function ReviewPage() {
 
                     {/* Info */}
                     <div className="p-4">
-                      <h3 className="text-base font-semibold text-foreground mb-2">{item.spotName}</h3>
+                      <h3 className="text-base font-semibold text-foreground mb-2">
+                        {item.spotName}
+                      </h3>
                       <div className="space-y-1 mb-4">
                         <p className="text-xs text-muted-foreground">
                           上传者：{item.uploaderName} ({item.uploaderEmail})
@@ -209,7 +247,7 @@ export default function ReviewPage() {
                 <div className="bg-white rounded-lg border border-border p-4">
                   <div className="flex items-center justify-center gap-2">
                     <button
-                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page === 1}
                       className="px-4 py-2 rounded-lg border border-border hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -219,7 +257,7 @@ export default function ReviewPage() {
                       第 {page} 页 / 共 {Math.ceil(total / pageSize)} 页
                     </span>
                     <button
-                      onClick={() => setPage(p => Math.min(Math.ceil(total / pageSize), p + 1))}
+                      onClick={() => setPage((p) => Math.min(Math.ceil(total / pageSize), p + 1))}
                       disabled={page >= Math.ceil(total / pageSize)}
                       className="px-4 py-2 rounded-lg border border-border hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -249,7 +287,9 @@ export default function ReviewPage() {
             <div className="p-6">
               <textarea
                 value={rejectNote[showRejectModal] || ''}
-                onChange={(e) => setRejectNote(prev => ({ ...prev, [showRejectModal]: e.target.value }))}
+                onChange={(e) =>
+                  setRejectNote((prev) => ({ ...prev, [showRejectModal]: e.target.value }))
+                }
                 placeholder="请输入拒绝原因（必填）"
                 rows={4}
                 className="w-full px-4 py-3 rounded-lg border border-border focus:ring-2 focus:ring-primary/20 transition-all resize-none"

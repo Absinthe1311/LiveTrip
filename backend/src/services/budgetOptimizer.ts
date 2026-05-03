@@ -3,17 +3,20 @@ import { DailyItinerary, RecommendedAttraction, GroupType } from '../types';
 
 // 城市等级配置（住宿和餐饮基准价格）
 const CITY_TIER_CONFIG = {
-  tier1: { // 一线城市：北京、上海、广州、深圳
+  tier1: {
+    // 一线城市：北京、上海、广州、深圳
     accommodation_per_room: { budget: 300, moderate: 500, luxury: 800 },
     dining_per_person: { budget: 100, moderate: 150, luxury: 250 },
     transportation_per_km: 3,
   },
-  tier2: { // 二线城市：杭州、南京、成都、武汉、西安等
+  tier2: {
+    // 二线城市：杭州、南京、成都、武汉、西安等
     accommodation_per_room: { budget: 200, moderate: 350, luxury: 600 },
     dining_per_person: { budget: 80, moderate: 120, luxury: 200 },
     transportation_per_km: 2.5,
   },
-  tier3: { // 三线城市：其他城市
+  tier3: {
+    // 三线城市：其他城市
     accommodation_per_room: { budget: 150, moderate: 250, luxury: 400 },
     dining_per_person: { budget: 60, moderate: 100, luxury: 150 },
     transportation_per_km: 2,
@@ -22,17 +25,20 @@ const CITY_TIER_CONFIG = {
 
 // 季节性价格系数
 const SEASONAL_MULTIPLIERS = {
-  peak: { // 旺季（春节、国庆、暑假）
+  peak: {
+    // 旺季（春节、国庆、暑假）
     accommodation: 1.5,
     dining: 1.2,
     tickets: 1.0,
   },
-  shoulder: { // 平季（其他节假日）
+  shoulder: {
+    // 平季（其他节假日）
     accommodation: 1.2,
     dining: 1.1,
     tickets: 1.0,
   },
-  off: { // 淡季
+  off: {
+    // 淡季
     accommodation: 0.8,
     dining: 0.9,
     tickets: 0.9,
@@ -75,7 +81,8 @@ class BudgetOptimizer {
    * 动态计算预算分配
    */
   async calculateBudget(params: BudgetCalculationParams): Promise<BudgetResult> {
-    const { itinerary, totalBudget, days, groupSize, groupType, destination, startDate, endDate } = params;
+    const { itinerary, totalBudget, days, groupSize, groupType, destination, startDate, endDate } =
+      params;
 
     console.log('\n💰 开始动态计算预算分配...');
     console.log(`   总预算: ${totalBudget}元`);
@@ -111,14 +118,7 @@ class BudgetOptimizer {
     console.log(`   住宿费用: ${accommodation}元`);
 
     // 6. 计算餐饮费用（动态）
-    const dining = this.calculateDining(
-      days,
-      groupSize,
-      cityTier,
-      budgetTier,
-      season,
-      groupType
-    );
+    const dining = this.calculateDining(days, groupSize, cityTier, budgetTier, season, groupType);
     console.log(`   餐饮费用: ${dining}元`);
 
     // 7. 计算交通费用（动态）
@@ -163,11 +163,22 @@ class BudgetOptimizer {
    */
   private getCityTier(destination: string): 'tier1' | 'tier2' | 'tier3' {
     const tier1Cities = ['北京', '上海', '广州', '深圳'];
-    const tier2Cities = ['杭州', '南京', '成都', '武汉', '西安', '重庆', '天津', '苏州', '长沙', '郑州'];
+    const tier2Cities = [
+      '杭州',
+      '南京',
+      '成都',
+      '武汉',
+      '西安',
+      '重庆',
+      '天津',
+      '苏州',
+      '长沙',
+      '郑州',
+    ];
 
-    if (tier1Cities.some(city => destination.includes(city))) {
+    if (tier1Cities.some((city) => destination.includes(city))) {
       return 'tier1';
-    } else if (tier2Cities.some(city => destination.includes(city))) {
+    } else if (tier2Cities.some((city) => destination.includes(city))) {
       return 'tier2';
     } else {
       return 'tier3';
@@ -183,7 +194,7 @@ class BudgetOptimizer {
 
     // 获取月份
     const months: number[] = [];
-    let current = new Date(start);
+    const current = new Date(start);
     while (current <= end) {
       months.push(current.getMonth());
       current.setDate(current.getDate() + 1);
@@ -195,11 +206,11 @@ class BudgetOptimizer {
     const shoulderMonths = [2, 3, 4, 5, 8, 10, 11];
 
     // 检查是否包含旺季月份
-    if (months.some(m => peakMonths.includes(m))) {
+    if (months.some((m) => peakMonths.includes(m))) {
       return 'peak';
     }
     // 检查是否包含平季月份
-    else if (months.some(m => shoulderMonths.includes(m))) {
+    else if (months.some((m) => shoulderMonths.includes(m))) {
       return 'shoulder';
     }
     // 淡季
@@ -211,7 +222,11 @@ class BudgetOptimizer {
   /**
    * 获取预算档次
    */
-  private getBudgetTier(totalBudget: number, days: number, groupSize: number): 'budget' | 'moderate' | 'luxury' {
+  private getBudgetTier(
+    totalBudget: number,
+    days: number,
+    groupSize: number
+  ): 'budget' | 'moderate' | 'luxury' {
     const budgetPerPersonPerDay = totalBudget / (days * groupSize);
 
     if (budgetPerPersonPerDay < 300) {
@@ -339,22 +354,29 @@ class BudgetOptimizer {
     }
 
     // 检查各项费用占比
-    const total = breakdown.tickets + breakdown.accommodation + breakdown.dining + breakdown.transportation;
+    const total =
+      breakdown.tickets + breakdown.accommodation + breakdown.dining + breakdown.transportation;
     const ticketRatio = (breakdown.tickets / total) * 100;
     const accommodationRatio = (breakdown.accommodation / total) * 100;
     const diningRatio = (breakdown.dining / total) * 100;
     const transportationRatio = (breakdown.transportation / total) * 100;
 
     if (ticketRatio > 30) {
-      recommendations.push(`💡 门票费用占比 ${ticketRatio.toFixed(1)}%，可以考虑购买套票或选择免费景点`);
+      recommendations.push(
+        `💡 门票费用占比 ${ticketRatio.toFixed(1)}%，可以考虑购买套票或选择免费景点`
+      );
     }
 
     if (accommodationRatio > 50) {
-      recommendations.push(`💡 住宿费用占比 ${accommodationRatio.toFixed(1)}%，可以考虑选择经济型住宿`);
+      recommendations.push(
+        `💡 住宿费用占比 ${accommodationRatio.toFixed(1)}%，可以考虑选择经济型住宿`
+      );
     }
 
     if (diningRatio > 35) {
-      recommendations.push(`💡 餐饮费用占比 ${diningRatio.toFixed(1)}%，可以考虑当地特色小吃节省开支`);
+      recommendations.push(
+        `💡 餐饮费用占比 ${diningRatio.toFixed(1)}%，可以考虑当地特色小吃节省开支`
+      );
     }
 
     return recommendations;

@@ -19,7 +19,7 @@ export default function LinearStepNavigation({
   steps,
   currentStepIndex,
   onStepChange,
-  completedSteps
+  completedSteps,
 }: LinearStepNavigationProps) {
   const getStepIcon = (type: string) => {
     switch (type) {
@@ -51,7 +51,7 @@ export default function LinearStepNavigation({
           const status = getStepStatus(index);
           const Icon = getStepIcon(step.type);
           const isLast = index === steps.length - 1;
-          
+
           return (
             <React.Fragment key={index}>
               {/* 步骤按钮 */}
@@ -66,13 +66,15 @@ export default function LinearStepNavigation({
                 }`}
                 disabled={status === 'pending'}
               >
-                <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${
-                  status === 'current'
-                    ? 'bg-gradient-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/50 scale-110'
-                    : status === 'completed'
-                    ? 'bg-green-500/30 border-2 border-green-400'
-                    : 'bg-white/20 border-2 border-white/30'
-                }`}>
+                <div
+                  className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    status === 'current'
+                      ? 'bg-gradient-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/50 scale-110'
+                      : status === 'completed'
+                        ? 'bg-green-500/30 border-2 border-green-400'
+                        : 'bg-white/20 border-2 border-white/30'
+                  }`}
+                >
                   {status === 'completed' ? (
                     <Check className="w-6 h-6 text-green-400" />
                   ) : status === 'pending' ? (
@@ -81,24 +83,28 @@ export default function LinearStepNavigation({
                     <Icon className="w-6 h-6 text-white" />
                   )}
                 </div>
-                <span className={`text-xs font-medium whitespace-nowrap ${
-                  status === 'current' 
-                    ? 'text-green-400' 
-                    : status === 'completed'
-                    ? 'text-white/80'
-                    : 'text-white/40'
-                }`}>
+                <span
+                  className={`text-xs font-medium whitespace-nowrap ${
+                    status === 'current'
+                      ? 'text-green-400'
+                      : status === 'completed'
+                        ? 'text-white/80'
+                        : 'text-white/40'
+                  }`}
+                >
                   {step.label}
                 </span>
               </button>
-              
+
               {/* 连接线 */}
               {!isLast && (
-                <div className={`flex-shrink-0 w-8 h-0.5 transition-all duration-300 ${
-                  getStepStatus(index + 1) === 'pending'
-                    ? 'bg-white/20'
-                    : 'bg-gradient-to-r from-green-400 to-green-600'
-                }`} />
+                <div
+                  className={`flex-shrink-0 w-8 h-0.5 transition-all duration-300 ${
+                    getStepStatus(index + 1) === 'pending'
+                      ? 'bg-white/20'
+                      : 'bg-gradient-to-r from-green-400 to-green-600'
+                  }`}
+                />
               )}
             </React.Fragment>
           );

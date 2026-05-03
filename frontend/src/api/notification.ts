@@ -22,11 +22,13 @@ export interface NotificationListResponse {
 /**
  * 获取通知列表
  */
-export const getNotifications = async (options: {
-  limit?: number;
-  offset?: number;
-  unreadOnly?: boolean;
-} = {}): Promise<NotificationListResponse> => {
+export const getNotifications = async (
+  options: {
+    limit?: number;
+    offset?: number;
+    unreadOnly?: boolean;
+  } = {}
+): Promise<NotificationListResponse> => {
   const params = new URLSearchParams();
   if (options.limit) params.append('limit', options.limit.toString());
   if (options.offset) params.append('offset', options.offset.toString());

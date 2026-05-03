@@ -24,7 +24,7 @@ interface UpcomingTourCardProps {
 export default function UpcomingTourCard({
   tours = [],
   title = '即将出行',
-  className = ''
+  className = '',
 }: UpcomingTourCardProps) {
   // 获取天气图标
   const getWeatherIcon = (condition: string) => {
@@ -40,9 +40,7 @@ export default function UpcomingTourCard({
   return (
     <GlassCard className={`p-6 flex-1 ${className}`}>
       {/* 标题 */}
-      <h3 className="text-lg font-bold text-white mb-4">
-        {title}
-      </h3>
+      <h3 className="text-lg font-bold text-white mb-4">{title}</h3>
 
       {/* 行程列表 */}
       <div className="space-y-3 flex-1">
@@ -77,15 +75,11 @@ export default function UpcomingTourCard({
                 <h4 className="text-base font-semibold text-white group-hover:text-white/90 transition-colors truncate">
                   {tour.city}
                 </h4>
-                <p className="text-sm text-white/60 truncate">
-                  {tour.date}
-                </p>
+                <p className="text-sm text-white/60 truncate">{tour.date}</p>
               </div>
 
               {/* 右侧：天气图标 */}
-              <div className="flex-shrink-0">
-                {getWeatherIcon(tour.condition)}
-              </div>
+              <div className="flex-shrink-0">{getWeatherIcon(tour.condition)}</div>
             </div>
           ))
         )}

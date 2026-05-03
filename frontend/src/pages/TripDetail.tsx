@@ -3,8 +3,19 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { message, Spin } from 'antd';
 import {
-  MapPin, Calendar, Wallet, Cloud, Share2, Check, ChevronRight, Clock, DollarSign, Camera, PenLine, CheckCircle
-} from "lucide-react";
+  MapPin,
+  Calendar,
+  Wallet,
+  Cloud,
+  Share2,
+  Check,
+  ChevronRight,
+  Clock,
+  DollarSign,
+  Camera,
+  PenLine,
+  CheckCircle,
+} from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import TimelineWithCards from '../components/itinerary/TimelineWithCards';
 import LinearStepNavigation, { PlanningStep } from '../components/itinerary/LinearStepNavigation';
@@ -12,7 +23,13 @@ import FullscreenMap from '../components/itinerary/FullscreenMap';
 import BudgetBar from '../components/itinerary/BudgetBar';
 import ActionButton from '../components/itinerary/ActionButton';
 import DayMap from '../components/itinerary/DayMap';
-import { getTripById, completeTrip, getIoTData, updateAlternativeRelations, batchGetSpotImagesByIds } from '../api/client';
+import {
+  getTripById,
+  completeTrip,
+  getIoTData,
+  updateAlternativeRelations,
+  batchGetSpotImagesByIds,
+} from '../api/client';
 import { FullItinerary, AttractionItem } from '../api/client';
 import { alternativeRecommender } from '../services/alternativeRecommender';
 import ShareButton from '../components/common/ShareButton';
@@ -45,7 +62,7 @@ function convertDbToItinerary(trip: any): FullItinerary {
       const endDateTime = new Date(item.endTime);
       const startTime = `${String(startDateTime.getHours()).padStart(2, '0')}:${String(startDateTime.getMinutes()).padStart(2, '0')}`;
       const endTime = `${String(endDateTime.getHours()).padStart(2, '0')}:${String(endDateTime.getMinutes()).padStart(2, '0')}`;
-      
+
       return {
         spotId: item.spotId, // 景点唯一标识
         name: item.name,
@@ -64,8 +81,12 @@ function convertDbToItinerary(trip: any): FullItinerary {
     itinerary,
     // 计算实际花费（Budget表中的数据）
     total_cost: trip.budget
-      ? trip.budget.transportation + trip.budget.accommodation + trip.budget.food +
-        trip.budget.tickets + trip.budget.shopping + trip.budget.other
+      ? trip.budget.transportation +
+        trip.budget.accommodation +
+        trip.budget.food +
+        trip.budget.tickets +
+        trip.budget.shopping +
+        trip.budget.other
       : 0,
     budget_breakdown: {
       transportation: trip.budget?.transportation || 0,
@@ -88,20 +109,20 @@ export default function TripDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [trip, setTrip] = useState<any>(null);
   const [itineraryData, setItineraryData] = useState<FullItinerary | null>(null);
   const [loading, setLoading] = useState(true);
   const [tripStatus, setTripStatus] = useState<'planning' | 'completed'>('planning');
   const [completing, setCompleting] = useState(false);
-  
+
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
-  
+
   const [expandedAlternatives, setExpandedAlternatives] = useState<Record<string, any[]>>({});
   const [loadingAlternatives, setLoadingAlternatives] = useState<Record<string, boolean>>({});
   const [iotData, setIoTData] = useState<any[]>([]);
   const [spotImages, setSpotImages] = useState<Record<string, string>>({});
-  
+
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [packingListVisible, setPackingListVisible] = useState(false);
   const [selectedSpot, setSelectedSpot] = useState<AttractionItem | null>(null);
@@ -165,8 +186,8 @@ export default function TripDetailPage() {
 
     try {
       const spotIds: string[] = [];
-      itineraryData.itinerary.forEach(day => {
-        day.attractions.forEach(attraction => {
+      itineraryData.itinerary.forEach((day) => {
+        day.attractions.forEach((attraction) => {
           if (attraction.spotId) {
             spotIds.push(attraction.spotId);
           }
@@ -194,8 +215,8 @@ export default function TripDetailPage() {
   const loadSpotImagesForItinerary = async (itinerary: FullItinerary) => {
     try {
       const spotIds: string[] = [];
-      itinerary.itinerary.forEach(day => {
-        day.attractions.forEach(attraction => {
+      itinerary.itinerary.forEach((day) => {
+        day.attractions.forEach((attraction) => {
           if (attraction.spotId) {
             spotIds.push(attraction.spotId);
           }
@@ -235,7 +256,7 @@ export default function TripDetailPage() {
       newSteps.push({
         type: 'attractions',
         day: day.day,
-        label: `第${day.day}天景点`
+        label: `第${day.day}天景点`,
       });
     });
 
@@ -259,19 +280,19 @@ export default function TripDetailPage() {
   // 处理上一步
   const handlePrevious = () => {
     if (currentStepIndex > 0) {
-      setCurrentStepIndex(prev => prev - 1);
+      setCurrentStepIndex((prev) => prev - 1);
     }
   };
 
   // 处理下一步
   const handleNext = () => {
     if (currentStepIndex < steps.length - 1) {
-      setCompletedSteps(prev => {
+      setCompletedSteps((prev) => {
         const newCompleted = [...prev];
         newCompleted[currentStepIndex] = true;
         return newCompleted;
       });
-      setCurrentStepIndex(prev => prev + 1);
+      setCurrentStepIndex((prev) => prev + 1);
     }
   };
 
@@ -287,24 +308,24 @@ export default function TripDetailPage() {
       return;
     }
 
-    setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: true }));
+    setLoadingAlternatives((prev) => ({ ...prev, [attractionKey]: true }));
 
     try {
       // 新方案：从行程数据的alternativePools中获取备选景点
       const spotId = item.spotId || item.id;
-      
+
       if (!itineraryData?.alternativePools || !spotId) {
         console.warn('⚠️  没有备选景点数据');
         message.info('暂无备选景点');
-        setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: false }));
+        setLoadingAlternatives((prev) => ({ ...prev, [attractionKey]: false }));
         return;
       }
 
       // 从alternativePools获取备选景点
       const alternatives = itineraryData.alternativePools[spotId] || [];
-      
+
       console.log(`✅ 从行程数据获取到 ${alternatives.length} 个备选景点`);
-      
+
       // 调试：打印备选景点数据结构
       if (alternatives.length > 0) {
         console.log('📦 备选景点数据示例:', {
@@ -312,7 +333,7 @@ export default function TripDetailPage() {
           image: alternatives[0].image,
           iotData: alternatives[0].iotData,
           rating: alternatives[0].rating,
-          estimated_cost: alternatives[0].estimated_cost
+          estimated_cost: alternatives[0].estimated_cost,
         });
       }
 
@@ -320,21 +341,21 @@ export default function TripDetailPage() {
         message.info('暂无备选景点');
       }
 
-      setExpandedAlternatives(prev => ({
+      setExpandedAlternatives((prev) => ({
         ...prev,
-        [attractionKey]: alternatives
+        [attractionKey]: alternatives,
       }));
     } catch (error: any) {
       console.error('❌ 获取备选景点失败:', error);
       message.error('获取备选景点失败，请稍后重试');
     } finally {
-      setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: false }));
+      setLoadingAlternatives((prev) => ({ ...prev, [attractionKey]: false }));
     }
   };
 
   const handleCloseAlternatives = (item: AttractionItem) => {
     const key = `${item.name}-${item.time}`;
-    setExpandedAlternatives(prev => {
+    setExpandedAlternatives((prev) => {
       const newAlternatives = { ...prev };
       delete newAlternatives[key];
       return newAlternatives;
@@ -346,8 +367,10 @@ export default function TripDetailPage() {
     if (!itineraryData) return;
 
     const newItinerary = { ...itineraryData };
-    newItinerary.itinerary[currentDayIndex].attractions = newItinerary.itinerary[currentDayIndex].attractions.map((attr: any, idx: number) => {
-      if (originalItem && (attr.name === originalItem.name && attr.time === originalItem.time)) {
+    newItinerary.itinerary[currentDayIndex].attractions = newItinerary.itinerary[
+      currentDayIndex
+    ].attractions.map((attr: any, idx: number) => {
+      if (originalItem && attr.name === originalItem.name && attr.time === originalItem.time) {
         // 替换景点，保留原时间，更新spotId和图片信息
         return {
           ...newItem,
@@ -454,15 +477,17 @@ export default function TripDetailPage() {
     );
   }
 
-  const hotel = trip.hotelName ? {
-    name: trip.hotelName,
-    address: trip.hotelAddress,
-    location: trip.hotelLocation,
-    type: trip.hotelType,
-    rating: trip.hotelRating,
-    avgDistance: 0,
-    distanceDetails: []
-  } : null;
+  const hotel = trip.hotelName
+    ? {
+        name: trip.hotelName,
+        address: trip.hotelAddress,
+        location: trip.hotelLocation,
+        type: trip.hotelType,
+        rating: trip.hotelRating,
+        avgDistance: 0,
+        distanceDetails: [],
+      }
+    : null;
 
   const getRestaurantForDay = (dayNumber: number) => {
     const day = trip.days?.find((d: any) => d.dayNumber === dayNumber);
@@ -473,7 +498,7 @@ export default function TripDetailPage() {
         location: day.restaurantLocation,
         type: day.restaurantType,
         rating: day.restaurantRating,
-        distance: 0
+        distance: 0,
       };
     }
     return null;
@@ -485,11 +510,7 @@ export default function TripDetailPage() {
         {/* 封面图片 */}
         {trip.coverImage && (
           <div className="mb-6 rounded-xl overflow-hidden">
-            <img
-              src={trip.coverImage}
-              alt={trip.title}
-              className="w-full h-64 object-cover"
-            />
+            <img src={trip.coverImage} alt={trip.title} className="w-full h-64 object-cover" />
           </div>
         )}
 
@@ -498,16 +519,20 @@ export default function TripDetailPage() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
               <h1 className="text-3xl font-bold text-white">{trip.title}</h1>
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                tripStatus === 'completed' 
-                  ? 'bg-green-500/20 text-green-400 border border-green-400/30' 
-                  : 'bg-blue-500/20 text-blue-400 border border-blue-400/30'
-              }`}>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  tripStatus === 'completed'
+                    ? 'bg-green-500/20 text-green-400 border border-green-400/30'
+                    : 'bg-blue-500/20 text-blue-400 border border-blue-400/30'
+                }`}
+              >
                 {tripStatus === 'completed' ? '已完成' : '规划中'}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              {id && <ShareButton tripId={id} style={{ height: 40, fontSize: 15, paddingInline: 20 }} />}
+              {id && (
+                <ShareButton tripId={id} style={{ height: 40, fontSize: 15, paddingInline: 20 }} />
+              )}
             </div>
           </div>
 
@@ -517,28 +542,41 @@ export default function TripDetailPage() {
               <Calendar className="w-5 h-5 text-amber-400 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">出行日期</p>
-                <p className="text-lg font-bold text-white truncate">{itineraryData.summary?.start_date || '未设置'}</p>
+                <p className="text-lg font-bold text-white truncate">
+                  {itineraryData.summary?.start_date || '未设置'}
+                </p>
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl py-3 px-4 flex items-center gap-3">
               <Wallet className="w-5 h-5 text-amber-400 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">总预算</p>
-                <p className="text-lg font-bold text-white truncate">¥{(itineraryData.summary?.budget || itineraryData.total_cost || 0).toLocaleString()}</p>
+                <p className="text-lg font-bold text-white truncate">
+                  ¥
+                  {(
+                    itineraryData.summary?.budget ||
+                    itineraryData.total_cost ||
+                    0
+                  ).toLocaleString()}
+                </p>
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl py-3 px-4 flex items-center gap-3">
               <Cloud className="w-5 h-5 text-amber-400 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">目的地</p>
-                <p className="text-lg font-bold text-white truncate">{itineraryData.summary?.destination || '未设置'}</p>
+                <p className="text-lg font-bold text-white truncate">
+                  {itineraryData.summary?.destination || '未设置'}
+                </p>
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl py-3 px-4 flex items-center gap-3">
               <MapPin className="w-5 h-5 text-amber-400 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">行程总览</p>
-                <p className="text-lg font-bold text-white truncate">{itineraryData.itinerary.length}天 · {calculateTotalAttractions()}景点</p>
+                <p className="text-lg font-bold text-white truncate">
+                  {itineraryData.itinerary.length}天 · {calculateTotalAttractions()}景点
+                </p>
               </div>
             </div>
           </div>
@@ -581,23 +619,27 @@ export default function TripDetailPage() {
 
               {/* 餐厅信息 */}
               {(() => {
-                const restaurant = getRestaurantForDay(itineraryData.itinerary[currentDayIndex].day);
-                return restaurant && (
-                  <div className="mt-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-lg">🍽️</span>
-                      <h3 className="text-sm font-semibold text-white">午餐餐厅</h3>
+                const restaurant = getRestaurantForDay(
+                  itineraryData.itinerary[currentDayIndex].day
+                );
+                return (
+                  restaurant && (
+                    <div className="mt-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-lg">🍽️</span>
+                        <h3 className="text-sm font-semibold text-white">午餐餐厅</h3>
+                      </div>
+                      <div className="bg-green-500/10 border border-green-400/30 rounded-lg p-4">
+                        <h4 className="text-sm font-medium text-white mb-1">{restaurant.name}</h4>
+                        {restaurant.address && (
+                          <p className="text-xs text-white/60">📍 {restaurant.address}</p>
+                        )}
+                        {restaurant.rating && (
+                          <div className="text-xs text-amber-400 mt-1">⭐ {restaurant.rating}</div>
+                        )}
+                      </div>
                     </div>
-                    <div className="bg-green-500/10 border border-green-400/30 rounded-lg p-4">
-                      <h4 className="text-sm font-medium text-white mb-1">{restaurant.name}</h4>
-                      {restaurant.address && (
-                        <p className="text-xs text-white/60">📍 {restaurant.address}</p>
-                      )}
-                      {restaurant.rating && (
-                        <div className="text-xs text-amber-400 mt-1">⭐ {restaurant.rating}</div>
-                      )}
-                    </div>
-                  </div>
+                  )
                 );
               })()}
             </div>
@@ -636,13 +678,7 @@ export default function TripDetailPage() {
               />
 
               {/* 行李清单 */}
-              {id && (
-                <PackingListWidget 
-                  itineraryId={id}
-                  editable={true}
-                  title="行李清单"
-                />
-              )}
+              {id && <PackingListWidget itineraryId={id} editable={true} title="行李清单" />}
             </div>
           </div>
         )}
@@ -725,12 +761,3 @@ export default function TripDetailPage() {
     </GlassLayout>
   );
 }
-
-
-
-
-
-
-
-
-

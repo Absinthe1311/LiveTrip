@@ -21,7 +21,7 @@ export default function BudgetCard({
   title = '行程预算',
   budgetItems,
   totalBudget = 0,
-  className = ''
+  className = '',
 }: BudgetCardProps) {
   // 如果没有传入预算数据，显示空状态
   const hasBudget = totalBudget > 0;
@@ -63,9 +63,7 @@ export default function BudgetCard({
   return (
     <GlassCard className={`p-5 ${className}`}>
       {/* 标题 */}
-      <h3 className="text-lg font-bold text-white mb-3">
-        {title}
-      </h3>
+      <h3 className="text-lg font-bold text-white mb-3">{title}</h3>
 
       {/* 预算列表 */}
       <div className="space-y-2">
@@ -81,12 +79,8 @@ export default function BudgetCard({
             {/* 分类和金额 */}
             <div className="flex-1">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-white/80">
-                  {item.category}
-                </span>
-                <span className="text-xs font-semibold text-white">
-                  ¥{item.amount.toFixed(0)}
-                </span>
+                <span className="text-xs text-white/80">{item.category}</span>
+                <span className="text-xs font-semibold text-white">¥{item.amount.toFixed(0)}</span>
               </div>
 
               {/* 进度条 */}
@@ -104,21 +98,15 @@ export default function BudgetCard({
       {/* 总预算 */}
       <div className="mt-3 pt-3 border-t border-white/10">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-white/60">
-            总预算
-          </span>
-          <span className="text-base font-bold text-white">
-            ¥{totalBudget.toFixed(0)}
-          </span>
+          <span className="text-xs text-white/60">总预算</span>
+          <span className="text-base font-bold text-white">¥{totalBudget.toFixed(0)}</span>
         </div>
       </div>
 
       {/* 空状态提示 */}
       {!hasBudget && (
         <div className="mt-2 text-center">
-          <p className="text-xs text-white/40">
-            暂无预算数据
-          </p>
+          <p className="text-xs text-white/40">暂无预算数据</p>
         </div>
       )}
     </GlassCard>

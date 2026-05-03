@@ -4,11 +4,7 @@
  */
 
 import { Request, Response } from 'express';
-import {
-  generateShareLink,
-  getPublicTrip,
-  cloneTrip,
-} from '../services/shareService';
+import { generateShareLink, getPublicTrip, cloneTrip } from '../services/shareService';
 
 /**
  * 分享行程
@@ -24,9 +20,7 @@ export const shareTrip = async (req: Request, res: Response) => {
 
     // 获取用户ID (从请求头)
     const userIdHeader = req.headers['x-user-id'];
-    const userId = Array.isArray(userIdHeader)
-      ? userIdHeader[0]
-      : userIdHeader || 'default-user';
+    const userId = Array.isArray(userIdHeader) ? userIdHeader[0] : userIdHeader || 'default-user';
 
     console.log(`👤 用户ID: ${userId}, 行程ID: ${tripId}`);
 
@@ -91,10 +85,7 @@ export const getSharedTrip = async (req: Request, res: Response) => {
     console.error('❌ 获取公开行程失败:', error);
 
     // 根据错误类型返回不同的HTTP状态码
-    if (
-      error.message === '分享链接无效或行程不存在' ||
-      error.message === '该行程未公开分享'
-    ) {
+    if (error.message === '分享链接无效或行程不存在' || error.message === '该行程未公开分享') {
       return res.status(404).json({
         success: false,
         error: error.message,
@@ -122,9 +113,7 @@ export const cloneSharedTrip = async (req: Request, res: Response) => {
 
     // 获取用户ID (从请求头,需要登录)
     const userIdHeader = req.headers['x-user-id'];
-    const userId = Array.isArray(userIdHeader)
-      ? userIdHeader[0]
-      : userIdHeader;
+    const userId = Array.isArray(userIdHeader) ? userIdHeader[0] : userIdHeader;
 
     if (!userId) {
       return res.status(401).json({

@@ -7,7 +7,7 @@ interface CacheItem<T> {
 
 class CacheManager {
   private cache: Map<string, CacheItem<any>> = new Map();
-  
+
   /**
    * 设置缓存
    * @param key 缓存键
@@ -29,7 +29,7 @@ class CacheManager {
    */
   get<T>(key: string): T | null {
     const item = this.cache.get(key);
-    
+
     if (!item) {
       return null;
     }
@@ -49,7 +49,7 @@ class CacheManager {
    */
   has(key: string): boolean {
     const item = this.cache.get(key);
-    
+
     if (!item) {
       return false;
     }
@@ -84,7 +84,7 @@ class CacheManager {
    */
   getInfo(key: string): { exists: boolean; age: number; expiresIn: number } | null {
     const item = this.cache.get(key);
-    
+
     if (!item) {
       return null;
     }
@@ -117,11 +117,11 @@ class CacheManager {
     // 缓存不存在或已过期，调用fetcher获取数据
     console.log(`🔄 缓存不存在或已过期，重新获取数据: ${key}`);
     const data = await fetcher();
-    
+
     // 缓存数据
     this.set(key, data, expiresIn);
     console.log(`💾 数据已缓存: ${key}, 过期时间: ${expiresIn / 1000}秒`);
-    
+
     return data;
   }
 }
@@ -141,8 +141,8 @@ export const CACHE_KEYS = {
 
 // 缓存过期时间常量（毫秒）
 export const CACHE_TTL = {
-  SHORT: 1 * 60 * 1000,    // 1分钟
-  MEDIUM: 5 * 60 * 1000,   // 5分钟
-  LONG: 30 * 60 * 1000,    // 30分钟
+  SHORT: 1 * 60 * 1000, // 1分钟
+  MEDIUM: 5 * 60 * 1000, // 5分钟
+  LONG: 30 * 60 * 1000, // 30分钟
   VERY_LONG: 60 * 60 * 1000, // 1小时
 } as const;

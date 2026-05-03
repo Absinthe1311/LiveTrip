@@ -37,7 +37,7 @@ app.use(helmet());
 
 // CORS 配置 - 支持逗号分隔的多个来源
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
-const allowedOrigins = corsOrigin.split(',').map(origin => origin.trim());
+const allowedOrigins = corsOrigin.split(',').map((origin) => origin.trim());
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
@@ -46,7 +46,7 @@ const corsOptions = {
       callback(null, true);
       return;
     }
-    
+
     // 检查请求的origin是否在允许列表中
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -71,7 +71,7 @@ app.get('/health', (req, res) => {
 
 // 根路由
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'Welcome to LiveTrip API',
     version: '1.0.0',
     endpoints: {
@@ -79,8 +79,8 @@ app.get('/', (req, res) => {
       plan: 'POST /api/plan',
       itinerary: 'GET /api/itinerary/:id',
       iotData: 'GET /api/iot/data',
-      adjust: 'POST /api/adjust'
-    }
+      adjust: 'POST /api/adjust',
+    },
   });
 });
 
@@ -95,7 +95,7 @@ app.use(errorHandler);
 
 // 启动服务器（使用HTTP服务器而非Express app）
 httpServer.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);                                                                                                                                                                                                                                                                                                       
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
 
 export default app;

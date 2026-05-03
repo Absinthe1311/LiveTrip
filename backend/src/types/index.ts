@@ -2,16 +2,16 @@
 
 // 景点类别标签
 export type CategoryTag =
-  | 'history'       // 历史文化（博物馆、古迹）
-  | 'nature'        // 自然风光（山、湖、公园）
-  | 'beach'         // 海滨海岛
-  | 'city'          // 城市地标（建筑、街区）
-  | 'food'          // 美食体验
-  | 'theme_park'    // 游乐场/主题公园
-  | 'art'           // 艺术（美术馆、展览）
-  | 'shopping'      // 购物
-  | 'religious'     // 宗教（寺庙、教堂）
-  | 'adventure';    // 户外运动/探险
+  | 'history' // 历史文化（博物馆、古迹）
+  | 'nature' // 自然风光（山、湖、公园）
+  | 'beach' // 海滨海岛
+  | 'city' // 城市地标（建筑、街区）
+  | 'food' // 美食体验
+  | 'theme_park' // 游乐场/主题公园
+  | 'art' // 艺术（美术馆、展览）
+  | 'shopping' // 购物
+  | 'religious' // 宗教（寺庙、教堂）
+  | 'adventure'; // 户外运动/探险
 
 // 出行群体类型
 export type GroupType = 'solo' | 'couple' | 'family' | 'friends';

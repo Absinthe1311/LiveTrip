@@ -9,21 +9,21 @@ interface AttractionWithCoords extends RecommendedAttraction {
 
 // 景点类型与体力消耗的映射
 const SPOT_ENERGY_COST: Record<string, number> = {
-  '博物馆': 30,
-  '古迹': 40,
-  '公园': 20,
-  '风景区': 50,
-  '广场': 10,
-  '寺庙': 25,
-  '古镇': 35,
-  '商业街': 15,
-  '主题乐园': 60,
-  '动物园': 55,
-  '水族馆': 40,
-  '美术馆': 25,
-  '海滩': 30,
-  '餐厅': 10,
-  '购物中心': 15,
+  博物馆: 30,
+  古迹: 40,
+  公园: 20,
+  风景区: 50,
+  广场: 10,
+  寺庙: 25,
+  古镇: 35,
+  商业街: 15,
+  主题乐园: 60,
+  动物园: 55,
+  水族馆: 40,
+  美术馆: 25,
+  海滩: 30,
+  餐厅: 10,
+  购物中心: 15,
 };
 
 class RouteOptimizer {
@@ -123,7 +123,7 @@ class RouteOptimizer {
     }
 
     console.log(`   2-opt 迭代次数: ${iteration}，最终距离: ${bestDistance.toFixed(2)}km`);
-    return bestRoute.map(attr => this.stripCoords(attr));
+    return bestRoute.map((attr) => this.stripCoords(attr));
   }
 
   /**
@@ -133,16 +133,16 @@ class RouteOptimizer {
    */
   private swapEdges(route: AttractionWithCoords[], i: number, j: number): AttractionWithCoords[] {
     const newRoute = [...route];
-    
+
     // 反转 i+1 到 j 的部分
     const segment = newRoute.slice(i + 1, j + 1);
     segment.reverse();
-    
+
     // 将反转后的片段放回原位置
     for (let k = 0; k < segment.length; k++) {
       newRoute[i + 1 + k] = segment[k];
     }
-    
+
     return newRoute;
   }
 
@@ -242,14 +242,14 @@ class RouteOptimizer {
    */
   private getSpotEnergyCost(attraction: RecommendedAttraction): number {
     const type = attraction.type || attraction.description || '';
-    
+
     // 根据类型查找体力消耗
     for (const [key, cost] of Object.entries(SPOT_ENERGY_COST)) {
       if (type.includes(key)) {
         return cost;
       }
     }
-    
+
     return 30; // 默认中等消耗
   }
 
@@ -257,7 +257,7 @@ class RouteOptimizer {
    * 计算路径的综合得分（距离 + 体力）
    */
   private calculateRouteScore(route: AttractionWithCoords[]): number {
-    let totalDistance = this.calculateTotalDistanceWithCoords(route);
+    const totalDistance = this.calculateTotalDistanceWithCoords(route);
     let totalEnergy = 0;
 
     for (const attraction of route) {
@@ -267,10 +267,10 @@ class RouteOptimizer {
     // 综合得分 = 距离得分 × 0.6 + 体力得分 × 0.4
     // 距离得分：距离越短得分越高（归一化到 0-100）
     // 体力得分：合理分布得分越高
-    
+
     const distanceScore = Math.max(0, 100 - totalDistance * 2); // 假设 50km 是最大距离
     const energyScore = this.calculateEnergyDistributionScore(totalEnergy, route.length);
-    
+
     return distanceScore * 0.6 + energyScore * 0.4;
   }
 
@@ -281,7 +281,7 @@ class RouteOptimizer {
   private calculateEnergyDistributionScore(totalEnergy: number, spotCount: number): number {
     // 简单实现：平均每个景点的体力消耗
     const avgEnergy = totalEnergy / spotCount;
-    
+
     // 如果平均体力消耗在合理范围内（20-50），给高分
     if (avgEnergy >= 20 && avgEnergy <= 50) {
       return 100;
@@ -313,7 +313,7 @@ class RouteOptimizer {
       const [startStr, endStr] = attraction.time.split('-');
       const [startHours, startMinutes] = startStr.split(':').map(Number);
       const [endHours, endMinutes] = endStr.split(':').map(Number);
-      const duration = (endHours * 60 + endMinutes) - (startHours * 60 + startMinutes);
+      const duration = endHours * 60 + endMinutes - (startHours * 60 + startMinutes);
 
       // 计算新的时间段
       const newStart = currentMinutes;

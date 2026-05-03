@@ -177,10 +177,10 @@ export class UserController {
       });
 
       // 统计城市数（去重）
-      const cities = new Set(trips.map(t => t.destination).filter(Boolean));
+      const cities = new Set(trips.map((t) => t.destination).filter(Boolean));
 
       // 统计已完成行程数
-      const completedTrips = trips.filter(t => t.status === 'completed').length;
+      const completedTrips = trips.filter((t) => t.status === 'completed').length;
 
       // 更新用户统计
       await prisma.user.update({
@@ -192,7 +192,9 @@ export class UserController {
         },
       });
 
-      console.log(`✅ 用户 ${userId} 统计数据已更新: ${trips.length} 行程, ${cities.size} 城市, ${completedTrips} 已完成`);
+      console.log(
+        `✅ 用户 ${userId} 统计数据已更新: ${trips.length} 行程, ${cities.size} 城市, ${completedTrips} 已完成`
+      );
     } catch (error: any) {
       console.error('更新用户统计数据失败:', error);
     }

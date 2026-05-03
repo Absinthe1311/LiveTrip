@@ -9,9 +9,9 @@ export interface Hotel {
   address: string;
   location: string;
   tel?: string;
-  type: string;           // 酒店类型/档次
-  rating?: number;        // 高德评分
-  avgDistance: number;    // 到各天景点的平均距离（km）
+  type: string; // 酒店类型/档次
+  rating?: number; // 高德评分
+  avgDistance: number; // 到各天景点的平均距离（km）
   distanceDetails: number[]; // 到每天景点的平均距离明细
 }
 
@@ -51,12 +51,12 @@ class HotelRecommender {
 
       // 步骤3: 先从数据库查询附近酒店
       const cachedHotels = await hotelCacheService.getNearbyHotels(centerPoint, 5000, 30);
-      
+
       let hotels: AmapAttraction[];
-      
+
       if (cachedHotels && cachedHotels.length > 0) {
         console.log(`✅ [数据库] 找到 ${cachedHotels.length} 个酒店`);
-        hotels = cachedHotels.map(h => ({
+        hotels = cachedHotels.map((h) => ({
           name: h.name,
           location: h.location,
           address: h.address,
@@ -70,13 +70,7 @@ class HotelRecommender {
         console.log(`📡 [高德API] 搜索酒店 - 中心点: ${centerPoint}`);
         hotels = await amapRateLimiter.execute(async () => {
           const amapServiceInstance = amapService();
-          return await amapServiceInstance.searchAround(
-            centerPoint,
-            '酒店',
-            '100101',
-            5000,
-            30
-          );
+          return await amapServiceInstance.searchAround(centerPoint, '酒店', '100101', 5000, 30);
         });
 
         if (hotels.length === 0) {
@@ -86,7 +80,7 @@ class HotelRecommender {
         console.log(`✅ [高德API] 找到 ${hotels.length} 个酒店`);
 
         // 步骤5: 保存到数据库
-        const hotelCaches: HotelCache[] = hotels.map(h => ({
+        const hotelCaches: HotelCache[] = hotels.map((h) => ({
           name: h.name,
           address: h.address,
           location: h.location,
@@ -94,7 +88,7 @@ class HotelRecommender {
           type: h.type,
           rating: h.rating,
         }));
-        
+
         // 从景点中推断城市
         const city = this.inferCityFromSpots(spots);
         await hotelCacheService.saveHotels(hotelCaches, city);
@@ -105,7 +99,7 @@ class HotelRecommender {
       const filteredHotels = this.filterHotelsByTier(hotels, hotelTier);
 
       // 步骤7: 计算每个酒店到各天景点的平均距离
-      const hotelsWithDistance = filteredHotels.map(hotel => {
+      const hotelsWithDistance = filteredHotels.map((hotel) => {
         const { avgDistance, distanceDetails } = this.calculateAvgDistance(hotel, spots);
         return {
           name: hotel.name,
@@ -135,9 +129,7 @@ class HotelRecommender {
    * @param spots 景点列表
    * @returns 重心坐标 "lng,lat"
    */
-  private calculateCenterPoint(
-    spots: Array<{ name: string; location: string }>
-  ): string {
+  private calculateCenterPoint(spots: Array<{ name: string; location: string }>): string {
     let sumLng = 0;
     let sumLat = 0;
 
@@ -165,11 +157,11 @@ class HotelRecommender {
     const perNightBudget = accommodationBudget / 3;
 
     if (perNightBudget < 200) {
-      return 'economy';   // 经济型：每晚200元以下
+      return 'economy'; // 经济型：每晚200元以下
     } else if (perNightBudget < 500) {
-      return 'comfort';   // 舒适型：每晚200-500元
+      return 'comfort'; // 舒适型：每晚200-500元
     } else {
-      return 'luxury';    // 豪华型：每晚500元以上
+      return 'luxury'; // 豪华型：每晚500元以上
     }
   }
 
@@ -181,17 +173,54 @@ class HotelRecommender {
    */
   private filterHotelsByTier(hotels: AmapAttraction[], tier: HotelTier): AmapAttraction[] {
     const tierKeywords: Record<HotelTier, string[]> = {
-      economy: ['快捷', '经济', '如家', '7天', '汉庭', '锦江之星', '格林豪泰', '布丁', '速8', '怡莱', '酒店'],
-      comfort: ['商务', '三星', '3星', '亚朵', '全季', '维也纳', '和颐', '桔子', '智选假日', '酒店'],
-      luxury: ['四星', '4星', '五星', '5星', '豪华', '希尔顿', '万豪', '洲际', '凯悦', '香格里拉', '喜来登', '威斯汀', '酒店'],
+      economy: [
+        '快捷',
+        '经济',
+        '如家',
+        '7天',
+        '汉庭',
+        '锦江之星',
+        '格林豪泰',
+        '布丁',
+        '速8',
+        '怡莱',
+        '酒店',
+      ],
+      comfort: [
+        '商务',
+        '三星',
+        '3星',
+        '亚朵',
+        '全季',
+        '维也纳',
+        '和颐',
+        '桔子',
+        '智选假日',
+        '酒店',
+      ],
+      luxury: [
+        '四星',
+        '4星',
+        '五星',
+        '5星',
+        '豪华',
+        '希尔顿',
+        '万豪',
+        '洲际',
+        '凯悦',
+        '香格里拉',
+        '喜来登',
+        '威斯汀',
+        '酒店',
+      ],
     };
 
     const keywords = tierKeywords[tier];
 
     // 如果过滤后结果为空，则返回所有酒店（降级处理）
-    const filtered = hotels.filter(hotel => {
+    const filtered = hotels.filter((hotel) => {
       const hotelNameAndType = `${hotel.name} ${hotel.type}`;
-      return keywords.some(keyword => hotelNameAndType.includes(keyword));
+      return keywords.some((keyword) => hotelNameAndType.includes(keyword));
     });
 
     // 如果过滤后没有结果，返回原始列表的前10个
@@ -253,15 +282,15 @@ class HotelRecommender {
    */
   private sortHotels(hotels: Hotel[]): Hotel[] {
     return hotels.sort((a, b) => {
-      const maxDistance = Math.max(...hotels.map(h => h.avgDistance));
-      const minDistance = Math.min(...hotels.map(h => h.avgDistance));
+      const maxDistance = Math.max(...hotels.map((h) => h.avgDistance));
+      const minDistance = Math.min(...hotels.map((h) => h.avgDistance));
       const distanceRange = maxDistance - minDistance || 1;
 
       const distanceScoreA = (1 - (a.avgDistance - minDistance) / distanceRange) * 60;
       const distanceScoreB = (1 - (b.avgDistance - minDistance) / distanceRange) * 60;
 
-      const ratingScoreA = (a.rating || 3.5) / 5 * 40;
-      const ratingScoreB = (b.rating || 3.5) / 5 * 40;
+      const ratingScoreA = ((a.rating || 3.5) / 5) * 40;
+      const ratingScoreB = ((b.rating || 3.5) / 5) * 40;
 
       const totalScoreA = distanceScoreA + ratingScoreA;
       const totalScoreB = distanceScoreB + ratingScoreB;

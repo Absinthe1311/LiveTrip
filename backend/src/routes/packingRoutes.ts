@@ -19,7 +19,11 @@ router.get('/trips/:tripId/packing', authenticateToken, PackingController.getPac
  * 初始化打包清单（添加默认预设物品）
  * POST /api/trips/:tripId/packing/initialize
  */
-router.post('/trips/:tripId/packing/initialize', authenticateToken, PackingController.initializePackingList);
+router.post(
+  '/trips/:tripId/packing/initialize',
+  authenticateToken,
+  PackingController.initializePackingList
+);
 
 /**
  * 添加打包物品
@@ -31,7 +35,11 @@ router.post('/trips/:tripId/packing', authenticateToken, PackingController.addPa
  * 批量保存打包清单
  * POST /api/trips/:tripId/packing/batch
  */
-router.post('/trips/:tripId/packing/batch', authenticateToken, PackingController.batchSavePackingList);
+router.post(
+  '/trips/:tripId/packing/batch',
+  authenticateToken,
+  PackingController.batchSavePackingList
+);
 
 /**
  * 更新打包物品状态
@@ -55,6 +63,10 @@ router.get('/packing/categories', PackingController.getCategories);
  * 获取打包进度
  * GET /api/trips/:tripId/packing/progress
  */
-router.get('/trips/:tripId/packing/progress', authenticateToken, PackingController.getPackingProgress);
+router.get(
+  '/trips/:tripId/packing/progress',
+  authenticateToken,
+  PackingController.getPackingProgress
+);
 
 export default router;

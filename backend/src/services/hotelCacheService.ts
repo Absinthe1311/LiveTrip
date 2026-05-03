@@ -32,19 +32,17 @@ export class HotelCacheService {
       // 使用简单的距离计算（近似）
       // 1度纬度约111km，1度经度约111km * cos(lat)
       const latRange = radius / 111000; // 纬度范围
-      const lngRange = radius / (111000 * Math.cos(lat * Math.PI / 180)); // 经度范围
+      const lngRange = radius / (111000 * Math.cos((lat * Math.PI) / 180)); // 经度范围
 
       const hotels = await prisma.hotel.findMany({
         where: {
-          AND: [
-            { location: { not: '' } },
-          ],
+          AND: [{ location: { not: '' } }],
         },
         take: limit * 2, // 多取一些，然后精确过滤
       });
 
       // 精确过滤距离
-      const nearbyHotels = hotels.filter(hotel => {
+      const nearbyHotels = hotels.filter((hotel) => {
         if (!hotel.location) return false;
         const [hLng, hLat] = hotel.location.split(',').map(Number);
         const distance = this.calculateDistance(lat, lng, hLat, hLng);
@@ -57,7 +55,7 @@ export class HotelCacheService {
 
       // 更新命中次数
       await Promise.all(
-        nearbyHotels.map(hotel =>
+        nearbyHotels.map((hotel) =>
           prisma.hotel.update({
             where: { id: hotel.id },
             data: { hitCount: { increment: 1 } },
@@ -65,7 +63,7 @@ export class HotelCacheService {
         )
       );
 
-      return nearbyHotels.map(hotel => ({
+      return nearbyHotels.map((hotel) => ({
         name: hotel.name,
         address: hotel.address || '',
         location: hotel.location,
@@ -126,12 +124,14 @@ export class HotelCacheService {
    */
   private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371000; // 地球半径（米）
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }

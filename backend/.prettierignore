@@ -1,0 +1,4 @@
+node_modules
+dist
+prisma
+package-lock.json

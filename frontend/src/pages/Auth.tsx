@@ -113,12 +113,12 @@ export default function Auth() {
         />
         {/* Overlay text in the center - two lines stacked vertically */}
         <div className="relative z-10 text-center -mt-8 max-w-[280px] lg:max-w-[320px]">
-          <p 
+          <p
             className="text-4xl lg:text-5xl font-semibold tracking-wide leading-snug"
-            style={{ 
+            style={{
               fontFamily: "'Brush Script MT', 'Segoe Script', cursive",
-              color: "#F5F5F5",
-              textShadow: "0px 4px 12px rgba(139, 69, 19, 0.8), 0px 0px 20px rgba(0, 0, 0, 0.2)"
+              color: '#F5F5F5',
+              textShadow: '0px 4px 12px rgba(139, 69, 19, 0.8), 0px 0px 20px rgba(0, 0, 0, 0.2)',
             }}
           >
             Live to see,
@@ -204,7 +204,9 @@ export default function Auth() {
                 id="email"
                 type={isLogin ? 'text' : 'email'}
                 value={isLogin ? formData.username : formData.email}
-                onChange={(e) => setFormData({ ...formData, [isLogin ? 'username' : 'email']: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, [isLogin ? 'username' : 'email']: e.target.value })
+                }
                 placeholder={isLogin ? '请输入用户名或邮箱' : '请输入邮箱'}
                 className="w-full p-3 text-base border rounded-lg"
               />
@@ -252,14 +254,14 @@ export default function Auth() {
               disabled={loading}
               className="w-full py-3 text-base bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/30"
             >
-              {loading ? (isLogin ? '登录中...' : '注册中...') : (isLogin ? '登录' : '注册')}
+              {loading ? (isLogin ? '登录中...' : '注册中...') : isLogin ? '登录' : '注册'}
             </Button>
 
             <p className="text-center text-sm text-gray-500">
               {isLogin ? (
                 <>
-                  还没有账号？{" "}
-                  <button 
+                  还没有账号？{' '}
+                  <button
                     type="button"
                     onClick={() => setIsLogin(false)}
                     className="text-gray-600 hover:text-gray-800"
@@ -269,8 +271,8 @@ export default function Auth() {
                 </>
               ) : (
                 <>
-                  已有账号？{" "}
-                  <button 
+                  已有账号？{' '}
+                  <button
                     type="button"
                     onClick={() => setIsLogin(true)}
                     className="text-gray-600 hover:text-gray-800"

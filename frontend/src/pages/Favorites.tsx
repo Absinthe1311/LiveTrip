@@ -167,11 +167,3 @@ export default function FavoritesGlass() {
     </GlassLayout>
   );
 }
-
-
-
-
-
-
-
-

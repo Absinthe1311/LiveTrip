@@ -1,6 +1,6 @@
 // 管理员侧边栏组件
 import { useNavigate } from 'react-router-dom';
-import { Image as ImageIcon, CheckSquare, Home, LogOut, ChevronRight } from "lucide-react";
+import { Image as ImageIcon, CheckSquare, Home, LogOut, ChevronRight } from 'lucide-react';
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -36,16 +36,13 @@ export function AdminSidebar({ isOpen, onClose, isLargeScreen, currentPage }: Ad
     <>
       {/* Overlay for mobile */}
       {isOpen && !isLargeScreen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-30"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 bg-black/50 z-30" onClick={onClose} />
       )}
 
       {/* Sidebar */}
-      <aside 
+      <aside
         className={`fixed left-0 top-14 bottom-0 w-[240px] bg-white border-r border-border z-40 flex flex-col transition-transform duration-300 ${
-          isLargeScreen ? 'translate-x-0' : (isOpen ? 'translate-x-0' : '-translate-x-full')
+          isLargeScreen ? 'translate-x-0' : isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <nav className="flex-1 overflow-y-auto py-5">
@@ -57,28 +54,38 @@ export function AdminSidebar({ isOpen, onClose, isLargeScreen, currentPage }: Ad
             <ul className="space-y-1">
               <li>
                 <button
-                  onClick={() => { navigate('/admin/spots'); onClose(); }}
+                  onClick={() => {
+                    navigate('/admin/spots');
+                    onClose();
+                  }}
                   className={`w-full flex items-center gap-3.5 px-5 py-3 text-[15px] transition-colors relative ${
-                    isActive('/admin/spots') 
-                      ? 'text-primary font-medium bg-secondary' 
+                    isActive('/admin/spots')
+                      ? 'text-primary font-medium bg-secondary'
                       : 'text-muted-foreground hover:bg-gray-50'
                   }`}
                 >
-                  {isActive('/admin/spots') && <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary" />}
+                  {isActive('/admin/spots') && (
+                    <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary" />
+                  )}
                   <ImageIcon className="h-5 w-5" />
                   <span>景点图片管理</span>
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => { navigate('/admin/review'); onClose(); }}
+                  onClick={() => {
+                    navigate('/admin/review');
+                    onClose();
+                  }}
                   className={`w-full flex items-center gap-3.5 px-5 py-3 text-[15px] transition-colors relative ${
-                    isActive('/admin/review') 
-                      ? 'text-primary font-medium bg-secondary' 
+                    isActive('/admin/review')
+                      ? 'text-primary font-medium bg-secondary'
                       : 'text-muted-foreground hover:bg-gray-50'
                   }`}
                 >
-                  {isActive('/admin/review') && <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary" />}
+                  {isActive('/admin/review') && (
+                    <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary" />
+                  )}
                   <CheckSquare className="h-5 w-5" />
                   <span>图片审核</span>
                 </button>
@@ -94,7 +101,10 @@ export function AdminSidebar({ isOpen, onClose, isLargeScreen, currentPage }: Ad
             <ul className="space-y-1">
               <li>
                 <button
-                  onClick={() => { navigate('/'); onClose(); }}
+                  onClick={() => {
+                    navigate('/');
+                    onClose();
+                  }}
                   className="w-full flex items-center gap-3.5 px-5 py-3 text-[15px] text-muted-foreground hover:bg-gray-50 transition-colors"
                 >
                   <Home className="h-5 w-5" />
@@ -107,7 +117,7 @@ export function AdminSidebar({ isOpen, onClose, isLargeScreen, currentPage }: Ad
 
         {/* Footer User Card */}
         <div className="p-4 border-t border-border">
-          <button 
+          <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3.5 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
           >

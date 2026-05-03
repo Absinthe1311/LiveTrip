@@ -7,10 +7,7 @@ interface LogoutButtonProps {
   className?: string;
 }
 
-export default function LogoutButton({
-  onLogout,
-  className = ''
-}: LogoutButtonProps) {
+export default function LogoutButton({ onLogout, className = '' }: LogoutButtonProps) {
   // 处理退出登录
   const handleLogout = () => {
     if (onLogout) {

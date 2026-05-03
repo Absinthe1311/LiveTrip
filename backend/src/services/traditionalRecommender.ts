@@ -39,10 +39,7 @@ class TraditionalRecommender {
 
       // 步骤3：K-means 地理聚类
       console.log('\n步骤3: K-means 地理聚类...');
-      const clusters = await clusteringService.kMeansClustering(
-        scoredSpots,
-        request.days
-      );
+      const clusters = await clusteringService.kMeansClustering(scoredSpots, request.days);
 
       // 步骤4：在每个聚类内选择景点，应用多样性约束
       console.log('\n步骤4: 选择景点并应用多样性约束...');
@@ -53,11 +50,7 @@ class TraditionalRecommender {
 
       // 步骤5：构建行程
       console.log('\n步骤5: 构建行程...');
-      const itinerary = this.buildItinerary(
-        itineraryItems,
-        request.startDate,
-        request.days
-      );
+      const itinerary = this.buildItinerary(itineraryItems, request.startDate, request.days);
 
       // 步骤6：计算总费用和预算分配
       console.log('\n步骤6: 动态计算费用和预算分配...');
@@ -110,7 +103,8 @@ class TraditionalRecommender {
         endDate: request.endDate,
       });
 
-      const { total_cost: finalTotalCost, budget_breakdown: finalBudgetBreakdown } = finalBudgetResult;
+      const { total_cost: finalTotalCost, budget_breakdown: finalBudgetBreakdown } =
+        finalBudgetResult;
 
       console.log('\n✅ 行程推荐完成！');
       console.log(`   总费用: ${finalTotalCost} 元`);
@@ -135,7 +129,6 @@ class TraditionalRecommender {
       }
 
       return result;
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '未知错误';
       console.error('\n❌ 行程推荐过程中发生错误:', errorMessage);
@@ -169,7 +162,10 @@ class TraditionalRecommender {
               day: i,
               date: new Date(request.startDate).toISOString().split('T')[0],
               attractions: dayAttractions,
-              daily_cost: dayAttractions.reduce((sum: number, attr: any) => sum + attr.estimated_cost, 0),
+              daily_cost: dayAttractions.reduce(
+                (sum: number, attr: any) => sum + attr.estimated_cost,
+                0
+              ),
             });
           }
 
@@ -191,7 +187,9 @@ class TraditionalRecommender {
               dining,
               tickets,
             },
-            warnings: [{ attraction: {} as RecommendedAttraction, reason: '使用回退方案，功能受限' }],
+            warnings: [
+              { attraction: {} as RecommendedAttraction, reason: '使用回退方案，功能受限' },
+            ],
           };
         },
       };
@@ -211,10 +209,7 @@ class TraditionalRecommender {
   /**
    * 从每个聚类中选择景点
    */
-  private selectSpotsFromClusters(
-    clusters: any[],
-    pace: string
-  ): any[] {
+  private selectSpotsFromClusters(clusters: any[], pace: string): any[] {
     const selectedSpots: any[] = [];
 
     // 根据节奏确定每天景点数量
@@ -225,10 +220,7 @@ class TraditionalRecommender {
       const sortedSpots = [...cluster.spots].sort((a, b) => b.totalScore - a.totalScore);
 
       // 应用多样性约束
-      const selected = diversityService.applyDiversityConstraints(
-        sortedSpots,
-        spotsPerDay
-      );
+      const selected = diversityService.applyDiversityConstraints(sortedSpots, spotsPerDay);
 
       selectedSpots.push(...selected);
     }
@@ -255,11 +247,7 @@ class TraditionalRecommender {
   /**
    * 构建行程
    */
-  private buildItinerary(
-    spots: any[],
-    startDate: string,
-    days: number
-  ): DailyItinerary[] {
+  private buildItinerary(spots: any[], startDate: string, days: number): DailyItinerary[] {
     const itinerary: DailyItinerary[] = [];
     const spotsPerDay = Math.ceil(spots.length / days);
 
@@ -274,10 +262,7 @@ class TraditionalRecommender {
       const attractions = this.assignTimeSlots(daySpots);
 
       // 计算当天费用
-      const daily_cost = daySpots.reduce(
-        (sum, spot) => sum + (spot.spot.ticketPrice || 0),
-        0
-      );
+      const daily_cost = daySpots.reduce((sum, spot) => sum + (spot.spot.ticketPrice || 0), 0);
 
       itinerary.push({
         day: day + 1,
@@ -304,7 +289,7 @@ class TraditionalRecommender {
 
       // 获取图片URL（spot.image是SpotImage对象，需要取url字段）
       const imageUrl = spot.image?.url || spot.image || null;
-      
+
       attractions.push({
         id: spot.id,
         spotId: spot.id,
@@ -336,10 +321,7 @@ class TraditionalRecommender {
    * 4. 确保备选景点唯一性（每个未选中景点只对应一个选中景点）
    * 5. 每个景点最多2个备选
    */
-  public generateAlternativePools(
-    scoredSpots: any[],
-    selectedSpots: any[]
-  ): Record<string, any[]> {
+  public generateAlternativePools(scoredSpots: any[], selectedSpots: any[]): Record<string, any[]> {
     console.log('\n🔄 生成备选景点池（新方案）...');
     console.log(`   总景点数: ${scoredSpots.length}`);
     console.log(`   选中景点数: ${selectedSpots.length}`);
@@ -353,8 +335,8 @@ class TraditionalRecommender {
     }
 
     // 找出未选中的景点
-    const selectedSpotIds = new Set(selectedSpots.map(s => s.spotId));
-    const unselectedSpots = scoredSpots.filter(spot => !selectedSpotIds.has(spot.spotId));
+    const selectedSpotIds = new Set(selectedSpots.map((s) => s.spotId));
+    const unselectedSpots = scoredSpots.filter((spot) => !selectedSpotIds.has(spot.spotId));
 
     console.log(`   未选中景点数: ${unselectedSpots.length}`);
 
@@ -431,17 +413,17 @@ class TraditionalRecommender {
     const spot = scoredSpot.spot;
     // 获取图片URL（spot.image是SpotImage对象，需要取url字段）
     const imageUrl = spot.image?.url || spot.image || null;
-    
+
     // 调试日志
     if (spot.image) {
       console.log(`   📸 ${spot.name} 图片数据:`, {
         hasImage: !!spot.image,
         imageType: typeof spot.image,
         hasUrl: !!spot.image?.url,
-        imageUrl: imageUrl ? imageUrl.substring(0, 60) + '...' : null
+        imageUrl: imageUrl ? imageUrl.substring(0, 60) + '...' : null,
       });
     }
-    
+
     return {
       spotId: spot.id,
       id: spot.id,

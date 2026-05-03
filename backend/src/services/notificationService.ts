@@ -7,8 +7,8 @@ const prisma = new PrismaClient();
 
 // 通知渠道枚举
 export enum NotificationChannel {
-  WEBSOCKET = 'websocket',  // 实时推送
-  IN_APP = 'in_app',        // 站内通知
+  WEBSOCKET = 'websocket', // 实时推送
+  IN_APP = 'in_app', // 站内通知
 }
 
 // 通知数据接口
@@ -85,14 +85,14 @@ class NotificationService {
   ): Promise<void> {
     // 过滤出需要通知的结果（warning和danger级别）
     const dangerousResults = sensorResults.filter(
-      r => r.level === SensorLevel.WARNING || r.level === SensorLevel.DANGER
+      (r) => r.level === SensorLevel.WARNING || r.level === SensorLevel.DANGER
     );
 
     if (dangerousResults.length === 0) return;
 
     // 发送汇总通知
     const title = `环境感知提醒：发现 ${dangerousResults.length} 个需要注意的景点`;
-    const content = dangerousResults.map(r => r.message).join('\n');
+    const content = dangerousResults.map((r) => r.message).join('\n');
 
     // 创建站内通知
     if (channels.includes(NotificationChannel.IN_APP)) {
@@ -101,7 +101,7 @@ class NotificationService {
         title,
         content,
         data: {
-          alerts: dangerousResults.map(r => ({
+          alerts: dangerousResults.map((r) => ({
             spotId: r.spotId,
             spotName: r.spotName,
             type: r.type,
@@ -141,12 +141,15 @@ class NotificationService {
   /**
    * 站内通知
    */
-  private async createInAppNotification(userId: string, data: {
-    type: string;
-    title: string;
-    content: string;
-    data?: any;
-  }): Promise<void> {
+  private async createInAppNotification(
+    userId: string,
+    data: {
+      type: string;
+      title: string;
+      content: string;
+      data?: any;
+    }
+  ): Promise<void> {
     try {
       await prisma.notification.create({
         data: {
@@ -166,15 +169,20 @@ class NotificationService {
    * 获取通知标题
    */
   private getNotificationTitle(result: SensorResult): string {
-    const levelText = result.level === SensorLevel.DANGER ? '⚠️ 紧急' :
-                      result.level === SensorLevel.WARNING ? '⚡ 警告' : 'ℹ️ 提示';
+    const levelText =
+      result.level === SensorLevel.DANGER
+        ? '⚠️ 紧急'
+        : result.level === SensorLevel.WARNING
+          ? '⚡ 警告'
+          : 'ℹ️ 提示';
 
-    const typeText = {
-      rain: '降雨',
-      crowd: '人流',
-      temp: '温度',
-      close: '关闭',
-    }[result.type] || '环境';
+    const typeText =
+      {
+        rain: '降雨',
+        crowd: '人流',
+        temp: '温度',
+        close: '关闭',
+      }[result.type] || '环境';
 
     return `${levelText}：${result.spotName} ${typeText}提醒`;
   }
@@ -213,7 +221,7 @@ class NotificationService {
     ]);
 
     return {
-      notifications: notifications.map(n => ({
+      notifications: notifications.map((n) => ({
         ...n,
         data: n.data ? JSON.parse(n.data) : {},
       })),

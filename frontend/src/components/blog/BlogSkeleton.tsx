@@ -99,4 +99,3 @@ export function BlogListSkeleton({ count = 4 }: { count?: number }) {
     </div>
   );
 }
-

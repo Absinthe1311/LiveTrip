@@ -27,11 +27,13 @@ export default function AIAdvisorGlass({
   budget,
 }: AIAdvisorGlassProps) {
   const [inputValue, setInputValue] = useState('');
-  const [messages, setMessages] = useState<Array<{ 
-    role: 'user' | 'assistant'; 
-    content: string;
-    timestamp?: Date;
-  }>>([
+  const [messages, setMessages] = useState<
+    Array<{
+      role: 'user' | 'assistant';
+      content: string;
+      timestamp?: Date;
+    }>
+  >([
     {
       role: 'assistant',
       content: destination
@@ -41,7 +43,7 @@ export default function AIAdvisorGlass({
     },
   ]);
   const [loading, setLoading] = useState(false);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -53,12 +55,12 @@ export default function AIAdvisorGlass({
   const handleSend = async () => {
     if (!inputValue.trim() || loading) return;
 
-    const userMessage = { 
-      role: 'user' as const, 
+    const userMessage = {
+      role: 'user' as const,
       content: inputValue,
       timestamp: new Date(),
     };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
     setLoading(true);
 
@@ -76,7 +78,7 @@ export default function AIAdvisorGlass({
           content: data.data.answer,
           timestamp: new Date(),
         };
-        setMessages(prev => [...prev, aiResponse]);
+        setMessages((prev) => [...prev, aiResponse]);
       } else {
         throw new Error(data.error || '获取回答失败');
       }
@@ -87,7 +89,7 @@ export default function AIAdvisorGlass({
         content: `抱歉，AI暂时无法使用。错误信息：${error.message || '请稍后再试'}`,
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setLoading(false);
       inputRef.current?.focus();
@@ -97,23 +99,21 @@ export default function AIAdvisorGlass({
   // 格式化消息内容 - 支持分段显示
   const formatMessage = (content: string) => {
     // 按段落分割（双换行或单换行）
-    const paragraphs = content.split(/\n\n+|\n/).filter(p => p.trim());
-    
+    const paragraphs = content.split(/\n\n+|\n/).filter((p) => p.trim());
+
     return paragraphs.map((paragraph, index) => {
       // 检查是否是列表项（以 - 或 • 开头）
       const isListItem = paragraph.trim().startsWith('-') || paragraph.trim().startsWith('•');
-      
+
       // 检查是否是标题（以 # 开头）
       const isHeading = paragraph.trim().startsWith('#');
-      
+
       return (
-        <div 
-          key={index} 
+        <div
+          key={index}
           className={`${index > 0 ? 'mt-2' : ''} ${
             isListItem ? 'pl-2 border-l-2 border-white/20' : ''
-          } ${
-            isHeading ? 'font-semibold text-white/90' : ''
-          }`}
+          } ${isHeading ? 'font-semibold text-white/90' : ''}`}
         >
           {paragraph}
         </div>
@@ -156,7 +156,7 @@ export default function AIAdvisorGlass({
                 <Bot className="h-3.5 w-3.5 text-[#008F8D]" />
               </div>
             )}
-            
+
             {/* 消息内容 */}
             <div
               className={`max-w-[80%] rounded-2xl px-3 py-2 backdrop-blur-md transition-all duration-300 ${
@@ -165,16 +165,17 @@ export default function AIAdvisorGlass({
                   : 'bg-white/5 text-white border border-white/10'
               }`}
             >
-              <div className="text-xs leading-relaxed">
-                {formatMessage(msg.content)}
-              </div>
+              <div className="text-xs leading-relaxed">{formatMessage(msg.content)}</div>
               {msg.timestamp && (
                 <div className="text-[10px] text-white/30 mt-1">
-                  {msg.timestamp.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                  {msg.timestamp.toLocaleTimeString('zh-CN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
                 </div>
               )}
             </div>
-            
+
             {/* 用户头像 */}
             {msg.role === 'user' && (
               <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
@@ -183,7 +184,7 @@ export default function AIAdvisorGlass({
             )}
           </div>
         ))}
-        
+
         {loading && (
           <div className="flex gap-2 justify-start">
             <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#008F8D]/10 flex items-center justify-center">
@@ -192,13 +193,19 @@ export default function AIAdvisorGlass({
             <div className="bg-white/5 backdrop-blur-md rounded-2xl px-3 py-2 border border-white/10">
               <div className="flex gap-1">
                 <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce" />
-                <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0.1s' }} />
-                <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0.2s' }} />
+                <div
+                  className="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce"
+                  style={{ animationDelay: '0.1s' }}
+                />
+                <div
+                  className="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce"
+                  style={{ animationDelay: '0.2s' }}
+                />
               </div>
             </div>
           </div>
         )}
-        
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -212,8 +219,8 @@ export default function AIAdvisorGlass({
           onKeyPress={(e) => e.key === 'Enter' && !loading && handleSend()}
           placeholder={loading ? 'AI 正在思考中...' : '输入您的问题...'}
           className={`w-full px-4 py-2.5 pr-12 rounded-xl backdrop-blur-md border text-white text-sm outline-none transition-all duration-300 ${
-            loading 
-              ? 'bg-white/5 border-white/5 text-white/30 cursor-not-allowed' 
+            loading
+              ? 'bg-white/5 border-white/5 text-white/30 cursor-not-allowed'
               : 'bg-white/5 border-white/10 placeholder-white/40 focus:bg-white/10 focus:border-[#AE1C31]/30 focus:shadow-[0_0_15px_rgba(174,28,49,0.2)]'
           }`}
           disabled={loading}
@@ -222,8 +229,8 @@ export default function AIAdvisorGlass({
           onClick={handleSend}
           disabled={loading || !inputValue.trim()}
           className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-white transition-all duration-300 ${
-            loading 
-              ? 'bg-white/10 cursor-not-allowed opacity-30' 
+            loading
+              ? 'bg-white/10 cursor-not-allowed opacity-30'
               : 'bg-gradient-to-r from-[#AE1C31] to-[#AE1C31]/80 hover:from-[#AE1C31]/90 hover:to-[#AE1C31]/70 shadow-lg shadow-[#AE1C31]/30 disabled:opacity-50 disabled:cursor-not-allowed'
           }`}
         >
@@ -233,4 +240,3 @@ export default function AIAdvisorGlass({
     </div>
   );
 }
-

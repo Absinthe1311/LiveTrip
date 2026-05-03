@@ -7,34 +7,34 @@ import { apiClient } from '../api/client';
 
 export default function Profile() {
   const navigate = useNavigate();
-  
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  
+
   // 用户信息
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [avatar, setAvatar] = useState('');
-  
+
   useEffect(() => {
     const checkScreenSize = () => {
       setIsLargeScreen(window.innerWidth >= 1024);
     };
-    
+
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
-    
+
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
-  
+
   useEffect(() => {
     loadUserProfile();
   }, []);
-  
+
   const loadUserProfile = async () => {
     setLoading(true);
     try {
@@ -48,29 +48,33 @@ export default function Profile() {
       setLoading(false);
     }
   };
-  
+
   const handleSave = async () => {
     if (!username.trim()) {
       setError('用户名不能为空');
       return;
     }
-    
+
     setSaving(true);
     setError(null);
     setSuccess(null);
-    
+
     try {
       const token = localStorage.getItem('token');
-      const response = await apiClient.put('/auth/profile', {
-        username: username.trim(),
-        email: email.trim(),
-        avatar: avatar.trim(),
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await apiClient.put(
+        '/auth/profile',
+        {
+          username: username.trim(),
+          email: email.trim(),
+          avatar: avatar.trim(),
         },
-      });
-      
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       if (response.data.success) {
         // 更新localStorage中的用户信息
         localStorage.setItem('user', JSON.stringify(response.data.data.user));
@@ -84,13 +88,13 @@ export default function Profile() {
       setSaving(false);
     }
   };
-  
+
   // 生成随机头像
   const generateAvatar = () => {
     const randomAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}${Date.now()}`;
     setAvatar(randomAvatar);
   };
-  
+
   return (
     <div className="min-h-screen bg-livetrip-background">
       {/* Top Navbar */}
@@ -102,27 +106,24 @@ export default function Profile() {
           >
             <Menu className="h-5 w-5 text-gray-700" />
           </button>
-          <div 
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => navigate('/')}
-          >
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
             <span className="text-xl font-bold text-livetrip-primary">LiveTrip</span>
           </div>
         </div>
-        
+
         <div className="flex-1 flex items-center justify-between px-6">
           <h1 className="text-lg font-semibold text-gray-900">个人信息</h1>
         </div>
       </header>
-      
+
       {/* Sidebar */}
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
         isLargeScreen={isLargeScreen}
         currentPage="/profile"
       />
-      
+
       {/* Main Content */}
       <main className={`pt-14 ${isLargeScreen ? 'pl-[240px]' : ''} min-h-screen`}>
         <div className="max-w-2xl mx-auto p-6">
@@ -159,7 +160,7 @@ export default function Profile() {
                   <p className="text-sm text-gray-500">点击相机图标生成随机头像</p>
                 </div>
               </div>
-              
+
               {/* 用户名 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -174,7 +175,7 @@ export default function Profile() {
                   className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-livetrip-primary/20"
                 />
               </div>
-              
+
               {/* 邮箱 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -189,7 +190,7 @@ export default function Profile() {
                   className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-livetrip-primary/20"
                 />
               </div>
-              
+
               {/* 头像URL */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -204,21 +205,21 @@ export default function Profile() {
                   className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-livetrip-primary/20"
                 />
               </div>
-              
+
               {/* 错误提示 */}
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                   {error}
                 </div>
               )}
-              
+
               {/* 成功提示 */}
               {success && (
                 <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
                   {success}
                 </div>
               )}
-              
+
               {/* 保存按钮 */}
               <button
                 onClick={handleSave}
@@ -237,7 +238,7 @@ export default function Profile() {
                   </>
                 )}
               </button>
-              
+
               {/* 退出登录按钮 */}
               <button
                 onClick={() => {
@@ -250,7 +251,7 @@ export default function Profile() {
                 <LogOut className="h-5 w-5" />
                 退出登录
               </button>
-              
+
               {/* 测试提示 */}
               <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                 <h3 className="font-medium text-amber-900 mb-2">💡 多账号测试提示</h3>
@@ -267,11 +268,3 @@ export default function Profile() {
     </div>
   );
 }
-
-
-
-
-
-
-
-

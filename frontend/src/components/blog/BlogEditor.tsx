@@ -52,7 +52,7 @@ import {
   BookOpen,
   Compass,
   Feather,
-  Languages
+  Languages,
 } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -95,8 +95,8 @@ const FontFamily = Extension.create({
         attributes: {
           fontFamily: {
             default: null,
-            parseHTML: element => element.style.fontFamily?.replace(/['"]/g, ''),
-            renderHTML: attributes => {
+            parseHTML: (element) => element.style.fontFamily?.replace(/['"]/g, ''),
+            renderHTML: (attributes) => {
               if (!attributes.fontFamily) {
                 return {};
               }
@@ -113,7 +113,7 @@ const FontFamily = Extension.create({
   addCommands() {
     return {
       setFontFamily:
-        fontFamily =>
+        (fontFamily) =>
         ({ chain }) => {
           return chain().setMark('textStyle', { fontFamily }).run();
         },
@@ -521,7 +521,7 @@ export default function BlogEditorGlass({ postId, userId = 'default-user' }: Blo
   };
 
   const handleRemoveTag = (tag: string) => {
-    setTags(tags.filter(t => t !== tag));
+    setTags(tags.filter((t) => t !== tag));
   };
 
   // 封面上传
@@ -578,7 +578,7 @@ export default function BlogEditorGlass({ postId, userId = 'default-user' }: Blo
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/images/blog-upload`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -601,7 +601,7 @@ export default function BlogEditorGlass({ postId, userId = 'default-user' }: Blo
 
   // 应用模板
   const applyTemplate = (templateId: string) => {
-    const template = BLOG_TEMPLATES.find(t => t.id === templateId);
+    const template = BLOG_TEMPLATES.find((t) => t.id === templateId);
     if (template && editor) {
       editor.commands.setContent(template.content);
       setShowTemplateMenu(false);
@@ -613,9 +613,10 @@ export default function BlogEditorGlass({ postId, userId = 'default-user' }: Blo
   // 工具栏按钮样式
   const toolbarBtn = (isActive: boolean = false) => `
     p-2 rounded-lg transition-all duration-200
-    ${isActive
-      ? 'bg-amber-500/20 text-amber-400 border border-amber-400/30'
-      : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/10'
+    ${
+      isActive
+        ? 'bg-amber-500/20 text-amber-400 border border-amber-400/30'
+        : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/10'
     }
   `;
 
@@ -690,7 +691,7 @@ export default function BlogEditorGlass({ postId, userId = 'default-user' }: Blo
 
                   {showFontMenu && (
                     <div className="absolute top-full left-0 mt-2 w-40 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl overflow-hidden z-50">
-                      {FONT_FAMILIES.map(font => (
+                      {FONT_FAMILIES.map((font) => (
                         <button
                           key={font.value}
                           onClick={() => {
@@ -724,7 +725,7 @@ export default function BlogEditorGlass({ postId, userId = 'default-user' }: Blo
                   {showColorMenu && (
                     <div className="absolute top-full left-0 mt-2 w-48 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl p-3 z-50">
                       <div className="grid grid-cols-5 gap-2">
-                        {PRESET_COLORS.map(color => (
+                        {PRESET_COLORS.map((color) => (
                           <button
                             key={color}
                             onClick={() => {
@@ -810,7 +811,13 @@ export default function BlogEditorGlass({ postId, userId = 'default-user' }: Blo
 
                 {/* 表格 */}
                 <button
-                  onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+                  onClick={() =>
+                    editor
+                      .chain()
+                      .focus()
+                      .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                      .run()
+                  }
                   className={toolbarBtn()}
                   title="插入表格"
                 >
@@ -859,206 +866,206 @@ export default function BlogEditorGlass({ postId, userId = 'default-user' }: Blo
               </div>
             </GlassCard>
 
-        {/* 编辑器内容区 */}
-        <GlassCard className="p-0 overflow-hidden" hover={false}>
-          {/* 标题输入 - 内嵌到编辑器顶部 */}
-          <div className="px-6 py-6 border-b border-white/10">
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="给你的博客起个标题..."
-              className="w-full text-3xl font-bold bg-transparent border-none outline-none text-white placeholder-white/30"
-            />
-          </div>
-          
-          <div className="bg-white/5 min-h-[600px]">
-            <EditorContent editor={editor} />
-          </div>
-          {/* 字数统计 */}
-          <div className="px-6 py-3 border-t border-white/10 bg-white/5 flex items-center justify-between text-sm text-white/50">
-            <div className="flex items-center gap-4">
-              <span>字数：{editor.storage.characterCount?.characters?.() || 0}</span>
-              <span>单词：{editor.storage.characterCount?.words?.() || 0}</span>
-            </div>
-            <span>限制：50,000 字</span>
-          </div>
-        </GlassCard>
+            {/* 编辑器内容区 */}
+            <GlassCard className="p-0 overflow-hidden" hover={false}>
+              {/* 标题输入 - 内嵌到编辑器顶部 */}
+              <div className="px-6 py-6 border-b border-white/10">
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="给你的博客起个标题..."
+                  className="w-full text-3xl font-bold bg-transparent border-none outline-none text-white placeholder-white/30"
+                />
+              </div>
 
-        {/* 封面图片 */}
-        <GlassCard className="p-6" hover={false}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-              <ImageIcon className="w-5 h-5 text-amber-400" />
-              封面图片
-            </h3>
-          </div>
+              <div className="bg-white/5 min-h-[600px]">
+                <EditorContent editor={editor} />
+              </div>
+              {/* 字数统计 */}
+              <div className="px-6 py-3 border-t border-white/10 bg-white/5 flex items-center justify-between text-sm text-white/50">
+                <div className="flex items-center gap-4">
+                  <span>字数：{editor.storage.characterCount?.characters?.() || 0}</span>
+                  <span>单词：{editor.storage.characterCount?.words?.() || 0}</span>
+                </div>
+                <span>限制：50,000 字</span>
+              </div>
+            </GlassCard>
 
-          {coverImage ? (
-            <div className="relative group">
-              <img
-                src={coverImage}
-                alt="封面"
-                className="w-full h-64 object-cover rounded-xl"
-              />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+            {/* 封面图片 */}
+            <GlassCard className="p-6" hover={false}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <ImageIcon className="w-5 h-5 text-amber-400" />
+                  封面图片
+                </h3>
+              </div>
+
+              {coverImage ? (
+                <div className="relative group">
+                  <img
+                    src={coverImage}
+                    alt="封面"
+                    className="w-full h-64 object-cover rounded-xl"
+                  />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                    <button
+                      onClick={() => setCoverImage('')}
+                      className="px-4 py-2 rounded-lg bg-red-500/80 text-white"
+                    >
+                      移除封面
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="block w-full h-64 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-amber-400/50 transition-all flex flex-col items-center justify-center gap-3">
+                  <Upload className="w-12 h-12 text-white/30" />
+                  <span className="text-white/50">点击上传封面图片</span>
+                  <span className="text-sm text-white/30">建议尺寸：1200x630px</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </GlassCard>
+
+            {/* 底部操作栏 - 只保留取消和发布 */}
+            <GlassCard className="p-6" hover={false}>
+              <div className="flex items-center justify-between">
                 <button
-                  onClick={() => setCoverImage('')}
-                  className="px-4 py-2 rounded-lg bg-red-500/80 text-white"
+                  onClick={() => navigate('/blogs')}
+                  className="px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center gap-2 transition-all border border-white/10"
                 >
-                  移除封面
+                  <X className="w-5 h-5" />
+                  <span>取消</span>
+                </button>
+
+                <button
+                  onClick={() => handleSave(true)}
+                  disabled={saving}
+                  className="px-8 py-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold flex items-center gap-2 transition-all hover:shadow-lg hover:shadow-amber-500/30 disabled:opacity-50"
+                >
+                  <Send className="w-5 h-5" />
+                  <span>{saving ? '发布中...' : '发布'}</span>
                 </button>
               </div>
-            </div>
-          ) : (
-            <label className="block w-full h-64 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-amber-400/50 transition-all flex flex-col items-center justify-center gap-3">
-              <Upload className="w-12 h-12 text-white/30" />
-              <span className="text-white/50">点击上传封面图片</span>
-              <span className="text-sm text-white/30">建议尺寸：1200x630px</span>
+            </GlassCard>
+          </div>
+
+          {/* 右侧：配置面板 */}
+          <div className="w-80 space-y-6">
+            {/* 模板选择 */}
+            <GlassCard className="p-6" hover={false}>
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-amber-400" />
+                选择模板
+              </h3>
+              <div className="space-y-2">
+                {BLOG_TEMPLATES.map((template) => {
+                  const IconComponent =
+                    template.icon === 'Globe'
+                      ? Globe
+                      : template.icon === 'BookOpen'
+                        ? BookOpen
+                        : template.icon === 'Compass'
+                          ? Compass
+                          : template.icon === 'Feather'
+                            ? Feather
+                            : Languages;
+                  return (
+                    <button
+                      key={template.id}
+                      onClick={() => applyTemplate(template.id)}
+                      className="w-full px-4 py-3 rounded-lg bg-white/5 hover:bg-amber-500/10 text-left flex items-center gap-3 transition-all border border-white/10 hover:border-amber-400/30 group"
+                    >
+                      <IconComponent className="w-5 h-5 text-amber-400 group-hover:text-amber-300 transition-colors" />
+                      <span className="text-white group-hover:text-amber-100 transition-colors">
+                        {template.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </GlassCard>
+
+            {/* 标签 */}
+            <GlassCard className="p-6" hover={false}>
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <Tag className="w-5 h-5 text-amber-400" />
+                标签
+              </h3>
+
+              <div className="flex flex-wrap gap-2 mb-3">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-400/30 flex items-center gap-2"
+                  >
+                    {tag}
+                    <button
+                      onClick={() => handleRemoveTag(tag)}
+                      className="hover:text-red-400 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={inputTag}
+                  onChange={(e) => setInputTag(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                  placeholder="输入标签..."
+                  className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/20 text-white text-sm placeholder-white/30 focus:border-amber-400/50 focus:outline-none transition-all"
+                />
+                <button
+                  onClick={handleAddTag}
+                  className="px-3 py-2 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-400/30 hover:bg-amber-500/30 transition-all text-sm"
+                >
+                  添加
+                </button>
+              </div>
+
+              <p className="text-xs text-white/40 mt-2">建议：美食、景点、拍照、攻略</p>
+            </GlassCard>
+
+            {/* 城市 */}
+            <GlassCard className="p-6" hover={false}>
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-amber-400" />
+                相关城市
+              </h3>
+
               <input
-                type="file"
-                accept="image/*"
-                onChange={handleCoverUpload}
-                className="hidden"
+                type="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="例如：北京、上海..."
+                className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/20 text-white text-sm placeholder-white/30 focus:border-amber-400/50 focus:outline-none transition-all"
               />
-            </label>
-          )}
-        </GlassCard>
-
-        {/* 底部操作栏 - 只保留取消和发布 */}
-        <GlassCard className="p-6" hover={false}>
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => navigate('/blogs')}
-              className="px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center gap-2 transition-all border border-white/10"
-            >
-              <X className="w-5 h-5" />
-              <span>取消</span>
-            </button>
-
-            <button
-              onClick={() => handleSave(true)}
-              disabled={saving}
-              className="px-8 py-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold flex items-center gap-2 transition-all hover:shadow-lg hover:shadow-amber-500/30 disabled:opacity-50"
-            >
-              <Send className="w-5 h-5" />
-              <span>{saving ? '发布中...' : '发布'}</span>
-            </button>
+            </GlassCard>
           </div>
-        </GlassCard>
-      </div>
+        </div>
 
-      {/* 右侧：配置面板 */}
-      <div className="w-80 space-y-6">
-        {/* 模板选择 */}
-        <GlassCard className="p-6" hover={false}>
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-amber-400" />
-            选择模板
-          </h3>
-          <div className="space-y-2">
-            {BLOG_TEMPLATES.map(template => {
-              const IconComponent = template.icon === 'Globe' ? Globe :
-                                   template.icon === 'BookOpen' ? BookOpen :
-                                   template.icon === 'Compass' ? Compass :
-                                   template.icon === 'Feather' ? Feather :
-                                   Languages;
-              return (
-                <button
-                  key={template.id}
-                  onClick={() => applyTemplate(template.id)}
-                  className="w-full px-4 py-3 rounded-lg bg-white/5 hover:bg-amber-500/10 text-left flex items-center gap-3 transition-all border border-white/10 hover:border-amber-400/30 group"
-                >
-                  <IconComponent className="w-5 h-5 text-amber-400 group-hover:text-amber-300 transition-colors" />
-                  <span className="text-white group-hover:text-amber-100 transition-colors">{template.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </GlassCard>
-
-        {/* 标签 */}
-        <GlassCard className="p-6" hover={false}>
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Tag className="w-5 h-5 text-amber-400" />
-            标签
-          </h3>
-
-          <div className="flex flex-wrap gap-2 mb-3">
-            {tags.map(tag => (
-              <span
-                key={tag}
-                className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-400/30 flex items-center gap-2"
-              >
-                {tag}
-                <button
-                  onClick={() => handleRemoveTag(tag)}
-                  className="hover:text-red-400 transition-colors"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-          </div>
-
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={inputTag}
-              onChange={(e) => setInputTag(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
-              placeholder="输入标签..."
-              className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/20 text-white text-sm placeholder-white/30 focus:border-amber-400/50 focus:outline-none transition-all"
-            />
-            <button
-              onClick={handleAddTag}
-              className="px-3 py-2 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-400/30 hover:bg-amber-500/30 transition-all text-sm"
-            >
-              添加
-            </button>
-          </div>
-
-          <p className="text-xs text-white/40 mt-2">
-            建议：美食、景点、拍照、攻略
-          </p>
-        </GlassCard>
-
-        {/* 城市 */}
-        <GlassCard className="p-6" hover={false}>
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-amber-400" />
-            相关城市
-          </h3>
-
-          <input
-            type="text"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="例如：北京、上海..."
-            className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/20 text-white text-sm placeholder-white/30 focus:border-amber-400/50 focus:outline-none transition-all"
+        {/* 图片裁剪器 */}
+        {cropperVisible && selectedFile && (
+          <ImageCropper
+            visible={cropperVisible}
+            imageFile={selectedFile}
+            onConfirm={handleCropConfirm}
+            onCancel={() => {
+              setCropperVisible(false);
+              setSelectedFile(null);
+            }}
           />
-        </GlassCard>
+        )}
       </div>
-    </div>
-
-    {/* 图片裁剪器 */}
-    {cropperVisible && selectedFile && (
-      <ImageCropper
-        visible={cropperVisible}
-        imageFile={selectedFile}
-        onConfirm={handleCropConfirm}
-        onCancel={() => {
-          setCropperVisible(false);
-          setSelectedFile(null);
-        }}
-      />
-    )}
-  </div>
-</GlassLayout>
+    </GlassLayout>
   );
 }
-
-
-
-
-

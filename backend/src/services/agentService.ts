@@ -135,11 +135,11 @@ interface ToolExecutionResult {
   success: boolean;
   data?: any;
   error?: string;
-  needsMoreInfo?: boolean;    // 是否需要用户补充信息
-  missingParams?: string[];    // 缺失的参数列表
+  needsMoreInfo?: boolean; // 是否需要用户补充信息
+  missingParams?: string[]; // 缺失的参数列表
   needsConfirmation?: boolean; // 是否需要用户确认
-  previewData?: any;           // 预览数据
-  sessionId?: string;          // 会话ID（用于确认）
+  previewData?: any; // 预览数据
+  sessionId?: string; // 会话ID（用于确认）
 }
 
 /**
@@ -149,7 +149,13 @@ class AgentService {
   /**
    * 调用智谱AI API（支持 Function Calling，带重试机制）
    */
-  private async callZhipuAI(messages: any[], tools?: any[], toolChoice: any = 'auto', maxTokens: number = 2000, timeout: number = 60000): Promise<any> {
+  private async callZhipuAI(
+    messages: any[],
+    tools?: any[],
+    toolChoice: any = 'auto',
+    maxTokens: number = 2000,
+    timeout: number = 60000
+  ): Promise<any> {
     if (!ZHIPUAI_API_KEY) {
       throw new Error('AI服务未配置');
     }
@@ -164,7 +170,7 @@ class AgentService {
     };
 
     const jsonData = JSON.stringify(data);
-    
+
     // ✅ 调试: 输出请求详情
     console.log('\n📤 [发送给智谱AI]');
     console.log('   消息数量:', messages.length);
@@ -181,7 +187,7 @@ class AgentService {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ZHIPUAI_API_KEY}`,
+        Authorization: `Bearer ${ZHIPUAI_API_KEY}`,
         'Content-Length': Buffer.byteLength(jsonData),
       },
       timeout: timeout, // 原值: 30000 (博客生成等长文本任务需要更长超时)
@@ -286,7 +292,8 @@ class AgentService {
             properties: {
               status: {
                 type: 'string',
-                description: '行程状态筛选，可选值："planning"（规划中）、"ongoing"（进行中）、"completed"（已完成）',
+                description:
+                  '行程状态筛选，可选值："planning"（规划中）、"ongoing"（进行中）、"completed"（已完成）',
                 enum: ['planning', 'ongoing', 'completed'],
               },
             },
@@ -495,7 +502,13 @@ ${profilePrompt}
   /**
    * 执行工具调用
    */
-  private async executeToolCall(toolCall: any, userId?: string, messages?: any[], sessionId?: string, stepCallback?: (step: string) => void): Promise<ToolExecutionResult> {
+  private async executeToolCall(
+    toolCall: any,
+    userId?: string,
+    messages?: any[],
+    sessionId?: string,
+    stepCallback?: (step: string) => void
+  ): Promise<ToolExecutionResult> {
     // 只处理 function 类型的工具调用
     if (toolCall.type !== 'function') {
       return {
@@ -588,7 +601,12 @@ ${profilePrompt}
    * 合并了 create_trip + create_trip_with_constraints + extract_must_visit_spots
    * 支持二次确认：先返回预览，用户确认后再保存
    */
-  private async createSmartTrip(params: any, userId?: string, sessionId?: string, stepCallback?: (step: string) => void): Promise<ToolExecutionResult> {
+  private async createSmartTrip(
+    params: any,
+    userId?: string,
+    sessionId?: string,
+    stepCallback?: (step: string) => void
+  ): Promise<ToolExecutionResult> {
     try {
       console.log('\n🎯 [创建智能行程]');
       console.log('   参数:', JSON.stringify(params, null, 2));
@@ -607,14 +625,19 @@ ${profilePrompt}
 
       // 2. 调用 createTrip 工具生成完整行程（包含 AI 推荐）
       console.log('   📝 调用 createTrip 生成完整行程...');
-      const tripResult = await this.createTrip({
-        destination: params.destination,
-        startDate: params.startDate,
-        endDate: params.endDate,
-        budget: params.budget,
-        preferences: params.preferences || '',
-        mustVisitSpots: params.mustVisitSpots || [],
-      }, userId, true, stepCallback);
+      const tripResult = await this.createTrip(
+        {
+          destination: params.destination,
+          startDate: params.startDate,
+          endDate: params.endDate,
+          budget: params.budget,
+          preferences: params.preferences || '',
+          mustVisitSpots: params.mustVisitSpots || [],
+        },
+        userId,
+        true,
+        stepCallback
+      );
 
       if (!tripResult.success) {
         return tripResult;
@@ -656,7 +679,9 @@ ${profilePrompt}
         destination: trip.destination,
         startDate: trip.startDate.toISOString().split('T')[0],
         endDate: trip.endDate.toISOString().split('T')[0],
-        days: Math.ceil((trip.endDate.getTime() - trip.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1,
+        days:
+          Math.ceil((trip.endDate.getTime() - trip.startDate.getTime()) / (1000 * 60 * 60 * 24)) +
+          1,
         budget: trip.totalBudget,
         summary: tripData.summary || '',
         tips: tripData.tips || [],
@@ -677,7 +702,7 @@ ${profilePrompt}
       if (sessionId) {
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + 24);
-        
+
         await chatHistoryService.updateSessionTempData(sessionId, {
           type: 'trip_draft' as any,
           tripId: trip.id,
@@ -701,7 +726,6 @@ ${profilePrompt}
           preview: previewData,
         },
       };
-
     } catch (error: any) {
       console.error('❌ 创建智能行程失败:', error);
       return {
@@ -716,15 +740,15 @@ ${profilePrompt}
    */
   private checkMissingTripParams(params: any): string[] {
     const missing: string[] = [];
-    
+
     if (!params.destination) {
       missing.push('destination');
     }
-    
+
     if (!params.days && !params.startDate) {
       missing.push('days');
     }
-    
+
     return missing;
   }
 
@@ -733,7 +757,7 @@ ${profilePrompt}
    */
   private generateParamQuestion(missingParams: string[]): string {
     const questions: string[] = [];
-    
+
     for (const param of missingParams) {
       switch (param) {
         case 'destination':
@@ -750,7 +774,7 @@ ${profilePrompt}
           break;
       }
     }
-    
+
     return questions.join('\n');
   }
 
@@ -760,24 +784,26 @@ ${profilePrompt}
   private async generateTripPreview(params: any, userId?: string): Promise<any> {
     try {
       console.log('   🎨 生成行程预览数据...');
-      
+
       // 解析日期
-      let startDate = params.startDate ? parseDate(params.startDate) : new Date();
+      const startDate = params.startDate ? parseDate(params.startDate) : new Date();
       let endDate = params.endDate ? parseDate(params.endDate) : new Date();
-      
+
       if (!params.startDate && params.days) {
         endDate = new Date(startDate.getTime() + (params.days - 1) * 24 * 60 * 60 * 1000);
       }
-      
-      const days = params.days || Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
-      
+
+      const days =
+        params.days ||
+        Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+
       // 获取目的地景点
       const spots = await prisma.spot.findMany({
         where: { city: params.destination },
         take: 10,
         orderBy: { rating: 'desc' },
       });
-      
+
       // 生成预览数据
       const preview: any = {
         destination: params.destination,
@@ -799,16 +825,16 @@ ${profilePrompt}
         },
         spots: spots.slice(0, days * 2),
       };
-      
+
       // 生成每日计划
       for (let i = 0; i < days; i++) {
         const dayDate = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
         const daySpots = spots.slice(i * 2, (i + 1) * 2);
-        
+
         preview.dailyPlans.push({
           day: i + 1,
           date: formatDate(dayDate),
-          spots: daySpots.map(spot => ({
+          spots: daySpots.map((spot) => ({
             name: spot.name,
             category: spot.category,
             ticketPrice: spot.ticketPrice,
@@ -816,10 +842,9 @@ ${profilePrompt}
           })),
         });
       }
-      
+
       console.log('   ✅ 行程预览生成完成');
       return preview;
-      
     } catch (error: any) {
       console.error('   ❌ 生成预览失败:', error);
       throw error;
@@ -830,7 +855,11 @@ ${profilePrompt}
    * ✅ P0优化: 管理博客（统一工具）
    * 合并了 generate_blog + publish_blog
    */
-  private async manageBlog(params: any, userId?: string, stepCallback?: (step: string) => void): Promise<ToolExecutionResult> {
+  private async manageBlog(
+    params: any,
+    userId?: string,
+    stepCallback?: (step: string) => void
+  ): Promise<ToolExecutionResult> {
     try {
       console.log('\n📝 [管理博客]');
       console.log('   操作:', params.action);
@@ -844,7 +873,6 @@ ${profilePrompt}
           };
         }
         return await this.generateBlog(params, userId);
-
       } else if (params.action === 'publish') {
         // 发布博客
         if (!params.blogId) {
@@ -854,14 +882,12 @@ ${profilePrompt}
           };
         }
         return await this.publishBlog(params, userId);
-
       } else {
         return {
           success: false,
           error: `未知的博客操作: ${params.action}`,
         };
       }
-
     } catch (error: any) {
       console.error('❌ 管理博客失败:', error);
       return {
@@ -899,11 +925,11 @@ ${profilePrompt}
     // 如果有缺失参数,返回追问
     if (missingParams.length > 0) {
       const questions: string[] = [];
-      
+
       if (missingParams.includes('destination')) {
         questions.push('您想去哪个城市？');
       }
-      
+
       if (missingParams.includes('startDate') || missingParams.includes('endDate')) {
         questions.push('您计划什么时候出发？玩几天？');
       }
@@ -925,12 +951,13 @@ ${profilePrompt}
         errors.push('结束日期必须晚于开始日期');
       }
 
-      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      
+      const daysDiff =
+        Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
       if (daysDiff > 30) {
         errors.push('行程天数不能超过30天');
       }
-      
+
       if (daysDiff < 1) {
         errors.push('行程天数至少为1天');
       }
@@ -952,13 +979,18 @@ ${profilePrompt}
   /**
    * 创建行程（AI 推荐）
    */
-  private async createTrip(params: any, userId?: string, draftMode: boolean = false, stepCallback?: (step: string) => void): Promise<ToolExecutionResult> {
+  private async createTrip(
+    params: any,
+    userId?: string,
+    draftMode: boolean = false,
+    stepCallback?: (step: string) => void
+  ): Promise<ToolExecutionResult> {
     try {
       console.log('🗓️  创建行程（AI 推荐）:', params);
 
       // ✅ 任务A: 使用结构化参数验证
       const validation = this.validateCreateTripParams(params);
-      
+
       if (!validation.valid) {
         return {
           success: false,
@@ -983,7 +1015,8 @@ ${profilePrompt}
       }
 
       // 计算天数
-      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      const daysDiff =
+        Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
       // 如果没有 userId，使用默认用户或提示需要登录
       let tripUserId = userId;
@@ -1025,10 +1058,14 @@ ${profilePrompt}
         },
       });
 
-      console.log(`✅ 行程基础信息创建成功，ID: ${trip.id}, 状态: ${draftMode ? 'draft' : 'planning'}`);
+      console.log(
+        `✅ 行程基础信息创建成功，ID: ${trip.id}, 状态: ${draftMode ? 'draft' : 'planning'}`
+      );
 
       // 调用 AI 推荐算法填充景点数据
-      console.log('🔍 正在调用 AI 推荐系统，为 ' + params.destination + ' 规划 ' + daysDiff + ' 天行程...');
+      console.log(
+        '🔍 正在调用 AI 推荐系统，为 ' + params.destination + ' 规划 ' + daysDiff + ' 天行程...'
+      );
       stepCallback?.('🔍 正在获取景点数据和AI推荐...');
 
       try {
@@ -1051,7 +1088,8 @@ ${profilePrompt}
         // ✅ P0修复: 验证AI返回的景点数量
         let totalSpotsCount = 0;
         for (const dayPlan of recommendation.dailyPlans) {
-          totalSpotsCount += (dayPlan.spots && Array.isArray(dayPlan.spots)) ? dayPlan.spots.length : 0;
+          totalSpotsCount +=
+            dayPlan.spots && Array.isArray(dayPlan.spots) ? dayPlan.spots.length : 0;
         }
 
         console.log(`   总景点数量: ${totalSpotsCount}`);
@@ -1059,14 +1097,14 @@ ${profilePrompt}
         if (totalSpotsCount === 0) {
           // AI返回的景点为空,删除已创建的Trip并返回错误
           console.error('❌ AI返回的景点列表为空,无法创建有效行程');
-          
+
           await prisma.day.deleteMany({
-            where: { tripId: trip.id }
+            where: { tripId: trip.id },
           });
           await prisma.trip.delete({
-            where: { id: trip.id }
+            where: { id: trip.id },
           });
-          
+
           return {
             success: false,
             error: `无法为${params.destination}生成有效行程。
@@ -1092,7 +1130,9 @@ ${profilePrompt}
             const fallbackDate = new Date(startDate);
             fallbackDate.setDate(fallbackDate.getDate() + (dayPlan.day - 1));
             dayDate = fallbackDate;
-            console.warn(`   ⚠️ AI返回日期格式无效: "${dayPlan.date}"，使用推算日期: ${dayDate.toISOString().split('T')[0]}`);
+            console.warn(
+              `   ⚠️ AI返回日期格式无效: "${dayPlan.date}"，使用推算日期: ${dayDate.toISOString().split('T')[0]}`
+            );
           }
 
           const day = await prisma.day.create({
@@ -1185,7 +1225,7 @@ ${profilePrompt}
 ${recommendation.summary}
 
 💡 旅行建议：
-${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
+${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
           },
         };
       } catch (recommendError: any) {
@@ -1196,10 +1236,10 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
         // AI 推荐失败，删除已创建的行程（避免留下空行程）
         console.log('🗑️  删除失败的行程...');
         await prisma.day.deleteMany({
-          where: { tripId: trip.id }
+          where: { tripId: trip.id },
         });
         await prisma.trip.delete({
-          where: { id: trip.id }
+          where: { id: trip.id },
         });
         console.log('✅ 已删除失败的行程');
 
@@ -1279,7 +1319,7 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
       });
 
       // 格式化行程数据
-      const formattedTrips = trips.map(trip => ({
+      const formattedTrips = trips.map((trip) => ({
         id: trip.id,
         title: trip.title,
         destination: trip.destination,
@@ -1301,12 +1341,13 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
       } else {
         detailedMessage = `您目前有 ${formattedTrips.length} 个行程：\n\n`;
         formattedTrips.forEach((trip, index) => {
-          const statusText = {
-            'planning': '规划中',
-            'ongoing': '进行中',
-            'completed': '已完成'
-          }[trip.status] || trip.status;
-          
+          const statusText =
+            {
+              planning: '规划中',
+              ongoing: '进行中',
+              completed: '已完成',
+            }[trip.status] || trip.status;
+
           detailedMessage += `${index + 1}. ${trip.title}\n`;
           detailedMessage += `   - 目的地：${trip.destination}\n`;
           detailedMessage += `   - 时间：${trip.startDate} 至 ${trip.endDate}（${trip.days}天）\n`;
@@ -1339,7 +1380,11 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
   /**
    * 生成博客工具
    */
-  private async generateBlog(params: any, userId?: string, stepCallback?: (step: string) => void): Promise<ToolExecutionResult> {
+  private async generateBlog(
+    params: any,
+    userId?: string,
+    stepCallback?: (step: string) => void
+  ): Promise<ToolExecutionResult> {
     try {
       console.log('✍️ 生成博客:', params);
       stepCallback?.('📝 正在生成博客内容...');
@@ -1400,8 +1445,8 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
         days: trip.days.length,
         budget: trip.totalBudget,
         actualBudget: trip.actualBudget,
-        spots: trip.days.flatMap(day =>
-          day.itineraryItems.map(item => ({
+        spots: trip.days.flatMap((day) =>
+          day.itineraryItems.map((item) => ({
             name: item.spot?.name || item.name,
             category: item.spot?.category || '',
             notes: (item as any).notes || '',
@@ -1415,7 +1460,7 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
 # ${blogTitle}
 
 目的地：${tripInfo.destination}，${tripInfo.days}天
-景点：${tripInfo.spots.map(s => s.name).join('、')}
+景点：${tripInfo.spots.map((s) => s.name).join('、')}
 风格：${blogStyle}
 字数：600-800字
 
@@ -1435,22 +1480,28 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
       try {
         const aiStartTime = Date.now();
         stepCallback?.('🤖 正在调用AI生成博客正文...');
-        const result = await this.callZhipuAI([
-          {
-            role: 'system',
-            content: `你是一位旅行博主。用户会给你行程信息，请直接输出博客正文，不要输出任何应答语、寒暄、解释。
+        const result = await this.callZhipuAI(
+          [
+            {
+              role: 'system',
+              content: `你是一位旅行博主。用户会给你行程信息，请直接输出博客正文，不要输出任何应答语、寒暄、解释。
 
 输出格式：
 - 直接以 # 标题 开头
 - 用 ## 按天分段
 - 景点名称**加粗**，段落间空行分隔
 - 不要输出分隔线(---或***)`,
-          },
-          {
-            role: 'user',
-            content: blogPrompt,
-          },
-        ], undefined, undefined, 4096, 120000); // 博客生成: max_tokens=4096, timeout=120s
+            },
+            {
+              role: 'user',
+              content: blogPrompt,
+            },
+          ],
+          undefined,
+          undefined,
+          4096,
+          120000
+        ); // 博客生成: max_tokens=4096, timeout=120s
         const aiElapsed = Date.now() - aiStartTime;
         console.log(`⏱️  AI 生成博客耗时: ${aiElapsed}ms`);
 
@@ -1470,7 +1521,7 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
             title: blogTitle,
             content: blogContentHtml,
             city: trip.destination,
-            spotIds: tripInfo.spots.map(s => s.name).join(','), // 存储景点名称
+            spotIds: tripInfo.spots.map((s) => s.name).join(','), // 存储景点名称
             tags: '旅行,游记', // 默认标签
             status: 'draft', // 保存为草稿
             isPublished: false,
@@ -1506,7 +1557,7 @@ ${recommendation.tips.map(tip => `- ${tip}`).join('\n')}`,
         if (lastSessionId) {
           const expiresAt = new Date();
           expiresAt.setHours(expiresAt.getHours() + 24); // 24小时后过期
-          
+
           await chatHistoryService.updateSessionTempData(lastSessionId, {
             type: 'blog_draft' as any,
             blogId: blog.id,
@@ -1587,9 +1638,10 @@ ${blogContent.substring(0, 200)}...
           mustVisitSpots: extractionResult.mustVisitSpots,
           unmatchedSpots: extractionResult.unmatchedSpots,
           confidence: extractionResult.confidence,
-          message: extractionResult.mustVisitSpots.length > 0
-            ? `成功识别 ${extractionResult.mustVisitSpots.length} 个必选景点`
-            : '未识别到明确的必选景点',
+          message:
+            extractionResult.mustVisitSpots.length > 0
+              ? `成功识别 ${extractionResult.mustVisitSpots.length} 个必选景点`
+              : '未识别到明确的必选景点',
         },
       };
     } catch (error: any) {
@@ -1604,7 +1656,10 @@ ${blogContent.substring(0, 200)}...
   /**
    * 创建约束感知行程工具
    */
-  private async createTripWithConstraints(params: any, userId?: string): Promise<ToolExecutionResult> {
+  private async createTripWithConstraints(
+    params: any,
+    userId?: string
+  ): Promise<ToolExecutionResult> {
     try {
       console.log('\n🎯 [创建约束感知行程]');
       console.log('   接收参数:', JSON.stringify(params, null, 2));
@@ -1758,7 +1813,10 @@ ${blogContent.substring(0, 200)}...
   /**
    * 关联景点图片到博客
    */
-  private async associateSpotImagesToBlog(blogId: string, spots: Array<{ name: string; category?: string }>): Promise<{ associatedImages: number }> {
+  private async associateSpotImagesToBlog(
+    blogId: string,
+    spots: Array<{ name: string; category?: string }>
+  ): Promise<{ associatedImages: number }> {
     try {
       console.log(`🖼️  开始关联景点图片到博客 ${blogId}...`);
 
@@ -1872,7 +1930,10 @@ ${blogContent.substring(0, 200)}...
   /**
    * 处理 Agent 请求（性能优化版）
    */
-  async processRequest(request: AgentRequest, stepCallback?: (step: string) => void): Promise<AgentResponse> {
+  async processRequest(
+    request: AgentRequest,
+    stepCallback?: (step: string) => void
+  ): Promise<AgentResponse> {
     const { question, userId } = request;
 
     const emitStep = (step: string) => {
@@ -1909,7 +1970,7 @@ ${blogContent.substring(0, 200)}...
       ];
 
       // 添加历史消息
-      messageHistory.forEach(msg => {
+      messageHistory.forEach((msg) => {
         messages.push({
           role: msg.role,
           content: msg.content,
@@ -1925,20 +1986,25 @@ ${blogContent.substring(0, 200)}...
       // ✅ 优先检查：用户是否在确认/取消操作（在调用AI之前检查，避免浪费AI调用）
       const confirmKeywords = ['确认', '发布', '好的', '是的', '保存', '同意'];
       const cancelKeywords = ['取消', '不要', '算了', '放弃'];
-      const isConfirm = confirmKeywords.some(k => question.includes(k));
-      const isCancel = cancelKeywords.some(k => question.includes(k));
+      const isConfirm = confirmKeywords.some((k) => question.includes(k));
+      const isCancel = cancelKeywords.some((k) => question.includes(k));
 
       if (isConfirm || isCancel) {
         // 检查会话中是否有待确认的临时数据
         const sessionData = await chatHistoryService.getSession(session.id);
         if (sessionData?.tempData) {
-          const tempData = typeof sessionData.tempData === 'string'
-            ? JSON.parse(sessionData.tempData)
-            : sessionData.tempData;
+          const tempData =
+            typeof sessionData.tempData === 'string'
+              ? JSON.parse(sessionData.tempData)
+              : sessionData.tempData;
 
           if (isConfirm) {
             console.log('\n✅ [检测到用户确认操作，直接执行]');
-            const confirmResult = await this.executeDirectConfirmAction(question, userId, session.id);
+            const confirmResult = await this.executeDirectConfirmAction(
+              question,
+              userId,
+              session.id
+            );
             if (confirmResult) {
               const finalAnswer = confirmResult.success
                 ? confirmResult.data?.message || '操作成功'
@@ -1978,7 +2044,7 @@ ${blogContent.substring(0, 200)}...
       emitStep('📡 正在调用AI助手...');
       console.log('   用户问题:', question);
       console.log('   消息数量:', messages.length);
-      
+
       const result = await this.callZhipuAI(
         messages,
         this.getTools(),
@@ -1988,7 +2054,7 @@ ${blogContent.substring(0, 200)}...
       console.log('\n✅ [智谱AI响应] 成功');
       console.log('   choices数量:', result.choices?.length);
       console.log('   finish_reason:', result.choices[0]?.finish_reason);
-      
+
       // ✅ 调试: 输出完整的AI响应
       console.log('   完整响应:', JSON.stringify(result.choices[0], null, 2));
 
@@ -1997,7 +2063,7 @@ ${blogContent.substring(0, 200)}...
 
       console.log('   assistant message content length:', answer.length);
       console.log('   tool_calls:', assistantMessage?.tool_calls?.length || 0);
-      
+
       // ✅ 问题4: 详细输出工具调用信息
       if (assistantMessage?.tool_calls && assistantMessage.tool_calls.length > 0) {
         console.log('\n📋 [AI工具调用详情]:');
@@ -2008,18 +2074,18 @@ ${blogContent.substring(0, 200)}...
         });
       }
 
-      let toolCallResults: any[] = [];
+      const toolCallResults: any[] = [];
 
       // 检查是否有工具调用
       if (assistantMessage?.tool_calls && assistantMessage.tool_calls.length > 0) {
         const toolName = assistantMessage.tool_calls[0]?.function?.name || '';
         const stepMap: Record<string, string> = {
-          'create_smart_trip': '🎯 正在为您规划行程...',
-          'create_trip': '🗓️ 正在创建行程...',
-          'list_user_trips': '📋 正在查找您的行程...',
-          'manage_blog': '📝 正在生成内容...',
-          'confirm_action': '✅ 正在确认操作...',
-          'regenerate': '🔄 正在重新生成...',
+          create_smart_trip: '🎯 正在为您规划行程...',
+          create_trip: '🗓️ 正在创建行程...',
+          list_user_trips: '📋 正在查找您的行程...',
+          manage_blog: '📝 正在生成内容...',
+          confirm_action: '✅ 正在确认操作...',
+          regenerate: '🔄 正在重新生成...',
         };
         emitStep(stepMap[toolName] || '🔧 正在执行操作...');
 
@@ -2033,7 +2099,13 @@ ${blogContent.substring(0, 200)}...
 
         // 执行所有工具调用
         for (const toolCall of assistantMessage.tool_calls) {
-          const toolResult = await this.executeToolCall(toolCall, userId, messages, session.id, emitStep);
+          const toolResult = await this.executeToolCall(
+            toolCall,
+            userId,
+            messages,
+            session.id,
+            emitStep
+          );
           const toolName = (toolCall as any).function?.name || toolCall.type;
           toolCallResults.push({
             name: toolName,
@@ -2049,15 +2121,19 @@ ${blogContent.substring(0, 200)}...
         }
 
         // ✅ 优化: 检查是否是用户确认操作，直接执行而不调用AI
-        const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
+        const lastUserMessage = messages.filter((m) => m.role === 'user').pop()?.content || '';
         const isConfirmAction = this.checkIfConfirmAction(lastUserMessage, toolCallResults);
-        
+
         if (isConfirmAction) {
           console.log('\n✅ [检测到用户确认操作，直接执行]');
-          
+
           // 直接执行确认操作，不调用AI
-          const confirmResult = await this.executeDirectConfirmAction(lastUserMessage, userId, session.id);
-          
+          const confirmResult = await this.executeDirectConfirmAction(
+            lastUserMessage,
+            userId,
+            session.id
+          );
+
           if (confirmResult) {
             toolCallResults.push({
               name: 'confirm_action',
@@ -2069,23 +2145,19 @@ ${blogContent.substring(0, 200)}...
           const toolResult = toolCallResults[0]?.result;
           const toolName = toolCallResults[0]?.name;
           const needsContinue = this.shouldContinueAIProcessing(toolName, toolResult, messages);
-          
+
           if (needsContinue) {
             console.log('\n🔄 [需要AI继续处理多步骤任务]');
-            
+
             // 再次调用AI，让它决定下一步操作
-            const continueResult = await this.callZhipuAI(
-              messages,
-              this.getTools(),
-              'auto'
-            );
-            
+            const continueResult = await this.callZhipuAI(messages, this.getTools(), 'auto');
+
             const continueMessage = continueResult.choices[0]?.message;
-            
+
             // 如果AI决定继续调用工具
             if (continueMessage?.tool_calls && continueMessage.tool_calls.length > 0) {
               console.log('   AI决定继续调用工具');
-              
+
               // 执行后续工具调用
               for (const continueToolCall of continueMessage.tool_calls) {
                 const continueToolResult = await this.executeToolCall(
@@ -2095,12 +2167,12 @@ ${blogContent.substring(0, 200)}...
                   session.id,
                   emitStep
                 );
-                
+
                 toolCallResults.push({
                   name: (continueToolCall as any).function?.name || continueToolCall.type,
                   result: continueToolResult,
                 });
-                
+
                 messages.push({
                   role: 'tool',
                   tool_call_id: continueToolCall.id,
@@ -2110,7 +2182,7 @@ ${blogContent.substring(0, 200)}...
             }
           }
         }
-        
+
         // 生成最终回复
         const finalToolResult = toolCallResults[toolCallResults.length - 1]?.result;
         const finalAnswer = finalToolResult?.success
@@ -2155,12 +2227,13 @@ ${blogContent.substring(0, 200)}...
    */
   private checkIfConfirmAction(userMessage: string, toolCallResults: any[]): boolean {
     const confirmKeywords = ['确认', '发布', '好的', '是的', '保存', '同意'];
-    const isConfirm = confirmKeywords.some(keyword => userMessage.includes(keyword));
-    
+    const isConfirm = confirmKeywords.some((keyword) => userMessage.includes(keyword));
+
     // 检查上一个工具调用是否需要确认
     const lastToolResult = toolCallResults[toolCallResults.length - 1]?.result;
-    const needsConfirmation = lastToolResult?.needsConfirmation || lastToolResult?.data?.needsConfirmation;
-    
+    const needsConfirmation =
+      lastToolResult?.needsConfirmation || lastToolResult?.data?.needsConfirmation;
+
     return isConfirm && needsConfirmation;
   }
 
@@ -2175,7 +2248,7 @@ ${blogContent.substring(0, 200)}...
     try {
       console.log('\n🔧 [直接执行确认操作]');
       console.log('   用户消息:', userMessage);
-      
+
       // 获取会话临时数据
       if (!sessionId) {
         const latestSessionId = await this.getLatestSessionId(userId);
@@ -2184,11 +2257,11 @@ ${blogContent.substring(0, 200)}...
         }
         sessionId = latestSessionId;
       }
-      
+
       if (!sessionId) {
         return null;
       }
-      
+
       const session = await chatHistoryService.getSession(sessionId);
       if (!session || !session.tempData) {
         return {
@@ -2196,11 +2269,10 @@ ${blogContent.substring(0, 200)}...
           error: '未找到待确认的数据',
         };
       }
-      
-      const tempData = typeof session.tempData === 'string' 
-        ? JSON.parse(session.tempData) 
-        : session.tempData;
-      
+
+      const tempData =
+        typeof session.tempData === 'string' ? JSON.parse(session.tempData) : session.tempData;
+
       // 根据临时数据类型执行相应操作
       if (tempData.type === 'blog_draft') {
         // 发布博客
@@ -2209,9 +2281,8 @@ ${blogContent.substring(0, 200)}...
         // 保存行程
         return await this.confirmTrip(sessionId, userId);
       }
-      
+
       return null;
-      
     } catch (error: any) {
       console.error('❌ 直接执行确认操作失败:', error);
       return {
@@ -2230,38 +2301,44 @@ ${blogContent.substring(0, 200)}...
     messages: any[]
   ): boolean {
     // 获取最后一条用户消息
-    const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
-    
+    const lastUserMessage = messages.filter((m) => m.role === 'user').pop()?.content || '';
+
     console.log('\n🔍 [判断是否需要继续处理]');
     console.log('   工具名称:', toolName);
     console.log('   工具结果成功:', toolResult?.success);
     console.log('   用户消息:', lastUserMessage);
-    
+
     // 场景1: 用户想写游记/生成博客，但还没有提供tripId
     if (lastUserMessage.includes('游记') || lastUserMessage.includes('博客')) {
       // 如果manage_blog被调用但没有tripId，需要继续
-      if (toolName === 'manage_blog' && toolResult?.success === false && 
-          toolResult?.error?.includes('tripId')) {
+      if (
+        toolName === 'manage_blog' &&
+        toolResult?.success === false &&
+        toolResult?.error?.includes('tripId')
+      ) {
         console.log('   ✅ 需要继续：博客生成缺少tripId');
         return true;
       }
-      
+
       // 如果list_user_trips被调用，说明AI在查找行程，需要继续
       if (toolName === 'list_user_trips') {
         console.log('   ✅ 需要继续：查找行程后需要生成博客');
         return true;
       }
     }
-    
+
     // 场景2: 用户想发布博客，但还没有提供blogId
     if (lastUserMessage.includes('发布') || lastUserMessage.includes('发表')) {
-      if (toolName === 'manage_blog' && toolResult?.success === false && 
-          toolResult?.error?.includes('blogId')) {
+      if (
+        toolName === 'manage_blog' &&
+        toolResult?.success === false &&
+        toolResult?.error?.includes('blogId')
+      ) {
         console.log('   ✅ 需要继续：博客发布缺少blogId');
         return true;
       }
     }
-    
+
     console.log('   ❌ 不需要继续处理');
     return false;
   }
@@ -2276,20 +2353,20 @@ ${blogContent.substring(0, 200)}...
 
     // 简单的关键词匹配
     const preferenceMap: Record<string, string> = {
-      '历史': 'history',
-      '文化': 'art',
-      '艺术': 'art',
-      '自然': 'nature',
-      '风景': 'nature',
-      '公园': 'nature',
-      '美食': 'food',
-      '购物': 'shopping',
-      '城市': 'city',
-      '海滩': 'beach',
-      '海岛': 'beach',
-      '冒险': 'adventure',
-      '主题乐园': 'theme_park',
-      '宗教': 'religious',
+      历史: 'history',
+      文化: 'art',
+      艺术: 'art',
+      自然: 'nature',
+      风景: 'nature',
+      公园: 'nature',
+      美食: 'food',
+      购物: 'shopping',
+      城市: 'city',
+      海滩: 'beach',
+      海岛: 'beach',
+      冒险: 'adventure',
+      主题乐园: 'theme_park',
+      宗教: 'religious',
     };
 
     const categories: string[] = [];
@@ -2336,12 +2413,8 @@ ${blogContent.substring(0, 200)}...
   /**
    * ✅ P0优化: 智能参数补全 - 在工具执行前自动推断缺失参数
    */
-  private async completeToolParams(
-    toolName: string,
-    params: any,
-    messages: any[]
-  ): Promise<any> {
-    const userMessage = messages.find(m => m.role === 'user')?.content || '';
+  private async completeToolParams(toolName: string, params: any, messages: any[]): Promise<any> {
+    const userMessage = messages.find((m) => m.role === 'user')?.content || '';
     const completedParams = { ...params };
 
     console.log('\n🔧 [参数补全] 开始...');
@@ -2349,7 +2422,11 @@ ${blogContent.substring(0, 200)}...
     console.log('   原始参数:', JSON.stringify(params));
     console.log('   用户消息:', userMessage);
 
-    if (toolName === 'create_trip' || toolName === 'create_smart_trip' || toolName === 'create_trip_with_constraints') {
+    if (
+      toolName === 'create_trip' ||
+      toolName === 'create_smart_trip' ||
+      toolName === 'create_trip_with_constraints'
+    ) {
       // 1. 目的地推断
       if (!completedParams.destination) {
         completedParams.destination = this.inferDestination(userMessage);
@@ -2404,10 +2481,30 @@ ${blogContent.substring(0, 200)}...
    */
   private inferDestination(message: string): string {
     const cityKeywords = [
-      '北京', '上海', '广州', '深圳', '杭州', '成都',
-      '西安', '武汉', '南京', '苏州', '重庆', '天津',
-      '青岛', '大连', '厦门', '昆明', '三亚', '丽江',
-      '长沙', '郑州', '济南', '福州', '南昌', '合肥'
+      '北京',
+      '上海',
+      '广州',
+      '深圳',
+      '杭州',
+      '成都',
+      '西安',
+      '武汉',
+      '南京',
+      '苏州',
+      '重庆',
+      '天津',
+      '青岛',
+      '大连',
+      '厦门',
+      '昆明',
+      '三亚',
+      '丽江',
+      '长沙',
+      '郑州',
+      '济南',
+      '福州',
+      '南昌',
+      '合肥',
     ];
 
     for (const city of cityKeywords) {
@@ -2438,8 +2535,14 @@ ${blogContent.substring(0, 200)}...
       const weekDayMatch = message.match(/下周([一二三四五六日天])/);
       if (weekDayMatch) {
         const weekDays: Record<string, number> = {
-          '一': 1, '二': 2, '三': 3, '四': 4,
-          '五': 5, '六': 6, '日': 0, '天': 0
+          一: 1,
+          二: 2,
+          三: 3,
+          四: 4,
+          五: 5,
+          六: 6,
+          日: 0,
+          天: 0,
         };
         const targetDay = weekDays[weekDayMatch[1]];
         const currentDay = today.getDay();
@@ -2451,15 +2554,20 @@ ${blogContent.substring(0, 200)}...
       startDate.setMonth(startDate.getMonth() + 1);
     } else {
       // 检查具体日期
-      const dateMatch = message.match(/(\d{1,2})月(\d{1,2})日/) ||
-                       message.match(/(\d{4})[年-](\d{1,2})[月-](\d{1,2})/);
+      const dateMatch =
+        message.match(/(\d{1,2})月(\d{1,2})日/) ||
+        message.match(/(\d{4})[年-](\d{1,2})[月-](\d{1,2})/);
       if (dateMatch) {
         if (dateMatch.length === 3) {
           const month = parseInt(dateMatch[1]) - 1;
           const day = parseInt(dateMatch[2]);
           startDate = new Date(today.getFullYear(), month, day);
         } else if (dateMatch.length === 4) {
-          startDate = new Date(parseInt(dateMatch[1]), parseInt(dateMatch[2]) - 1, parseInt(dateMatch[3]));
+          startDate = new Date(
+            parseInt(dateMatch[1]),
+            parseInt(dateMatch[2]) - 1,
+            parseInt(dateMatch[3])
+          );
         }
       } else {
         // 默认明天
@@ -2503,17 +2611,20 @@ ${blogContent.substring(0, 200)}...
    * 推断预算
    */
   private inferBudget(message: string): number {
-    const budgetMatch = message.match(/预算[在约]?(\d+)/) ||
-                       message.match(/(\d+)\s*元/) ||
-                       message.match(/(\d+)\s*块/);
+    const budgetMatch =
+      message.match(/预算[在约]?(\d+)/) ||
+      message.match(/(\d+)\s*元/) ||
+      message.match(/(\d+)\s*块/);
 
     if (budgetMatch) {
       return parseInt(budgetMatch[1]);
     }
 
     // 根据关键词推断
-    if (message.includes('穷游') || message.includes('省钱') || message.includes('经济')) return 3000;
-    if (message.includes('豪华') || message.includes('高端') || message.includes('奢侈')) return 15000;
+    if (message.includes('穷游') || message.includes('省钱') || message.includes('经济'))
+      return 3000;
+    if (message.includes('豪华') || message.includes('高端') || message.includes('奢侈'))
+      return 15000;
 
     return 5000; // 默认 5000 元
   }
@@ -2522,8 +2633,20 @@ ${blogContent.substring(0, 200)}...
    * 推断人数
    */
   private inferTravelers(message: string): number {
-    if (message.includes('一个人') || message.includes('独自') || message.includes('1人') || message.includes('自己')) return 1;
-    if (message.includes('两个人') || message.includes('我和爱人') || message.includes('情侣') || message.includes('夫妻')) return 2;
+    if (
+      message.includes('一个人') ||
+      message.includes('独自') ||
+      message.includes('1人') ||
+      message.includes('自己')
+    )
+      return 1;
+    if (
+      message.includes('两个人') ||
+      message.includes('我和爱人') ||
+      message.includes('情侣') ||
+      message.includes('夫妻')
+    )
+      return 2;
     if (message.includes('全家') || message.includes('家庭') || message.includes('一家')) return 4;
     if (message.includes('朋友') || message.includes('闺蜜') || message.includes('哥们')) return 2;
 
@@ -2539,12 +2662,28 @@ ${blogContent.substring(0, 200)}...
    * 推断偏好
    */
   private inferPreferences(message: string): string {
-    if (message.includes('历史') || message.includes('文化') || message.includes('故宫') || message.includes('博物馆')) return '历史文化';
-    if (message.includes('自然') || message.includes('风景') || message.includes('山水') || message.includes('自然风光')) return '自然风光';
-    if (message.includes('美食') || message.includes('吃货') || message.includes('吃')) return '美食之旅';
-    if (message.includes('购物') || message.includes('逛街') || message.includes('买买买')) return '购物娱乐';
-    if (message.includes('拍照') || message.includes('打卡') || message.includes('网红')) return '网红打卡';
-    if (message.includes('休闲') || message.includes('放松') || message.includes('度假')) return '休闲度假';
+    if (
+      message.includes('历史') ||
+      message.includes('文化') ||
+      message.includes('故宫') ||
+      message.includes('博物馆')
+    )
+      return '历史文化';
+    if (
+      message.includes('自然') ||
+      message.includes('风景') ||
+      message.includes('山水') ||
+      message.includes('自然风光')
+    )
+      return '自然风光';
+    if (message.includes('美食') || message.includes('吃货') || message.includes('吃'))
+      return '美食之旅';
+    if (message.includes('购物') || message.includes('逛街') || message.includes('买买买'))
+      return '购物娱乐';
+    if (message.includes('拍照') || message.includes('打卡') || message.includes('网红'))
+      return '网红打卡';
+    if (message.includes('休闲') || message.includes('放松') || message.includes('度假'))
+      return '休闲度假';
 
     return '休闲观光'; // 默认偏好
   }
@@ -2560,7 +2699,10 @@ ${blogContent.substring(0, 200)}...
     // 错误类型识别
     if (error.message?.includes('缺少必填参数') || error.message?.includes('缺少必要的信息')) {
       errorType = ErrorType.PARAM_MISSING;
-    } else if (error.message?.includes('日期格式不正确') || error.message?.includes('日期解析失败')) {
+    } else if (
+      error.message?.includes('日期格式不正确') ||
+      error.message?.includes('日期解析失败')
+    ) {
       errorType = ErrorType.PARAM_INVALID;
     } else if (error.message?.includes('未找到景点') || error.message?.includes('景点不存在')) {
       errorType = ErrorType.SPOT_NOT_FOUND;
@@ -2568,11 +2710,18 @@ ${blogContent.substring(0, 200)}...
       errorType = ErrorType.TRIP_NOT_FOUND;
     } else if (error.message?.includes('只能为已完成的行程')) {
       errorType = ErrorType.TRIP_NOT_COMPLETED;
-    } else if (error.message?.includes('AI服务未配置') || error.message?.includes('AI 服务暂时不可用')) {
+    } else if (
+      error.message?.includes('AI服务未配置') ||
+      error.message?.includes('AI 服务暂时不可用')
+    ) {
       errorType = ErrorType.AI_SERVICE_UNAVAILABLE;
     } else if (error.message?.includes('AI 返回') || error.message?.includes('AI推荐失败')) {
       errorType = ErrorType.AI_RESPONSE_INVALID;
-    } else if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.message?.includes('网络')) {
+    } else if (
+      error.code === 'ECONNREFUSED' ||
+      error.code === 'ETIMEDOUT' ||
+      error.message?.includes('网络')
+    ) {
       errorType = ErrorType.NETWORK_ERROR;
     } else if (error.message?.includes('数据库') || error.message?.includes('Prisma')) {
       errorType = ErrorType.DATABASE_ERROR;
@@ -2637,7 +2786,6 @@ ${blogContent.substring(0, 200)}...
             error: `未知的确认操作: ${params.action}`,
           };
       }
-
     } catch (error: any) {
       console.error('❌ 处理确认操作失败:', error);
       return {
@@ -2655,13 +2803,13 @@ ${blogContent.substring(0, 200)}...
       if (!userId) {
         return null;
       }
-      
+
       const session = await prisma.chatSession.findFirst({
         where: { userId },
         orderBy: { createdAt: 'desc' },
         select: { id: true },
       });
-      
+
       return session?.id || null;
     } catch (error) {
       console.error('获取最新会话ID失败:', error);
@@ -2687,10 +2835,9 @@ ${blogContent.substring(0, 200)}...
       }
 
       // tempData 可能是字符串或对象
-      const tempData = typeof session.tempData === 'string' 
-        ? JSON.parse(session.tempData) 
-        : session.tempData;
-        
+      const tempData =
+        typeof session.tempData === 'string' ? JSON.parse(session.tempData) : session.tempData;
+
       if (tempData.type !== 'trip_draft') {
         return {
           success: false,
@@ -2780,7 +2927,6 @@ ${blogContent.substring(0, 200)}...
           message: '行程已成功保存到"我的行程"中！',
         },
       };
-
     } catch (error: any) {
       console.error('❌ 确认保存失败:', error);
       return {
@@ -2808,10 +2954,9 @@ ${blogContent.substring(0, 200)}...
       }
 
       // tempData 可能是字符串或对象
-      const tempData = typeof session.tempData === 'string' 
-        ? JSON.parse(session.tempData) 
-        : session.tempData;
-        
+      const tempData =
+        typeof session.tempData === 'string' ? JSON.parse(session.tempData) : session.tempData;
+
       if (tempData.type !== 'blog_draft') {
         return {
           success: false,
@@ -2822,7 +2967,7 @@ ${blogContent.substring(0, 200)}...
       // 从临时数据中获取博客ID
       const blogPreviewData = tempData.data;
       const blogId = tempData.blogId || blogPreviewData.blogId;
-      
+
       console.log('   📝 发布博客，ID:', blogId);
 
       // 查询博客
@@ -2883,7 +3028,6 @@ ${blogContent.substring(0, 200)}...
 用户现在可以查看您的博客了！`,
         },
       };
-
     } catch (error: any) {
       console.error('❌ 确认发布博客失败:', error);
       return {
@@ -2904,9 +3048,8 @@ ${blogContent.substring(0, 200)}...
       // 获取会话临时数据，清理 draft 行程
       const session = await chatHistoryService.getSession(sessionId);
       if (session && session.tempData) {
-        const tempData = typeof session.tempData === 'string'
-          ? JSON.parse(session.tempData)
-          : session.tempData;
+        const tempData =
+          typeof session.tempData === 'string' ? JSON.parse(session.tempData) : session.tempData;
 
         if (tempData.tripId && tempData.type === 'trip_draft') {
           try {
@@ -2949,7 +3092,6 @@ ${blogContent.substring(0, 200)}...
           message: '已取消保存',
         },
       };
-
     } catch (error: any) {
       console.error('❌ 取消失败:', error);
       return {
@@ -3010,7 +3152,6 @@ ${blogContent.substring(0, 200)}...
 
       console.log('   ✅ 行程保存完成');
       return trip;
-
     } catch (error: any) {
       console.error('   ❌ 保存失败:', error);
       throw error;

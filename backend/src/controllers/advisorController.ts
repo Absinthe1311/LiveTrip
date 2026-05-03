@@ -2,8 +2,6 @@ import { Request, Response } from 'express';
 import { advisorService } from '../services/advisorService';
 import { chatHistoryService } from '../services/chatHistoryService';
 
-
-
 export const getSessionMessages = async (req: Request, res: Response) => {
   try {
     const { sessionId: sid } = req.params;
@@ -23,10 +21,10 @@ export const getSessionMessages = async (req: Request, res: Response) => {
 };
 export const getUserSessions = async (req: Request, res: Response) => {
   try {
-    const userId = req.headers['x-user-id'] as string || undefined;
+    const userId = (req.headers['x-user-id'] as string) || undefined;
     const modeQuery = req.query.mode;
     const mode = modeQuery
-      ? (Array.isArray(modeQuery) ? modeQuery[0] : modeQuery) as 'advisor' | 'agent' | undefined
+      ? ((Array.isArray(modeQuery) ? modeQuery[0] : modeQuery) as 'advisor' | 'agent' | undefined)
       : undefined;
 
     const sessions = await chatHistoryService.getUserSessions(userId, mode);
@@ -35,8 +33,6 @@ export const getUserSessions = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: err.message || '获取会话列表失败' });
   }
 };
-
-
 
 export const deleteSession = async (req: Request, res: Response) => {
   try {
@@ -51,7 +47,7 @@ export const deleteSession = async (req: Request, res: Response) => {
 
       const session = await prisma.chatSession.findUnique({
         where: { id: sessionId },
-        select: { id: true, userId: true, mode: true }
+        select: { id: true, userId: true, mode: true },
       });
       if (!session) {
         return res.status(404).json({ success: false, error: '会话不存在' });
@@ -71,7 +67,6 @@ export const deleteSession = async (req: Request, res: Response) => {
   }
 };
 
-
 export const chatWithAdvisor = async (req: Request, res: Response) => {
   try {
     const { question, planContext } = req.body;
@@ -79,11 +74,14 @@ export const chatWithAdvisor = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: '缺少必填字段：question（字符串）' });
     }
 
-    const userId = req.headers['x-user-id'] as string || undefined;
-    const response = await advisorService.answerQuestion({
-      question: question.trim(),
-      planContext
-    }, userId);
+    const userId = (req.headers['x-user-id'] as string) || undefined;
+    const response = await advisorService.answerQuestion(
+      {
+        question: question.trim(),
+        planContext,
+      },
+      userId
+    );
 
     res.json({ success: true, data: response });
   } catch (err: any) {

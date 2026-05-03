@@ -10,7 +10,12 @@ interface AvatarCropperProps {
   onCancel: () => void;
 }
 
-export default function AvatarCropper({ visible, imageFile, onConfirm, onCancel }: AvatarCropperProps) {
+export default function AvatarCropper({
+  visible,
+  imageFile,
+  onConfirm,
+  onCancel,
+}: AvatarCropperProps) {
   const [imageUrl, setImageUrl] = useState<string>('');
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -21,12 +26,12 @@ export default function AvatarCropper({ visible, imageFile, onConfirm, onCancel 
     if (imageFile) {
       const url = URL.createObjectURL(imageFile);
       setImageUrl(url);
-      
+
       // 重置状态
       setCrop({ x: 0, y: 0 });
       setZoom(1);
       setCroppedAreaPixels(null);
-      
+
       return () => URL.revokeObjectURL(url);
     }
   }, [imageFile]);
@@ -44,7 +49,7 @@ export default function AvatarCropper({ visible, imageFile, onConfirm, onCancel 
       // 创建图片元素
       const image = new window.Image();
       image.src = imageUrl;
-      
+
       await new Promise((resolve) => {
         image.onload = resolve;
       });
@@ -111,17 +116,11 @@ export default function AvatarCropper({ visible, imageFile, onConfirm, onCancel 
           />
         )}
       </div>
-      
+
       {/* 缩放控制 */}
       <div className="mt-4 px-4">
         <div className="text-sm text-gray-600 mb-2">缩放</div>
-        <Slider
-          value={zoom}
-          min={1}
-          max={3}
-          step={0.1}
-          onChange={setZoom}
-        />
+        <Slider value={zoom} min={1} max={3} step={0.1} onChange={setZoom} />
       </div>
     </Modal>
   );

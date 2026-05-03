@@ -4,7 +4,7 @@ import {
   getHotelRecommendations,
   getRestaurantRecommendations,
   searchCustomRestaurant,
-  searchCustomHotel
+  searchCustomHotel,
 } from '../controllers/recommendationController';
 
 const router = Router();

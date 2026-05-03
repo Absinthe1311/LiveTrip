@@ -9,16 +9,16 @@ export interface Restaurant {
   address: string;
   location: string;
   tel?: string;
-  type: string;           // 菜系/类型
-  rating?: number;        // 高德评分
-  distance: number;       // 距中心点距离（m）
+  type: string; // 菜系/类型
+  rating?: number; // 高德评分
+  distance: number; // 距中心点距离（m）
 }
 
 // 每天餐厅推荐结果
 export interface DayRestaurantRecommendation {
   day: number;
   date: string;
-  centerSpot: string;     // 中心点景点名称
+  centerSpot: string; // 中心点景点名称
   centerLocation: string; // 中心点坐标
   restaurants: Restaurant[];
 }
@@ -78,7 +78,7 @@ class RestaurantRecommender {
 
         if (cachedRestaurants && cachedRestaurants.length > 0) {
           console.log(`✅ [数据库] 第${dayData.day}天找到 ${cachedRestaurants.length} 个餐厅`);
-          restaurants = cachedRestaurants.map(r => ({
+          restaurants = cachedRestaurants.map((r) => ({
             name: r.name,
             location: r.location,
             address: r.address,
@@ -115,7 +115,7 @@ class RestaurantRecommender {
           console.log(`✅ [高德API] 第${dayData.day}天找到 ${restaurants.length} 个餐厅`);
 
           // 保存到数据库
-          const restaurantCaches: RestaurantCache[] = restaurants.map(r => ({
+          const restaurantCaches: RestaurantCache[] = restaurants.map((r) => ({
             name: r.name,
             address: r.address,
             location: r.location,
@@ -130,14 +130,16 @@ class RestaurantRecommender {
         }
 
         // 处理餐厅数据
-        const processedRestaurants = restaurants.map(r => ({
+        const processedRestaurants = restaurants.map((r) => ({
           name: r.name,
           address: r.address,
           location: r.location,
           tel: r.tel,
           type: this.extractCuisineType(r.type),
           rating: r.rating,
-          distance: r.distance ? parseInt(r.distance) : this.calculateDistanceFromLocation(r.location, centerSpot.location),
+          distance: r.distance
+            ? parseInt(r.distance)
+            : this.calculateDistanceFromLocation(r.location, centerSpot.location),
         }));
 
         // 过滤不合适的餐厅（快餐、学校餐厅等）
@@ -151,10 +153,10 @@ class RestaurantRecommender {
         if (filteredRestaurants.length < 3) {
           console.log(`⚠️  过滤后餐厅不足3个，放宽过滤条件`);
           // 重新过滤，仅排除明显不合适的（学校、医院等）
-          const relaxedFiltered = processedRestaurants.filter(r => {
+          const relaxedFiltered = processedRestaurants.filter((r) => {
             const nameAndType = `${r.name} ${r.type} ${r.address}`;
             const severeExcluded = ['学校', '医院', '诊所', '药店', '便利店', '停车场', '加油站'];
-            return !severeExcluded.some(keyword => nameAndType.includes(keyword));
+            return !severeExcluded.some((keyword) => nameAndType.includes(keyword));
           });
           finalRestaurants = relaxedFiltered;
         }
@@ -209,10 +211,33 @@ class RestaurantRecommender {
 
     // 常见菜系关键词
     const cuisineKeywords = [
-      '中餐', '西餐', '日料', '韩料', '火锅', '烧烤', '海鲜',
-      '川菜', '湘菜', '粤菜', '鲁菜', '苏菜', '浙菜', '闽菜', '徽菜',
-      '快餐', '小吃', '面食', '饺子', '披萨', '汉堡', '咖啡', '茶餐厅',
-      '自助餐', '料理', '菜', '餐'
+      '中餐',
+      '西餐',
+      '日料',
+      '韩料',
+      '火锅',
+      '烧烤',
+      '海鲜',
+      '川菜',
+      '湘菜',
+      '粤菜',
+      '鲁菜',
+      '苏菜',
+      '浙菜',
+      '闽菜',
+      '徽菜',
+      '快餐',
+      '小吃',
+      '面食',
+      '饺子',
+      '披萨',
+      '汉堡',
+      '咖啡',
+      '茶餐厅',
+      '自助餐',
+      '料理',
+      '菜',
+      '餐',
     ];
 
     // 分割type字段（高德type格式如："餐饮服务;中餐厅;川菜"）
@@ -238,29 +263,102 @@ class RestaurantRecommender {
   private filterInappropriateRestaurants(restaurants: Restaurant[]): Restaurant[] {
     // 不合适的餐厅类型关键词（排除快餐、学校餐厅等）
     const excludedKeywords = [
-      '快餐', '小吃店', '学校', '食堂', '外卖', '便利店',
-      '咖啡厅', '咖啡店', '奶茶', '甜品', '酒吧', '夜总会',
-      'KTV', '网吧', '棋牌', '足浴', '按摩', 'SPA',
-      '美容', '美发', '理发', '洗衣', '照相', '复印',
-      '快递', '物流', '停车场', '加油站', '汽修', '洗车',
-      '药店', '医院', '诊所', '宠物', '花店', '水果',
-      '超市', '商场', '市场', '摊位', '大排档', '路边摊',
+      '快餐',
+      '小吃店',
+      '学校',
+      '食堂',
+      '外卖',
+      '便利店',
+      '咖啡厅',
+      '咖啡店',
+      '奶茶',
+      '甜品',
+      '酒吧',
+      '夜总会',
+      'KTV',
+      '网吧',
+      '棋牌',
+      '足浴',
+      '按摩',
+      'SPA',
+      '美容',
+      '美发',
+      '理发',
+      '洗衣',
+      '照相',
+      '复印',
+      '快递',
+      '物流',
+      '停车场',
+      '加油站',
+      '汽修',
+      '洗车',
+      '药店',
+      '医院',
+      '诊所',
+      '宠物',
+      '花店',
+      '水果',
+      '超市',
+      '商场',
+      '市场',
+      '摊位',
+      '大排档',
+      '路边摊',
       // 连锁快餐品牌
-      '肯德基', 'KFC', '麦当劳', "McDonald's", '必胜客', 'Pizza Hut',
-      '德克士', 'Dicos', '华莱士', '汉堡王', 'Burger King'
+      '肯德基',
+      'KFC',
+      '麦当劳',
+      "McDonald's",
+      '必胜客',
+      'Pizza Hut',
+      '德克士',
+      'Dicos',
+      '华莱士',
+      '汉堡王',
+      'Burger King',
     ];
 
     // 优先保留的餐厅类型关键词
     const preferredKeywords = [
-      '中餐厅', '西餐厅', '餐厅', '饭店', '酒楼', '酒家',
-      '日料', '日式', '韩料', '韩式', '料理',
-      '火锅', '烧烤', '烤肉', '海鲜', '自助餐',
-      '川菜', '湘菜', '粤菜', '鲁菜', '苏菜', '浙菜', '闽菜', '徽菜',
-      '私房菜', '特色菜', '地方菜', '家常菜', '土菜馆',
-      '茶餐厅', '港式', '台湾菜', '东南亚', '泰国菜', '印度菜'
+      '中餐厅',
+      '西餐厅',
+      '餐厅',
+      '饭店',
+      '酒楼',
+      '酒家',
+      '日料',
+      '日式',
+      '韩料',
+      '韩式',
+      '料理',
+      '火锅',
+      '烧烤',
+      '烤肉',
+      '海鲜',
+      '自助餐',
+      '川菜',
+      '湘菜',
+      '粤菜',
+      '鲁菜',
+      '苏菜',
+      '浙菜',
+      '闽菜',
+      '徽菜',
+      '私房菜',
+      '特色菜',
+      '地方菜',
+      '家常菜',
+      '土菜馆',
+      '茶餐厅',
+      '港式',
+      '台湾菜',
+      '东南亚',
+      '泰国菜',
+      '印度菜',
     ];
 
-    return restaurants.filter(restaurant => {
+    return restaurants.filter((restaurant) => {
       const nameAndType = `${restaurant.name} ${restaurant.type} ${restaurant.address}`;
 
       // 检查是否包含排除关键词

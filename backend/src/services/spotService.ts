@@ -58,8 +58,13 @@ class SpotService {
       console.log(`📡 数据库中没有 ${city} 的景点，调用高德API...`);
 
       // 2. 调用高德API
-      const amapAttractions = await amapServiceInstance.getAttractions(city, '景点', undefined, limit);
-      
+      const amapAttractions = await amapServiceInstance.getAttractions(
+        city,
+        '景点',
+        undefined,
+        limit
+      );
+
       if (amapAttractions.length === 0) {
         console.warn(`⚠️  高德API没有返回 ${city} 的景点数据`);
         return [];
@@ -106,7 +111,7 @@ class SpotService {
       },
     });
 
-    return spots.map(spot => ({
+    return spots.map((spot) => ({
       id: spot.id,
       amapId: spot.amapId,
       name: spot.name,
@@ -132,7 +137,10 @@ class SpotService {
    * @param city 城市名称
    * @returns 存储的景点列表
    */
-  private async saveSpotsToDatabase(amapAttractions: AmapAttraction[], city: string): Promise<Spot[]> {
+  private async saveSpotsToDatabase(
+    amapAttractions: AmapAttraction[],
+    city: string
+  ): Promise<Spot[]> {
     const savedSpots: Spot[] = [];
 
     for (const attraction of amapAttractions) {
@@ -273,7 +281,7 @@ class SpotService {
 
     // 计算温度
     const baseTemp = this.getBaseTemperature(spot.city, now);
-    const timeOfDayVariation = Math.sin((hour - 6) * Math.PI / 12) * 5;
+    const timeOfDayVariation = Math.sin(((hour - 6) * Math.PI) / 12) * 5;
     let temperature = baseTemp + timeOfDayVariation + (Math.random() - 0.5) * 4;
     temperature = Math.round(temperature * 10) / 10;
 
@@ -289,7 +297,7 @@ class SpotService {
       crowdLevel: Math.round(crowdLevel),
       temperature,
       rainProbability: Math.round(rainProbability),
-      isOpen
+      isOpen,
     };
   }
 
@@ -298,17 +306,17 @@ class SpotService {
    */
   private getBaseCrowdByType(category: string | null): number {
     const crowdMap: Record<string, number> = {
-      '博物馆': 40,
-      '公园': 60,
-      '风景区': 70,
-      '广场': 50,
-      '寺庙': 35,
-      '古镇': 55,
-      '商业街': 65,
-      '主题乐园': 80,
-      '动物园': 75,
-      '水族馆': 60,
-      '美术馆': 30,
+      博物馆: 40,
+      公园: 60,
+      风景区: 70,
+      广场: 50,
+      寺庙: 35,
+      古镇: 55,
+      商业街: 65,
+      主题乐园: 80,
+      动物园: 75,
+      水族馆: 60,
+      美术馆: 30,
     };
     return crowdMap[category || ''] || 50;
   }
@@ -353,17 +361,17 @@ class SpotService {
   private getBaseTemperature(city: string, date: Date): number {
     const month = date.getMonth() + 1;
     const cityBaseTemp: Record<string, number> = {
-      '北京': 12,
-      '上海': 16,
-      '广州': 22,
-      '深圳': 23,
-      '成都': 16,
-      '杭州': 17,
-      '西安': 14,
-      '重庆': 18
+      北京: 12,
+      上海: 16,
+      广州: 22,
+      深圳: 23,
+      成都: 16,
+      杭州: 17,
+      西安: 14,
+      重庆: 18,
     };
     const base = cityBaseTemp[city] || 15;
-    const seasonalAdjustment = Math.sin((month - 1) * Math.PI / 6) * 15;
+    const seasonalAdjustment = Math.sin(((month - 1) * Math.PI) / 6) * 15;
     return base + seasonalAdjustment;
   }
 
@@ -373,18 +381,48 @@ class SpotService {
   private getBaseRainProbability(city: string, date: Date): number {
     const month = date.getMonth() + 1;
     const cityRainProb: Record<string, Record<number, number>> = {
-      '北京': {
-        1: 5, 2: 8, 3: 12, 4: 18, 5: 25, 6: 35,
-        7: 45, 8: 40, 9: 30, 10: 20, 11: 10, 12: 5
+      北京: {
+        1: 5,
+        2: 8,
+        3: 12,
+        4: 18,
+        5: 25,
+        6: 35,
+        7: 45,
+        8: 40,
+        9: 30,
+        10: 20,
+        11: 10,
+        12: 5,
       },
-      '上海': {
-        1: 15, 2: 18, 3: 20, 4: 22, 5: 25, 6: 35,
-        7: 40, 8: 38, 9: 30, 10: 20, 11: 15, 12: 12
+      上海: {
+        1: 15,
+        2: 18,
+        3: 20,
+        4: 22,
+        5: 25,
+        6: 35,
+        7: 40,
+        8: 38,
+        9: 30,
+        10: 20,
+        11: 15,
+        12: 12,
       },
-      '广州': {
-        1: 20, 2: 25, 3: 30, 4: 35, 5: 40, 6: 50,
-        7: 55, 8: 50, 9: 40, 10: 30, 11: 20, 12: 15
-      }
+      广州: {
+        1: 20,
+        2: 25,
+        3: 30,
+        4: 35,
+        5: 40,
+        6: 50,
+        7: 55,
+        8: 50,
+        9: 40,
+        10: 30,
+        11: 20,
+        12: 15,
+      },
     };
     return cityRainProb[city]?.[month] || 20;
   }
@@ -433,7 +471,7 @@ class SpotService {
         console.log(`✅ 找到 ${existingAlternatives.length} 个已存储的备选景点`);
 
         // 获取备选景点的详细信息（包含图片）
-        const alternativeIds = existingAlternatives.map(a => a.alternativeSpotId);
+        const alternativeIds = existingAlternatives.map((a) => a.alternativeSpotId);
         const alternatives = await prisma.spot.findMany({
           where: {
             id: {
@@ -453,14 +491,16 @@ class SpotService {
         const iotDataMap = await this.getIoTDataMap(alternativeIds);
 
         // 动态过滤：排除当前行程中的其他景点
-        const filteredAlternatives = alternatives.filter(spot => 
-          !excludeSpotIds.includes(spot.id)
+        const filteredAlternatives = alternatives.filter(
+          (spot) => !excludeSpotIds.includes(spot.id)
         );
 
-        console.log(`   动态过滤后: ${filteredAlternatives.length} 个备选景点（排除了 ${alternatives.length - filteredAlternatives.length} 个行程中的景点）`);
+        console.log(
+          `   动态过滤后: ${filteredAlternatives.length} 个备选景点（排除了 ${alternatives.length - filteredAlternatives.length} 个行程中的景点）`
+        );
 
         // 组装返回数据
-        return filteredAlternatives.map(spot => ({
+        return filteredAlternatives.map((spot) => ({
           id: spot.id,
           amapId: spot.amapId,
           name: spot.name,
@@ -497,7 +537,7 @@ class SpotService {
       console.log(`✅ 生成了 ${newAlternatives.length} 个备选景点`);
 
       // 4. 获取备选景点的详细信息（包含图片）
-      const alternativeIds = newAlternatives.map(a => a.alternativeSpotId);
+      const alternativeIds = newAlternatives.map((a) => a.alternativeSpotId);
       const alternatives = await prisma.spot.findMany({
         where: {
           id: {
@@ -513,7 +553,7 @@ class SpotService {
         },
       });
 
-      return alternatives.map(spot => ({
+      return alternatives.map((spot) => ({
         id: spot.id,
         amapId: spot.amapId,
         name: spot.name,
@@ -558,8 +598,8 @@ class SpotService {
       }
 
       // 2. 排除原景点和需要排除的景点（行程中的景点）
-      const candidates = allSpots.filter(s => 
-        s.id !== originalSpotId && !excludeSpotIds.includes(s.id)
+      const candidates = allSpots.filter(
+        (s) => s.id !== originalSpotId && !excludeSpotIds.includes(s.id)
       );
 
       if (candidates.length === 0) {
@@ -568,32 +608,36 @@ class SpotService {
       }
 
       // 3. 获取IoT数据
-      const spotIds = candidates.map(s => s.id);
+      const spotIds = candidates.map((s) => s.id);
       const iotDataMap = await this.getIoTDataMap(spotIds);
 
       // 4. 评分所有候选景点（不筛选，保留所有）
-      const scoredSpots = candidates.map(spot => {
+      const scoredSpots = candidates.map((spot) => {
         const score = this.calculateScore(spot, iotDataMap.get(spot.id));
         const iotData = iotDataMap.get(spot.id);
-        return { 
-          ...spot, 
+        return {
+          ...spot,
           score,
           iotData,
-          healthLevel: iotData ? this.calculateHealthLevel(iotData) : 'info'
+          healthLevel: iotData ? this.calculateHealthLevel(iotData) : 'info',
         };
       });
 
       // 5. 获取已作为备选的景点ID（避免重复推荐）
-      const usedAlternativeIds = await this.getUsedAlternativeIds(city, originalSpotId, excludeSpotIds);
+      const usedAlternativeIds = await this.getUsedAlternativeIds(
+        city,
+        originalSpotId,
+        excludeSpotIds
+      );
 
       // 6. 优先推荐健康度高的景点
-      const healthySpots = scoredSpots.filter(spot => 
-        spot.healthLevel === 'good' || spot.healthLevel === 'info'
+      const healthySpots = scoredSpots.filter(
+        (spot) => spot.healthLevel === 'good' || spot.healthLevel === 'info'
       );
 
       // 7. 从健康景点中排除已作为备选的景点
-      const availableHealthySpots = healthySpots.filter(spot => 
-        !usedAlternativeIds.includes(spot.id)
+      const availableHealthySpots = healthySpots.filter(
+        (spot) => !usedAlternativeIds.includes(spot.id)
       );
 
       // 8. 选择3-5个备选景点（增加备选数量，提升用户体验）
@@ -609,8 +653,8 @@ class SpotService {
         selectedAlternatives = this.shuffleArray(topSpots).slice(0, numAlternatives);
       } else if (availableHealthySpots.length > 0) {
         // 健康景点不足，混合健康景点和其他景点
-        const allAvailableSpots = scoredSpots.filter(spot =>
-          !usedAlternativeIds.includes(spot.id)
+        const allAvailableSpots = scoredSpots.filter(
+          (spot) => !usedAlternativeIds.includes(spot.id)
         );
 
         const topSpots = allAvailableSpots
@@ -620,12 +664,14 @@ class SpotService {
         // 优先选择健康景点，然后补充其他景点
         selectedAlternatives = [
           ...availableHealthySpots.sort((a: any, b: any) => b.score - a.score).slice(0, 2),
-          ...topSpots.filter(s => !availableHealthySpots.includes(s)).slice(0, numAlternatives - availableHealthySpots.length)
+          ...topSpots
+            .filter((s) => !availableHealthySpots.includes(s))
+            .slice(0, numAlternatives - availableHealthySpots.length),
         ];
       } else {
         // 没有健康景点，使用所有候选景点
-        const allAvailableSpots = scoredSpots.filter(spot =>
-          !usedAlternativeIds.includes(spot.id)
+        const allAvailableSpots = scoredSpots.filter(
+          (spot) => !usedAlternativeIds.includes(spot.id)
         );
 
         if (allAvailableSpots.length > 0) {
@@ -636,9 +682,7 @@ class SpotService {
           selectedAlternatives = this.shuffleArray(topSpots).slice(0, numAlternatives);
         } else {
           // 兜底机制：推荐评分最高的景点（即使已被推荐）
-          const topSpots = scoredSpots
-            .sort((a, b) => b.score - a.score)
-            .slice(0, numAlternatives);
+          const topSpots = scoredSpots.sort((a, b) => b.score - a.score).slice(0, numAlternatives);
 
           selectedAlternatives = topSpots;
           console.log(`⚠️  使用兜底机制，推荐评分最高的景点`);
@@ -674,15 +718,12 @@ class SpotService {
     const { rainProbability, crowdLevel, isOpen } = iotData;
 
     // 严重警告
-    if (rainProbability > 80 ||
-        crowdLevel > 90 ||
-        !isOpen) {
+    if (rainProbability > 80 || crowdLevel > 90 || !isOpen) {
       return 'severe';
     }
 
     // 注意提示
-    if (rainProbability > 50 ||
-        crowdLevel > 70) {
+    if (rainProbability > 50 || crowdLevel > 70) {
       return 'warning';
     }
 
@@ -718,7 +759,7 @@ class SpotService {
       });
 
       // 提取所有已作为备选的景点ID
-      const usedIds = allAlternatives.map(a => a.alternativeSpotId);
+      const usedIds = allAlternatives.map((a) => a.alternativeSpotId);
 
       // 查询excludeOriginalSpotId的备选关系（排除这个景点自己的备选）
       const excludeAlternatives = await prisma.spotAlternative.findMany({
@@ -730,14 +771,12 @@ class SpotService {
         },
       });
 
-      const excludeIds = excludeAlternatives.map(a => a.alternativeSpotId);
+      const excludeIds = excludeAlternatives.map((a) => a.alternativeSpotId);
 
       // 返回已作为备选的景点ID，但排除：
       // 1. excludeOriginalSpotId自己的备选
       // 2. excludeSpotIds中的景点（行程中的景点）
-      return usedIds.filter(id => 
-        !excludeIds.includes(id) && !excludeSpotIds.includes(id)
-      );
+      return usedIds.filter((id) => !excludeIds.includes(id) && !excludeSpotIds.includes(id));
     } catch (error: any) {
       console.error('❌ 获取已使用的备选ID失败:', error);
       return [];
@@ -750,7 +789,11 @@ class SpotService {
    * @param newSpotId 新景点ID
    * @param city 城市名称
    */
-  async updateAlternativeRelations(oldSpotId: string, newSpotId: string, city: string): Promise<void> {
+  async updateAlternativeRelations(
+    oldSpotId: string,
+    newSpotId: string,
+    city: string
+  ): Promise<void> {
     try {
       console.log(`🔄 更新备选关系: ${oldSpotId} -> ${newSpotId}`);
 
@@ -800,7 +843,7 @@ class SpotService {
 
       // 4. 为newSpotId创建备选关系（包含oldSpotId）
       // 首先获取oldSpotId的备选景点
-      const oldAlternativeIds = oldAlternatives.map(a => a.alternativeSpotId);
+      const oldAlternativeIds = oldAlternatives.map((a) => a.alternativeSpotId);
 
       // 为newSpotId创建备选关系
       // 第一个备选是oldSpotId（被替换的景点）
@@ -885,7 +928,7 @@ class SpotService {
     });
 
     const map = new Map<string, SpotIoTData>();
-    iotDataList.forEach(data => {
+    iotDataList.forEach((data) => {
       map.set(data.spotId, {
         id: data.id,
         spotId: data.spotId,
@@ -954,7 +997,7 @@ class SpotService {
    */
   private isOutdoorAttraction(type: string): boolean {
     const outdoorTypes = ['公园', '风景区', '广场', '街道', '古镇', '遗迹'];
-    return outdoorTypes.some(t => type.includes(t));
+    return outdoorTypes.some((t) => type.includes(t));
   }
 
   /**
@@ -1108,11 +1151,7 @@ class SpotService {
           source: 'admin',
           status: 'approved',
         },
-        orderBy: [
-          { isPrimary: 'desc' },
-          { priority: 'desc' },
-          { createdAt: 'desc' },
-        ],
+        orderBy: [{ isPrimary: 'desc' }, { priority: 'desc' }, { createdAt: 'desc' }],
         select: { url: true },
       });
 
@@ -1127,11 +1166,7 @@ class SpotService {
           source: 'user',
           status: 'approved',
         },
-        orderBy: [
-          { isPrimary: 'desc' },
-          { priority: 'desc' },
-          { createdAt: 'desc' },
-        ],
+        orderBy: [{ isPrimary: 'desc' }, { priority: 'desc' }, { createdAt: 'desc' }],
         select: { url: true },
       });
 

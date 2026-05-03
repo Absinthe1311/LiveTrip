@@ -24,7 +24,7 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
   const [mapError, setMapError] = useState<string | null>(null);
 
   // 使用useMemo缓存cities的JSON字符串，用于比较
-  const citiesKey = useMemo(() => JSON.stringify(cities.map(c => c.name)), [cities]);
+  const citiesKey = useMemo(() => JSON.stringify(cities.map((c) => c.name)), [cities]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -34,9 +34,9 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
         // 如果地图已经存在，只更新标记
         if (mapInstanceRef.current) {
           console.log('更新地图标记，不重新初始化地图');
-          
+
           // 清除旧标记
-          markersRef.current.forEach(marker => {
+          markersRef.current.forEach((marker) => {
             mapInstanceRef.current.remove(marker);
           });
           markersRef.current = [];
@@ -48,7 +48,7 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
 
           // 添加新标记
           const AMap = (window as any).AMap;
-          cities.forEach(city => {
+          cities.forEach((city) => {
             if (!city.location) return;
 
             const [lng, lat] = city.location.split(',').map(Number);
@@ -113,7 +113,7 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
         }
 
         console.log('首次初始化地图');
-        
+
         // 加载高德地图
         const AMap = await AMapLoader.load({
           key: import.meta.env.VITE_AMAP_JS_KEY,
@@ -152,7 +152,7 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
         }
 
         // 添加城市标记
-        cities.forEach(city => {
+        cities.forEach((city) => {
           if (!city.location) return;
 
           const [lng, lat] = city.location.split(',').map(Number);
@@ -248,7 +248,7 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
           </div>
         ) : (
           <div className="space-y-2">
-            {cities.map(city => (
+            {cities.map((city) => (
               <div
                 key={city.name}
                 className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
@@ -269,9 +269,7 @@ const MapWidget: React.FC<MapWidgetProps> = ({ cities, onCityClick }) => {
       <div className="flex items-center gap-2 mb-4">
         <MapPin className="w-5 h-5 text-amber-400" />
         <h3 className="text-lg font-semibold text-white">我的足迹</h3>
-        <span className="text-white/60 text-sm ml-auto">
-          {cities.length} 个城市
-        </span>
+        <span className="text-white/60 text-sm ml-auto">{cities.length} 个城市</span>
       </div>
 
       {!mapLoaded && (

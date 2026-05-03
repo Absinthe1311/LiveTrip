@@ -11,7 +11,17 @@ const prisma = getPrismaClient();
  */
 export const syncSpot = async (req: Request, res: Response) => {
   try {
-    const { name, city, category, ticketPrice, openTime, rating, description, isOutdoor, location } = req.body;
+    const {
+      name,
+      city,
+      category,
+      ticketPrice,
+      openTime,
+      rating,
+      description,
+      isOutdoor,
+      location,
+    } = req.body;
 
     if (!name || !city) {
       return res.status(400).json({

@@ -66,9 +66,7 @@ class UserProfileService {
       });
 
       // 提取访问过的目的地
-      const visitedDestinations = Array.from(
-        new Set(trips.map((trip: any) => trip.destination))
-      );
+      const visitedDestinations = Array.from(new Set(trips.map((trip: any) => trip.destination)));
 
       // 提取用户偏好（暂时返回空数组）
       const preferences: string[] = [];
@@ -77,12 +75,12 @@ class UserProfileService {
       const budgetRange = this.calculateBudgetRange(trips);
 
       // 获取最近的行程
-      const recentTrip = trips.find(trip => trip.status === 'completed') || trips[0];
+      const recentTrip = trips.find((trip) => trip.status === 'completed') || trips[0];
 
       // 获取未完成的行程
       const pendingTrips = trips
-        .filter(trip => trip.status !== 'completed')
-        .map(trip => ({
+        .filter((trip) => trip.status !== 'completed')
+        .map((trip) => ({
           destination: trip.destination,
           startDate: trip.startDate.toISOString().split('T')[0],
           endDate: trip.endDate.toISOString().split('T')[0],
@@ -90,20 +88,26 @@ class UserProfileService {
         }));
 
       const tripCount = trips.length;
-      const completedTripCount = trips.filter(trip => trip.status === 'completed').length;
+      const completedTripCount = trips.filter((trip) => trip.status === 'completed').length;
 
       const profile: UserProfile = {
         userId: targetUserId,
         visitedDestinations,
         preferences,
         averageBudgetRange: budgetRange,
-        recentTrip: recentTrip ? {
-          destination: recentTrip.destination,
-          startDate: recentTrip.startDate.toISOString().split('T')[0],
-          endDate: recentTrip.endDate.toISOString().split('T')[0],
-          days: Math.ceil((recentTrip.endDate.getTime() - recentTrip.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1,
-          status: recentTrip.status,
-        } : undefined,
+        recentTrip: recentTrip
+          ? {
+              destination: recentTrip.destination,
+              startDate: recentTrip.startDate.toISOString().split('T')[0],
+              endDate: recentTrip.endDate.toISOString().split('T')[0],
+              days:
+                Math.ceil(
+                  (recentTrip.endDate.getTime() - recentTrip.startDate.getTime()) /
+                    (1000 * 60 * 60 * 24)
+                ) + 1,
+              status: recentTrip.status,
+            }
+          : undefined,
         pendingTrips,
         tripCount,
         completedTripCount,
@@ -128,10 +132,7 @@ class UserProfileService {
       // 查询该城市的热门景点
       const topSpots = await prisma.spot.findMany({
         where: { city },
-        orderBy: [
-          { isHot: 'desc' },
-          { rating: 'desc' },
-        ],
+        orderBy: [{ isHot: 'desc' }, { rating: 'desc' }],
         take: 10,
         select: {
           name: true,
@@ -145,9 +146,12 @@ class UserProfileService {
       }
 
       // 构建上下文信息
-      const context = `【${city}热门景点】\n${topSpots.map((spot, index) =>
-        `${index + 1}. ${spot.name} (${spot.category || '景点'}, 评分: ${spot.rating || 'N/A'})`
-      ).join('\n')}`;
+      const context = `【${city}热门景点】\n${topSpots
+        .map(
+          (spot, index) =>
+            `${index + 1}. ${spot.name} (${spot.category || '景点'}, 评分: ${spot.rating || 'N/A'})`
+        )
+        .join('\n')}`;
 
       console.log(`✅ 目的地上下文获取完成，${topSpots.length} 个热门景点`);
 
@@ -183,11 +187,13 @@ class UserProfileService {
     }
 
     if (profile.recentTrip) {
-      lines.push(`- 最近一次行程：${profile.recentTrip.destination} ${profile.recentTrip.days}日游（${profile.recentTrip.status === 'completed' ? '已完成' : '进行中'}）`);
+      lines.push(
+        `- 最近一次行程：${profile.recentTrip.destination} ${profile.recentTrip.days}日游（${profile.recentTrip.status === 'completed' ? '已完成' : '进行中'}）`
+      );
     }
 
     if (profile.pendingTrips.length > 0) {
-      lines.push(`- 未完成的行程：${profile.pendingTrips.map(t => t.destination).join(', ')}`);
+      lines.push(`- 未完成的行程：${profile.pendingTrips.map((t) => t.destination).join(', ')}`);
     }
 
     lines.push(`- 总行程数：${profile.tripCount}（已完成：${profile.completedTripCount}）`);
@@ -223,8 +229,8 @@ class UserProfileService {
    */
   private calculateBudgetRange(trips: any[]): string {
     const budgets = trips
-      .map(trip => trip.actualBudget || trip.totalBudget)
-      .filter(budget => budget > 0);
+      .map((trip) => trip.actualBudget || trip.totalBudget)
+      .filter((budget) => budget > 0);
 
     if (budgets.length === 0) {
       return '未知';

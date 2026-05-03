@@ -7,7 +7,23 @@
 // 3. 修复TypeScript编译错误：Module has no exported member 'TotalTravelCard'
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Home as HomeIcon, Plus, Sparkles, Globe, Heart, PenLine, List, MapPin, Users, Search, Bell, Settings, Sun, RefreshCw } from "lucide-react";
+import {
+  Menu,
+  Home as HomeIcon,
+  Plus,
+  Sparkles,
+  Globe,
+  Heart,
+  PenLine,
+  List,
+  MapPin,
+  Users,
+  Search,
+  Bell,
+  Settings,
+  Sun,
+  RefreshCw,
+} from 'lucide-react';
 import {
   GlassCard,
   PackingList,
@@ -16,7 +32,7 @@ import {
   CalendarCard,
   UpcomingTourCard,
   MapWidget,
-  SearchBar
+  SearchBar,
 } from '../components/home';
 import { API_BASE_URL } from '../config/api';
 import LandingHeroSection from '../components/common/LandingHeroSection';
@@ -69,7 +85,7 @@ function WorkspaceView() {
     console.log('footprintCities:', footprintCities);
     console.log('========================');
   }, [destinationCities, weatherData, upcomingTrips, footprintCities]);
-  
+
   // 背景图更换功能状态
   const [bgImage, setBgImage] = useState<string>('/homepage-bg.jpg');
 
@@ -85,7 +101,7 @@ function WorkspaceView() {
     try {
       const response = await fetch(`${API_BASE_URL}/users/profile`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
       const result = await response.json();
@@ -131,9 +147,7 @@ function WorkspaceView() {
   return (
     <div className="min-h-screen relative">
       {/* 全屏背景 - 使用裁剪后的图片，完美铺满屏幕 */}
-      <div
-        className="fixed inset-0"
-      >
+      <div className="fixed inset-0">
         <img
           src={bgImage}
           alt="Background"
@@ -154,17 +168,10 @@ function WorkspaceView() {
       {/* 主容器 */}
       <div className="relative min-h-screen flex">
         {/* 全局侧边栏 */}
-        <GlobalSidebar
-          isOpen={sidebarOpen}
-          onToggle={() => setSidebarOpen(!sidebarOpen)}
-        />
+        <GlobalSidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
         {/* 中间核心区 (60%) - 包含用户信息和搜索 */}
-        <main
-          className={`flex-1 p-6 transition-all duration-300 ${
-            sidebarOpen ? 'ml-[15%]' : ''
-          }`}
-        >
+        <main className={`flex-1 p-6 transition-all duration-300 ${sidebarOpen ? 'ml-[15%]' : ''}`}>
           <div className="max-w-full h-full flex flex-col">
             {/* 顶部栏 - 搜索框（使用SearchBar组件的功能） */}
             <div className="mb-6 relative z-50">
@@ -187,7 +194,9 @@ function WorkspaceView() {
                       className="p-2 rounded-lg hover:bg-white/10 transition-colors"
                       title="刷新数据"
                     >
-                      <RefreshCw className={`h-5 w-5 text-white/80 ${loading ? 'animate-spin' : ''}`} />
+                      <RefreshCw
+                        className={`h-5 w-5 text-white/80 ${loading ? 'animate-spin' : ''}`}
+                      />
                     </button>
 
                     {/* 通知按钮 */}
@@ -215,7 +224,7 @@ function WorkspaceView() {
             <div className="grid grid-cols-3 gap-6 mb-4">
               {/* Packing List 卡片 - 缩短宽度 */}
               <div className="col-span-1">
-                <PackingList 
+                <PackingList
                   packingItems={packingItems}
                   onItemToggle={togglePacked}
                   onPackingClick={() => currentTripId && navigate(`/trip/${currentTripId}`)}
@@ -235,15 +244,39 @@ function WorkspaceView() {
               />
 
               {/* Budget 卡片 - 缩短高度 */}
-              <BudgetCard 
+              <BudgetCard
                 title="行程预算"
                 totalBudget={budgetData?.total}
-                budgetItems={budgetData ? [
-                  { category: '交通', amount: budgetData.transportation, percentage: (budgetData.transportation / budgetData.total) * 100 || 0, color: 'bg-red-500' },
-                  { category: '住宿', amount: budgetData.accommodation, percentage: (budgetData.accommodation / budgetData.total) * 100 || 0, color: 'bg-yellow-500' },
-                  { category: '餐饮', amount: budgetData.food, percentage: (budgetData.food / budgetData.total) * 100 || 0, color: 'bg-blue-500' },
-                  { category: '门票', amount: budgetData.tickets, percentage: (budgetData.tickets / budgetData.total) * 100 || 0, color: 'bg-green-500' },
-                ] : undefined}
+                budgetItems={
+                  budgetData
+                    ? [
+                        {
+                          category: '交通',
+                          amount: budgetData.transportation,
+                          percentage: (budgetData.transportation / budgetData.total) * 100 || 0,
+                          color: 'bg-red-500',
+                        },
+                        {
+                          category: '住宿',
+                          amount: budgetData.accommodation,
+                          percentage: (budgetData.accommodation / budgetData.total) * 100 || 0,
+                          color: 'bg-yellow-500',
+                        },
+                        {
+                          category: '餐饮',
+                          amount: budgetData.food,
+                          percentage: (budgetData.food / budgetData.total) * 100 || 0,
+                          color: 'bg-blue-500',
+                        },
+                        {
+                          category: '门票',
+                          amount: budgetData.tickets,
+                          percentage: (budgetData.tickets / budgetData.total) * 100 || 0,
+                          color: 'bg-green-500',
+                        },
+                      ]
+                    : undefined
+                }
               />
             </div>
 
@@ -251,12 +284,15 @@ function WorkspaceView() {
             <div className="flex-1">
               <MapWidget
                 cities={footprintCities}
-                onCityClick={useCallback((city: any) => {
-                  // 点击城市标记，跳转到该城市的第一个行程
-                  if (city.tripIds.length > 0) {
-                    navigate(`/trip/${city.tripIds[0]}`);
-                  }
-                }, [navigate])}
+                onCityClick={useCallback(
+                  (city: any) => {
+                    // 点击城市标记，跳转到该城市的第一个行程
+                    if (city.tripIds.length > 0) {
+                      navigate(`/trip/${city.tripIds[0]}`);
+                    }
+                  },
+                  [navigate]
+                )}
               />
             </div>
           </div>
@@ -274,7 +310,11 @@ function WorkspaceView() {
               {/* 头像 */}
               <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white text-lg font-semibold">
                 {userProfile?.avatar ? (
-                  <img src={userProfile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  <img
+                    src={userProfile.avatar}
+                    alt="Avatar"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <span>{userProfile?.nickname?.[0] || userProfile?.username?.[0] || 'U'}</span>
                 )}
@@ -302,24 +342,30 @@ function WorkspaceView() {
             {/* 统计信息 */}
             <div className="mt-4 flex items-center justify-around text-center">
               <div>
-                <div className="text-lg font-semibold text-white">{userProfile?.totalTrips || 0}</div>
+                <div className="text-lg font-semibold text-white">
+                  {userProfile?.totalTrips || 0}
+                </div>
                 <div className="text-xs text-white/60">行程</div>
               </div>
               <div className="w-px h-8 bg-white/20"></div>
               <div>
-                <div className="text-lg font-semibold text-white">{userProfile?.totalCities || 0}</div>
+                <div className="text-lg font-semibold text-white">
+                  {userProfile?.totalCities || 0}
+                </div>
                 <div className="text-xs text-white/60">城市</div>
               </div>
               <div className="w-px h-8 bg-white/20"></div>
               <div>
-                <div className="text-lg font-semibold text-white">{userProfile?.completedTrips || 0}</div>
+                <div className="text-lg font-semibold text-white">
+                  {userProfile?.completedTrips || 0}
+                </div>
                 <div className="text-xs text-white/60">已完成</div>
               </div>
             </div>
           </GlassCard>
 
           {/* 月历组件 */}
-          <CalendarCard 
+          <CalendarCard
             year={new Date().getFullYear()}
             month={new Date().getMonth() + 1}
             tripDates={tripDates}
@@ -327,12 +373,15 @@ function WorkspaceView() {
 
           {/* 即将出行 */}
           <UpcomingTourCard
-            tours={upcomingTrips.map(trip => ({
+            tours={upcomingTrips.map((trip) => ({
               id: trip.id,
               city: trip.destination,
               country: '中国',
               flag: 'CN',
-              date: new Date(trip.startDate).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
+              date: new Date(trip.startDate).toLocaleDateString('zh-CN', {
+                month: 'short',
+                day: 'numeric',
+              }),
               temperature: 20,
               condition: '晴',
               coverImage: undefined, // 后续可以添加城市图片
@@ -383,11 +432,3 @@ function Home() {
 }
 
 export default Home;
-
-
-
-
-
-
-
-

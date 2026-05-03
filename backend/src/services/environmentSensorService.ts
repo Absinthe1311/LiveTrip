@@ -5,10 +5,10 @@ const prisma = new PrismaClient();
 
 // 感知类型枚举
 export enum SensorType {
-  RAIN = 'rain',           // 降雨感知
-  CROWD = 'crowd',         // 人流感知
-  TEMPERATURE = 'temp',    // 温度感知
-  CLOSE = 'close',         // 关闭感知
+  RAIN = 'rain', // 降雨感知
+  CROWD = 'crowd', // 人流感知
+  TEMPERATURE = 'temp', // 温度感知
+  CLOSE = 'close', // 关闭感知
 }
 
 // 感知级别枚举
@@ -33,21 +33,21 @@ export interface SensorResult {
 interface SensorRuleConfig {
   // 降雨规则
   rain: {
-    warning: number;   // 警告阈值（默认50%）
-    danger: number;    // 危险阈值（默认80%）
-    outdoorOnly: boolean;  // 仅对户外景点（默认true）
+    warning: number; // 警告阈值（默认50%）
+    danger: number; // 危险阈值（默认80%）
+    outdoorOnly: boolean; // 仅对户外景点（默认true）
   };
   // 人流规则
   crowd: {
-    warning: number;   // 警告阈值（默认60%）
-    danger: number;    // 危险阈值（默认90%）
+    warning: number; // 警告阈值（默认60%）
+    danger: number; // 危险阈值（默认90%）
   };
   // 温度规则
   temperature: {
-    lowWarning: number;   // 低温警告（默认5°C）
-    highWarning: number;  // 高温警告（默认35°C）
-    lowDanger: number;    // 低温危险（默认0°C）
-    highDanger: number;   // 高温危险（默认40°C）
+    lowWarning: number; // 低温警告（默认5°C）
+    highWarning: number; // 高温警告（默认35°C）
+    lowDanger: number; // 低温危险（默认0°C）
+    highDanger: number; // 高温危险（默认40°C）
   };
 }
 
@@ -290,9 +290,21 @@ class EnvironmentSensorService {
    */
   private isOutdoorAttraction(spot: any): boolean {
     const type = spot.type || spot.description || '';
-    const outdoorTypes = ['公园', '风景区', '广场', '街道', '古镇', '遗迹', '海滩', '山', '湖', '海岛', '自然'];
+    const outdoorTypes = [
+      '公园',
+      '风景区',
+      '广场',
+      '街道',
+      '古镇',
+      '遗迹',
+      '海滩',
+      '山',
+      '湖',
+      '海岛',
+      '自然',
+    ];
 
-    return outdoorTypes.some(t => type.includes(t));
+    return outdoorTypes.some((t) => type.includes(t));
   }
 
   /**

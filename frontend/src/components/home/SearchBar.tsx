@@ -24,11 +24,7 @@ interface SearchBarProps {
   searchResults: SearchResult[];
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({
-  onSearch,
-  hotDestinations,
-  searchResults,
-}) => {
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, hotDestinations, searchResults }) => {
   const navigate = useNavigate();
   const [keyword, setKeyword] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -127,13 +123,15 @@ const SearchBar: React.FC<SearchBarProps> = ({
               {hotDestinations.map((dest) => (
                 <div
                   key={dest.city}
-                  onClick={() => handleResultClick({
-                    type: 'destination',
-                    id: dest.city,
-                    title: dest.city,
-                    subtitle: `${dest.spotCount}个热门景点`,
-                    image: dest.coverImage,
-                  })}
+                  onClick={() =>
+                    handleResultClick({
+                      type: 'destination',
+                      id: dest.city,
+                      title: dest.city,
+                      subtitle: `${dest.spotCount}个热门景点`,
+                      image: dest.coverImage,
+                    })
+                  }
                   className="flex items-center gap-3 p-4 hover:bg-white/10 cursor-pointer transition-colors"
                 >
                   <MapPin className="w-5 h-5 text-amber-400 flex-shrink-0" />
@@ -175,9 +173,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     <div className="text-white font-medium truncate">{result.title}</div>
                     <div className="text-white/60 text-sm truncate">{result.subtitle}</div>
                   </div>
-                  <div className="flex-shrink-0">
-                    {getIcon(result.type)}
-                  </div>
+                  <div className="flex-shrink-0">{getIcon(result.type)}</div>
                 </div>
               ))}
             </>

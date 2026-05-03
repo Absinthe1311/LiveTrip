@@ -6,33 +6,33 @@ const prisma = getPrismaClient();
 
 // 景点类别映射配置
 const CATEGORY_MAPPING: Record<string, CategoryTag[]> = {
-  '博物馆': ['history', 'art'],
-  '古迹': ['history'],
-  '文化': ['history', 'art'],
-  '公园': ['nature', 'city'],
-  '风景区': ['nature'],
-  '广场': ['city'],
-  '寺庙': ['religious'],
-  '教堂': ['religious'],
-  '古镇': ['history', 'city'],
-  '商业街': ['shopping', 'food', 'city'],
-  '主题乐园': ['theme_park'],
-  '动物园': ['theme_park', 'nature'],
-  '水族馆': ['theme_park', 'nature'],
-  '美术馆': ['art', 'history'],
-  '海滩': ['beach'],
-  '海岛': ['beach', 'nature'],
-  '山': ['nature', 'adventure'],
-  '湖': ['nature'],
-  '餐厅': ['food'],
-  '美食街': ['food', 'shopping'],
-  '购物中心': ['shopping'],
-  '建筑': ['city', 'art'],
-  '街区': ['city', 'shopping'],
+  博物馆: ['history', 'art'],
+  古迹: ['history'],
+  文化: ['history', 'art'],
+  公园: ['nature', 'city'],
+  风景区: ['nature'],
+  广场: ['city'],
+  寺庙: ['religious'],
+  教堂: ['religious'],
+  古镇: ['history', 'city'],
+  商业街: ['shopping', 'food', 'city'],
+  主题乐园: ['theme_park'],
+  动物园: ['theme_park', 'nature'],
+  水族馆: ['theme_park', 'nature'],
+  美术馆: ['art', 'history'],
+  海滩: ['beach'],
+  海岛: ['beach', 'nature'],
+  山: ['nature', 'adventure'],
+  湖: ['nature'],
+  餐厅: ['food'],
+  美食街: ['food', 'shopping'],
+  购物中心: ['shopping'],
+  建筑: ['city', 'art'],
+  街区: ['city', 'shopping'],
 };
 
 // 人群适配评分规则
-const CROWD_ADAPTER_RULES: Record<string, { add: CategoryTag[], subtract: CategoryTag[] }> = {
+const CROWD_ADAPTER_RULES: Record<string, { add: CategoryTag[]; subtract: CategoryTag[] }> = {
   solo: {
     add: ['nature', 'beach', 'art', 'city'],
     subtract: ['theme_park'],
@@ -117,10 +117,7 @@ class ScoringEngine {
 
     // 6. 计算总分
     const totalScore =
-      preferenceScore * 0.35 +
-      qualityScore * 0.25 +
-      iotScore * 0.25 +
-      crowdScore * 0.15;
+      preferenceScore * 0.35 + qualityScore * 0.25 + iotScore * 0.25 + crowdScore * 0.15;
 
     return {
       spotId: spot.id,
@@ -176,7 +173,7 @@ class ScoringEngine {
     }
 
     // Jaccard 相似度 = |A ∩ B| / |A ∪ B|
-    const intersection = spotCategories.filter(cat => userCategories.includes(cat));
+    const intersection = spotCategories.filter((cat) => userCategories.includes(cat));
     const union = Array.from(new Set([...spotCategories, ...userCategories]));
 
     const jaccard = intersection.length / union.length;

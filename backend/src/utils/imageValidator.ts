@@ -47,11 +47,10 @@ export function validateImageCount(count: number): boolean {
  * @param file 文件对象
  * @returns 验证结果，包含是否有效和错误信息
  */
-export function validateImageFile(file: {
-  mimetype: string;
-  size: number;
-  buffer?: Buffer;
-}): { valid: boolean; error?: string } {
+export function validateImageFile(file: { mimetype: string; size: number; buffer?: Buffer }): {
+  valid: boolean;
+  error?: string;
+} {
   // 验证格式
   if (!validateImageFormat(file.mimetype)) {
     return {
@@ -76,11 +75,13 @@ export function validateImageFile(file: {
  * @param files 文件数组
  * @returns 验证结果，包含是否有效和错误信息
  */
-export function validateMultipleImageFiles(files: Array<{
-  mimetype: string;
-  size: number;
-  buffer?: Buffer;
-}>): { valid: boolean; errors: string[] } {
+export function validateMultipleImageFiles(
+  files: Array<{
+    mimetype: string;
+    size: number;
+    buffer?: Buffer;
+  }>
+): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   // 验证数量

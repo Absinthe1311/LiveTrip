@@ -1,6 +1,12 @@
 // 用户认证路由 - 定义注册、登录等认证相关的 API 端点
 import { Router } from 'express';
-import { register, login, getCurrentUser, updateProfile, authenticateToken } from '../controllers/authController';
+import {
+  register,
+  login,
+  getCurrentUser,
+  updateProfile,
+  authenticateToken,
+} from '../controllers/authController';
 
 const router = Router();
 

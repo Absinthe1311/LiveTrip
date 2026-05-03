@@ -3,7 +3,20 @@
 // 内容说明：添加封面图片上传功能、行程描述自定义功能、集成DoubleCalendar日历组件、添加调试日志
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Navigation, Calendar, Users, Sparkles, ArrowRight, CheckCircle, AlertCircle, Upload, Image as ImageIcon, X, Type as TypeIcon } from 'lucide-react';
+import {
+  MapPin,
+  Navigation,
+  Calendar,
+  Users,
+  Sparkles,
+  ArrowRight,
+  CheckCircle,
+  AlertCircle,
+  Upload,
+  Image as ImageIcon,
+  X,
+  Type as TypeIcon,
+} from 'lucide-react';
 import { message } from 'antd';
 import GlassLayout from '../../components/layout/GlassLayout';
 import { GlassCard } from '../../components/home';
@@ -61,7 +74,7 @@ export default function CollabSetup() {
     console.log('✅ 选择文件:', {
       name: file.name,
       type: file.type,
-      size: file.size
+      size: file.size,
     });
 
     // 验证文件类型
@@ -99,7 +112,7 @@ export default function CollabSetup() {
       console.log('📦 准备上传文件:', {
         name: file.name,
         type: file.type,
-        size: file.size
+        size: file.size,
       });
 
       // 上传裁剪后的图片
@@ -110,7 +123,7 @@ export default function CollabSetup() {
       const uploadResponse = await fetch(`${API_BASE_URL}/upload/image`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: formData,
       });
@@ -224,22 +237,22 @@ export default function CollabSetup() {
           end_date: formData.endDate,
           travelers: formData.groupSize,
           budget: 10000,
-          preferences: []
+          preferences: [],
         },
         itinerary: {
-          itinerary: []
+          itinerary: [],
         },
         total_cost: 0,
         budget_breakdown: {
           transportation: 0,
           accommodation: 0,
           dining: 0,
-          tickets: 0
+          tickets: 0,
         },
         hotel: null,
         hotelRecommendations: [],
         restaurantRecommendations: [],
-        restaurants: []
+        restaurants: [],
       };
 
       // 调试日志：检查封面图片数据
@@ -255,7 +268,7 @@ export default function CollabSetup() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify(emptyTripData),
       });
@@ -324,15 +337,25 @@ export default function CollabSetup() {
 
         {/* 步骤指示器 */}
         <div className="flex items-center justify-center gap-4 mb-8">
-          <div className={`flex items-center gap-2 ${step >= 1 ? 'text-livetrip-primary' : 'text-white/40'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold transition-all ${step >= 1 ? 'bg-livetrip-primary text-white' : 'bg-white/10'}`}>
+          <div
+            className={`flex items-center gap-2 ${step >= 1 ? 'text-livetrip-primary' : 'text-white/40'}`}
+          >
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center font-bold transition-all ${step >= 1 ? 'bg-livetrip-primary text-white' : 'bg-white/10'}`}
+            >
               1
             </div>
             <span className="font-medium">基本信息</span>
           </div>
-          <div className={`w-12 h-0.5 transition-all ${step >= 2 ? 'bg-livetrip-primary' : 'bg-white/20'}`} />
-          <div className={`flex items-center gap-2 ${step >= 2 ? 'text-livetrip-primary' : 'text-white/40'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold transition-all ${step >= 2 ? 'bg-livetrip-primary text-white' : 'bg-white/10'}`}>
+          <div
+            className={`w-12 h-0.5 transition-all ${step >= 2 ? 'bg-livetrip-primary' : 'bg-white/20'}`}
+          />
+          <div
+            className={`flex items-center gap-2 ${step >= 2 ? 'text-livetrip-primary' : 'text-white/40'}`}
+          >
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center font-bold transition-all ${step >= 2 ? 'bg-livetrip-primary text-white' : 'bg-white/10'}`}
+            >
               2
             </div>
             <span className="font-medium">行程详情</span>
@@ -351,9 +374,7 @@ export default function CollabSetup() {
             <div className="space-y-6">
               {/* 房间名称 */}
               <div>
-                <label className="block text-sm font-medium text-white/80 mb-3">
-                  房间名称
-                </label>
+                <label className="block text-sm font-medium text-white/80 mb-3">房间名称</label>
                 <div className="relative group">
                   <input
                     type="text"
@@ -415,8 +436,6 @@ export default function CollabSetup() {
                 />
               </div>
 
-
-
               {/* 人数选择 */}
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-3">
@@ -425,7 +444,9 @@ export default function CollabSetup() {
                 </label>
                 <div className="flex items-center gap-4">
                   <button
-                    onClick={() => handleInputChange('groupSize', Math.max(2, formData.groupSize - 1))}
+                    onClick={() =>
+                      handleInputChange('groupSize', Math.max(2, formData.groupSize - 1))
+                    }
                     className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all"
                   >
                     -
@@ -439,7 +460,9 @@ export default function CollabSetup() {
                     className="flex-1 px-6 py-5 text-lg text-center rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 focus:bg-white/15 focus:border-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] focus:outline-none"
                   />
                   <button
-                    onClick={() => handleInputChange('groupSize', Math.min(20, formData.groupSize + 1))}
+                    onClick={() =>
+                      handleInputChange('groupSize', Math.min(20, formData.groupSize + 1))
+                    }
                     className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all"
                   >
                     +
@@ -513,7 +536,9 @@ export default function CollabSetup() {
                     )}
                   </button>
                 </div>
-                <p className="text-xs text-white/50 mt-1">支持 JPG、PNG、GIF、WebP 格式，最大 10MB</p>
+                <p className="text-xs text-white/50 mt-1">
+                  支持 JPG、PNG、GIF、WebP 格式，最大 10MB
+                </p>
               </div>
 
               {/* 操作按钮 */}
@@ -562,5 +587,3 @@ export default function CollabSetup() {
     </GlassLayout>
   );
 }
-
-

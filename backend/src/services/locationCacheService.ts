@@ -54,7 +54,7 @@ export async function searchLocationWithCache(
       }
 
       // 转换为前端格式
-      const results = cachedResults.map(cache => ({
+      const results = cachedResults.map((cache) => ({
         value: cache.name,
         label: cache.name,
         icon: '📍',
@@ -84,20 +84,17 @@ export async function searchLocationWithCache(
       };
     }
 
-    const response = await axios.get(
-      `https://restapi.amap.com/v3/place/text`,
-      {
-        params: {
-          key: amapKey,
-          keywords,
-          citylimit: false,
-          children: 1,
-          offset: 20,
-          page: 1,
-          extensions: 'base',
-        },
-      }
-    );
+    const response = await axios.get(`https://restapi.amap.com/v3/place/text`, {
+      params: {
+        key: amapKey,
+        keywords,
+        citylimit: false,
+        children: 1,
+        offset: 20,
+        page: 1,
+        extensions: 'base',
+      },
+    });
 
     if (response.data.status !== '1') {
       console.error('❌ 高德地图API调用失败:', response.data.info);

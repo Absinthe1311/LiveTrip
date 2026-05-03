@@ -10,9 +10,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { message, Spin, Button } from 'antd';
-import {
-  MapPin, Calendar, Wallet, Cloud, Clock, DollarSign, ArrowLeft
-} from "lucide-react";
+import { MapPin, Calendar, Wallet, Cloud, Clock, DollarSign, ArrowLeft } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import TimelineWithCards from '../components/itinerary/TimelineWithCards';
 import FullscreenMap from '../components/itinerary/FullscreenMap';
@@ -119,8 +117,8 @@ export default function SharedTripPage() {
   const loadSpotImagesForItinerary = async (itinerary: FullItinerary) => {
     try {
       const spotIds: string[] = [];
-      itinerary.itinerary.forEach(day => {
-        day.attractions.forEach(attraction => {
+      itinerary.itinerary.forEach((day) => {
+        day.attractions.forEach((attraction) => {
           if (attraction.spotId) {
             spotIds.push(attraction.spotId);
           }
@@ -151,15 +149,17 @@ export default function SharedTripPage() {
   };
 
   // 获取酒店信息
-  const hotel = trip ? {
-    name: trip.hotelName,
-    address: trip.hotelAddress,
-    location: trip.hotelLocation,
-    type: trip.hotelType,
-    rating: trip.hotelRating,
-    avgDistance: 0,
-    distanceDetails: [],
-  } : null;
+  const hotel = trip
+    ? {
+        name: trip.hotelName,
+        address: trip.hotelAddress,
+        location: trip.hotelLocation,
+        type: trip.hotelType,
+        rating: trip.hotelRating,
+        avgDistance: 0,
+        distanceDetails: [],
+      }
+    : null;
 
   // 获取餐厅信息
   const getRestaurantForDay = (dayNumber: number) => {
@@ -179,7 +179,14 @@ export default function SharedTripPage() {
   // 加载状态
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 0', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', minHeight: '100vh' }}>
+      <div
+        style={{
+          textAlign: 'center',
+          padding: '100px 0',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          minHeight: '100vh',
+        }}
+      >
         <Spin size="large" tip="正在加载行程信息..." />
         <div style={{ marginTop: 16, color: '#fff' }}>
           <p>如果加载时间过长，请检查分享链接是否有效</p>
@@ -191,20 +198,24 @@ export default function SharedTripPage() {
   // 错误状态
   if (error || !trip || !itineraryData) {
     return (
-      <div style={{
-        padding: '100px 20px',
-        textAlign: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        minHeight: '100vh'
-      }}>
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '16px',
-          padding: '40px',
-          maxWidth: '500px',
-          margin: '0 auto'
-        }}>
+      <div
+        style={{
+          padding: '100px 20px',
+          textAlign: 'center',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          minHeight: '100vh',
+        }}
+      >
+        <div
+          style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '16px',
+            padding: '40px',
+            maxWidth: '500px',
+            margin: '0 auto',
+          }}
+        >
           <h2 style={{ color: '#fff', marginBottom: '20px' }}>😔 {error || '行程不存在'}</h2>
           <p style={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: '30px' }}>
             该分享链接可能已失效或行程已被删除
@@ -239,11 +250,7 @@ export default function SharedTripPage() {
         {/* 封面图片 */}
         {trip.coverImage && (
           <div className="mb-6 rounded-xl overflow-hidden">
-            <img
-              src={trip.coverImage}
-              alt={trip.title}
-              className="w-full h-64 object-cover"
-            />
+            <img src={trip.coverImage} alt={trip.title} className="w-full h-64 object-cover" />
           </div>
         )}
 
@@ -262,28 +269,41 @@ export default function SharedTripPage() {
               <Calendar className="w-5 h-5 text-amber-400 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">出行日期</p>
-                <p className="text-lg font-bold text-white truncate">{itineraryData.summary?.start_date || '未设置'}</p>
+                <p className="text-lg font-bold text-white truncate">
+                  {itineraryData.summary?.start_date || '未设置'}
+                </p>
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl py-3 px-4 flex items-center gap-3">
               <Wallet className="w-5 h-5 text-amber-400 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">总预算</p>
-                <p className="text-lg font-bold text-white truncate">¥{(itineraryData.summary?.budget || itineraryData.total_cost || 0).toLocaleString()}</p>
+                <p className="text-lg font-bold text-white truncate">
+                  ¥
+                  {(
+                    itineraryData.summary?.budget ||
+                    itineraryData.total_cost ||
+                    0
+                  ).toLocaleString()}
+                </p>
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl py-3 px-4 flex items-center gap-3">
               <Cloud className="w-5 h-5 text-amber-400 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">目的地</p>
-                <p className="text-lg font-bold text-white truncate">{itineraryData.summary?.destination || '未设置'}</p>
+                <p className="text-lg font-bold text-white truncate">
+                  {itineraryData.summary?.destination || '未设置'}
+                </p>
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl py-3 px-4 flex items-center gap-3">
               <MapPin className="w-5 h-5 text-amber-400 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">行程总览</p>
-                <p className="text-lg font-bold text-white truncate">{itineraryData.itinerary.length}天 · {calculateTotalAttractions()}景点</p>
+                <p className="text-lg font-bold text-white truncate">
+                  {itineraryData.itinerary.length}天 · {calculateTotalAttractions()}景点
+                </p>
               </div>
             </div>
           </div>
@@ -326,22 +346,26 @@ export default function SharedTripPage() {
                 {/* 餐厅信息 */}
                 {(() => {
                   const restaurant = getRestaurantForDay(day.day);
-                  return restaurant && (
-                    <div className="mt-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-lg">🍽️</span>
-                        <h3 className="text-sm font-semibold text-white">午餐餐厅</h3>
+                  return (
+                    restaurant && (
+                      <div className="mt-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-lg">🍽️</span>
+                          <h3 className="text-sm font-semibold text-white">午餐餐厅</h3>
+                        </div>
+                        <div className="bg-green-500/10 border border-green-400/30 rounded-lg p-4">
+                          <h4 className="text-sm font-medium text-white mb-1">{restaurant.name}</h4>
+                          {restaurant.address && (
+                            <p className="text-xs text-white/60">📍 {restaurant.address}</p>
+                          )}
+                          {restaurant.rating && (
+                            <div className="text-xs text-amber-400 mt-1">
+                              ⭐ {restaurant.rating}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="bg-green-500/10 border border-green-400/30 rounded-lg p-4">
-                        <h4 className="text-sm font-medium text-white mb-1">{restaurant.name}</h4>
-                        {restaurant.address && (
-                          <p className="text-xs text-white/60">📍 {restaurant.address}</p>
-                        )}
-                        {restaurant.rating && (
-                          <div className="text-xs text-amber-400 mt-1">⭐ {restaurant.rating}</div>
-                        )}
-                      </div>
-                    </div>
+                    )
                   );
                 })()}
               </div>
@@ -381,9 +405,7 @@ export default function SharedTripPage() {
             </div>
             <div className="bg-purple-500/10 border border-purple-400/30 rounded-lg p-4">
               <h3 className="text-lg font-medium text-white mb-2">{hotel.name}</h3>
-              {hotel.address && (
-                <p className="text-sm text-white/60 mb-2">📍 {hotel.address}</p>
-              )}
+              {hotel.address && <p className="text-sm text-white/60 mb-2">📍 {hotel.address}</p>}
               {hotel.type && (
                 <span className="inline-block px-2 py-1 rounded bg-purple-500/20 text-purple-300 text-xs mr-2">
                   {hotel.type}

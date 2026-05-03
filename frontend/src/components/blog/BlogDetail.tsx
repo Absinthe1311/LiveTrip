@@ -1,8 +1,28 @@
 ﻿import { useState, useEffect, useRef } from 'react';
 import { Card, Avatar, Button, Tag, Image, Empty, Spin, Space, Divider, List, message } from 'antd';
-import { UserOutlined, LikeFilled, LikeOutlined, MessageOutlined, EditOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons';
-import { getBlogPostById, toggleLike, deleteBlog, addBlogComment, deleteBlogComment, toggleBlogCommentLike, incrementBlogViewCount } from '../../api/client';
-import { calculateWordCount, calculateReadingTime, formatReadingTime } from '../../utils/blogContentUtils';
+import {
+  UserOutlined,
+  LikeFilled,
+  LikeOutlined,
+  MessageOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ArrowLeftOutlined,
+} from '@ant-design/icons';
+import {
+  getBlogPostById,
+  toggleLike,
+  deleteBlog,
+  addBlogComment,
+  deleteBlogComment,
+  toggleBlogCommentLike,
+  incrementBlogViewCount,
+} from '../../api/client';
+import {
+  calculateWordCount,
+  calculateReadingTime,
+  formatReadingTime,
+} from '../../utils/blogContentUtils';
 
 interface BlogDetailProps {
   postId: string;
@@ -20,7 +40,7 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
     try {
       setLoading(true);
       const response = await getBlogPostById(postId);
-      
+
       if (response.success && response.data) {
         setBlog(response.data);
       }
@@ -33,7 +53,7 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
 
   useEffect(() => {
     loadBlog();
-    
+
     // 只在初次加载时增加浏览量
     if (!hasIncrementedView.current) {
       incrementBlogViewCount(postId);
@@ -119,17 +139,20 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
 
   return (
     <div>
-      <Button
-        icon={<ArrowLeftOutlined />}
-        onClick={onBack}
-        style={{ marginBottom: 16 }}
-      >
+      <Button icon={<ArrowLeftOutlined />} onClick={onBack} style={{ marginBottom: 16 }}>
         返回
       </Button>
 
       <Card>
         {/* 标题和操作栏 */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            marginBottom: 16,
+          }}
+        >
           <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>{blog.title}</h1>
           <Space>
             {isAuthor && (
@@ -207,17 +230,16 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
           >
             {blog.likeCount}
           </Button>
-          <Button
-            icon={<MessageOutlined />}
-            size="large"
-          >
+          <Button icon={<MessageOutlined />} size="large">
             {blog.commentCount}
           </Button>
           <div style={{ marginLeft: 'auto', color: '#999', fontSize: 14 }}>
             <Space size={16}>
               <span>浏览 {blog.viewCount}</span>
               <span>字数 {calculateWordCount(blog.content)}</span>
-              <span>阅读 {formatReadingTime(calculateReadingTime(calculateWordCount(blog.content)))}</span>
+              <span>
+                阅读 {formatReadingTime(calculateReadingTime(calculateWordCount(blog.content)))}
+              </span>
             </Space>
           </div>
         </div>
@@ -226,15 +248,16 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
 
         {/* 评论区域 */}
         <div>
-          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>评论 ({blog.commentCount})</h3>
+          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>
+            评论 ({blog.commentCount})
+          </h3>
 
           {/* 评论输入框 */}
-          <div style={{ marginBottom: 24, padding: 16, backgroundColor: '#f5f5f5', borderRadius: 8 }}>
+          <div
+            style={{ marginBottom: 24, padding: 16, backgroundColor: '#f5f5f5', borderRadius: 8 }}
+          >
             <div style={{ display: 'flex', gap: 12 }}>
-              <Avatar
-                icon={<UserOutlined />}
-                style={{ backgroundColor: '#1890ff' }}
-              />
+              <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#1890ff' }} />
               <div style={{ flex: 1 }}>
                 <input
                   type="text"
@@ -255,11 +278,7 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
                   }}
                 />
                 <div style={{ marginTop: 8, textAlign: 'right' }}>
-                  <Button
-                    type="primary"
-                    onClick={handleAddComment}
-                    disabled={!commentInput.trim()}
-                  >
+                  <Button type="primary" onClick={handleAddComment} disabled={!commentInput.trim()}>
                     发表评论
                   </Button>
                 </div>
@@ -275,13 +294,16 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
                 <List.Item key={comment.id}>
                   <List.Item.Meta
                     avatar={
-                      <Avatar
-                        icon={<UserOutlined />}
-                        style={{ backgroundColor: '#1890ff' }}
-                      />
+                      <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#1890ff' }} />
                     }
                     title={
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
                         <span>
                           {comment.userId === userId ? '我' : `用户${comment.userId.slice(-4)}`}
                         </span>
@@ -291,7 +313,10 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
                             size="small"
                             icon={isCommentLiked(comment) ? <LikeFilled /> : <LikeOutlined />}
                             onClick={() => handleToggleCommentLike(comment.id)}
-                            style={{ color: isCommentLiked(comment) ? '#ff4d4f' : 'inherit', padding: '0 4px' }}
+                            style={{
+                              color: isCommentLiked(comment) ? '#ff4d4f' : 'inherit',
+                              padding: '0 4px',
+                            }}
                           >
                             {comment.likeCount || 0}
                           </Button>
@@ -328,5 +353,3 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
     </div>
   );
 }
-
-

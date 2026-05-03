@@ -42,7 +42,11 @@ class AlternativeRecommender {
       console.log(`   排除的景点: ${excludeSpotIds.length} 个`);
 
       // 1. 获取备选景点
-      const alternatives = await spotService.getAlternativeSpots(originalSpotId, city, excludeSpotIds);
+      const alternatives = await spotService.getAlternativeSpots(
+        originalSpotId,
+        city,
+        excludeSpotIds
+      );
 
       if (alternatives.length === 0) {
         console.warn('⚠️  没有找到备选景点');
@@ -52,11 +56,11 @@ class AlternativeRecommender {
       console.log(`✅ 找到 ${alternatives.length} 个备选景点`);
 
       // 2. 获取IoT数据
-      const spotIds = alternatives.map(s => s.id);
+      const spotIds = alternatives.map((s) => s.id);
       const iotDataMap = await spotService.getBatchIoTData(spotIds);
 
       // 3. 组装返回数据
-      const result: AlternativeSpot[] = alternatives.map(spot => {
+      const result: AlternativeSpot[] = alternatives.map((spot) => {
         const iotData = iotDataMap.get(spot.id);
         return {
           id: spot.id,
@@ -72,14 +76,16 @@ class AlternativeRecommender {
           description: spot.description,
           isOutdoor: spot.isOutdoor,
           image: (spot as any).image, // 添加图片URL
-          iotData: iotData ? {
-            crowdLevel: iotData.crowdLevel,
-            temperature: iotData.temperature,
-            rainProbability: iotData.rainProbability,
-            isOpen: iotData.isOpen,
-            // 添加健康度等级
-            healthLevel: this.getHealthLevel(iotData)
-          } : undefined,
+          iotData: iotData
+            ? {
+                crowdLevel: iotData.crowdLevel,
+                temperature: iotData.temperature,
+                rainProbability: iotData.rainProbability,
+                isOpen: iotData.isOpen,
+                // 添加健康度等级
+                healthLevel: this.getHealthLevel(iotData),
+              }
+            : undefined,
           // 添加estimated_cost字段（与ticketPrice相同，用于前端显示）
           estimated_cost: spot.ticketPrice || 0,
         };
@@ -103,15 +109,12 @@ class AlternativeRecommender {
     const { rainProbability, crowdLevel, isOpen } = iotData;
 
     // 严重警告
-    if (iotData.rainProbability > 80 ||
-        iotData.crowdLevel > 90 ||
-        !iotData.isOpen) {
+    if (iotData.rainProbability > 80 || iotData.crowdLevel > 90 || !iotData.isOpen) {
       return 'severe';
     }
 
     // 注意提示
-    if (iotData.rainProbability > 50 ||
-        iotData.crowdLevel > 70) {
+    if (iotData.rainProbability > 50 || iotData.crowdLevel > 70) {
       return 'warning';
     }
 

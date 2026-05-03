@@ -1,6 +1,13 @@
 ﻿import { useState, useEffect } from 'react';
 import { Card, Rate, Avatar, List, Button, Empty, Image, Spin, Tag, Pagination, Modal } from 'antd';
-import { UserOutlined, StarFilled, EditOutlined, DeleteOutlined, LikeOutlined, LikeFilled } from '@ant-design/icons';
+import {
+  UserOutlined,
+  StarFilled,
+  EditOutlined,
+  DeleteOutlined,
+  LikeOutlined,
+  LikeFilled,
+} from '@ant-design/icons';
 import { getSpotReviews, deleteReview, toggleReviewLike } from '../../api/client';
 import ReviewForm from '../review/ReviewForm';
 
@@ -26,7 +33,7 @@ export default function ReviewList({ spotId, spotName, userId = 'default-user' }
     try {
       setLoading(true);
       const response = await getSpotReviews(spotId, pageNum, pageSize);
-      
+
       if (response.success) {
         setReviews(response.data.reviews);
         setTotal(response.data.total);
@@ -108,7 +115,9 @@ export default function ReviewList({ spotId, spotName, userId = 'default-user' }
               }}
             />
           </div>
-          <span style={{ fontSize: 12, color: '#999', minWidth: 40, textAlign: 'right' }}>{count}</span>
+          <span style={{ fontSize: 12, color: '#999', minWidth: 40, textAlign: 'right' }}>
+            {count}
+          </span>
         </div>
       </div>
     );
@@ -125,15 +134,8 @@ export default function ReviewList({ spotId, spotName, userId = 'default-user' }
               {averageRating ? averageRating.toFixed(1) : '-'}
             </div>
             <div style={{ color: '#666', marginBottom: 8 }}>平均评分</div>
-            <Rate 
-              disabled 
-              defaultValue={averageRating || 0} 
-              allowHalf 
-              style={{ fontSize: 16 }}
-            />
-            <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
-              {total} 条评价
-            </div>
+            <Rate disabled defaultValue={averageRating || 0} allowHalf style={{ fontSize: 16 }} />
+            <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>{total} 条评价</div>
           </div>
 
           {/* 评分分布 */}
@@ -167,12 +169,15 @@ export default function ReviewList({ spotId, spotName, userId = 'default-user' }
                 renderItem={(review: any) => (
                   <List.Item key={review.id}>
                     <div style={{ width: '100%' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          marginBottom: 8,
+                        }}
+                      >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <Avatar
-                            icon={<UserOutlined />}
-                            style={{ backgroundColor: '#1890ff' }}
-                          />
+                          <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#1890ff' }} />
                           <div>
                             <div style={{ fontSize: 14, fontWeight: 500 }}>
                               {review.userId === userId ? '我' : `用户${review.userId.slice(-4)}`}
@@ -183,11 +188,7 @@ export default function ReviewList({ spotId, spotName, userId = 'default-user' }
                           </div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <Rate
-                            disabled
-                            defaultValue={review.rating}
-                            style={{ fontSize: 14 }}
-                          />
+                          <Rate disabled defaultValue={review.rating} style={{ fontSize: 14 }} />
                           <Button
                             type="text"
                             icon={review.liked ? <LikeFilled /> : <LikeOutlined />}
@@ -220,7 +221,9 @@ export default function ReviewList({ spotId, spotName, userId = 'default-user' }
                         </div>
                       </div>
 
-                      <div style={{ fontSize: 14, color: '#666', lineHeight: '1.6', marginBottom: 12 }}>
+                      <div
+                        style={{ fontSize: 14, color: '#666', lineHeight: '1.6', marginBottom: 12 }}
+                      >
                         {review.comment}
                       </div>
 
@@ -290,5 +293,3 @@ export default function ReviewList({ spotId, spotName, userId = 'default-user' }
     </div>
   );
 }
-
-

@@ -1,6 +1,27 @@
 ﻿import { useState, useEffect } from 'react';
-import { Card, List, Tag, Avatar, Button, Empty, Image, Spin, Pagination, Space, Dropdown, Menu } from 'antd';
-import { UserOutlined, EyeOutlined, LikeOutlined, MessageOutlined, MoreOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import {
+  Card,
+  List,
+  Tag,
+  Avatar,
+  Button,
+  Empty,
+  Image,
+  Spin,
+  Pagination,
+  Space,
+  Dropdown,
+  Menu,
+} from 'antd';
+import {
+  UserOutlined,
+  EyeOutlined,
+  LikeOutlined,
+  MessageOutlined,
+  MoreOutlined,
+  EditOutlined,
+  DeleteOutlined,
+} from '@ant-design/icons';
 import { getBlogPosts, toggleLike, deleteBlog } from '../../api/client';
 import BlogEditor from './BlogEditor';
 
@@ -12,7 +33,13 @@ interface BlogListProps {
   onViewBlog?: (blogId: string) => void;
 }
 
-export default function BlogList({ userId, city, tags, sortBy = 'latest', onViewBlog }: BlogListProps) {
+export default function BlogList({
+  userId,
+  city,
+  tags,
+  sortBy = 'latest',
+  onViewBlog,
+}: BlogListProps) {
   const [loading, setLoading] = useState(false);
   const [blogs, setBlogs] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
@@ -34,7 +61,7 @@ export default function BlogList({ userId, city, tags, sortBy = 'latest', onView
         pageSize,
         sortBy: sortOrder,
       });
-      
+
       if (response.success) {
         setBlogs(response.data.posts);
         setTotal(response.data.total);
@@ -144,7 +171,11 @@ export default function BlogList({ userId, city, tags, sortBy = 'latest', onView
           <Space>
             <Dropdown menu={{ items: sortMenuItems }} trigger={['click']}>
               <Button>
-                {sortOrder === 'latest' ? '最新发布' : sortOrder === 'popular' ? '最多浏览' : '最多点赞'}
+                {sortOrder === 'latest'
+                  ? '最新发布'
+                  : sortOrder === 'popular'
+                    ? '最多浏览'
+                    : '最多点赞'}
               </Button>
             </Dropdown>
             <Button type="primary" onClick={handleCreateBlog}>
@@ -185,13 +216,16 @@ export default function BlogList({ userId, city, tags, sortBy = 'latest', onView
                     >
                       <Card.Meta
                         avatar={
-                          <Avatar
-                            icon={<UserOutlined />}
-                            style={{ backgroundColor: '#1890ff' }}
-                          />
+                          <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#1890ff' }} />
                         }
                         title={
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                            }}
+                          >
                             <span style={{ fontSize: 18, fontWeight: 600 }}>{blog.title}</span>
                             <Dropdown menu={{ items: getMoreMenuItems(blog) }} trigger={['click']}>
                               <Button type="text" icon={<MoreOutlined />} />
@@ -201,7 +235,8 @@ export default function BlogList({ userId, city, tags, sortBy = 'latest', onView
                         description={
                           <div>
                             <div style={{ color: '#666', marginBottom: 8 }}>
-                              {blog.userId === userId ? '我' : `用户${blog.userId.slice(-4)}`} · {blog.city || '未知城市'}
+                              {blog.userId === userId ? '我' : `用户${blog.userId.slice(-4)}`} ·{' '}
+                              {blog.city || '未知城市'}
                             </div>
                             <div style={{ color: '#888', lineHeight: '1.6', marginBottom: 12 }}>
                               {blog.content.length > 200
@@ -224,7 +259,11 @@ export default function BlogList({ userId, city, tags, sortBy = 'latest', onView
                               </Space>
                               <Space size={4}>
                                 <LikeOutlined
-                                  style={{ color: blog.likes?.some((l: any) => l.userId === userId) ? '#ff4d4f' : 'inherit' }}
+                                  style={{
+                                    color: blog.likes?.some((l: any) => l.userId === userId)
+                                      ? '#ff4d4f'
+                                      : 'inherit',
+                                  }}
                                 />
                                 <span>{blog.likeCount}</span>
                               </Space>
@@ -258,13 +297,7 @@ export default function BlogList({ userId, city, tags, sortBy = 'latest', onView
       </Card>
 
       {/* 博客编辑器 */}
-      {editorVisible && (
-        <BlogEditor
-          postId={editingPostId}
-          userId={userId}
-        />
-      )}
+      {editorVisible && <BlogEditor postId={editingPostId} userId={userId} />}
     </div>
   );
 }
-

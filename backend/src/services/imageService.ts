@@ -1,7 +1,11 @@
 import { getPrismaClient } from '../lib/prisma';
 import { cloudinaryService } from './cloudinaryService';
 import { generateFileHash } from '../utils/hashGenerator';
-import { checkDuplicateImage, generateUniqueFileName, getImageExtension } from '../utils/imageValidator';
+import {
+  checkDuplicateImage,
+  generateUniqueFileName,
+  getImageExtension,
+} from '../utils/imageValidator';
 
 const prisma = getPrismaClient();
 
@@ -233,7 +237,7 @@ export class ImageService {
       ]);
 
       // 处理url可能为null的情况
-      const processedImages = images.map(img => ({
+      const processedImages = images.map((img) => ({
         ...img,
         url: img.url || '',
       }));
@@ -431,26 +435,26 @@ export class ImageService {
    * 根据景点ID批量获取图片（从数据库查询）
    */
   async batchGetSpotImagesByIds(spotIds: string[]): Promise<Record<string, string>> {
-    const prisma = await import('../lib/prisma').then(m => m.getPrismaClient());
+    const prisma = await import('../lib/prisma').then((m) => m.getPrismaClient());
     const imageMap: Record<string, string> = {};
 
     try {
       // 批量查询景点的图片
       const spots = await prisma.spot.findMany({
         where: {
-          id: { in: spotIds }
+          id: { in: spotIds },
         },
         include: {
           image: {
             where: {
-              status: 'approved'
-            }
-          }
-        }
+              status: 'approved',
+            },
+          },
+        },
       });
 
       // 构建图片映射
-      spots.forEach(spot => {
+      spots.forEach((spot) => {
         // 使用SpotImage表中的图片
         if (spot.image && spot.image.url) {
           imageMap[spot.id] = spot.image.url;
@@ -465,7 +469,7 @@ export class ImageService {
     } catch (error) {
       console.error('批量获取景点图片失败:', error);
       // 返回空图片映射，避免阻塞前端
-      spotIds.forEach(id => {
+      spotIds.forEach((id) => {
         imageMap[id] = '';
       });
       return imageMap;

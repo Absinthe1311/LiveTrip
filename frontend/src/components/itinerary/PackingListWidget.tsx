@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Package, Check, Plus, X, ChevronDown, ChevronUp } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { getPackingList, savePackingList } from "@/api/client";
-import { PRESET_CATEGORIES } from "@/config/presetItems";
+import { useState, useEffect } from 'react';
+import { Package, Check, Plus, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { getPackingList, savePackingList } from '@/api/client';
+import { PRESET_CATEGORIES } from '@/config/presetItems';
 
 interface PackingItem {
   id: string;
@@ -24,16 +24,16 @@ interface PackingListWidgetProps {
   title?: string;
 }
 
-export function PackingListWidget({ 
-  itineraryId, 
-  editable = false, 
+export function PackingListWidget({
+  itineraryId,
+  editable = false,
   compact = false,
-  title = "行李清单"
+  title = '行李清单',
 }: PackingListWidgetProps) {
   const [items, setItems] = useState<PackingItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newItem, setNewItem] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("其他");
+  const [newItem, setNewItem] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('其他');
   const [showAddForm, setShowAddForm] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [showPresetItems, setShowPresetItems] = useState(false);
@@ -67,11 +67,11 @@ export function PackingListWidget({
   };
 
   const togglePacked = async (itemId: string) => {
-    const updatedItems = items.map(item =>
+    const updatedItems = items.map((item) =>
       item.id === itemId ? { ...item, isPacked: !item.isPacked } : item
     );
     setItems(updatedItems);
-    
+
     if (editable) {
       await savePackingList(itineraryId, updatedItems);
     }
@@ -79,7 +79,7 @@ export function PackingListWidget({
 
   const addPresetItem = async (itemName: string, category: string) => {
     // 检查是否已存在
-    if (items.some(item => item.itemName === itemName)) {
+    if (items.some((item) => item.itemName === itemName)) {
       return;
     }
 
@@ -88,7 +88,7 @@ export function PackingListWidget({
       itemName,
       category,
       isPacked: false,
-      isCustom: false
+      isCustom: false,
     };
 
     const updatedItems = [...items, newPackingItem];
@@ -115,12 +115,12 @@ export function PackingListWidget({
       itemName: newItem.trim(),
       category: selectedCategory,
       isPacked: false,
-      isCustom: true
+      isCustom: true,
     };
 
     const updatedItems = [...items, newPackingItem];
     setItems(updatedItems);
-    setNewItem("");
+    setNewItem('');
     setShowAddForm(false);
 
     if (editable) {
@@ -129,7 +129,7 @@ export function PackingListWidget({
   };
 
   const removeItem = async (itemId: string) => {
-    const updatedItems = items.filter(item => item.id !== itemId);
+    const updatedItems = items.filter((item) => item.id !== itemId);
     setItems(updatedItems);
 
     if (editable) {
@@ -138,7 +138,7 @@ export function PackingListWidget({
   };
 
   const toggleCategory = (categoryName: string) => {
-    setExpandedCategories(prev => {
+    setExpandedCategories((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(categoryName)) {
         newSet.delete(categoryName);
@@ -149,15 +149,18 @@ export function PackingListWidget({
     });
   };
 
-  const groupedItems = items.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = [];
-    }
-    acc[item.category].push(item);
-    return acc;
-  }, {} as Record<string, PackingItem[]>);
+  const groupedItems = items.reduce(
+    (acc, item) => {
+      if (!acc[item.category]) {
+        acc[item.category] = [];
+      }
+      acc[item.category].push(item);
+      return acc;
+    },
+    {} as Record<string, PackingItem[]>
+  );
 
-  const packedCount = items.filter(item => item.isPacked).length;
+  const packedCount = items.filter((item) => item.isPacked).length;
   const totalCount = items.length;
   const progress = totalCount > 0 ? (packedCount / totalCount) * 100 : 0;
 
@@ -186,7 +189,7 @@ export function PackingListWidget({
           </div>
           {/* Progress Bar */}
           <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-            <div 
+            <div
               className="bg-livetrip-primary h-2 rounded-full transition-all"
               style={{ width: `${progress}%` }}
             />
@@ -194,35 +197,35 @@ export function PackingListWidget({
         </CardHeader>
         <CardContent className="pt-0">
           {totalCount === 0 ? (
-            <div className="text-center py-4 text-gray-500 text-sm">
-              暂无打包物品
-            </div>
+            <div className="text-center py-4 text-gray-500 text-sm">暂无打包物品</div>
           ) : (
             <div className="space-y-2">
-              {Object.entries(groupedItems).slice(0, 2).map(([category, categoryItems]) => (
-                <div key={category}>
-                  <div className="text-xs text-gray-500 mb-1">{category}</div>
-                  <div className="flex flex-wrap gap-2">
-                    {categoryItems.slice(0, 4).map(item => (
-                      <div 
-                        key={item.id}
-                        className={`text-xs px-2 py-1 rounded ${
-                          item.isPacked 
-                            ? 'bg-livetrip-primary-light text-livetrip-primary-dark line-through' 
-                            : 'bg-gray-100 text-gray-700'
-                        }`}
-                      >
-                        {item.itemName}
-                      </div>
-                    ))}
-                    {categoryItems.length > 4 && (
-                      <div className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-500">
-                        +{categoryItems.length - 4}
-                      </div>
-                    )}
+              {Object.entries(groupedItems)
+                .slice(0, 2)
+                .map(([category, categoryItems]) => (
+                  <div key={category}>
+                    <div className="text-xs text-gray-500 mb-1">{category}</div>
+                    <div className="flex flex-wrap gap-2">
+                      {categoryItems.slice(0, 4).map((item) => (
+                        <div
+                          key={item.id}
+                          className={`text-xs px-2 py-1 rounded ${
+                            item.isPacked
+                              ? 'bg-livetrip-primary-light text-livetrip-primary-dark line-through'
+                              : 'bg-gray-100 text-gray-700'
+                          }`}
+                        >
+                          {item.itemName}
+                        </div>
+                      ))}
+                      {categoryItems.length > 4 && (
+                        <div className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-500">
+                          +{categoryItems.length - 4}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </CardContent>
@@ -244,7 +247,7 @@ export function PackingListWidget({
         </div>
         {/* Progress Bar */}
         <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-          <div 
+          <div
             className="bg-livetrip-primary h-2 rounded-full transition-all"
             style={{ width: `${progress}%` }}
           />
@@ -257,8 +260,8 @@ export function PackingListWidget({
             <div key={category}>
               <div className="text-sm font-medium text-gray-700 mb-2">{category}</div>
               <div className="space-y-2">
-                {categoryItems.map(item => (
-                  <div 
+                {categoryItems.map((item) => (
+                  <div
                     key={item.id}
                     className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
                   >
@@ -269,17 +272,21 @@ export function PackingListWidget({
                         className="data-[state=checked]:bg-livetrip-primary data-[state=checked]:border-livetrip-primary"
                       />
                     ) : (
-                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                        item.isPacked 
-                          ? 'bg-livetrip-primary border-livetrip-primary' 
-                          : 'border-gray-300'
-                      }`}>
+                      <div
+                        className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                          item.isPacked
+                            ? 'bg-livetrip-primary border-livetrip-primary'
+                            : 'border-gray-300'
+                        }`}
+                      >
                         {item.isPacked && <Check className="h-3 w-3 text-white" />}
                       </div>
                     )}
-                    <span className={`flex-1 text-sm ${
-                      item.isPacked ? 'text-gray-400 line-through' : 'text-gray-700'
-                    }`}>
+                    <span
+                      className={`flex-1 text-sm ${
+                        item.isPacked ? 'text-gray-400 line-through' : 'text-gray-700'
+                      }`}
+                    >
                       {item.itemName}
                     </span>
                     {editable && (
@@ -308,30 +315,40 @@ export function PackingListWidget({
               className="w-full border-dashed"
               onClick={() => setShowPresetItems(!showPresetItems)}
             >
-              {showPresetItems ? <ChevronUp className="h-4 w-4 mr-2" /> : <ChevronDown className="h-4 w-4 mr-2" />}
+              {showPresetItems ? (
+                <ChevronUp className="h-4 w-4 mr-2" />
+              ) : (
+                <ChevronDown className="h-4 w-4 mr-2" />
+              )}
               {showPresetItems ? '收起预设物品' : '选择预设物品'}
             </Button>
 
             {showPresetItems && (
               <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
-                {PRESET_CATEGORIES.map(category => {
+                {PRESET_CATEGORIES.map((category) => {
                   const isExpanded = expandedCategories.has(category.name);
-                  const categoryItems = items.filter(item => item.category === category.name);
-                  
+                  const categoryItems = items.filter((item) => item.category === category.name);
+
                   return (
                     <div key={category.name}>
                       <button
                         onClick={() => toggleCategory(category.name)}
                         className="flex items-center justify-between w-full text-sm font-medium text-gray-700 mb-2"
                       >
-                        <span>{category.name} ({categoryItems.length})</span>
-                        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        <span>
+                          {category.name} ({categoryItems.length})
+                        </span>
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
                       </button>
-                      
+
                       {isExpanded && (
                         <div className="flex flex-wrap gap-2">
-                          {category.items.map(itemName => {
-                            const isAdded = items.some(item => item.itemName === itemName);
+                          {category.items.map((itemName) => {
+                            const isAdded = items.some((item) => item.itemName === itemName);
                             return (
                               <button
                                 key={itemName}
@@ -385,8 +402,10 @@ export function PackingListWidget({
                     onChange={(e) => setSelectedCategory(e.target.value)}
                     className="flex-1 text-sm border rounded px-3 py-2"
                   >
-                    {PRESET_CATEGORIES.map(cat => (
-                      <option key={cat.name} value={cat.name}>{cat.name}</option>
+                    {PRESET_CATEGORIES.map((cat) => (
+                      <option key={cat.name} value={cat.name}>
+                        {cat.name}
+                      </option>
                     ))}
                     <option value="其他">其他</option>
                   </select>
@@ -397,11 +416,7 @@ export function PackingListWidget({
                   >
                     添加
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowAddForm(false)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => setShowAddForm(false)}>
                     取消
                   </Button>
                 </div>

@@ -5,15 +5,21 @@ import prisma from '../lib/prisma';
 
 // 预算变更类型
 export type BudgetChangeType =
-  | 'total_budget_adjusted'     // 调整总预算
-  | 'item_price_updated'        // 更新项目价格
-  | 'hotel_selected'            // 选择酒店
-  | 'restaurant_selected'       // 选择餐厅
-  | 'attraction_added'          // 添加景点
-  | 'attraction_removed';       // 移除景点
+  | 'total_budget_adjusted' // 调整总预算
+  | 'item_price_updated' // 更新项目价格
+  | 'hotel_selected' // 选择酒店
+  | 'restaurant_selected' // 选择餐厅
+  | 'attraction_added' // 添加景点
+  | 'attraction_removed'; // 移除景点
 
 // 预算分类
-export type BudgetCategory = 'transportation' | 'accommodation' | 'dining' | 'tickets' | 'shopping' | 'other';
+export type BudgetCategory =
+  | 'transportation'
+  | 'accommodation'
+  | 'dining'
+  | 'tickets'
+  | 'shopping'
+  | 'other';
 
 // 预算变更记录接口
 export interface BudgetRecordData {
@@ -48,7 +54,7 @@ class BudgetTrackingService {
       // 获取当前行程的预算信息
       const trip = await prisma.trip.findUnique({
         where: { id: data.tripId },
-        include: { budget: true }
+        include: { budget: true },
       });
 
       if (!trip) {
@@ -60,8 +66,12 @@ class BudgetTrackingService {
 
       // 计算当前已用预算
       const usedBudget = trip.budget
-        ? trip.budget.transportation + trip.budget.accommodation + trip.budget.food +
-          trip.budget.tickets + trip.budget.shopping + trip.budget.other
+        ? trip.budget.transportation +
+          trip.budget.accommodation +
+          trip.budget.food +
+          trip.budget.tickets +
+          trip.budget.shopping +
+          trip.budget.other
         : 0;
 
       // 计算剩余预算
@@ -81,7 +91,7 @@ class BudgetTrackingService {
           totalBudget: trip.totalBudget,
           usedBudget,
           remainingBudget,
-        }
+        },
       });
 
       console.log('✅ 预算变更记录已创建:', record.id);
@@ -93,8 +103,8 @@ class BudgetTrackingService {
           totalBudget: trip.totalBudget,
           usedBudget,
           remainingBudget,
-          budgetStatus: trip.budgetStatus
-        }
+          budgetStatus: trip.budgetStatus,
+        },
       };
     } catch (error) {
       console.error('创建预算变更记录失败:', error);
@@ -105,12 +115,16 @@ class BudgetTrackingService {
   /**
    * 调整总预算
    */
-  async adjustTotalBudget(tripId: string, newBudget: number, reason: string): Promise<BudgetUpdateResult> {
+  async adjustTotalBudget(
+    tripId: string,
+    newBudget: number,
+    reason: string
+  ): Promise<BudgetUpdateResult> {
     try {
       // 获取当前行程
       const trip = await prisma.trip.findUnique({
         where: { id: tripId },
-        include: { budget: true }
+        include: { budget: true },
       });
 
       if (!trip) {
@@ -124,8 +138,8 @@ class BudgetTrackingService {
         where: { id: tripId },
         data: {
           totalBudget: newBudget,
-          remainingBudget: newBudget - (trip.actualBudget || 0)
-        }
+          remainingBudget: newBudget - (trip.actualBudget || 0),
+        },
       });
 
       // 创建预算变更记录
@@ -134,7 +148,7 @@ class BudgetTrackingService {
         changeType: 'total_budget_adjusted',
         previousAmount: previousBudget,
         newAmount: newBudget,
-        description: reason || `将总预算从¥${previousBudget}调整为¥${newBudget}`
+        description: reason || `将总预算从¥${previousBudget}调整为¥${newBudget}`,
       });
 
       console.log(`✅ 总预算已调整: ¥${previousBudget} -> ¥${newBudget}`);
@@ -159,7 +173,7 @@ class BudgetTrackingService {
     try {
       // 获取当前预算
       const budget = await prisma.budget.findUnique({
-        where: { tripId }
+        where: { tripId },
       });
 
       if (!budget) {
@@ -173,7 +187,7 @@ class BudgetTrackingService {
 
       await prisma.budget.update({
         where: { tripId },
-        data: { [categoryField]: newAmount }
+        data: { [categoryField]: newAmount },
       });
 
       // 创建预算变更记录
@@ -184,7 +198,7 @@ class BudgetTrackingService {
         previousAmount: previousPrice,
         newAmount: newPrice,
         description: `更新${this.getCategoryName(category)}价格：${itemName}`,
-        relatedItemName: itemName
+        relatedItemName: itemName,
       });
 
       console.log(`✅ 项目价格已更新: ${itemName} ¥${previousPrice} -> ¥${newPrice}`);
@@ -204,7 +218,7 @@ class BudgetTrackingService {
       const records = await prisma.budgetRecord.findMany({
         where: { tripId },
         orderBy: { createdAt: 'desc' },
-        take: limit
+        take: limit,
       });
 
       console.log(`✅ 获取预算变更历史: ${records.length}条记录`);
@@ -222,7 +236,7 @@ class BudgetTrackingService {
     try {
       const trip = await prisma.trip.findUnique({
         where: { id: tripId },
-        include: { budget: true }
+        include: { budget: true },
       });
 
       if (!trip) {
@@ -230,8 +244,12 @@ class BudgetTrackingService {
       }
 
       const usedBudget = trip.budget
-        ? trip.budget.transportation + trip.budget.accommodation + trip.budget.food +
-          trip.budget.tickets + trip.budget.shopping + trip.budget.other
+        ? trip.budget.transportation +
+          trip.budget.accommodation +
+          trip.budget.food +
+          trip.budget.tickets +
+          trip.budget.shopping +
+          trip.budget.other
         : 0;
 
       const remainingBudget = trip.totalBudget - usedBudget;
@@ -240,7 +258,7 @@ class BudgetTrackingService {
       // 更新行程的剩余预算
       await prisma.trip.update({
         where: { id: tripId },
-        data: { remainingBudget }
+        data: { remainingBudget },
       });
 
       return {
@@ -249,14 +267,16 @@ class BudgetTrackingService {
         remainingBudget,
         usageRate,
         budgetStatus: this.getBudgetStatus(usageRate),
-        breakdown: trip.budget ? {
-          transportation: trip.budget.transportation,
-          accommodation: trip.budget.accommodation,
-          dining: trip.budget.food,
-          tickets: trip.budget.tickets,
-          shopping: trip.budget.shopping,
-          other: trip.budget.other
-        } : null
+        breakdown: trip.budget
+          ? {
+              transportation: trip.budget.transportation,
+              accommodation: trip.budget.accommodation,
+              dining: trip.budget.food,
+              tickets: trip.budget.tickets,
+              shopping: trip.budget.shopping,
+              other: trip.budget.other,
+            }
+          : null,
       };
     } catch (error) {
       console.error('获取实时预算状态失败:', error);
@@ -274,7 +294,7 @@ class BudgetTrackingService {
       dining: '餐饮',
       tickets: '门票',
       shopping: '购物',
-      other: '其他'
+      other: '其他',
     };
     return names[category] || category;
   }

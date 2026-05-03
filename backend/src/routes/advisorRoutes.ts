@@ -1,6 +1,11 @@
 // 旅行顾问路由
 import { Router } from 'express';
-import { chatWithAdvisor, getUserSessions, getSessionMessages, deleteSession } from '../controllers/advisorController';
+import {
+  chatWithAdvisor,
+  getUserSessions,
+  getSessionMessages,
+  deleteSession,
+} from '../controllers/advisorController';
 
 const router = Router();
 

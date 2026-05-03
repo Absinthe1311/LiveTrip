@@ -22,7 +22,12 @@ router.get('/spots', requireAdmin, AdminController.getSpots);
 router.get('/spots/:spotId/images', requireAdmin, AdminController.getSpotImages);
 
 // 上传景点图片
-router.post('/spots/:spotId/upload-images', requireAdmin, uploadImage, AdminController.uploadSpotImages);
+router.post(
+  '/spots/:spotId/upload-images',
+  requireAdmin,
+  uploadImage,
+  AdminController.uploadSpotImages
+);
 
 // 用户行程景点
 router.get('/spots/from-user-trips', requireAdmin, AdminController.getUserTripSpots);

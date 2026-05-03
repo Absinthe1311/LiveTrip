@@ -3,12 +3,9 @@
 
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import marked from 'marked';
+import * as marked from 'marked';
 
-marked.setOptions({
-  breaks: true,
-  gfm: true,
-});
+// 配置marked选项
 
 /**
  * 将Markdown内容转换为PDF
@@ -43,15 +40,21 @@ export async function exportBlogToPDF(
       <div style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #145F39;">
         <h1 style="color: #145F39; font-size: 28px; margin: 0 0 20px 0; font-weight: bold;">${title}</h1>
         <div style="display: flex; flex-wrap: wrap; gap: 15px; color: #666; font-size: 14px;">
-          ${author ? `
+          ${
+            author
+              ? `
             <div style="display: flex; align-items: center; gap: 6px;">
               <div style="width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(135deg, #145F39, #005746); display: flex; align-items: center; justify-content: center;">
                 <div style="width: 6px; height: 6px; border-radius: 50%; background: white;"></div>
               </div>
               <span style="color: #333; font-weight: 500;">${author}</span>
             </div>
-          ` : ''}
-          ${date ? `
+          `
+              : ''
+          }
+          ${
+            date
+              ? `
             <div style="display: flex; align-items: center; gap: 6px;">
               <div style="width: 14px; height: 14px; border: 2px solid #008F8D; border-radius: 2px; position: relative;">
                 <div style="position: absolute; top: 2px; left: 2px; width: 8px; height: 1px; background: #008F8D;"></div>
@@ -60,8 +63,12 @@ export async function exportBlogToPDF(
               </div>
               <span>${date}</span>
             </div>
-          ` : ''}
-          ${city ? `
+          `
+              : ''
+          }
+          ${
+            city
+              ? `
             <div style="display: flex; align-items: center; gap: 6px;">
               <div style="width: 14px; height: 14px; position: relative;">
                 <div style="position: absolute; top: 0; left: 5px; width: 4px; height: 4px; border-radius: 50%; background: #145F39;"></div>
@@ -69,13 +76,15 @@ export async function exportBlogToPDF(
               </div>
               <span>${city}</span>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
       </div>
     `;
 
     // 将Markdown转换为HTML
-    const contentHtml = marked(content) as string;
+    const contentHtml = marked.parse(content) as string;
     htmlContent += `<div class="markdown-content">${contentHtml}</div>`;
 
     // 添加页脚

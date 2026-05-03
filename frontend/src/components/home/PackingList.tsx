@@ -29,9 +29,9 @@ export default function PackingList({
   packingItems = defaultPackingItems,
   onPackingClick,
   onItemToggle,
-  className = ''
+  className = '',
 }: PackingListProps) {
-  const packedCount = packingItems.filter(item => item.packed).length;
+  const packedCount = packingItems.filter((item) => item.packed).length;
   const progress = (packedCount / packingItems.length) * 100;
 
   return (
@@ -39,9 +39,7 @@ export default function PackingList({
       {/* 标题 */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-white/70">
-            行李清单
-          </span>
+          <span className="text-xs font-medium text-white/70">行李清单</span>
         </div>
         <span className="text-xs text-white/60">
           {packedCount}/{packingItems.length}
@@ -75,11 +73,7 @@ export default function PackingList({
               <Circle className="h-4 w-4 text-white/40 flex-shrink-0" />
             )}
             <span
-              className={`text-sm ${
-                item.packed
-                  ? 'text-white/40 line-through'
-                  : 'text-white/90'
-              }`}
+              className={`text-sm ${item.packed ? 'text-white/40 line-through' : 'text-white/90'}`}
             >
               {item.name}
             </span>

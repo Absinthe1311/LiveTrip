@@ -255,7 +255,7 @@ export const upsertDraft = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('❌ 创建/更新草案失败:', error);
-    
+
     // 如果是房间锁定错误，返回403
     if (error.message === '房间已锁定，无法修改草案') {
       return res.status(403).json({
@@ -524,7 +524,10 @@ export const saveFinalTrip = async (req: Request, res: Response) => {
     }
 
     console.log(`👥 房间成员数量: ${room.members.length}`);
-    console.log(`👥 成员列表:`, room.members.map(m => ({ id: m.userId, username: m.user.username, role: m.role })));
+    console.log(
+      `👥 成员列表:`,
+      room.members.map((m) => ({ id: m.userId, username: m.user.username, role: m.role }))
+    );
 
     // 更新Trip的行程数据
     const { getPrismaClient } = require('../lib/prisma');
@@ -532,18 +535,20 @@ export const saveFinalTrip = async (req: Request, res: Response) => {
 
     // finalRoute是景点数组，需要转换为行程数据格式
     // 假设finalRoute就是当前天的景点列表
-    const itineraryData = [{
-      day: 1, // 当前只保存第1天
-      date: new Date(room.trip.startDate).toISOString().split('T')[0],
-      attractions: finalRoute.map((spot: any) => ({
-        id: spot.id,
-        name: spot.name,
-        location: spot.location,
-        arrivalTime: spot.arrivalTime || '09:00',
-        duration: spot.duration || 120,
-        departureTime: spot.departureTime || '11:00',
-      })),
-    }];
+    const itineraryData = [
+      {
+        day: 1, // 当前只保存第1天
+        date: new Date(room.trip.startDate).toISOString().split('T')[0],
+        attractions: finalRoute.map((spot: any) => ({
+          id: spot.id,
+          name: spot.name,
+          location: spot.location,
+          arrivalTime: spot.arrivalTime || '09:00',
+          duration: spot.duration || 120,
+          departureTime: spot.departureTime || '11:00',
+        })),
+      },
+    ];
 
     console.log('📅 行程数据:', JSON.stringify(itineraryData, null, 2));
 
@@ -566,7 +571,7 @@ export const saveFinalTrip = async (req: Request, res: Response) => {
       // 更新或创建房主的Day和ItineraryItem
       for (const dayData of itineraryData) {
         const dayDate = new Date(dayData.date);
-        
+
         // 查找或创建Day
         let day = await tx.day.findFirst({
           where: {
@@ -596,7 +601,7 @@ export const saveFinalTrip = async (req: Request, res: Response) => {
         // 创建新的ItineraryItem
         for (let i = 0; i < dayData.attractions.length; i++) {
           const attraction = dayData.attractions[i];
-          
+
           // 解析location
           let lng = 0;
           let lat = 0;
@@ -611,7 +616,7 @@ export const saveFinalTrip = async (req: Request, res: Response) => {
           // 解析时间
           const startTime = new Date(`${dayData.date}T${attraction.arrivalTime}:00`);
           const endTime = new Date(`${dayData.date}T${attraction.departureTime}:00`);
-          
+
           await tx.itineraryItem.create({
             data: {
               dayId: day.id,
@@ -625,23 +630,23 @@ export const saveFinalTrip = async (req: Request, res: Response) => {
             },
           });
         }
-        
+
         console.log(`✅ 房主Day ${dayData.day} 的 ${dayData.attractions.length} 个景点已保存`);
       }
 
       // 为所有成员创建行程副本
       console.log('👥 开始为所有成员创建行程副本...');
       const memberTripIds: string[] = [];
-      
+
       for (const member of room.members) {
         // 跳过房主（房主的行程已经更新）
         if (member.userId === room.hostId) {
           console.log(`⏭️ 跳过房主 ${member.user.username} (userId: ${member.userId})`);
           continue;
         }
-        
+
         console.log(`➕ 为成员 ${member.user.username} (userId: ${member.userId}) 创建行程副本...`);
-        
+
         try {
           // 为成员创建新的Trip（复制房主行程的所有重要字段）
           const memberTrip = await tx.trip.create({
@@ -665,14 +670,14 @@ export const saveFinalTrip = async (req: Request, res: Response) => {
               hotelRating: room.trip.hotelRating,
             },
           });
-          
+
           memberTripIds.push(memberTrip.id);
           console.log(`✅ 成员 ${member.user.username} 的Trip已创建: ${memberTrip.id}`);
-          
+
           // 为成员创建Day和ItineraryItem
           for (const dayData of itineraryData) {
             const dayDate = new Date(dayData.date);
-            
+
             const memberDay = await tx.day.create({
               data: {
                 tripId: memberTrip.id,
@@ -680,11 +685,11 @@ export const saveFinalTrip = async (req: Request, res: Response) => {
                 date: dayDate,
               },
             });
-            
+
             // 创建ItineraryItem
             for (let i = 0; i < dayData.attractions.length; i++) {
               const attraction = dayData.attractions[i];
-              
+
               // 解析location
               let lng = 0;
               let lat = 0;
@@ -695,11 +700,11 @@ export const saveFinalTrip = async (req: Request, res: Response) => {
                   lat = parseFloat(parts[1]) || 0;
                 }
               }
-              
+
               // 解析时间
               const startTime = new Date(`${dayData.date}T${attraction.arrivalTime}:00`);
               const endTime = new Date(`${dayData.date}T${attraction.departureTime}:00`);
-              
+
               await tx.itineraryItem.create({
                 data: {
                   dayId: memberDay.id,
@@ -714,14 +719,14 @@ export const saveFinalTrip = async (req: Request, res: Response) => {
               });
             }
           }
-          
+
           console.log(`✅ 成员 ${member.user.username} 的行程数据已完整保存`);
         } catch (memberError: any) {
           console.error(`❌ 为成员 ${member.user.username} 创建行程失败:`, memberError);
           throw new Error(`为成员 ${member.user.username} 创建行程失败: ${memberError.message}`);
         }
       }
-      
+
       console.log(`✅ 所有成员的行程副本已创建，共 ${memberTripIds.length} 个`);
 
       // 锁定房间

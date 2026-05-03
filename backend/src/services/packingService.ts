@@ -9,52 +9,12 @@ const prisma = getPrismaClient();
 
 // 预设物品分类和默认物品
 const DEFAULT_PACKING_ITEMS = {
-  clothing: [
-    'T恤',
-    '衬衫',
-    '裤子',
-    '外套',
-    '内衣裤',
-    '袜子',
-    '睡衣',
-    '运动鞋',
-  ],
-  electronics: [
-    '手机充电器',
-    '充电宝',
-    '耳机',
-    '相机',
-    '笔记本电脑',
-    '转换插头',
-  ],
-  documents: [
-    '身份证',
-    '护照',
-    '驾照',
-    '车票/机票',
-    '酒店预订确认单',
-    '保险单',
-  ],
-  toiletries: [
-    '牙刷',
-    '牙膏',
-    '洗发水',
-    '沐浴露',
-    '毛巾',
-    '护肤品',
-  ],
-  medicine: [
-    '常用药品',
-    '创可贴',
-    '晕车药',
-    '感冒药',
-  ],
-  other: [
-    '雨伞',
-    '水杯',
-    '纸巾',
-    '塑料袋',
-  ],
+  clothing: ['T恤', '衬衫', '裤子', '外套', '内衣裤', '袜子', '睡衣', '运动鞋'],
+  electronics: ['手机充电器', '充电宝', '耳机', '相机', '笔记本电脑', '转换插头'],
+  documents: ['身份证', '护照', '驾照', '车票/机票', '酒店预订确认单', '保险单'],
+  toiletries: ['牙刷', '牙膏', '洗发水', '沐浴露', '毛巾', '护肤品'],
+  medicine: ['常用药品', '创可贴', '晕车药', '感冒药'],
+  other: ['雨伞', '水杯', '纸巾', '塑料袋'],
 };
 
 // 分类名称映射
@@ -76,10 +36,7 @@ export class PackingService {
       const prisma = getPrismaClient();
       const packingItems = await prisma.packingItem.findMany({
         where: { tripId },
-        orderBy: [
-          { category: 'asc' },
-          { createdAt: 'asc' },
-        ],
+        orderBy: [{ category: 'asc' }, { createdAt: 'asc' }],
       });
 
       return {
@@ -98,7 +55,7 @@ export class PackingService {
   async initializePackingList(tripId: string) {
     try {
       const prisma = getPrismaClient();
-      
+
       // 检查是否已有物品
       const existingItems = await prisma.packingItem.findMany({
         where: { tripId },
@@ -179,7 +136,7 @@ export class PackingService {
       });
 
       // 批量创建新物品
-      const itemsToCreate = items.map(item => ({
+      const itemsToCreate = items.map((item) => ({
         tripId,
         itemName: item.itemName,
         category: item.category,

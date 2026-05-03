@@ -12,12 +12,12 @@ export default function JoinCollabRoom() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlToken = searchParams.get('token');
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [roomId, setRoomId] = useState<string>('');
   const [inviteLink, setInviteLink] = useState<string>('');
-  
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
 
@@ -25,10 +25,10 @@ export default function JoinCollabRoom() {
     const checkScreenSize = () => {
       setIsLargeScreen(window.innerWidth >= 1024);
     };
-    
+
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
-    
+
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
@@ -40,7 +40,7 @@ export default function JoinCollabRoom() {
 
   const handleJoinRoom = async (token?: string) => {
     const joinToken = token || extractTokenFromLink(inviteLink);
-    
+
     if (!joinToken) {
       setError('请输入有效的邀请链接');
       message.error('请输入有效的邀请链接');
@@ -49,10 +49,10 @@ export default function JoinCollabRoom() {
 
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await joinCollabRoom(joinToken);
-      
+
       if (response.success) {
         setRoomId(response.data.id);
         message.success('成功加入协同房间！');
@@ -72,7 +72,7 @@ export default function JoinCollabRoom() {
       setLoading(false);
     }
   };
-  
+
   // 从链接中提取token
   const extractTokenFromLink = (link: string): string | null => {
     try {
@@ -87,12 +87,14 @@ export default function JoinCollabRoom() {
   return (
     <div className="min-h-screen relative">
       {/* 全屏背景 */}
-      <div className="fixed inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/homepage-bg.jpg')" }} />
-      
+      <div
+        className="fixed inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/homepage-bg.jpg')" }}
+      />
+
       {/* 背景模糊层 */}
       <div className="fixed inset-0 bg-black/40 backdrop-blur-xl" />
-      
+
       {/* 动态光影效果 */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-amber-600/5 animate-pulse" />
@@ -109,23 +111,20 @@ export default function JoinCollabRoom() {
           >
             <Users className="h-5 w-5 text-white" />
           </button>
-          <div 
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => navigate('/')}
-          >
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
             <span className="text-xl font-bold text-white">LiveTrip</span>
           </div>
         </div>
-        
+
         <div className="flex-1 flex items-center justify-between px-6">
           <h1 className="text-lg font-semibold text-white">加入协同规划</h1>
         </div>
       </header>
 
       {/* Sidebar */}
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
         isLargeScreen={isLargeScreen}
         currentPage="/my-trips"
       />
@@ -170,7 +169,7 @@ export default function JoinCollabRoom() {
                 <p className="text-white/70 mb-4 leading-relaxed">
                   请输入或粘贴邀请链接以加入协同规划房间
                 </p>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-white/80 mb-3">
                     <Link className="inline h-4 w-4 mr-2" />
@@ -184,7 +183,7 @@ export default function JoinCollabRoom() {
                     className="w-full px-6 py-4 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all duration-300"
                   />
                 </div>
-                
+
                 <button
                   onClick={() => handleJoinRoom()}
                   disabled={!inviteLink.trim()}
@@ -197,7 +196,7 @@ export default function JoinCollabRoom() {
                     <ArrowRight className="h-5 w-5" />
                   </span>
                 </button>
-                
+
                 <div className="mt-8 p-6 bg-blue-500/10 backdrop-blur-md border border-blue-500/20 rounded-xl">
                   <h3 className="font-semibold text-blue-400 mb-3 flex items-center gap-2">
                     <Sparkles className="h-4 w-4" />
@@ -226,6 +225,3 @@ export default function JoinCollabRoom() {
     </div>
   );
 }
-
-
-

@@ -10,7 +10,8 @@ export const destinationsData: Record<string, DestinationDetail> = {
     budget: 2000,
     bestSeason: '春秋',
     rating: 4.8,
-    description: '探索千年古都，感受历史文化的魅力。故宫、长城、天坛，每一个景点都承载着厚重的历史。',
+    description:
+      '探索千年古都，感受历史文化的魅力。故宫、长城、天坛，每一个景点都承载着厚重的历史。',
     tags: ['历史文化', '古都风情', '世界遗产'],
     heroImage: '',
     attractions: [
@@ -22,7 +23,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '明清两代皇宫，世界文化遗产',
         openTime: '08:30-17:00',
         ticketPrice: 60,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'bj-2',
@@ -32,7 +33,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '世界最大的城市广场',
         openTime: '全天开放',
         ticketPrice: 0,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'bj-3',
@@ -42,7 +43,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '收藏中华文明历史文物',
         openTime: '09:00-17:00',
         ticketPrice: 0,
-        category: '博物馆'
+        category: '博物馆',
       },
       {
         id: 'bj-4',
@@ -52,7 +53,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '皇家园林，世界文化遗产',
         openTime: '06:30-18:00',
         ticketPrice: 30,
-        category: '自然风光'
+        category: '自然风光',
       },
       {
         id: 'bj-5',
@@ -62,7 +63,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '明清两代皇帝祭天的场所',
         openTime: '06:00-22:00',
         ticketPrice: 15,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'bj-6',
@@ -72,7 +73,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '万园之园，历史遗迹',
         openTime: '07:00-19:30',
         ticketPrice: 25,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'bj-7',
@@ -82,7 +83,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '中国现存最古老的皇家园林',
         openTime: '06:00-22:00',
         ticketPrice: 10,
-        category: '自然风光'
+        category: '自然风光',
       },
       {
         id: 'bj-8',
@@ -92,9 +93,9 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '俯瞰故宫全景的最佳地点',
         openTime: '06:00-21:00',
         ticketPrice: 2,
-        category: '自然风光'
-      }
-    ]
+        category: '自然风光',
+      },
+    ],
   },
   '2': {
     id: '2',
@@ -116,7 +117,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '万国建筑博览群，上海标志性景点',
         openTime: '全天开放',
         ticketPrice: 0,
-        category: '都市风光'
+        category: '都市风光',
       },
       {
         id: 'sh-2',
@@ -126,7 +127,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '上海地标建筑，登塔俯瞰全城',
         openTime: '09:00-21:30',
         ticketPrice: 220,
-        category: '现代建筑'
+        category: '现代建筑',
       },
       {
         id: 'sh-3',
@@ -136,7 +137,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '明代古典园林，江南园林代表',
         openTime: '08:30-17:30',
         ticketPrice: 40,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'sh-4',
@@ -146,7 +147,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '中华商业第一街',
         openTime: '全天开放',
         ticketPrice: 0,
-        category: '购物娱乐'
+        category: '购物娱乐',
       },
       {
         id: 'sh-5',
@@ -156,7 +157,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '中国大陆首座迪士尼主题乐园',
         openTime: '08:30-22:00',
         ticketPrice: 499,
-        category: '主题乐园'
+        category: '主题乐园',
       },
       {
         id: 'sh-6',
@@ -166,7 +167,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '中国古代艺术博物馆',
         openTime: '09:00-17:00',
         ticketPrice: 0,
-        category: '博物馆'
+        category: '博物馆',
       },
       {
         id: 'sh-7',
@@ -176,7 +177,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '文艺创意园区',
         openTime: '全天开放',
         ticketPrice: 0,
-        category: '文艺街区'
+        category: '文艺街区',
       },
       {
         id: 'sh-8',
@@ -186,9 +187,9 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '时尚购物餐饮区',
         openTime: '10:00-22:00',
         ticketPrice: 0,
-        category: '购物娱乐'
-      }
-    ]
+        category: '购物娱乐',
+      },
+    ],
   },
   '3': {
     id: '3',
@@ -210,7 +211,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '观赏可爱的大熊猫',
         openTime: '07:30-18:00',
         ticketPrice: 58,
-        category: '自然风光'
+        category: '自然风光',
       },
       {
         id: 'cd-2',
@@ -220,7 +221,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '成都历史文化街区',
         openTime: '全天开放',
         ticketPrice: 0,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'cd-3',
@@ -230,7 +231,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '西蜀历史上最古老的街道',
         openTime: '全天开放',
         ticketPrice: 0,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'cd-4',
@@ -240,7 +241,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '纪念诸葛亮的祠庙',
         openTime: '09:00-18:00',
         ticketPrice: 50,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'cd-5',
@@ -250,7 +251,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '唐代诗人杜甫的故居',
         openTime: '08:00-18:30',
         ticketPrice: 50,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'cd-6',
@@ -260,7 +261,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '成都最繁华的商业街',
         openTime: '全天开放',
         ticketPrice: 0,
-        category: '购物娱乐'
+        category: '购物娱乐',
       },
       {
         id: 'cd-7',
@@ -270,7 +271,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '道教名山，青城天下幽',
         openTime: '08:00-17:00',
         ticketPrice: 80,
-        category: '自然风光'
+        category: '自然风光',
       },
       {
         id: 'cd-8',
@@ -280,9 +281,9 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '世界文化遗产，古代水利工程',
         openTime: '08:00-18:00',
         ticketPrice: 80,
-        category: '历史文化'
-      }
-    ]
+        category: '历史文化',
+      },
+    ],
   },
   '4': {
     id: '4',
@@ -304,7 +305,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '世界文化遗产，人间天堂',
         openTime: '全天开放',
         ticketPrice: 0,
-        category: '自然风光'
+        category: '自然风光',
       },
       {
         id: 'hz-2',
@@ -314,7 +315,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '西湖十景之一，雷峰夕照',
         openTime: '08:00-20:00',
         ticketPrice: 40,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'hz-3',
@@ -324,7 +325,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '江南著名古刹',
         openTime: '07:00-18:15',
         ticketPrice: 75,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'hz-4',
@@ -334,7 +335,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '西湖十景之一，断桥残雪',
         openTime: '全天开放',
         ticketPrice: 0,
-        category: '自然风光'
+        category: '自然风光',
       },
       {
         id: 'hz-5',
@@ -344,7 +345,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '西湖十景之一，湖中三岛',
         openTime: '08:00-17:00',
         ticketPrice: 55,
-        category: '自然风光'
+        category: '自然风光',
       },
       {
         id: 'hz-6',
@@ -354,7 +355,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '大型主题公园，宋城千古情',
         openTime: '10:00-22:00',
         ticketPrice: 310,
-        category: '主题乐园'
+        category: '主题乐园',
       },
       {
         id: 'hz-7',
@@ -364,7 +365,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '历史文化街区',
         openTime: '全天开放',
         ticketPrice: 0,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'hz-8',
@@ -374,9 +375,9 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '城市湿地公园',
         openTime: '07:30-18:30',
         ticketPrice: 80,
-        category: '自然风光'
-      }
-    ]
+        category: '自然风光',
+      },
+    ],
   },
   '5': {
     id: '5',
@@ -398,7 +399,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '世界文化遗产，海上花园',
         openTime: '全天开放',
         ticketPrice: 35,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'xm-2',
@@ -408,7 +409,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '千年古刹，闽南佛教圣地',
         openTime: '08:00-17:30',
         ticketPrice: 0,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'xm-3',
@@ -418,7 +419,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '文艺小渔村',
         openTime: '全天开放',
         ticketPrice: 0,
-        category: '文艺街区'
+        category: '文艺街区',
       },
       {
         id: 'xm-4',
@@ -428,7 +429,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '最美海岸线',
         openTime: '全天开放',
         ticketPrice: 0,
-        category: '自然风光'
+        category: '自然风光',
       },
       {
         id: 'xm-5',
@@ -438,7 +439,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '中国最美大学',
         openTime: '08:00-18:00',
         ticketPrice: 0,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'xm-6',
@@ -448,7 +449,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '鼓浪屿最高点',
         openTime: '07:00-20:00',
         ticketPrice: 60,
-        category: '自然风光'
+        category: '自然风光',
       },
       {
         id: 'xm-7',
@@ -458,7 +459,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '海上花园',
         openTime: '07:30-18:00',
         ticketPrice: 30,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'xm-8',
@@ -468,9 +469,9 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '厦门商业街',
         openTime: '全天开放',
         ticketPrice: 0,
-        category: '购物娱乐'
-      }
-    ]
+        category: '购物娱乐',
+      },
+    ],
   },
   '6': {
     id: '6',
@@ -492,7 +493,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '世界第八大奇迹',
         openTime: '08:30-18:00',
         ticketPrice: 120,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'xa-2',
@@ -502,7 +503,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '唐代古塔，丝绸之路象征',
         openTime: '08:00-21:30',
         ticketPrice: 40,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'xa-3',
@@ -512,7 +513,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '美食天堂',
         openTime: '全天开放',
         ticketPrice: 0,
-        category: '美食街区'
+        category: '美食街区',
       },
       {
         id: 'xa-4',
@@ -522,7 +523,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '中国现存最完整的古城墙',
         openTime: '08:00-22:00',
         ticketPrice: 54,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'xa-5',
@@ -532,7 +533,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '唐代皇家温泉宫殿',
         openTime: '08:00-18:00',
         ticketPrice: 120,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'xa-6',
@@ -542,7 +543,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '中国第一座大型现代化博物馆',
         openTime: '08:30-18:00',
         ticketPrice: 0,
-        category: '博物馆'
+        category: '博物馆',
       },
       {
         id: 'xa-7',
@@ -552,7 +553,7 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '中国第一个全方位展示盛唐风貌',
         openTime: '09:00-22:00',
         ticketPrice: 120,
-        category: '历史文化'
+        category: '历史文化',
       },
       {
         id: 'xa-8',
@@ -562,8 +563,8 @@ export const destinationsData: Record<string, DestinationDetail> = {
         description: '西安地标建筑',
         openTime: '08:30-21:00',
         ticketPrice: 50,
-        category: '历史文化'
-      }
-    ]
-  }
+        category: '历史文化',
+      },
+    ],
+  },
 };

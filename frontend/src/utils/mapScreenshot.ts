@@ -92,73 +92,76 @@ export async function generateDayMapScreenshot(
     AMapLoader.load({
       key: amapKey,
       version: '2.0',
-      plugins: ['AMap.ToolBar', 'AMap.Scale']
-    }).then((AMap) => {
-      // 收集所有坐标点
-      const allCoords: number[][] = [];
+      plugins: ['AMap.ToolBar', 'AMap.Scale'],
+    })
+      .then((AMap) => {
+        // 收集所有坐标点
+        const allCoords: number[][] = [];
 
-      // 收集景点坐标
-      dayData.itineraryItems.forEach(item => {
-        if (item.longitude && item.latitude) {
-          allCoords.push([item.longitude, item.latitude]);
-        }
-      });
+        // 收集景点坐标
+        dayData.itineraryItems.forEach((item) => {
+          if (item.longitude && item.latitude) {
+            allCoords.push([item.longitude, item.latitude]);
+          }
+        });
 
-      // 收集酒店坐标
-      if (hotel?.location) {
-        const [lng, lat] = hotel.location.split(',').map(Number);
-        allCoords.push([lng, lat]);
-      }
-
-      // 收集餐厅坐标
-      if (dayData.restaurantLocation) {
-        const [lng, lat] = dayData.restaurantLocation.split(',').map(Number);
-        allCoords.push([lng, lat]);
-      }
-
-      if (allCoords.length === 0) {
-        document.body.removeChild(container);
-        reject(new Error('没有地点数据'));
-        return;
-      }
-
-      // 计算中心点
-      const avgLng = allCoords.reduce((sum, c) => sum + c[0], 0) / allCoords.length;
-      const avgLat = allCoords.reduce((sum, c) => sum + c[1], 0) / allCoords.length;
-
-      // 创建地图
-      const map = new AMap.Map(container, {
-        zoom: 14,
-        center: [avgLng, avgLat],
-        viewMode: '2D',
-        mapStyle: 'amap://styles/normal',
-        features: ['bg', 'road', 'building', 'point'],
-        showLabel: true,
-        showIndoorMap: false,
-        showBuildingBlock: true,
-      });
-
-      // 注意：高德地图 JS API 2.0 会自动在地图右下角显示审图号
-      // 审图号格式：GS(XXXX)XXX号
-      // 使用官方地图样式时，审图号由高德自动提供和显示
-
-      // 等待地图加载完成
-      map.on('complete', () => {
-        // 添加工具栏
-        map.addControl(new AMap.ToolBar({
-          position: { top: '10px', right: '10px' }
-        }));
-
-        // 添加比例尺
-        map.addControl(new AMap.Scale());
-
-        // 添加酒店标记
+        // 收集酒店坐标
         if (hotel?.location) {
           const [lng, lat] = hotel.location.split(',').map(Number);
-          const hotelMarker = new AMap.Marker({
-            position: [lng, lat],
-            title: hotel.name,
-            content: `
+          allCoords.push([lng, lat]);
+        }
+
+        // 收集餐厅坐标
+        if (dayData.restaurantLocation) {
+          const [lng, lat] = dayData.restaurantLocation.split(',').map(Number);
+          allCoords.push([lng, lat]);
+        }
+
+        if (allCoords.length === 0) {
+          document.body.removeChild(container);
+          reject(new Error('没有地点数据'));
+          return;
+        }
+
+        // 计算中心点
+        const avgLng = allCoords.reduce((sum, c) => sum + c[0], 0) / allCoords.length;
+        const avgLat = allCoords.reduce((sum, c) => sum + c[1], 0) / allCoords.length;
+
+        // 创建地图
+        const map = new AMap.Map(container, {
+          zoom: 14,
+          center: [avgLng, avgLat],
+          viewMode: '2D',
+          mapStyle: 'amap://styles/normal',
+          features: ['bg', 'road', 'building', 'point'],
+          showLabel: true,
+          showIndoorMap: false,
+          showBuildingBlock: true,
+        });
+
+        // 注意：高德地图 JS API 2.0 会自动在地图右下角显示审图号
+        // 审图号格式：GS(XXXX)XXX号
+        // 使用官方地图样式时，审图号由高德自动提供和显示
+
+        // 等待地图加载完成
+        map.on('complete', () => {
+          // 添加工具栏
+          map.addControl(
+            new AMap.ToolBar({
+              position: { top: '10px', right: '10px' },
+            })
+          );
+
+          // 添加比例尺
+          map.addControl(new AMap.Scale());
+
+          // 添加酒店标记
+          if (hotel?.location) {
+            const [lng, lat] = hotel.location.split(',').map(Number);
+            const hotelMarker = new AMap.Marker({
+              position: [lng, lat],
+              title: hotel.name,
+              content: `
               <div style="position: relative; left: 20px;">
                 <div style="
                   min-width: 60px;
@@ -181,21 +184,21 @@ export async function generateDayMapScreenshot(
                 </div>
               </div>
             `,
-            offset: new AMap.Pixel(-30, -18),
-            zIndex: 150
-          });
-          map.add(hotelMarker);
-        }
+              offset: new AMap.Pixel(-30, -18),
+              zIndex: 150,
+            });
+            map.add(hotelMarker);
+          }
 
-        const dayColor = DAY_COLORS[(dayData.dayNumber - 1) % DAY_COLORS.length];
+          const dayColor = DAY_COLORS[(dayData.dayNumber - 1) % DAY_COLORS.length];
 
-        // 添加景点标记
-        dayData.itineraryItems.forEach((item, itemIndex) => {
-          if (item.longitude && item.latitude) {
-            const marker = new AMap.Marker({
-              position: [item.longitude, item.latitude],
-              title: item.name,
-              content: `
+          // 添加景点标记
+          dayData.itineraryItems.forEach((item, itemIndex) => {
+            if (item.longitude && item.latitude) {
+              const marker = new AMap.Marker({
+                position: [item.longitude, item.latitude],
+                title: item.name,
+                content: `
                 <div style="position: relative;">
                   <div style="
                     min-width: 50px;
@@ -217,41 +220,41 @@ export async function generateDayMapScreenshot(
                   </div>
                 </div>
               `,
-              offset: new AMap.Pixel(-25, -16),
-              zIndex: 100
-            });
-            map.add(marker);
-          }
-        });
-
-        // 添加带箭头的路径线
-        const pathCoords: number[][] = [];
-        dayData.itineraryItems.forEach(item => {
-          if (item.longitude && item.latitude) {
-            pathCoords.push([item.longitude, item.latitude]);
-          }
-        });
-
-        if (pathCoords.length > 1) {
-          const polyline = new AMap.Polyline({
-            path: pathCoords,
-            strokeColor: dayColor,
-            strokeWeight: 4,
-            strokeOpacity: 0.8,
-            lineJoin: 'round',
-            zIndex: 50,
-            showDir: true,
+                offset: new AMap.Pixel(-25, -16),
+                zIndex: 100,
+              });
+              map.add(marker);
+            }
           });
-          map.add(polyline);
-        }
 
-        // 添加餐厅标记
-        if (dayData.restaurantLocation) {
-          const [lng, lat] = dayData.restaurantLocation.split(',').map(Number);
-          const restaurantMarker = new AMap.Marker({
-            position: [lng, lat],
-            title: dayData.restaurantName,
-            content: `
+          // 添加带箭头的路径线
+          const pathCoords: number[][] = [];
+          dayData.itineraryItems.forEach((item) => {
+            if (item.longitude && item.latitude) {
+              pathCoords.push([item.longitude, item.latitude]);
+            }
+          });
+
+          if (pathCoords.length > 1) {
+            const polyline = new AMap.Polyline({
+              path: pathCoords,
+              strokeColor: dayColor,
+              strokeWeight: 4,
+              strokeOpacity: 0.8,
+              lineJoin: 'round',
+              zIndex: 50,
+              showDir: true,
+            });
+            map.add(polyline);
+          }
+
+          // 添加餐厅标记
+          if (dayData.restaurantLocation) {
+            const [lng, lat] = dayData.restaurantLocation.split(',').map(Number);
+            const restaurantMarker = new AMap.Marker({
+              position: [lng, lat],
+              title: dayData.restaurantName,
+              content: `
               <div style="position: relative; left: 20px;">
                 <div style="
                   min-width: 60px;
@@ -274,79 +277,80 @@ export async function generateDayMapScreenshot(
                 </div>
               </div>
             `,
-            offset: new AMap.Pixel(-30, -18),
-            zIndex: 140
+              offset: new AMap.Pixel(-30, -18),
+              zIndex: 140,
+            });
+            map.add(restaurantMarker);
+          }
+
+          // 自适应显示所有标记
+          map.setFitView(null, false, [50, 50, 50, 50]);
+
+          // 等待地图瓦片加载完成
+          let tilesLoaded = false;
+          const checkTilesLoaded = () => {
+            if (tilesLoaded) return;
+            tilesLoaded = true;
+
+            // 额外等待时间,确保周围环境完全渲染
+            setTimeout(async () => {
+              try {
+                console.log(`📸 开始截取第${dayData.dayNumber}天地图...`);
+
+                const canvas = await html2canvas(container, {
+                  useCORS: true,
+                  allowTaint: true,
+                  scale: 2,
+                  backgroundColor: '#ffffff',
+                  logging: false,
+                  width: width,
+                  height: height,
+                });
+
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+                // 清理
+                map.destroy();
+                document.body.removeChild(container);
+
+                console.log(`🗺️ 第${dayData.dayNumber}天地图截图生成成功`);
+                resolve(dataUrl);
+              } catch (error) {
+                console.error('地图截图失败:', error);
+                map.destroy();
+                document.body.removeChild(container);
+                reject(error);
+              }
+            }, 3000); // 增加到3秒,确保周围环境完全加载
+          };
+
+          // 监听地图瓦片加载完成事件
+          map.on('complete', () => {
+            console.log(`🗺️ 第${dayData.dayNumber}天地图加载完成,等待周围环境渲染...`);
+            // 地图complete后,再等待一段时间确保瓦片加载
+            setTimeout(checkTilesLoaded, 2000);
           });
-          map.add(restaurantMarker);
-        }
 
-        // 自适应显示所有标记
-        map.setFitView(null, false, [50, 50, 50, 50]);
-
-        // 等待地图瓦片加载完成
-        let tilesLoaded = false;
-        const checkTilesLoaded = () => {
-          if (tilesLoaded) return;
-          tilesLoaded = true;
-          
-          // 额外等待时间,确保周围环境完全渲染
-          setTimeout(async () => {
-            try {
-              console.log(`📸 开始截取第${dayData.dayNumber}天地图...`);
-
-              const canvas = await html2canvas(container, {
-                useCORS: true,
-                allowTaint: true,
-                scale: 2,
-                backgroundColor: '#ffffff',
-                logging: false,
-                width: width,
-                height: height,
-              });
-
-              const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-
-              // 清理
-              map.destroy();
-              document.body.removeChild(container);
-
-              console.log(`🗺️ 第${dayData.dayNumber}天地图截图生成成功`);
-              resolve(dataUrl);
-            } catch (error) {
-              console.error('地图截图失败:', error);
-              map.destroy();
-              document.body.removeChild(container);
-              reject(error);
+          // 备用方案:如果5秒后还没有触发complete,强制截图
+          setTimeout(() => {
+            if (!tilesLoaded) {
+              console.log(`⚠️ 第${dayData.dayNumber}天地图加载超时,强制截图`);
+              checkTilesLoaded();
             }
-          }, 3000); // 增加到3秒,确保周围环境完全加载
-        };
-
-        // 监听地图瓦片加载完成事件
-        map.on('complete', () => {
-          console.log(`🗺️ 第${dayData.dayNumber}天地图加载完成,等待周围环境渲染...`);
-          // 地图complete后,再等待一段时间确保瓦片加载
-          setTimeout(checkTilesLoaded, 2000);
+          }, 5000);
         });
 
-        // 备用方案:如果5秒后还没有触发complete,强制截图
-        setTimeout(() => {
-          if (!tilesLoaded) {
-            console.log(`⚠️ 第${dayData.dayNumber}天地图加载超时,强制截图`);
-            checkTilesLoaded();
-          }
-        }, 5000);
-      });
-
-      map.on('error', (error: any) => {
-        console.error('地图加载失败:', error);
+        map.on('error', (error: any) => {
+          console.error('地图加载失败:', error);
+          document.body.removeChild(container);
+          reject(error);
+        });
+      })
+      .catch((error) => {
+        console.error('AMap加载失败:', error);
         document.body.removeChild(container);
         reject(error);
       });
-    }).catch((error) => {
-      console.error('AMap加载失败:', error);
-      document.body.removeChild(container);
-      reject(error);
-    });
   });
 }
 
@@ -388,77 +392,80 @@ export async function generateMapScreenshot(
     AMapLoader.load({
       key: amapKey,
       version: '2.0',
-      plugins: ['AMap.ToolBar', 'AMap.Scale']
-    }).then((AMap) => {
-      // 收集所有坐标点
-      const allCoords: number[][] = [];
+      plugins: ['AMap.ToolBar', 'AMap.Scale'],
+    })
+      .then((AMap) => {
+        // 收集所有坐标点
+        const allCoords: number[][] = [];
 
-      // 收集景点坐标
-      tripData.days.forEach(day => {
-        day.itineraryItems.forEach(item => {
-          if (item.longitude && item.latitude) {
-            allCoords.push([item.longitude, item.latitude]);
-          }
+        // 收集景点坐标
+        tripData.days.forEach((day) => {
+          day.itineraryItems.forEach((item) => {
+            if (item.longitude && item.latitude) {
+              allCoords.push([item.longitude, item.latitude]);
+            }
+          });
         });
-      });
 
-      // 收集酒店坐标
-      if (tripData.hotel?.location) {
-        const [lng, lat] = tripData.hotel.location.split(',').map(Number);
-        allCoords.push([lng, lat]);
-      }
-
-      // 收集餐厅坐标
-      tripData.days.forEach(day => {
-        if (day.restaurantLocation) {
-          const [lng, lat] = day.restaurantLocation.split(',').map(Number);
-          allCoords.push([lng, lat]);
-        }
-      });
-
-      if (allCoords.length === 0) {
-        document.body.removeChild(container);
-        reject(new Error('没有地点数据'));
-        return;
-      }
-
-      // 计算中心点
-      const avgLng = allCoords.reduce((sum, c) => sum + c[0], 0) / allCoords.length;
-      const avgLat = allCoords.reduce((sum, c) => sum + c[1], 0) / allCoords.length;
-
-      // 创建地图
-      const map = new AMap.Map(container, {
-        zoom: 13, // 提高默认缩放级别
-        center: [avgLng, avgLat],
-        viewMode: '2D',
-        mapStyle: 'amap://styles/normal',
-        features: ['bg', 'road', 'building', 'point'], // 显示背景、道路、建筑、兴趣点
-        showLabel: true, // 显示文字标注
-        showIndoorMap: false,
-        showBuildingBlock: true,
-      });
-
-      // 注意：高德地图 JS API 2.0 会自动在地图右下角显示审图号
-      // 审图号格式：GS(XXXX)XXX号
-      // 使用官方地图样式时，审图号由高德自动提供和显示
-
-      // 等待地图加载完成
-      map.on('complete', () => {
-        // 添加工具栏
-        map.addControl(new AMap.ToolBar({
-          position: { top: '10px', right: '10px' }
-        }));
-
-        // 添加比例尺
-        map.addControl(new AMap.Scale());
-
-        // 添加酒店标记
+        // 收集酒店坐标
         if (tripData.hotel?.location) {
           const [lng, lat] = tripData.hotel.location.split(',').map(Number);
-          const hotelMarker = new AMap.Marker({
-            position: [lng, lat],
-            title: tripData.hotel.name,
-            content: `
+          allCoords.push([lng, lat]);
+        }
+
+        // 收集餐厅坐标
+        tripData.days.forEach((day) => {
+          if (day.restaurantLocation) {
+            const [lng, lat] = day.restaurantLocation.split(',').map(Number);
+            allCoords.push([lng, lat]);
+          }
+        });
+
+        if (allCoords.length === 0) {
+          document.body.removeChild(container);
+          reject(new Error('没有地点数据'));
+          return;
+        }
+
+        // 计算中心点
+        const avgLng = allCoords.reduce((sum, c) => sum + c[0], 0) / allCoords.length;
+        const avgLat = allCoords.reduce((sum, c) => sum + c[1], 0) / allCoords.length;
+
+        // 创建地图
+        const map = new AMap.Map(container, {
+          zoom: 13, // 提高默认缩放级别
+          center: [avgLng, avgLat],
+          viewMode: '2D',
+          mapStyle: 'amap://styles/normal',
+          features: ['bg', 'road', 'building', 'point'], // 显示背景、道路、建筑、兴趣点
+          showLabel: true, // 显示文字标注
+          showIndoorMap: false,
+          showBuildingBlock: true,
+        });
+
+        // 注意：高德地图 JS API 2.0 会自动在地图右下角显示审图号
+        // 审图号格式：GS(XXXX)XXX号
+        // 使用官方地图样式时，审图号由高德自动提供和显示
+
+        // 等待地图加载完成
+        map.on('complete', () => {
+          // 添加工具栏
+          map.addControl(
+            new AMap.ToolBar({
+              position: { top: '10px', right: '10px' },
+            })
+          );
+
+          // 添加比例尺
+          map.addControl(new AMap.Scale());
+
+          // 添加酒店标记
+          if (tripData.hotel?.location) {
+            const [lng, lat] = tripData.hotel.location.split(',').map(Number);
+            const hotelMarker = new AMap.Marker({
+              position: [lng, lat],
+              title: tripData.hotel.name,
+              content: `
               <div style="position: relative;">
                 <div style="
                   min-width: 60px;
@@ -480,23 +487,23 @@ export async function generateMapScreenshot(
                 </div>
               </div>
             `,
-            offset: new AMap.Pixel(-30, -18),
-            zIndex: 150
-          });
-          map.add(hotelMarker);
-        }
+              offset: new AMap.Pixel(-30, -18),
+              zIndex: 150,
+            });
+            map.add(hotelMarker);
+          }
 
-        // 添加每天的景点和餐厅
-        tripData.days.forEach((day, dayIndex) => {
-          const dayColor = DAY_COLORS[dayIndex % DAY_COLORS.length];
+          // 添加每天的景点和餐厅
+          tripData.days.forEach((day, dayIndex) => {
+            const dayColor = DAY_COLORS[dayIndex % DAY_COLORS.length];
 
-          // 添加景点标记
-          day.itineraryItems.forEach((item, itemIndex) => {
-            if (item.longitude && item.latitude) {
-              const marker = new AMap.Marker({
-                position: [item.longitude, item.latitude],
-                title: item.name,
-                content: `
+            // 添加景点标记
+            day.itineraryItems.forEach((item, itemIndex) => {
+              if (item.longitude && item.latitude) {
+                const marker = new AMap.Marker({
+                  position: [item.longitude, item.latitude],
+                  title: item.name,
+                  content: `
                   <div style="position: relative;">
                     <div style="
                       min-width: 50px;
@@ -518,42 +525,42 @@ export async function generateMapScreenshot(
                     </div>
                   </div>
                 `,
-                offset: new AMap.Pixel(-25, -16),
-                zIndex: 100
-              });
-              map.add(marker);
-            }
-          });
-
-          // 添加带箭头的路径线
-          const pathCoords: number[][] = [];
-          day.itineraryItems.forEach(item => {
-            if (item.longitude && item.latitude) {
-              pathCoords.push([item.longitude, item.latitude]);
-            }
-          });
-
-          if (pathCoords.length > 1) {
-            // 使用Polyline绘制路径
-            const polyline = new AMap.Polyline({
-              path: pathCoords,
-              strokeColor: dayColor,
-              strokeWeight: 4,
-              strokeOpacity: 0.8,
-              lineJoin: 'round',
-              zIndex: 50,
-              showDir: true, // 显示方向箭头
+                  offset: new AMap.Pixel(-25, -16),
+                  zIndex: 100,
+                });
+                map.add(marker);
+              }
             });
-            map.add(polyline);
-          }
 
-          // 添加餐厅标记
-          if (day.restaurantLocation) {
-            const [lng, lat] = day.restaurantLocation.split(',').map(Number);
-            const restaurantMarker = new AMap.Marker({
-              position: [lng, lat],
-              title: day.restaurantName,
-              content: `
+            // 添加带箭头的路径线
+            const pathCoords: number[][] = [];
+            day.itineraryItems.forEach((item) => {
+              if (item.longitude && item.latitude) {
+                pathCoords.push([item.longitude, item.latitude]);
+              }
+            });
+
+            if (pathCoords.length > 1) {
+              // 使用Polyline绘制路径
+              const polyline = new AMap.Polyline({
+                path: pathCoords,
+                strokeColor: dayColor,
+                strokeWeight: 4,
+                strokeOpacity: 0.8,
+                lineJoin: 'round',
+                zIndex: 50,
+                showDir: true, // 显示方向箭头
+              });
+              map.add(polyline);
+            }
+
+            // 添加餐厅标记
+            if (day.restaurantLocation) {
+              const [lng, lat] = day.restaurantLocation.split(',').map(Number);
+              const restaurantMarker = new AMap.Marker({
+                position: [lng, lat],
+                title: day.restaurantName,
+                content: `
                 <div style="position: relative;">
                   <div style="
                     min-width: 60px;
@@ -575,91 +582,92 @@ export async function generateMapScreenshot(
                   </div>
                 </div>
               `,
-              offset: new AMap.Pixel(-30, -18),
-              zIndex: 140
-            });
-            map.add(restaurantMarker);
-          }
-        });
-
-        // 添加图例
-        const legendHtml = createLegend(tripData.days.length);
-        const legendMarker = new AMap.Marker({
-          position: map.getBounds().getNorthEast(),
-          content: legendHtml,
-          offset: new AMap.Pixel(-150, 10),
-          zIndex: 200
-        });
-        map.add(legendMarker);
-
-        // 自适应显示所有标记,并设置合适的缩放级别
-        map.setFitView(null, false, [50, 50, 50, 50]);
-
-        // 等待地图瓦片加载完成
-        let tilesLoaded = false;
-        const checkTilesLoaded = () => {
-          if (tilesLoaded) return;
-          tilesLoaded = true;
-          
-          // 额外等待时间,确保周围环境完全渲染
-          setTimeout(async () => {
-            try {
-              console.log('📸 开始截取地图...');
-
-              // 使用html2canvas截取整个容器(包括地图和标记)
-              const canvas = await html2canvas(container, {
-                useCORS: true,
-                allowTaint: true,
-                scale: 2,
-                backgroundColor: '#ffffff',
-                logging: false,
-                width: width,
-                height: height,
+                offset: new AMap.Pixel(-30, -18),
+                zIndex: 140,
               });
-
-              const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-
-              // 清理
-              map.destroy();
-              document.body.removeChild(container);
-
-              console.log('🗺️ 地图截图生成成功');
-              resolve(dataUrl);
-            } catch (error) {
-              console.error('地图截图失败:', error);
-              map.destroy();
-              document.body.removeChild(container);
-              reject(error);
+              map.add(restaurantMarker);
             }
-          }, 3000); // 增加到3秒,确保周围环境完全加载
-        };
+          });
 
-        // 监听地图瓦片加载完成事件
-        map.on('complete', () => {
-          console.log('🗺️ 地图加载完成,等待周围环境渲染...');
-          // 地图complete后,再等待一段时间确保瓦片加载
-          setTimeout(checkTilesLoaded, 2000);
+          // 添加图例
+          const legendHtml = createLegend(tripData.days.length);
+          const legendMarker = new AMap.Marker({
+            position: map.getBounds().getNorthEast(),
+            content: legendHtml,
+            offset: new AMap.Pixel(-150, 10),
+            zIndex: 200,
+          });
+          map.add(legendMarker);
+
+          // 自适应显示所有标记,并设置合适的缩放级别
+          map.setFitView(null, false, [50, 50, 50, 50]);
+
+          // 等待地图瓦片加载完成
+          let tilesLoaded = false;
+          const checkTilesLoaded = () => {
+            if (tilesLoaded) return;
+            tilesLoaded = true;
+
+            // 额外等待时间,确保周围环境完全渲染
+            setTimeout(async () => {
+              try {
+                console.log('📸 开始截取地图...');
+
+                // 使用html2canvas截取整个容器(包括地图和标记)
+                const canvas = await html2canvas(container, {
+                  useCORS: true,
+                  allowTaint: true,
+                  scale: 2,
+                  backgroundColor: '#ffffff',
+                  logging: false,
+                  width: width,
+                  height: height,
+                });
+
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+                // 清理
+                map.destroy();
+                document.body.removeChild(container);
+
+                console.log('🗺️ 地图截图生成成功');
+                resolve(dataUrl);
+              } catch (error) {
+                console.error('地图截图失败:', error);
+                map.destroy();
+                document.body.removeChild(container);
+                reject(error);
+              }
+            }, 3000); // 增加到3秒,确保周围环境完全加载
+          };
+
+          // 监听地图瓦片加载完成事件
+          map.on('complete', () => {
+            console.log('🗺️ 地图加载完成,等待周围环境渲染...');
+            // 地图complete后,再等待一段时间确保瓦片加载
+            setTimeout(checkTilesLoaded, 2000);
+          });
+
+          // 备用方案:如果5秒后还没有触发complete,强制截图
+          setTimeout(() => {
+            if (!tilesLoaded) {
+              console.log('⚠️ 地图加载超时,强制截图');
+              checkTilesLoaded();
+            }
+          }, 5000);
         });
 
-        // 备用方案:如果5秒后还没有触发complete,强制截图
-        setTimeout(() => {
-          if (!tilesLoaded) {
-            console.log('⚠️ 地图加载超时,强制截图');
-            checkTilesLoaded();
-          }
-        }, 5000);
-      });
-
-      map.on('error', (error: any) => {
-        console.error('地图加载失败:', error);
+        map.on('error', (error: any) => {
+          console.error('地图加载失败:', error);
+          document.body.removeChild(container);
+          reject(error);
+        });
+      })
+      .catch((error) => {
+        console.error('AMap加载失败:', error);
         document.body.removeChild(container);
         reject(error);
       });
-    }).catch((error) => {
-      console.error('AMap加载失败:', error);
-      document.body.removeChild(container);
-      reject(error);
-    });
   });
 }
 
@@ -719,8 +727,8 @@ function adjustColor(color: string, amount: number): string {
   const num = parseInt(hex, 16);
 
   let r = (num >> 16) + amount;
-  let g = ((num >> 8) & 0x00FF) + amount;
-  let b = (num & 0x0000FF) + amount;
+  let g = ((num >> 8) & 0x00ff) + amount;
+  let b = (num & 0x0000ff) + amount;
 
   r = Math.max(0, Math.min(255, r));
   g = Math.max(0, Math.min(255, g));
@@ -737,7 +745,7 @@ function adjustColor(color: string, amount: number): string {
 export function extractLocationsFromDays(days: any[]): string[] {
   const locations: string[] = [];
 
-  days.forEach(day => {
+  days.forEach((day) => {
     if (day.itineraryItems) {
       day.itineraryItems.forEach((item: any) => {
         if (item.latitude && item.longitude) {

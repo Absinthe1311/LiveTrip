@@ -69,7 +69,9 @@ export async function getUserFavorites(userId: string = 'default-user'): Promise
 /**
  * 获取用户的所有收藏景点（包含IoT数据）
  */
-export async function getUserFavoritesWithIoT(userId: string = 'default-user'): Promise<FavoriteSpotWithIoT[]> {
+export async function getUserFavoritesWithIoT(
+  userId: string = 'default-user'
+): Promise<FavoriteSpotWithIoT[]> {
   try {
     const favorites = await prisma.favorite.findMany({
       where: {
@@ -98,7 +100,11 @@ export async function getUserFavoritesWithIoT(userId: string = 'default-user'): 
 /**
  * 添加收藏
  */
-export async function addFavorite(spotId: string, userId: string = 'default-user', notes?: string): Promise<FavoriteSpot> {
+export async function addFavorite(
+  spotId: string,
+  userId: string = 'default-user',
+  notes?: string
+): Promise<FavoriteSpot> {
   try {
     // 检查是否存在该景点
     const spot = await prisma.spot.findUnique({
@@ -112,7 +118,11 @@ export async function addFavorite(spotId: string, userId: string = 'default-user
     }
 
     // 验证坐标是否有效
-    const isLocationValid = spot.location && spot.location !== '0,0' && spot.location !== '0, 0,0' && spot.location !== '';
+    const isLocationValid =
+      spot.location &&
+      spot.location !== '0,0' &&
+      spot.location !== '0, 0,0' &&
+      spot.location !== '';
     if (!isLocationValid) {
       console.warn(`⚠️  景点坐标无效: ${spot.name}, location=${spot.location}`);
       console.log('🔄 尝试从高德地图API获取正确的坐标...');
@@ -186,7 +196,10 @@ export async function addFavorite(spotId: string, userId: string = 'default-user
 /**
  * 取消收藏
  */
-export async function removeFavorite(spotId: string, userId: string = 'default-user'): Promise<void> {
+export async function removeFavorite(
+  spotId: string,
+  userId: string = 'default-user'
+): Promise<void> {
   try {
     await prisma.favorite.delete({
       where: {
@@ -205,7 +218,10 @@ export async function removeFavorite(spotId: string, userId: string = 'default-u
 /**
  * 检查是否已收藏
  */
-export async function isFavorite(spotId: string, userId: string = 'default-user'): Promise<boolean> {
+export async function isFavorite(
+  spotId: string,
+  userId: string = 'default-user'
+): Promise<boolean> {
   try {
     const favorite = await prisma.favorite.findUnique({
       where: {

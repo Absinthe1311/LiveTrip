@@ -2,7 +2,50 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
-import { Check, Sparkles, ChevronLeft, ChevronRight, MapPin, Navigation, Calendar, Wallet, Users, Heart, ArrowRight, ArrowLeft, User, HeartHandshake, UsersRound, Mountain, Utensils, Camera, Building, TreePine, Waves, ShoppingBag, Dumbbell, Droplets, Moon, Sun, Palette, Landmark, Ticket, Coffee, Store, ChefHat, CreditCard, Gem, Crown, Briefcase, Building2, Locate, X, Upload, Image as ImageIcon, Type as TypeIcon } from "lucide-react";
+import {
+  Check,
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+  Navigation,
+  Calendar,
+  Wallet,
+  Users,
+  Heart,
+  ArrowRight,
+  ArrowLeft,
+  User,
+  HeartHandshake,
+  UsersRound,
+  Mountain,
+  Utensils,
+  Camera,
+  Building,
+  TreePine,
+  Waves,
+  ShoppingBag,
+  Dumbbell,
+  Droplets,
+  Moon,
+  Sun,
+  Palette,
+  Landmark,
+  Ticket,
+  Coffee,
+  Store,
+  ChefHat,
+  CreditCard,
+  Gem,
+  Crown,
+  Briefcase,
+  Building2,
+  Locate,
+  X,
+  Upload,
+  Image as ImageIcon,
+  Type as TypeIcon,
+} from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
 import { createPlan } from '../api/client';
@@ -14,12 +57,12 @@ import { DoubleCalendar } from '../components/input/DoubleCalendar';
 import ImageCropper from '../components/media/ImageCropper';
 
 const steps = [
-  { id: 1, label: "出发地与目的地", icon: Navigation },
-  { id: 2, label: "行程日期", icon: Calendar },
-  { id: 3, label: "预算范围", icon: Wallet },
-  { id: 4, label: "群体类型", icon: Users },
-  { id: 5, label: "兴趣偏好", icon: Heart },
-  { id: 6, label: "个性化设置", icon: ImageIcon },
+  { id: 1, label: '出发地与目的地', icon: Navigation },
+  { id: 2, label: '行程日期', icon: Calendar },
+  { id: 3, label: '预算范围', icon: Wallet },
+  { id: 4, label: '群体类型', icon: Users },
+  { id: 5, label: '兴趣偏好', icon: Heart },
+  { id: 6, label: '个性化设置', icon: ImageIcon },
 ];
 
 export default function PlanGlass() {
@@ -72,9 +115,13 @@ export default function PlanGlass() {
 
   // 计算默认行程名称
   const getDefaultTripName = () => {
-    const days = formData.startDate && formData.endDate
-      ? Math.ceil((new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) / (1000 * 60 * 60 * 24))
-      : 3;
+    const days =
+      formData.startDate && formData.endDate
+        ? Math.ceil(
+            (new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) /
+              (1000 * 60 * 60 * 24)
+          )
+        : 3;
     return `${formData.origin || '出发地'} → ${formData.destination || '目的地'} (${days}天)`;
   };
 
@@ -118,7 +165,7 @@ export default function PlanGlass() {
       const uploadResponse = await fetch(`${API_BASE_URL}/upload/image`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: formData,
       });
@@ -222,7 +269,7 @@ export default function PlanGlass() {
             coverImage: formData.coverImage,
           },
           isSavedTrip: false, // 标记为未保存
-          status: 'planning'
+          status: 'planning',
         };
 
         // 将行程数据设置到store，但不保存到数据库
@@ -259,7 +306,7 @@ export default function PlanGlass() {
                     className="w-full pl-12 pr-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/40 transition-all duration-300 focus:bg-white/15 focus:border-green-400/50 focus:shadow-[0_0_20px_rgba(34,197,94,0.3)] focus:outline-none"
                   />
                 </div>
-                
+
                 {/* 自动定位按钮 */}
                 <button
                   onClick={async () => {
@@ -269,7 +316,11 @@ export default function PlanGlass() {
                         return;
                       }
 
-                      const isSecureContext = window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+                      const isSecureContext =
+                        window.isSecureContext ||
+                        location.protocol === 'https:' ||
+                        location.hostname === 'localhost' ||
+                        location.hostname === '127.0.0.1';
                       if (!isSecureContext) {
                         message.warning('定位功能需要HTTPS环境，请使用手动输入');
                         return;
@@ -283,7 +334,10 @@ export default function PlanGlass() {
                             const { latitude, longitude } = position.coords;
                             const amapKey = import.meta.env.VITE_AMAP_WS_KEY;
                             if (!amapKey) {
-                              message.warning({ content: '高德地图API未配置，请手动输入城市', key: 'location' });
+                              message.warning({
+                                content: '高德地图API未配置，请手动输入城市',
+                                key: 'location',
+                              });
                               return;
                             }
 
@@ -299,12 +353,21 @@ export default function PlanGlass() {
                             } else if (data.regeocode?.addressComponent?.province) {
                               const province = data.regeocode.addressComponent.province;
                               setFormData({ ...formData, origin: province });
-                              message.success({ content: `已定位到: ${province}`, key: 'location' });
+                              message.success({
+                                content: `已定位到: ${province}`,
+                                key: 'location',
+                              });
                             } else {
-                              message.error({ content: '无法获取城市信息，请手动输入', key: 'location' });
+                              message.error({
+                                content: '无法获取城市信息，请手动输入',
+                                key: 'location',
+                              });
                             }
                           } catch (error) {
-                            message.error({ content: '获取城市信息失败，请手动输入', key: 'location' });
+                            message.error({
+                              content: '获取城市信息失败，请手动输入',
+                              key: 'location',
+                            });
                           }
                         },
                         (error) => {
@@ -408,7 +471,9 @@ export default function PlanGlass() {
                   return (
                     <button
                       key={option.label}
-                      onClick={() => setFormData({ ...formData, minBudget: option.min, maxBudget: option.max })}
+                      onClick={() =>
+                        setFormData({ ...formData, minBudget: option.min, maxBudget: option.max })
+                      }
                       className={`p-4 rounded-xl border-2 transition-all duration-300 ${
                         formData.minBudget === option.min && formData.maxBudget === option.max
                           ? 'bg-gradient-to-r from-[#FFD9A3]/40 to-[#FFD9A3]/20 border-[#FFD9A3]/60 shadow-lg shadow-[#FFD9A3]/30'
@@ -418,7 +483,9 @@ export default function PlanGlass() {
                       <IconComponent className="w-6 h-6 text-white mb-2 mx-auto" />
                       <div className="text-base font-semibold text-white mb-1">{option.label}</div>
                       <div className="text-xs text-white/60 mb-2">{option.desc}</div>
-                      <div className="text-xs text-white/80">¥{(option.min / 10000).toFixed(1)}-{(option.max / 10000).toFixed(1)}万</div>
+                      <div className="text-xs text-white/80">
+                        ¥{(option.min / 10000).toFixed(1)}-{(option.max / 10000).toFixed(1)}万
+                      </div>
                     </button>
                   );
                 })}
@@ -433,7 +500,9 @@ export default function PlanGlass() {
                     <input
                       type="number"
                       value={formData.minBudget}
-                      onChange={(e) => setFormData({ ...formData, minBudget: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, minBudget: Number(e.target.value) })
+                      }
                       className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 focus:bg-white/15 focus:border-green-400/50 focus:shadow-[0_0_20px_rgba(34,197,94,0.3)] focus:outline-none"
                     />
                   </div>
@@ -442,7 +511,9 @@ export default function PlanGlass() {
                     <input
                       type="number"
                       value={formData.maxBudget}
-                      onChange={(e) => setFormData({ ...formData, maxBudget: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, maxBudget: Number(e.target.value) })
+                      }
                       className="w-full px-6 py-5 text-lg rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 focus:bg-white/15 focus:border-green-400/50 focus:shadow-[0_0_20px_rgba(34,197,94,0.3)] focus:outline-none"
                     />
                   </div>
@@ -459,18 +530,56 @@ export default function PlanGlass() {
               {/* 预设类型 */}
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { type: 'solo', label: '独自旅行', icon: User, desc: '一个人的自由探索', count: 1 },
-                  { type: 'couple', label: '情侣出行', icon: HeartHandshake, desc: '浪漫双人之旅', count: 2 },
-                  { type: 'family', label: '家庭亲子', icon: Users, desc: '温馨家庭时光', count: 4 },
-                  { type: 'friends', label: '好友结伴', icon: UsersRound, desc: '欢乐朋友聚会', count: 3 },
-                  { type: 'business', label: '商务出行', icon: Briefcase, desc: '工作差旅安排', count: 2 },
-                  { type: 'team', label: '团队建设', icon: Building2, desc: '公司团建活动', count: 10 },
+                  {
+                    type: 'solo',
+                    label: '独自旅行',
+                    icon: User,
+                    desc: '一个人的自由探索',
+                    count: 1,
+                  },
+                  {
+                    type: 'couple',
+                    label: '情侣出行',
+                    icon: HeartHandshake,
+                    desc: '浪漫双人之旅',
+                    count: 2,
+                  },
+                  {
+                    type: 'family',
+                    label: '家庭亲子',
+                    icon: Users,
+                    desc: '温馨家庭时光',
+                    count: 4,
+                  },
+                  {
+                    type: 'friends',
+                    label: '好友结伴',
+                    icon: UsersRound,
+                    desc: '欢乐朋友聚会',
+                    count: 3,
+                  },
+                  {
+                    type: 'business',
+                    label: '商务出行',
+                    icon: Briefcase,
+                    desc: '工作差旅安排',
+                    count: 2,
+                  },
+                  {
+                    type: 'team',
+                    label: '团队建设',
+                    icon: Building2,
+                    desc: '公司团建活动',
+                    count: 10,
+                  },
                 ].map((item) => {
                   const IconComponent = item.icon;
                   return (
                     <button
                       key={item.type}
-                      onClick={() => setFormData({ ...formData, groupType: item.type, groupSize: item.count })}
+                      onClick={() =>
+                        setFormData({ ...formData, groupType: item.type, groupSize: item.count })
+                      }
                       className={`p-5 rounded-xl border-2 transition-all duration-300 text-left ${
                         formData.groupType === item.type
                           ? 'bg-gradient-to-r from-[#CDEDDE]/30 to-[#CDEDDE]/20 border-[#CDEDDE]/50 shadow-lg shadow-[#CDEDDE]/20'
@@ -692,7 +801,9 @@ export default function PlanGlass() {
                   />
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-livetrip-primary/0 via-livetrip-primary/20 to-livetrip-primary/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 </div>
-                <p className="text-xs text-white/50 mt-1">留空将使用默认名称：{getDefaultTripName()}</p>
+                <p className="text-xs text-white/50 mt-1">
+                  留空将使用默认名称：{getDefaultTripName()}
+                </p>
               </div>
 
               {/* 行程封面 */}
@@ -746,7 +857,9 @@ export default function PlanGlass() {
                     )}
                   </button>
                 </div>
-                <p className="text-xs text-white/50 mt-1">支持 JPG、PNG、GIF、WebP 格式，最大 10MB</p>
+                <p className="text-xs text-white/50 mt-1">
+                  支持 JPG、PNG、GIF、WebP 格式，最大 10MB
+                </p>
               </div>
 
               {/* 行程描述 */}
@@ -774,9 +887,18 @@ export default function PlanGlass() {
     <GlassLayout showSearch={false}>
       {/* 动态背景光影效果 */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-livetrip-primary/5 via-transparent to-livetrip-accent/5 animate-pulse" style={{ animationDuration: '8s' }} />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-livetrip-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '12s' }} />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-livetrip-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '15s' }} />
+        <div
+          className="absolute inset-0 bg-gradient-to-br from-livetrip-primary/5 via-transparent to-livetrip-accent/5 animate-pulse"
+          style={{ animationDuration: '8s' }}
+        />
+        <div
+          className="absolute top-1/4 left-1/4 w-96 h-96 bg-livetrip-primary/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDuration: '12s' }}
+        />
+        <div
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-livetrip-accent/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDuration: '15s' }}
+        />
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto py-6 space-y-6">
@@ -790,41 +912,50 @@ export default function PlanGlass() {
                   {/* 步骤项 */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {/* 步骤圆圈 */}
-                    <div className={`
+                    <div
+                      className={`
                       relative w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
                       transition-all duration-500
-                      ${index === currentStep
-                        ? 'bg-livetrip-primary scale-110 shadow-lg shadow-livetrip-primary/50'
-                        : index < currentStep
-                          ? 'bg-livetrip-primary/30 border-2 border-livetrip-primary'
-                          : 'bg-white/10 border-2 border-white/20'
+                      ${
+                        index === currentStep
+                          ? 'bg-livetrip-primary scale-110 shadow-lg shadow-livetrip-primary/50'
+                          : index < currentStep
+                            ? 'bg-livetrip-primary/30 border-2 border-livetrip-primary'
+                            : 'bg-white/10 border-2 border-white/20'
                       }
-                    `}>
+                    `}
+                    >
                       {index < currentStep ? (
                         <Check className="w-4 h-4 text-white" />
                       ) : (
-                        <StepIcon className={`
+                        <StepIcon
+                          className={`
                           w-4 h-4 transition-all duration-300
                           ${index <= currentStep ? 'text-white' : 'text-white/40'}
-                        `} />
+                        `}
+                        />
                       )}
                     </div>
 
                     {/* 步骤标签 */}
-                    <span className={`
+                    <span
+                      className={`
                       text-xs font-medium transition-all duration-300 whitespace-nowrap
                       ${index === currentStep ? 'text-white' : 'text-white/50'}
-                    `}>
+                    `}
+                    >
                       {step.label}
                     </span>
                   </div>
 
                   {/* 连接线 */}
                   {index < steps.length - 1 && (
-                    <div className={`
+                    <div
+                      className={`
                       w-8 h-0.5 flex-shrink-0 transition-all duration-500
                       ${index < currentStep ? 'bg-livetrip-primary' : 'bg-white/20'}
-                    `} />
+                    `}
+                    />
                   )}
                 </React.Fragment>
               );
@@ -901,7 +1032,8 @@ export default function PlanGlass() {
             maxHeight: '500px',
           }}
         >
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col"
+          <div
+            className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col"
             style={{ maxHeight: '500px' }}
           >
             {/* 头部 */}
@@ -914,8 +1046,18 @@ export default function PlanGlass() {
                 onClick={() => setAIDrawerOpen(false)}
                 className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
               >
-                <svg className="w-4 h-4 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-4 h-4 text-white/60"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -938,13 +1080,15 @@ export default function PlanGlass() {
       <button
         onClick={() => setAIDrawerOpen(!aiDrawerOpen)}
         className={`fixed bottom-8 right-8 z-40 w-16 h-16 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center group ${
-          aiDrawerOpen 
-            ? 'bg-white/20 backdrop-blur-md border-2 border-white/30 scale-90' 
+          aiDrawerOpen
+            ? 'bg-white/20 backdrop-blur-md border-2 border-white/30 scale-90'
             : 'bg-gradient-to-r from-[#AE1C31] to-[#AE1C31]/80 shadow-[#AE1C31]/40 hover:scale-110 hover:shadow-xl animate-pulse'
         }`}
         style={!aiDrawerOpen ? { animationDuration: '3s' } : {}}
       >
-        <Sparkles className={`w-7 h-7 text-white transition-transform duration-300 ${aiDrawerOpen ? 'rotate-180' : 'group-hover:rotate-12'}`} />
+        <Sparkles
+          className={`w-7 h-7 text-white transition-transform duration-300 ${aiDrawerOpen ? 'rotate-180' : 'group-hover:rotate-12'}`}
+        />
         {!aiDrawerOpen && (
           <span className="absolute -top-12 right-0 px-4 py-2 rounded-lg bg-white/10 backdrop-blur-md text-white text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 border border-white/20">
             AI 旅行顾问
@@ -962,11 +1106,3 @@ export default function PlanGlass() {
     </GlassLayout>
   );
 }
-
-
-
-
-
-
-
-

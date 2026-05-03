@@ -10,9 +10,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { message, Spin, Modal, Input, Button } from 'antd';
-import {
-  MapPin, Calendar, Wallet, Cloud, Share2, Check, ChevronRight
-} from "lucide-react";
+import { MapPin, Calendar, Wallet, Cloud, Share2, Check, ChevronRight } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import TimelineWithCards from '../components/itinerary/TimelineWithCards';
 import LinearStepNavigation, { PlanningStep } from '../components/itinerary/LinearStepNavigation';
@@ -23,9 +21,29 @@ import ActionButton from '../components/itinerary/ActionButton';
 import DayMapComponent from '../components/itinerary/DayMap';
 import PackingStep, { PackingItemData } from '../components/itinerary/PackingStep';
 import { useAppStore } from '../store';
-import { FullItinerary, AttractionItem, calculateRealTimeBudget, completeTrip } from '../api/client';
-import { getIoTData, saveTrip, batchGetSpotImagesByIds, addPackingItem, updatePackingItem, getPackingList, savePackingList } from '../api/client';
-import { Hotel, Restaurant, getHotelRecommendations, getRestaurantRecommendations, searchCustomRestaurant, searchCustomHotel } from '../api/recommendationApi';
+import {
+  FullItinerary,
+  AttractionItem,
+  calculateRealTimeBudget,
+  completeTrip,
+} from '../api/client';
+import {
+  getIoTData,
+  saveTrip,
+  batchGetSpotImagesByIds,
+  addPackingItem,
+  updatePackingItem,
+  getPackingList,
+  savePackingList,
+} from '../api/client';
+import {
+  Hotel,
+  Restaurant,
+  getHotelRecommendations,
+  getRestaurantRecommendations,
+  searchCustomRestaurant,
+  searchCustomHotel,
+} from '../api/recommendationApi';
 import { alternativeRecommender } from '../services/alternativeRecommender';
 import AMapLoader from '@amap/amap-jsapi-loader';
 
@@ -50,7 +68,9 @@ export default function Itinerary() {
   const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
   const [selectedRestaurants, setSelectedRestaurants] = useState<Record<number, Restaurant>>({});
   const [spotImages, setSpotImages] = useState<Record<string, string>>({}); // 景点图片映射
-  const [restaurantRecommendations, setRestaurantRecommendations] = useState<Record<number, Restaurant[]>>({}); // 餐厅推荐
+  const [restaurantRecommendations, setRestaurantRecommendations] = useState<
+    Record<number, Restaurant[]>
+  >({}); // 餐厅推荐
   const [hotelRecommendations, setHotelRecommendations] = useState<Hotel[]>([]); // 酒店推荐
   const [realTimeBudget, setRealTimeBudget] = useState<any>(null); // 实时预算
 
@@ -142,25 +162,25 @@ export default function Itinerary() {
       newSteps.push({
         type: 'attractions',
         day: day.day,
-        label: `第${day.day}天景点`
+        label: `第${day.day}天景点`,
       });
       newSteps.push({
         type: 'restaurants',
         day: day.day,
-        label: `第${day.day}天餐厅`
+        label: `第${day.day}天餐厅`,
       });
     });
 
     // 然后：酒店
     newSteps.push({
       type: 'hotels',
-      label: '选择酒店'
+      label: '选择酒店',
     });
 
     // 最后：打包
     newSteps.push({
       type: 'packing',
-      label: '行李打包'
+      label: '行李打包',
     });
 
     setSteps(newSteps);
@@ -188,8 +208,8 @@ export default function Itinerary() {
     try {
       // 收集所有景点ID
       const spotIds: string[] = [];
-      itineraryData.itinerary.forEach(day => {
-        day.attractions.forEach(attraction => {
+      itineraryData.itinerary.forEach((day) => {
+        day.attractions.forEach((attraction) => {
           if (attraction.spotId) {
             spotIds.push(attraction.spotId);
           }
@@ -212,8 +232,8 @@ export default function Itinerary() {
       console.error('批量获取景点图片失败:', error);
       // 失败不影响主流程，使用备用方案
       const fallbackImages: Record<string, string> = {};
-      itineraryData.itinerary.forEach(day => {
-        day.attractions.forEach(attraction => {
+      itineraryData.itinerary.forEach((day) => {
+        day.attractions.forEach((attraction) => {
           if (attraction.spotId) {
             fallbackImages[attraction.spotId] = '';
           }
@@ -229,13 +249,13 @@ export default function Itinerary() {
 
     try {
       // 准备每天的景点数据
-      const daysData = itineraryData.itinerary.map(day => ({
+      const daysData = itineraryData.itinerary.map((day) => ({
         day: day.day,
         date: day.date,
-        spots: day.attractions.map(attraction => ({
+        spots: day.attractions.map((attraction) => ({
           name: attraction.name,
-          location: attraction.location
-        }))
+          location: attraction.location,
+        })),
       }));
 
       console.log(`🍽️ 加载 ${daysData.length} 天的餐厅推荐`);
@@ -250,7 +270,7 @@ export default function Itinerary() {
 
         setRestaurantRecommendations(restaurantsMap);
         console.log(`✅ 成功加载餐厅推荐`);
-        
+
         // 不在这里设置showAllRestaurants，让它在步骤切换时动态控制
       }
     } catch (error) {
@@ -264,10 +284,10 @@ export default function Itinerary() {
 
     try {
       // 收集所有景点
-      const allSpots = itineraryData.itinerary.flatMap(day =>
-        day.attractions.map(attraction => ({
+      const allSpots = itineraryData.itinerary.flatMap((day) =>
+        day.attractions.map((attraction) => ({
           name: attraction.name,
-          location: attraction.location
+          location: attraction.location,
         }))
       );
 
@@ -296,11 +316,15 @@ export default function Itinerary() {
     setSearchLoading(true);
 
     try {
-      console.log(`🔍 自定义搜索 - 类型: ${customSearchType}, 关键词: ${searchKeyword}, 城市: ${destination}`);
+      console.log(
+        `🔍 自定义搜索 - 类型: ${customSearchType}, 关键词: ${searchKeyword}, 城市: ${destination}`
+      );
 
       if (customSearchType === 'restaurant') {
         // 获取当前天的景点位置作为搜索中心
-        const currentDayData = currentStep?.day ? itineraryData?.itinerary[currentStep.day - 1] : null;
+        const currentDayData = currentStep?.day
+          ? itineraryData?.itinerary[currentStep.day - 1]
+          : null;
         const centerLocation = currentDayData?.attractions?.[0]?.location;
 
         console.log(`📍 搜索中心位置: ${centerLocation || '无，使用城市搜索'}`);
@@ -350,10 +374,10 @@ export default function Itinerary() {
     console.log('当前步骤:', currentStep);
 
     if (customSearchType === 'restaurant' && currentStep?.day) {
-      setSelectedRestaurants(prev => {
+      setSelectedRestaurants((prev) => {
         const newState = {
           ...prev,
-          [currentStep.day!]: item
+          [currentStep.day!]: item,
         };
         console.log('更新后的selectedRestaurants:', newState);
         return newState;
@@ -382,9 +406,9 @@ export default function Itinerary() {
       const days = itineraryData.itinerary.length;
 
       // 准备景点数据
-      const spots = itineraryData.itinerary.flatMap(day =>
-        day.attractions.map(attraction => ({
-          estimated_cost: attraction.estimated_cost
+      const spots = itineraryData.itinerary.flatMap((day) =>
+        day.attractions.map((attraction) => ({
+          estimated_cost: attraction.estimated_cost,
         }))
       );
 
@@ -394,7 +418,7 @@ export default function Itinerary() {
         days,
         hotel: selectedHotel,
         restaurants: selectedRestaurants,
-        spots
+        spots,
       });
 
       if (response.success && response.data) {
@@ -408,12 +432,12 @@ export default function Itinerary() {
 
   // 获取景点的IoT数据
   const getAttractionIoTData = (item: AttractionItem, allIoTData: any[]) => {
-    return allIoTData.find(data => data.spotName === item.name);
+    return allIoTData.find((data) => data.spotName === item.name);
   };
 
   // 处理卡片高度变化
   const handleCardHeightChange = (index: number, height: number) => {
-    setCardHeights(prev => {
+    setCardHeights((prev) => {
       const newHeights = [...prev];
       newHeights[index] = height;
       return newHeights;
@@ -466,7 +490,7 @@ export default function Itinerary() {
   // 处理上一步
   const handlePrevious = () => {
     if (currentStepIndex > 0) {
-      setCurrentStepIndex(prev => prev - 1);
+      setCurrentStepIndex((prev) => prev - 1);
     }
   };
 
@@ -474,14 +498,14 @@ export default function Itinerary() {
   const handleNext = () => {
     if (currentStepIndex < steps.length - 1) {
       // 标记当前步骤为完成
-      setCompletedSteps(prev => {
+      setCompletedSteps((prev) => {
         const newCompleted = [...prev];
         newCompleted[currentStepIndex] = true;
         return newCompleted;
       });
 
       // 进入下一步
-      setCurrentStepIndex(prev => prev + 1);
+      setCurrentStepIndex((prev) => prev + 1);
     }
   };
 
@@ -502,26 +526,28 @@ export default function Itinerary() {
       const saveData = {
         summary: itineraryData.summary,
         itinerary: {
-          itinerary: itineraryData.itinerary  // 后端期望的是 { itinerary: { itinerary: [] } }
+          itinerary: itineraryData.itinerary, // 后端期望的是 { itinerary: { itinerary: [] } }
         },
         total_cost: itineraryData.total_cost,
         budget_breakdown: itineraryData.budget_breakdown,
         hotel: selectedHotel,
         hotelRecommendations: hotelRecommendations, // 添加酒店推荐缓存
-        restaurantRecommendations: Object.entries(restaurantRecommendations).map(([day, restaurants]) => ({
-          day: parseInt(day),
-          restaurants: restaurants
-        })),
+        restaurantRecommendations: Object.entries(restaurantRecommendations).map(
+          ([day, restaurants]) => ({
+            day: parseInt(day),
+            restaurants: restaurants,
+          })
+        ),
         restaurants: Object.entries(selectedRestaurants).map(([day, restaurant]) => ({
           day: parseInt(day),
-          selectedRestaurant: restaurant
+          selectedRestaurant: restaurant,
         })),
         // 添加个性化信息
         customization: {
           tripName: itineraryData.customization?.tripName || '',
           tripDescription: itineraryData.customization?.tripDescription || '',
-          coverImage: itineraryData.customization?.coverImage || ''
-        }
+          coverImage: itineraryData.customization?.coverImage || '',
+        },
       };
 
       console.log('📝 准备保存的行程数据:', JSON.stringify(saveData, null, 2));
@@ -532,7 +558,7 @@ export default function Itinerary() {
 
       if (response.success) {
         const newTripId = response.data?.tripId;
-        
+
         // 保存打包清单到新行程
         if (newTripId && packingItems.length > 0) {
           console.log('💾 保存打包清单到新行程:', { newTripId, itemCount: packingItems.length });
@@ -547,14 +573,14 @@ export default function Itinerary() {
         message.success({
           content: '行程保存成功！',
           key: 'save',
-          duration: 2
+          duration: 2,
         });
 
         // 更新行程数据，标记为已保存
         const updatedItinerary = {
           ...itineraryData,
           tripId: newTripId,
-          isSavedTrip: true
+          isSavedTrip: true,
         };
         setCurrentItinerary(updatedItinerary);
 
@@ -565,14 +591,14 @@ export default function Itinerary() {
       } else {
         message.error({
           content: response.message || '保存失败，请重试',
-          key: 'save'
+          key: 'save',
         });
       }
     } catch (error: any) {
       console.error('保存行程失败:', error);
       message.error({
         content: error.response?.data?.error || error.message || '保存失败',
-        key: 'save'
+        key: 'save',
       });
     }
   };
@@ -590,24 +616,24 @@ export default function Itinerary() {
       return;
     }
 
-    setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: true }));
+    setLoadingAlternatives((prev) => ({ ...prev, [attractionKey]: true }));
 
     try {
       // 新方案：从行程数据的alternativePools中获取备选景点
       const spotId = item.spotId || item.id;
-      
+
       if (!itineraryData?.alternativePools || !spotId) {
         console.warn('⚠️  没有备选景点数据');
         message.info('暂无备选景点');
-        setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: false }));
+        setLoadingAlternatives((prev) => ({ ...prev, [attractionKey]: false }));
         return;
       }
 
       // 从alternativePools获取备选景点
       const alternatives = itineraryData.alternativePools[spotId] || [];
-      
+
       console.log(`✅ 从行程数据获取到 ${alternatives.length} 个备选景点`);
-      
+
       // 调试：打印备选景点数据结构
       if (alternatives.length > 0) {
         console.log('📦 备选景点数据示例:', {
@@ -615,7 +641,7 @@ export default function Itinerary() {
           image: alternatives[0].image,
           iotData: alternatives[0].iotData,
           rating: alternatives[0].rating,
-          estimated_cost: alternatives[0].estimated_cost
+          estimated_cost: alternatives[0].estimated_cost,
         });
       }
 
@@ -623,22 +649,22 @@ export default function Itinerary() {
         message.info('暂无备选景点');
       }
 
-      setExpandedAlternatives(prev => ({
+      setExpandedAlternatives((prev) => ({
         ...prev,
-        [attractionKey]: alternatives
+        [attractionKey]: alternatives,
       }));
     } catch (error: any) {
       console.error('❌ 获取备选景点失败:', error);
       message.error('获取备选景点失败，请稍后重试');
     } finally {
-      setLoadingAlternatives(prev => ({ ...prev, [attractionKey]: false }));
+      setLoadingAlternatives((prev) => ({ ...prev, [attractionKey]: false }));
     }
   };
 
   // 处理关闭备选景点
   const handleCloseAlternatives = (item: AttractionItem) => {
     const key = `${item.name}-${item.time}`;
-    setExpandedAlternatives(prev => {
+    setExpandedAlternatives((prev) => {
       const newAlternatives = { ...prev };
       delete newAlternatives[key];
       return newAlternatives;
@@ -740,28 +766,41 @@ export default function Itinerary() {
               <Calendar className="w-5 h-5 text-[#FFD9A3] flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">出行日期</p>
-                <p className="text-lg font-bold text-white truncate">{itineraryData.summary?.start_date || '未设置'}</p>
+                <p className="text-lg font-bold text-white truncate">
+                  {itineraryData.summary?.start_date || '未设置'}
+                </p>
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl py-3 px-4 flex items-center gap-3">
               <Wallet className="w-5 h-5 text-[#FFD9A3] flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">总预算</p>
-                <p className="text-lg font-bold text-white truncate">¥{(itineraryData.summary?.budget || itineraryData.total_cost || 0).toLocaleString()}</p>
+                <p className="text-lg font-bold text-white truncate">
+                  ¥
+                  {(
+                    itineraryData.summary?.budget ||
+                    itineraryData.total_cost ||
+                    0
+                  ).toLocaleString()}
+                </p>
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl py-3 px-4 flex items-center gap-3">
               <Cloud className="w-5 h-5 text-[#FFD9A3] flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">目的地天气</p>
-                <p className="text-lg font-bold text-white truncate">{itineraryData.summary?.destination || '未设置'}</p>
+                <p className="text-lg font-bold text-white truncate">
+                  {itineraryData.summary?.destination || '未设置'}
+                </p>
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl py-3 px-4 flex items-center gap-3">
               <MapPin className="w-5 h-5 text-[#FFD9A3] flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-white/60">行程总览</p>
-                <p className="text-lg font-bold text-white truncate">{itineraryData.itinerary.length}天 · {calculateTotalAttractions()}景点</p>
+                <p className="text-lg font-bold text-white truncate">
+                  {itineraryData.itinerary.length}天 · {calculateTotalAttractions()}景点
+                </p>
               </div>
             </div>
           </div>
@@ -773,7 +812,8 @@ export default function Itinerary() {
                 <span className="text-lg">✨</span>
                 我的自定义选择
                 <span className="text-xs text-white/40 ml-2">
-                  (餐厅: {Object.keys(selectedRestaurants).length}个, 酒店: {selectedHotel ? 1 : 0}个)
+                  (餐厅: {Object.keys(selectedRestaurants).length}个, 酒店: {selectedHotel ? 1 : 0}
+                  个)
                 </span>
               </h3>
               <div className="grid grid-cols-2 gap-4">
@@ -783,16 +823,26 @@ export default function Itinerary() {
                     <div className="flex items-start gap-3">
                       <div className="text-2xl">🏨</div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-white text-sm truncate">{selectedHotel.name}</div>
-                        <div className="text-xs text-white/60 mt-1">{selectedHotel.type || '酒店'}</div>
+                        <div className="font-semibold text-white text-sm truncate">
+                          {selectedHotel.name}
+                        </div>
+                        <div className="text-xs text-white/60 mt-1">
+                          {selectedHotel.type || '酒店'}
+                        </div>
                         {selectedHotel.rating && (
-                          <div className="text-xs text-amber-400 mt-1">⭐ {selectedHotel.rating.toFixed(1)}</div>
+                          <div className="text-xs text-amber-400 mt-1">
+                            ⭐ {selectedHotel.rating.toFixed(1)}
+                          </div>
                         )}
                         {selectedHotel.address && (
-                          <div className="text-xs text-white/40 mt-1 truncate">{selectedHotel.address}</div>
+                          <div className="text-xs text-white/40 mt-1 truncate">
+                            {selectedHotel.address}
+                          </div>
                         )}
                         {selectedHotel.location && (
-                          <div className="text-xs text-white/30 mt-1">📍 {selectedHotel.location}</div>
+                          <div className="text-xs text-white/30 mt-1">
+                            📍 {selectedHotel.location}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -800,28 +850,39 @@ export default function Itinerary() {
                 )}
 
                 {/* 自定义餐厅 */}
-                {Object.entries(selectedRestaurants).map(([day, restaurant]: [string, any]) => (
-                  restaurant && (
-                    <div key={day} className="bg-white/5 border border-white/20 rounded-lg p-3">
-                      <div className="flex items-start gap-3">
-                        <div className="text-2xl">🍽️</div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-white text-sm truncate">{restaurant.name}</div>
-                          <div className="text-xs text-white/60 mt-1">第{day}天 · {restaurant.type || '餐厅'}</div>
-                          {restaurant.rating && (
-                            <div className="text-xs text-amber-400 mt-1">⭐ {restaurant.rating.toFixed(1)}</div>
-                          )}
-                          {restaurant.address && (
-                            <div className="text-xs text-white/40 mt-1 truncate">{restaurant.address}</div>
-                          )}
-                          {restaurant.location && (
-                            <div className="text-xs text-white/30 mt-1">📍 {restaurant.location}</div>
-                          )}
+                {Object.entries(selectedRestaurants).map(
+                  ([day, restaurant]: [string, any]) =>
+                    restaurant && (
+                      <div key={day} className="bg-white/5 border border-white/20 rounded-lg p-3">
+                        <div className="flex items-start gap-3">
+                          <div className="text-2xl">🍽️</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-white text-sm truncate">
+                              {restaurant.name}
+                            </div>
+                            <div className="text-xs text-white/60 mt-1">
+                              第{day}天 · {restaurant.type || '餐厅'}
+                            </div>
+                            {restaurant.rating && (
+                              <div className="text-xs text-amber-400 mt-1">
+                                ⭐ {restaurant.rating.toFixed(1)}
+                              </div>
+                            )}
+                            {restaurant.address && (
+                              <div className="text-xs text-white/40 mt-1 truncate">
+                                {restaurant.address}
+                              </div>
+                            )}
+                            {restaurant.location && (
+                              <div className="text-xs text-white/30 mt-1">
+                                📍 {restaurant.location}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )
-                ))}
+                    )
+                )}
               </div>
             </div>
           )}
@@ -855,8 +916,14 @@ export default function Itinerary() {
                     const newSpotId = newItem.id || newItem.spotId;
                     const originalSpotId = originalItem.spotId || originalItem.id;
 
-                    newItinerary.itinerary[currentDayIndex].attractions = newItinerary.itinerary[currentDayIndex].attractions.map((attr: any, idx: number) => {
-                      if (originalItem && (attr.name === originalItem.name && attr.time === originalItem.time)) {
+                    newItinerary.itinerary[currentDayIndex].attractions = newItinerary.itinerary[
+                      currentDayIndex
+                    ].attractions.map((attr: any, idx: number) => {
+                      if (
+                        originalItem &&
+                        attr.name === originalItem.name &&
+                        attr.time === originalItem.time
+                      ) {
                         return {
                           ...newItem,
                           time: attr.time,
@@ -885,13 +952,15 @@ export default function Itinerary() {
                         address: originalItem.address || null,
                         city: originalItem.city || newItem.city || null,
                         category: originalItem.category || originalItem.type || null,
-                        ticketPrice: originalItem.estimated_cost || originalItem.ticketPrice || null,
+                        ticketPrice:
+                          originalItem.estimated_cost || originalItem.ticketPrice || null,
                         openTime: originalItem.openTime || null,
                         rating: originalItem.rating || null,
                         description: originalItem.description || null,
                         isOutdoor: originalItem.isOutdoor ?? null,
                         image: originalItem.image || null,
-                        estimated_cost: originalItem.estimated_cost || originalItem.ticketPrice || 0,
+                        estimated_cost:
+                          originalItem.estimated_cost || originalItem.ticketPrice || 0,
                       };
 
                       const newAlternatives = [
@@ -910,7 +979,7 @@ export default function Itinerary() {
                     setItineraryData(newItinerary);
                     setCurrentItinerary(newItinerary);
                     message.success(`已替换为 ${newItem.name}`);
-                    
+
                     handleCloseAlternatives(originalItem);
                   }}
                   onAttractionsReorder={(newAttractions) => {
@@ -937,7 +1006,9 @@ export default function Itinerary() {
                   <DayMapComponent
                     day={itineraryData.itinerary[currentDayIndex]}
                     hotel={selectedHotel || null}
-                    restaurant={selectedRestaurants[itineraryData.itinerary[currentDayIndex].day] || null}
+                    restaurant={
+                      selectedRestaurants[itineraryData.itinerary[currentDayIndex].day] || null
+                    }
                     showAllRestaurants={false}
                     showAllDays={showAllDays}
                     allDays={itineraryData.itinerary}
@@ -950,10 +1021,29 @@ export default function Itinerary() {
               {/* 改进的预算分布 */}
               <BudgetBar
                 categories={[
-                  { name: '交通', amount: realTimeBudget?.transportation || itineraryData.budget_breakdown.transportation, color: 'bg-blue-500' },
-                  { name: '住宿', amount: realTimeBudget?.accommodation || itineraryData.budget_breakdown.accommodation, color: 'bg-purple-500' },
-                  { name: '餐饮', amount: realTimeBudget?.dining || itineraryData.budget_breakdown.dining, color: 'bg-amber-500' },
-                  { name: '门票', amount: realTimeBudget?.tickets || itineraryData.budget_breakdown.tickets, color: 'bg-green-500' },
+                  {
+                    name: '交通',
+                    amount:
+                      realTimeBudget?.transportation ||
+                      itineraryData.budget_breakdown.transportation,
+                    color: 'bg-blue-500',
+                  },
+                  {
+                    name: '住宿',
+                    amount:
+                      realTimeBudget?.accommodation || itineraryData.budget_breakdown.accommodation,
+                    color: 'bg-purple-500',
+                  },
+                  {
+                    name: '餐饮',
+                    amount: realTimeBudget?.dining || itineraryData.budget_breakdown.dining,
+                    color: 'bg-amber-500',
+                  },
+                  {
+                    name: '门票',
+                    amount: realTimeBudget?.tickets || itineraryData.budget_breakdown.tickets,
+                    color: 'bg-green-500',
+                  },
                 ]}
                 totalBudget={itineraryData.summary?.budget || 5000}
                 usedBudget={realTimeBudget?.total || itineraryData.total_cost || 0}
@@ -961,11 +1051,7 @@ export default function Itinerary() {
 
               {/* 行李清单 */}
               {tripId && (
-                <PackingListWidget 
-                  itineraryId={tripId}
-                  editable={true}
-                  title="行李清单"
-                />
+                <PackingListWidget itineraryId={tripId} editable={true} title="行李清单" />
               )}
             </div>
           </div>
@@ -974,12 +1060,13 @@ export default function Itinerary() {
         {currentStep?.type === 'restaurants' && (
           <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-8 border border-white/30 shadow-lg">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-white mb-4">第{currentStep.day}天 · 餐厅选择</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                第{currentStep.day}天 · 餐厅选择
+              </h2>
               <p className="text-white/60">
                 基于当天行程景点位置推荐的餐厅
                 {restaurantRecommendations[currentStep.day || 0]?.length > 0 &&
-                  ` · 共找到 ${restaurantRecommendations[currentStep.day || 0].length} 家餐厅`
-                }
+                  ` · 共找到 ${restaurantRecommendations[currentStep.day || 0].length} 家餐厅`}
               </p>
               {/* 自定义搜索按钮 - 符合UI设计 */}
               <button
@@ -994,40 +1081,44 @@ export default function Itinerary() {
                 🔍 自定义搜索餐厅
               </button>
             </div>
-              
+
             {restaurantRecommendations[currentStep.day || 0]?.length > 0 ? (
               <div className="grid grid-cols-2 gap-6">
                 {/* 左侧：餐厅列表 */}
                 <div className="space-y-4">
                   {/* 显示当前选中的餐厅（自定义搜索的） */}
                   {selectedRestaurants[currentStep.day || 0] &&
-                   !restaurantRecommendations[currentStep.day || 0].some(r => r.name === selectedRestaurants[currentStep.day || 0]?.name) && (
-                    <div className="mb-4">
-                      <div className="text-sm text-white/60 mb-2 flex items-center gap-2">
-                        <span className="text-lg">✨</span>
-                        当前选择（自定义搜索）
-                      </div>
-                      <div className="p-4 rounded-xl border bg-green-500/20 border-green-400/50 text-green-400">
-                        <div className="font-semibold text-lg mb-1 flex items-center gap-2">
-                          <span>🍽️</span>
-                          {selectedRestaurants[currentStep.day || 0].name}
+                    !restaurantRecommendations[currentStep.day || 0].some(
+                      (r) => r.name === selectedRestaurants[currentStep.day || 0]?.name
+                    ) && (
+                      <div className="mb-4">
+                        <div className="text-sm text-white/60 mb-2 flex items-center gap-2">
+                          <span className="text-lg">✨</span>
+                          当前选择（自定义搜索）
                         </div>
-                        <div className="text-sm text-white/60 mb-1">
-                          {selectedRestaurants[currentStep.day || 0].type || '餐厅'}
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          {selectedRestaurants[currentStep.day || 0].rating && (
-                            <span className="text-amber-400">⭐ {selectedRestaurants[currentStep.day || 0].rating?.toFixed(1)}</span>
+                        <div className="p-4 rounded-xl border bg-green-500/20 border-green-400/50 text-green-400">
+                          <div className="font-semibold text-lg mb-1 flex items-center gap-2">
+                            <span>🍽️</span>
+                            {selectedRestaurants[currentStep.day || 0].name}
+                          </div>
+                          <div className="text-sm text-white/60 mb-1">
+                            {selectedRestaurants[currentStep.day || 0].type || '餐厅'}
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            {selectedRestaurants[currentStep.day || 0].rating && (
+                              <span className="text-amber-400">
+                                ⭐ {selectedRestaurants[currentStep.day || 0].rating?.toFixed(1)}
+                              </span>
+                            )}
+                          </div>
+                          {selectedRestaurants[currentStep.day || 0].address && (
+                            <div className="text-xs text-white/40 mt-1 truncate">
+                              📍 {selectedRestaurants[currentStep.day || 0].address}
+                            </div>
                           )}
                         </div>
-                        {selectedRestaurants[currentStep.day || 0].address && (
-                          <div className="text-xs text-white/40 mt-1 truncate">
-                            📍 {selectedRestaurants[currentStep.day || 0].address}
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* 推荐餐厅列表 */}
                   <div className="text-sm text-white/60 mb-2">推荐餐厅</div>
@@ -1037,10 +1128,10 @@ export default function Itinerary() {
                       onClick={() => {
                         console.log('🍽️ 选择餐厅:', restaurant);
                         console.log('当前天:', currentStep.day);
-                        setSelectedRestaurants(prev => {
+                        setSelectedRestaurants((prev) => {
                           const newState = {
                             ...prev,
-                            [currentStep.day || 0]: restaurant
+                            [currentStep.day || 0]: restaurant,
                           };
                           console.log('更新后的selectedRestaurants:', newState);
                           return newState;
@@ -1067,7 +1158,9 @@ export default function Itinerary() {
                         )}
                       </div>
                       {restaurant.address && (
-                        <div className="text-xs text-white/40 mt-1 truncate">{restaurant.address}</div>
+                        <div className="text-xs text-white/40 mt-1 truncate">
+                          {restaurant.address}
+                        </div>
                       )}
                     </button>
                   ))}
@@ -1077,7 +1170,7 @@ export default function Itinerary() {
                 <div className="bg-white/20 rounded-xl overflow-hidden h-[500px]">
                   {currentStep.day && itineraryData.itinerary[currentStep.day - 1] && (
                     <DayMapComponent
-                    day={itineraryData.itinerary[currentStep.day - 1]}
+                      day={itineraryData.itinerary[currentStep.day - 1]}
                       hotel={null}
                       restaurant={selectedRestaurants[currentStep.day || 0] || null}
                       showAllRestaurants={true}
@@ -1091,7 +1184,9 @@ export default function Itinerary() {
             ) : (
               <div className="text-white/60 py-8">
                 <div className="mb-4">正在加载餐厅推荐...</div>
-                <div className="text-sm text-white/40">系统会根据当天行程景点的位置智能推荐周边餐厅</div>
+                <div className="text-sm text-white/40">
+                  系统会根据当天行程景点的位置智能推荐周边餐厅
+                </div>
               </div>
             )}
           </div>
@@ -1104,8 +1199,7 @@ export default function Itinerary() {
               <p className="text-white/60">
                 基于所有行程景点位置推荐的酒店
                 {hotelRecommendations?.length > 0 &&
-                  ` · 共找到 ${hotelRecommendations.length} 家酒店`
-                }
+                  ` · 共找到 ${hotelRecommendations.length} 家酒店`}
               </p>
               {/* 自定义搜索按钮 */}
               <button
@@ -1120,40 +1214,42 @@ export default function Itinerary() {
                 🔍 自定义搜索酒店
               </button>
             </div>
-              
+
             {hotelRecommendations?.length > 0 ? (
               <div className="grid grid-cols-2 gap-6">
                 {/* 左侧：酒店列表 */}
                 <div className="space-y-4">
                   {/* 显示当前选中的酒店（自定义搜索的） */}
                   {selectedHotel &&
-                   !hotelRecommendations.some(h => h.name === selectedHotel?.name) && (
-                    <div className="mb-4">
-                      <div className="text-sm text-white/60 mb-2 flex items-center gap-2">
-                        <span className="text-lg">✨</span>
-                        当前选择（自定义搜索）
-                      </div>
-                      <div className="p-4 rounded-xl border bg-green-500/20 border-green-400/50 text-green-400">
-                        <div className="font-semibold text-lg mb-1 flex items-center gap-2">
-                          <span>🏨</span>
-                          {selectedHotel.name}
+                    !hotelRecommendations.some((h) => h.name === selectedHotel?.name) && (
+                      <div className="mb-4">
+                        <div className="text-sm text-white/60 mb-2 flex items-center gap-2">
+                          <span className="text-lg">✨</span>
+                          当前选择（自定义搜索）
                         </div>
-                        <div className="text-sm text-white/60 mb-1">
-                          {selectedHotel.type || '酒店'}
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          {selectedHotel.rating && (
-                            <span className="text-amber-400">⭐ {selectedHotel.rating.toFixed(1)}</span>
+                        <div className="p-4 rounded-xl border bg-green-500/20 border-green-400/50 text-green-400">
+                          <div className="font-semibold text-lg mb-1 flex items-center gap-2">
+                            <span>🏨</span>
+                            {selectedHotel.name}
+                          </div>
+                          <div className="text-sm text-white/60 mb-1">
+                            {selectedHotel.type || '酒店'}
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            {selectedHotel.rating && (
+                              <span className="text-amber-400">
+                                ⭐ {selectedHotel.rating.toFixed(1)}
+                              </span>
+                            )}
+                          </div>
+                          {selectedHotel.address && (
+                            <div className="text-xs text-white/40 mt-1 truncate">
+                              📍 {selectedHotel.address}
+                            </div>
                           )}
                         </div>
-                        {selectedHotel.address && (
-                          <div className="text-xs text-white/40 mt-1 truncate">
-                            📍 {selectedHotel.address}
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* 推荐酒店列表 */}
                   <div className="text-sm text-white/60 mb-2">推荐酒店</div>
@@ -1180,7 +1276,9 @@ export default function Itinerary() {
                           <span className="text-amber-400">⭐ {hotel.rating.toFixed(1)}</span>
                         )}
                         {hotel.avgDistance && (
-                          <span className="text-white/40">距景点 {hotel.avgDistance.toFixed(1)}km</span>
+                          <span className="text-white/40">
+                            距景点 {hotel.avgDistance.toFixed(1)}km
+                          </span>
                         )}
                       </div>
                       {hotel.address && (
@@ -1194,7 +1292,7 @@ export default function Itinerary() {
                 <div className="bg-white/20 rounded-xl overflow-hidden h-[500px]">
                   {itineraryData.itinerary.length > 0 && (
                     <DayMapComponent
-                    day={null}
+                      day={null}
                       hotel={selectedHotel || null}
                       restaurant={null}
                       showAllRestaurants={false}
@@ -1209,7 +1307,9 @@ export default function Itinerary() {
             ) : (
               <div className="text-white/60 py-8">
                 <div className="mb-4">正在加载酒店推荐...</div>
-                <div className="text-sm text-white/40">系统会根据所有行程景点的位置智能推荐周边酒店</div>
+                <div className="text-sm text-white/40">
+                  系统会根据所有行程景点的位置智能推荐周边酒店
+                </div>
               </div>
             )}
           </div>
@@ -1228,15 +1328,11 @@ export default function Itinerary() {
                   for (const item of items) {
                     if (!item.id) {
                       // 新物品，添加
-                      await addPackingItem(
-                        tripId,
-                        item.itemName,
-                        item.category
-                      );
+                      await addPackingItem(tripId, item.itemName, item.category);
                     } else {
                       // 已有物品，更新状态
                       await updatePackingItem(item.id, {
-                        isPacked: item.isPacked
+                        isPacked: item.isPacked,
                       });
                     }
                   }
@@ -1289,8 +1385,18 @@ export default function Itinerary() {
           },
         }}
         closeIcon={
-          <svg className="w-5 h-5 text-white/60 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg
+            className="w-5 h-5 text-white/60 hover:text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         }
       >
@@ -1311,7 +1417,11 @@ export default function Itinerary() {
           <div className="relative">
             <input
               type="text"
-              placeholder={customSearchType === 'restaurant' ? '请输入餐厅名称，如：海底捞、火锅、川菜' : '请输入酒店名称，如：如家酒店、希尔顿'}
+              placeholder={
+                customSearchType === 'restaurant'
+                  ? '请输入餐厅名称，如：海底捞、火锅、川菜'
+                  : '请输入酒店名称，如：如家酒店、希尔顿'
+              }
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleCustomSearch()}
@@ -1355,14 +1465,10 @@ export default function Itinerary() {
                   {item.type || (customSearchType === 'restaurant' ? '餐厅' : '酒店')}
                 </div>
                 {item.address && (
-                  <div className="text-xs text-white/40 truncate">
-                    📍 {item.address}
-                  </div>
+                  <div className="text-xs text-white/40 truncate">📍 {item.address}</div>
                 )}
                 {item.distance && (
-                  <div className="text-xs text-white/40 mt-1">
-                    📏 距离: {item.distance}m
-                  </div>
+                  <div className="text-xs text-white/40 mt-1">📏 距离: {item.distance}m</div>
                 )}
               </div>
             ))}
@@ -1377,14 +1483,3 @@ export default function Itinerary() {
     </GlassLayout>
   );
 }
-
-
-
-
-
-
-
-
-
-
-

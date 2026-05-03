@@ -32,13 +32,13 @@ export default function LayerControl({
       '#06B6D4', // 青色
       '#84CC16', // 黄绿色
     ];
-    
+
     // 简单的hash函数
     let hash = 0;
     for (let i = 0; i < userId.length; i++) {
       hash = userId.charCodeAt(i) + ((hash << 5) - hash);
     }
-    
+
     return colors[Math.abs(hash) % colors.length];
   };
 
@@ -91,7 +91,7 @@ export default function LayerControl({
             {members.map((member) => {
               const isVisible = visibleLayers.has(member.userId);
               const color = getUserColor(member.userId);
-              
+
               return (
                 <div
                   key={member.id}
@@ -103,7 +103,7 @@ export default function LayerControl({
                     className="w-4 h-4 rounded-full border border-white/20"
                     style={{ backgroundColor: color }}
                   />
-                  
+
                   {/* 用户信息 */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-white truncate">
@@ -113,7 +113,7 @@ export default function LayerControl({
                       {member.role === 'HOST' ? '主持人' : '协作者'}
                     </p>
                   </div>
-                  
+
                   {/* 可见性图标 */}
                   {isVisible ? (
                     <Eye className="h-4 w-4 text-amber-400" />

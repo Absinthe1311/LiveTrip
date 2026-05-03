@@ -27,15 +27,20 @@ export default function BudgetWidget({
   budget,
   onRecordExpense,
   onAdjustBudget,
-  compact = false
+  compact = false,
 }: BudgetWidgetProps) {
   const [usageRate, setUsageRate] = useState(0);
 
   useEffect(() => {
     // 计算使用率
     if (budget) {
-      const spent = budget.transportation + budget.accommodation + budget.food +
-                    budget.tickets + budget.shopping + budget.other;
+      const spent =
+        budget.transportation +
+        budget.accommodation +
+        budget.food +
+        budget.tickets +
+        budget.shopping +
+        budget.other;
       const rate = totalBudget > 0 ? (spent / totalBudget) * 100 : 0;
       setUsageRate(rate);
     } else {
@@ -45,8 +50,12 @@ export default function BudgetWidget({
 
   // 计算已花费和剩余
   const spent = budget
-    ? budget.transportation + budget.accommodation + budget.food +
-      budget.tickets + budget.shopping + budget.other
+    ? budget.transportation +
+      budget.accommodation +
+      budget.food +
+      budget.tickets +
+      budget.shopping +
+      budget.other
     : 0;
   const remaining = totalBudget - spent;
 
@@ -142,7 +151,9 @@ export default function BudgetWidget({
         </div>
         <div className="flex items-center justify-between">
           <span className="text-sm text-white/60">剩余预算</span>
-          <span className={`text-sm font-semibold ${remaining >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <span
+            className={`text-sm font-semibold ${remaining >= 0 ? 'text-green-400' : 'text-red-400'}`}
+          >
             ¥{remaining.toFixed(0)}
           </span>
         </div>
@@ -156,9 +167,7 @@ export default function BudgetWidget({
         </div>
 
         {/* 使用率 */}
-        <div className="text-xs text-white/40 text-center">
-          使用率 {usageRate.toFixed(1)}%
-        </div>
+        <div className="text-xs text-white/40 text-center">使用率 {usageRate.toFixed(1)}%</div>
       </div>
 
       {/* 操作按钮 */}

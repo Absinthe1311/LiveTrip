@@ -1,9 +1,23 @@
 // 行程管理路由 - 定义行程的增删改查API端点
 import { Router } from 'express';
-import { getUserTrips, getTripById, deleteTrip, saveTrip, updateTripHotel, updateDayRestaurant, calculateRealTimeBudget, completeTrip } from '../controllers/tripController';
+import {
+  getUserTrips,
+  getTripById,
+  deleteTrip,
+  saveTrip,
+  updateTripHotel,
+  updateDayRestaurant,
+  calculateRealTimeBudget,
+  completeTrip,
+} from '../controllers/tripController';
 import { PackingController } from '../controllers/packingController';
 import { authenticateToken } from '../controllers/authController';
-import { getBudgetStatus, adjustBudget, updateItemPrice, getBudgetHistory } from '../controllers/budgetController';
+import {
+  getBudgetStatus,
+  adjustBudget,
+  updateItemPrice,
+  getBudgetHistory,
+} from '../controllers/budgetController';
 
 const router = Router();
 
@@ -37,7 +51,11 @@ router.delete('/:id', authenticateToken, deleteTrip);
 router.get('/:tripId/packing', authenticateToken, PackingController.getPackingList);
 
 // POST /api/trips/:tripId/packing/initialize - 初始化打包清单（添加默认预设物品）
-router.post('/:tripId/packing/initialize', authenticateToken, PackingController.initializePackingList);
+router.post(
+  '/:tripId/packing/initialize',
+  authenticateToken,
+  PackingController.initializePackingList
+);
 
 // POST /api/trips/:tripId/packing - 添加打包物品
 router.post('/:tripId/packing', authenticateToken, PackingController.addPackingItem);

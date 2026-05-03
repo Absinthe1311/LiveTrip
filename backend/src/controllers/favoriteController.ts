@@ -68,14 +68,14 @@ export const createFavorite = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('❌ 添加收藏失败:', error);
-    
+
     if (error.message === '景点不存在') {
       return res.status(404).json({
         success: false,
         error: error.message,
       });
     }
-    
+
     if (error.message === '已经收藏过该景点') {
       return res.status(400).json({
         success: false,
@@ -97,7 +97,7 @@ export const createFavorite = async (req: Request, res: Response) => {
 export const deleteFavorite = async (req: Request, res: Response) => {
   try {
     const { spotId } = req.params;
-    const userId = ((req.headers['x-user-id'] as string) || 'default-user');
+    const userId = (req.headers['x-user-id'] as string) || 'default-user';
 
     console.log(`💔 取消收藏: 景点ID=${spotId}, 用户ID=${userId}`);
 
@@ -123,7 +123,7 @@ export const deleteFavorite = async (req: Request, res: Response) => {
 export const checkFavorite = async (req: Request, res: Response) => {
   try {
     const { spotId } = req.params;
-    const userId = ((req.headers['x-user-id'] as string) || 'default-user');
+    const userId = (req.headers['x-user-id'] as string) || 'default-user';
 
     console.log(`🔍 检查收藏状态: 景点ID=${spotId}, 用户ID=${userId}`);
 

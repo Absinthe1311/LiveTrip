@@ -10,10 +10,10 @@ interface SpotStatsPanelProps {
 export default function SpotStatsPanel({ stats, onClose }: SpotStatsPanelProps) {
   // 按出现次数排序
   const sortedStats = [...stats].sort((a, b) => b.count - a.count);
-  
+
   // 计算最大次数用于显示比例
-  const maxCount = Math.max(...stats.map(s => s.count), 1);
-  
+  const maxCount = Math.max(...stats.map((s) => s.count), 1);
+
   // 获取颜色
   const getColor = (count: number) => {
     if (count >= 4) return 'bg-red-500';
@@ -21,7 +21,7 @@ export default function SpotStatsPanel({ stats, onClose }: SpotStatsPanelProps) 
     if (count === 2) return 'bg-blue-500';
     return 'bg-gray-400';
   };
-  
+
   const getTextColor = (count: number) => {
     if (count >= 4) return 'text-red-600';
     if (count === 3) return 'text-orange-600';
@@ -30,8 +30,11 @@ export default function SpotStatsPanel({ stats, onClose }: SpotStatsPanelProps) 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
-      <div 
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={onClose}
+    >
+      <div
         className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
@@ -41,20 +44,15 @@ export default function SpotStatsPanel({ stats, onClose }: SpotStatsPanelProps) 
             <BarChart3 className="h-5 w-5 text-livetrip-primary" />
             <h3 className="text-lg font-semibold">景点统计</h3>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             ✕
           </button>
         </div>
-        
+
         {/* Content */}
         <div className="p-4 overflow-y-auto max-h-[calc(80vh-120px)]">
           {sortedStats.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
-              暂无统计数据
-            </div>
+            <div className="text-center text-gray-500 py-8">暂无统计数据</div>
           ) : (
             <div className="space-y-3">
               {/* 图例 */}
@@ -76,7 +74,7 @@ export default function SpotStatsPanel({ stats, onClose }: SpotStatsPanelProps) 
                   <span>4次+</span>
                 </div>
               </div>
-              
+
               {/* 统计列表 */}
               {sortedStats.map((stat, index) => (
                 <div
@@ -85,21 +83,15 @@ export default function SpotStatsPanel({ stats, onClose }: SpotStatsPanelProps) 
                 >
                   {/* 排名 */}
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-livetrip-primary/10 flex items-center justify-center">
-                    <span className="text-sm font-bold text-livetrip-primary">
-                      {index + 1}
-                    </span>
+                    <span className="text-sm font-bold text-livetrip-primary">{index + 1}</span>
                   </div>
-                  
+
                   {/* 景点名称 */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">
-                      {stat.name}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {stat.category || '景点'}
-                    </p>
+                    <p className="font-medium text-gray-900 truncate">{stat.name}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{stat.category || '景点'}</p>
                   </div>
-                  
+
                   {/* 柱状图 */}
                   <div className="flex-shrink-0 w-32">
                     <div className="h-6 bg-gray-200 rounded-full overflow-hidden">
@@ -109,7 +101,7 @@ export default function SpotStatsPanel({ stats, onClose }: SpotStatsPanelProps) 
                       />
                     </div>
                   </div>
-                  
+
                   {/* 次数 */}
                   <div className="flex-shrink-0 w-16 text-right">
                     <span className={`text-lg font-bold ${getTextColor(stat.count)}`}>
@@ -122,7 +114,7 @@ export default function SpotStatsPanel({ stats, onClose }: SpotStatsPanelProps) 
             </div>
           )}
         </div>
-        
+
         {/* Footer */}
         <div className="p-4 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between text-sm text-gray-600">
@@ -130,9 +122,7 @@ export default function SpotStatsPanel({ stats, onClose }: SpotStatsPanelProps) 
               <TrendingUp className="h-4 w-4" />
               <span>共 {stats.length} 个景点被选择</span>
             </div>
-            <div>
-              总计 {stats.reduce((sum, s) => sum + s.count, 0)} 次选择
-            </div>
+            <div>总计 {stats.reduce((sum, s) => sum + s.count, 0)} 次选择</div>
           </div>
         </div>
       </div>

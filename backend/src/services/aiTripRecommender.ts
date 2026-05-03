@@ -1,6 +1,10 @@
 // AI 推荐服务 - 使用智谱 AI 推荐行程（用于 AI 对话中的行程创建）
 import https from 'https';
-import { spotDataService, SpotWithIoT, SpotDataService as SpotDataServiceClass } from './spotDataService';
+import {
+  spotDataService,
+  SpotWithIoT,
+  SpotDataService as SpotDataServiceClass,
+} from './spotDataService';
 import { userProfileService, UserProfile } from './userProfileService';
 import { httpsRequestWithRetry } from '../utils/retry';
 
@@ -81,11 +85,7 @@ export class AiTripRecommender {
 
       // 3. 构建 AI 提示词
       console.log('\n步骤3: 构建 AI 提示词...');
-      const prompt = this.buildRecommendationPrompt(
-        params,
-        spots,
-        userProfile
-      );
+      const prompt = this.buildRecommendationPrompt(params, spots, userProfile);
 
       // 4. 调用智谱 AI
       console.log('\n步骤4: 调用智谱 AI...');
@@ -117,9 +117,10 @@ export class AiTripRecommender {
       ? this.userProfileSvc.formatProfileAsPrompt(userProfile)
       : '暂无用户历史数据';
 
-    const mustVisitSpotsInfo = params.mustVisitSpots && params.mustVisitSpots.length > 0
-      ? `必选景点：${params.mustVisitSpots.join('、')}`
-      : '无必选景点';
+    const mustVisitSpotsInfo =
+      params.mustVisitSpots && params.mustVisitSpots.length > 0
+        ? `必选景点：${params.mustVisitSpots.join('、')}`
+        : '无必选景点';
 
     return `
 你是一位专业的旅行规划师，请根据以下信息为用户规划一个${params.days}天的${params.destination}旅行行程。
@@ -184,7 +185,7 @@ ${spotsInfo}
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
       },
       timeout: 120000, // 120秒超时
     };

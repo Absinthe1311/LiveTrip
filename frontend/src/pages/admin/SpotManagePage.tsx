@@ -1,9 +1,36 @@
 // 景点图片管理页面 - 新UI设计
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu, Search, Bell, Heart, Home as HomeIcon, Plus, Globe, PenLine, List, MapPin, ChevronRight, Navigation, Route, Search as SearchIcon, ChevronDown, Image as ImageIcon, Upload, Trash2, Check, X, Eye } from "lucide-react";
+import {
+  Menu,
+  Search,
+  Bell,
+  Heart,
+  Home as HomeIcon,
+  Plus,
+  Globe,
+  PenLine,
+  List,
+  MapPin,
+  ChevronRight,
+  Navigation,
+  Route,
+  Search as SearchIcon,
+  ChevronDown,
+  Image as ImageIcon,
+  Upload,
+  Trash2,
+  Check,
+  X,
+  Eye,
+} from 'lucide-react';
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
-import { getAdminSpots, getSpotImages, deleteAdminImage, uploadAdminImage } from '../../api/adminApi';
+import {
+  getAdminSpots,
+  getSpotImages,
+  deleteAdminImage,
+  uploadAdminImage,
+} from '../../api/adminApi';
 import type { AdminSpotListItem, SpotImageItem } from '../../types/admin';
 
 export default function SpotManagePage() {
@@ -11,7 +38,7 @@ export default function SpotManagePage() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
-  
+
   const [spots, setSpots] = useState<AdminSpotListItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -86,7 +113,7 @@ export default function SpotManagePage() {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !selectedSpot) return;
-    
+
     setUploading(true);
     try {
       const response = await uploadAdminImage(selectedSpot.id, file);
@@ -94,9 +121,18 @@ export default function SpotManagePage() {
         const imagesResponse = await getSpotImages(selectedSpot.id);
         if (imagesResponse.success && imagesResponse.data) {
           const allImages: SpotImageItem[] = [
-            ...(imagesResponse.data.approved || []).map((img) => ({ ...img, status: 'approved' as const })),
-            ...(imagesResponse.data.pending || []).map((img) => ({ ...img, status: 'pending' as const })),
-            ...(imagesResponse.data.rejected || []).map((img) => ({ ...img, status: 'rejected' as const })),
+            ...(imagesResponse.data.approved || []).map((img) => ({
+              ...img,
+              status: 'approved' as const,
+            })),
+            ...(imagesResponse.data.pending || []).map((img) => ({
+              ...img,
+              status: 'pending' as const,
+            })),
+            ...(imagesResponse.data.rejected || []).map((img) => ({
+              ...img,
+              status: 'rejected' as const,
+            })),
           ];
           setImages(allImages);
         }
@@ -112,13 +148,18 @@ export default function SpotManagePage() {
   const pendingImages = images.filter((img) => img.status === 'pending');
   const rejectedImages = images.filter((img) => img.status === 'rejected');
 
-  const currentImages = activeTab === 'approved' ? approvedImages : activeTab === 'pending' ? pendingImages : rejectedImages;
+  const currentImages =
+    activeTab === 'approved'
+      ? approvedImages
+      : activeTab === 'pending'
+        ? pendingImages
+        : rejectedImages;
 
   return (
     <div className="min-h-screen flex flex-col font-sans">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-border z-50 flex items-center shadow-subtle">
-        <div 
+        <div
           className="w-[240px] h-full flex items-center px-5 border-r border-border shrink-0 cursor-pointer"
           onClick={() => navigate('/')}
         >
@@ -126,8 +167,12 @@ export default function SpotManagePage() {
             <span className="text-lg">✈️</span>
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="text-lg font-semibold text-livetrip-primary-dark font-serif">LiveTrip</span>
-            <span className="text-[10px] text-livetrip-primary font-medium tracking-wide">Admin</span>
+            <span className="text-lg font-semibold text-livetrip-primary-dark font-serif">
+              LiveTrip
+            </span>
+            <span className="text-[10px] text-livetrip-primary font-medium tracking-wide">
+              Admin
+            </span>
           </div>
         </div>
 
@@ -139,14 +184,22 @@ export default function SpotManagePage() {
           <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
             <Bell className="h-5 w-5 text-muted-foreground" />
           </button>
-          <button onClick={() => navigate('/favorites')} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+          <button
+            onClick={() => navigate('/favorites')}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
             <Heart className="h-5 w-5 text-muted-foreground" />
           </button>
         </div>
       </header>
 
       {/* Sidebar */}
-      <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} isLargeScreen={isLargeScreen} currentPage={location.pathname} />
+      <AdminSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        isLargeScreen={isLargeScreen}
+        currentPage={location.pathname}
+      />
 
       {/* Main Content */}
       <main className={`pt-14 min-h-screen ${isLargeScreen ? 'lg:pl-[240px]' : ''}`}>
@@ -179,12 +232,24 @@ export default function SpotManagePage() {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-border">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">景点名称</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">城市</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">已审核</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">待审核</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">封面图</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">操作</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        景点名称
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        城市
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        已审核
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        待审核
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        封面图
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        操作
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -210,7 +275,11 @@ export default function SpotManagePage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {spot.coverImageUrl ? (
-                            <img src={spot.coverImageUrl} alt="" className="w-16 h-12 object-cover rounded" />
+                            <img
+                              src={spot.coverImageUrl}
+                              alt=""
+                              className="w-16 h-12 object-cover rounded"
+                            />
                           ) : (
                             <span className="text-xs text-muted-foreground">暂无</span>
                           )}
@@ -323,7 +392,10 @@ export default function SpotManagePage() {
                   ) : (
                     <div className="grid grid-cols-3 gap-4">
                       {currentImages.map((img) => (
-                        <div key={img.id} className="bg-gray-50 rounded-lg border border-border overflow-hidden">
+                        <div
+                          key={img.id}
+                          className="bg-gray-50 rounded-lg border border-border overflow-hidden"
+                        >
                           <div className="aspect-[4/3] overflow-hidden">
                             <img
                               src={img.cloudinaryUrl}

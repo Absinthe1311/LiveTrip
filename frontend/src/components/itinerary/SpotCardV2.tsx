@@ -1,9 +1,19 @@
 // 改进的景点卡片组件 - 更大尺寸，更高对比度，Read more展开
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  MapPin, ChevronDown, ChevronUp, Star, Users,
-  Cloud, CloudRain, Sun, Thermometer, Droplets, Image as ImageIcon,
-  Wallet, Heart
+  MapPin,
+  ChevronDown,
+  ChevronUp,
+  Star,
+  Users,
+  Cloud,
+  CloudRain,
+  Sun,
+  Thermometer,
+  Droplets,
+  Image as ImageIcon,
+  Wallet,
+  Heart,
 } from 'lucide-react';
 
 interface ImprovedSpotCardProps {
@@ -49,7 +59,7 @@ export default function ImprovedSpotCard({
   showAlternatives = false,
   iotData,
   isHovered = false,
-  onHeightChange
+  onHeightChange,
 }: ImprovedSpotCardProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(propImageUrl || null);
   const [imageLoading, setImageLoading] = useState(false);
@@ -98,20 +108,16 @@ export default function ImprovedSpotCard({
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-400" />
           </div>
         ) : imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={item.name}
-            className="w-full h-full object-cover"
-          />
+          <img src={imageUrl} alt={item.name} className="w-full h-full object-cover" />
         ) : (
           <div className="flex items-center justify-center h-full">
             <ImageIcon className="w-16 h-16 text-white/20" />
           </div>
         )}
-        
+
         {/* 图片底部渐变遮罩 */}
         <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/70 to-transparent" />
-        
+
         {/* 序号标签 */}
         <div className="absolute top-4 left-4 w-12 h-12 rounded-full bg-gradient-to-r from-[#145F39] to-[#005746] flex items-center justify-center text-white font-bold text-lg shadow-lg">
           {index + 1}
@@ -129,9 +135,7 @@ export default function ImprovedSpotCard({
       {/* 景点信息 - 更大内边距 */}
       <div className="p-6 space-y-4">
         {/* 标题 */}
-        <h3 className="text-2xl font-bold text-white truncate">
-          {item.name}
-        </h3>
+        <h3 className="text-2xl font-bold text-white truncate">{item.name}</h3>
 
         {/* 分类标签 */}
         <div className="flex items-center gap-2 flex-wrap">
@@ -142,8 +146,7 @@ export default function ImprovedSpotCard({
           )}
           {item.estimated_cost && item.estimated_cost > 0 ? (
             <span className="bg-[#FFD9A3]/20 text-[#FFD9A3] px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-1 border border-[#FFD9A3]/30">
-              <Wallet className="w-4 h-4" />
-              ¥{item.estimated_cost}
+              <Wallet className="w-4 h-4" />¥{item.estimated_cost}
             </span>
           ) : (
             <span className="bg-[#CDEDDE]/20 text-[#CDEDDE] px-4 py-1.5 rounded-full text-sm font-medium border border-[#CDEDDE]/30">
@@ -178,18 +181,14 @@ export default function ImprovedSpotCard({
               <div className="text-center">
                 <Thermometer className="w-5 h-5 text-white/60 mx-auto mb-1" />
                 <div className="text-xs text-white/50">温度</div>
-                <div className="text-sm font-semibold text-white">
-                  {iotData.temperature}°C
-                </div>
+                <div className="text-sm font-semibold text-white">{iotData.temperature}°C</div>
               </div>
 
               {/* 降雨概率 */}
               <div className="text-center">
                 <Droplets className="w-5 h-5 text-white/60 mx-auto mb-1" />
                 <div className="text-xs text-white/50">降雨</div>
-                <div className="text-sm font-semibold text-white">
-                  {iotData.rainProbability}%
-                </div>
+                <div className="text-sm font-semibold text-white">{iotData.rainProbability}%</div>
               </div>
             </div>
           </div>
@@ -198,9 +197,11 @@ export default function ImprovedSpotCard({
         {/* 描述 - 默认显示2-3行 */}
         {item.description && (
           <div>
-            <p className={`text-base text-white/70 leading-relaxed ${
-              !expanded ? 'line-clamp-3' : ''
-            }`}>
+            <p
+              className={`text-base text-white/70 leading-relaxed ${
+                !expanded ? 'line-clamp-3' : ''
+              }`}
+            >
               {item.description}
             </p>
 
@@ -242,4 +243,3 @@ export default function ImprovedSpotCard({
     </div>
   );
 }
-

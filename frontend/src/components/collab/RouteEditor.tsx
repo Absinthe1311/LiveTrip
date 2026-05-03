@@ -34,15 +34,17 @@ interface SortableSpotProps {
   isLast: boolean;
 }
 
-function SortableSpot({ spot, onRemove, onMoveUp, onMoveDown, isFirst, isLast }: SortableSpotProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: spot.id });
+function SortableSpot({
+  spot,
+  onRemove,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
+}: SortableSpotProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: spot.id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -136,12 +138,12 @@ export default function RouteEditor({
     if (over && active.id !== over.id) {
       const oldIndex = spots.findIndex((s) => s.id === active.id);
       const newIndex = spots.findIndex((s) => s.id === over.id);
-      
+
       const newSpots = arrayMove(spots, oldIndex, newIndex).map((spot, index) => ({
         ...spot,
         order: index + 1,
       }));
-      
+
       onSpotsChange(newSpots);
     }
   };
@@ -191,15 +193,8 @@ export default function RouteEditor({
 
   return (
     <div className="space-y-3">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={spots.map((s) => s.id)}
-          strategy={verticalListSortingStrategy}
-        >
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={spots.map((s) => s.id)} strategy={verticalListSortingStrategy}>
           {spots.map((spot, index) => (
             <SortableSpot
               key={spot.id}

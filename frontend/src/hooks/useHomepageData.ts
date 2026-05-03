@@ -137,14 +137,14 @@ export const useHomepageData = () => {
         },
         CACHE_TTL.MEDIUM // 5分钟缓存
       );
-      
+
       console.log('getUserTrips response:', response);
-      
+
       // 后端返回格式: { success: true, data: Trip[] }
       if (response.success && Array.isArray(response.data)) {
         const trips = response.data;
         console.log('获取到的行程列表:', trips);
-        
+
         // 计算统计数据
         const totalTrips = trips.length;
         const completedTrips = trips.filter((trip: any) => trip.status === 'completed').length;
@@ -174,10 +174,14 @@ export const useHomepageData = () => {
             const startDate = new Date(trip.startDate);
             const now = new Date();
             const isUpcoming = startDate > now;
-            console.log(`行程 ${trip.title} (${trip.destination}): 开始日期 ${trip.startDate}, 是否即将出行: ${isUpcoming}`);
+            console.log(
+              `行程 ${trip.title} (${trip.destination}): 开始日期 ${trip.startDate}, 是否即将出行: ${isUpcoming}`
+            );
             return isUpcoming;
           })
-          .sort((a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+          .sort(
+            (a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+          )
           .slice(0, 3)
           .map((trip: any) => ({
             id: trip.id,
@@ -185,7 +189,11 @@ export const useHomepageData = () => {
             destination: trip.destination,
             startDate: trip.startDate,
             endDate: trip.endDate,
-            days: Math.ceil((new Date(trip.endDate).getTime() - new Date(trip.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1,
+            days:
+              Math.ceil(
+                (new Date(trip.endDate).getTime() - new Date(trip.startDate).getTime()) /
+                  (1000 * 60 * 60 * 24)
+              ) + 1,
           }));
 
         console.log('即将出行的行程数量:', upcoming.length);
@@ -202,19 +210,19 @@ export const useHomepageData = () => {
         setTripDates(dates);
 
         // 设置当前行程（最近的行程，按开始日期排序）
-        const sortedTrips = [...trips].sort((a: any, b: any) => 
-          new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+        const sortedTrips = [...trips].sort(
+          (a: any, b: any) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
         );
-        
+
         // 优先选择即将出行的行程，如果没有则选择最近的行程
         const upcomingTrip = sortedTrips.find((trip: any) => {
           const startDate = new Date(trip.startDate);
           return startDate >= new Date();
         });
-        
+
         const currentTrip = upcomingTrip || sortedTrips[0];
         console.log('当前行程:', currentTrip);
-        
+
         if (currentTrip) {
           setCurrentTripId(currentTrip.id);
         }
@@ -235,7 +243,7 @@ export const useHomepageData = () => {
       console.log('🔄 开始获取行李清单, tripId:', tripId);
       const response = await getPackingList(tripId);
       console.log('📦 行李清单API响应:', response);
-      
+
       if (response.success && response.data) {
         const items = response.data.map((item: any) => ({
           id: item.id,
@@ -272,14 +280,17 @@ export const useHomepageData = () => {
     try {
       // 使用缓存获取天气数据
       const cacheKey = CACHE_KEYS.WEATHER_DATA(city);
-      
+
       const weatherResult = await cacheManager.getOrSet(
         cacheKey,
         async () => {
           // 1. 获取该城市的景点（取第一个景点）
-          const spotsResponse = await apiClient.get(`/destinations/cities/${encodeURIComponent(city)}/spots`, {
-            params: { limit: 1 }
-          });
+          const spotsResponse = await apiClient.get(
+            `/destinations/cities/${encodeURIComponent(city)}/spots`,
+            {
+              params: { limit: 1 },
+            }
+          );
 
           if (spotsResponse.data.success && spotsResponse.data.data.length > 0) {
             const spot = spotsResponse.data.data[0];
@@ -350,8 +361,8 @@ export const useHomepageData = () => {
         console.log('📊 非协同行程:', nonCollabTrips.length, '个');
 
         // 按开始日期降序排序，获取最近的行程
-        const sortedTrips = nonCollabTrips.sort((a: any, b: any) =>
-          new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+        const sortedTrips = nonCollabTrips.sort(
+          (a: any, b: any) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
         );
 
         // 优先使用传入的tripId，否则使用最近的非协同行程
@@ -372,7 +383,7 @@ export const useHomepageData = () => {
             tripId: targetTrip.id,
             tripTitle: targetTrip.title,
             budget,
-            total
+            total,
           });
 
           setBudgetData({
@@ -463,11 +474,10 @@ export const useHomepageData = () => {
         fetchPackingList(currentTrip.id),
         fetchPackingProgress(currentTrip.id),
         fetchBudgetData(), // 不传递tripId，自动获取最近的非协同行程预算
-        calculateFootprintCities(trips).then(cities => setFootprintCities(cities)),
+        calculateFootprintCities(trips).then((cities) => setFootprintCities(cities)),
       ]);
 
       console.log('✅ Homepage数据初始化完成');
-
     } catch (err) {
       setError('加载数据失败');
       console.error('❌ 初始化数据失败:', err);
@@ -502,10 +512,8 @@ export const useHomepageData = () => {
 
   // 切换打包状态
   const togglePacked = async (itemId: string) => {
-    setPackingItems(prev =>
-      prev.map(item =>
-        item.id === itemId ? { ...item, packed: !item.packed } : item
-      )
+    setPackingItems((prev) =>
+      prev.map((item) => (item.id === itemId ? { ...item, packed: !item.packed } : item))
     );
     // 这里应该调用API更新状态，暂时只更新本地状态
   };
@@ -524,9 +532,12 @@ export const useHomepageData = () => {
       } else {
         // 获取城市坐标（从该城市的第一个景点获取）
         try {
-          const spotsResponse = await apiClient.get(`/destinations/cities/${trip.destination}/spots`, {
-            params: { limit: 1 }
-          });
+          const spotsResponse = await apiClient.get(
+            `/destinations/cities/${trip.destination}/spots`,
+            {
+              params: { limit: 1 },
+            }
+          );
 
           let location = '';
           if (spotsResponse.data.success && spotsResponse.data.data.length > 0) {
@@ -586,7 +597,7 @@ export const useHomepageData = () => {
     if (!keyword.trim()) {
       // 显示热门推荐
       setSearchResults(
-        hotDestinations.map(dest => ({
+        hotDestinations.map((dest) => ({
           type: 'destination' as const,
           id: dest.city,
           title: dest.city,
@@ -600,31 +611,33 @@ export const useHomepageData = () => {
     const results: SearchResult[] = [];
 
     // 1. 搜索热门目的地
-    const matchedDests = hotDestinations.filter(dest =>
-      dest.city.includes(keyword)
+    const matchedDests = hotDestinations.filter((dest) => dest.city.includes(keyword));
+    results.push(
+      ...matchedDests.map((dest) => ({
+        type: 'destination' as const,
+        id: dest.city,
+        title: dest.city,
+        subtitle: `${dest.spotCount}个热门景点`,
+        image: dest.coverImage,
+      }))
     );
-    results.push(...matchedDests.map(dest => ({
-      type: 'destination' as const,
-      id: dest.city,
-      title: dest.city,
-      subtitle: `${dest.spotCount}个热门景点`,
-      image: dest.coverImage,
-    })));
 
     // 2. 搜索用户行程
     try {
       const response = await getUserTrips();
       if (response.success) {
-        const matchedTrips = response.data.filter((trip: any) =>
-          trip.title.includes(keyword) || trip.destination.includes(keyword)
+        const matchedTrips = response.data.filter(
+          (trip: any) => trip.title.includes(keyword) || trip.destination.includes(keyword)
         );
-        results.push(...matchedTrips.map((trip: any) => ({
-          type: 'trip' as const,
-          id: trip.id,
-          title: trip.title,
-          subtitle: trip.destination,
-          image: trip.coverImage,
-        })));
+        results.push(
+          ...matchedTrips.map((trip: any) => ({
+            type: 'trip' as const,
+            id: trip.id,
+            title: trip.title,
+            subtitle: trip.destination,
+            image: trip.coverImage,
+          }))
+        );
       }
     } catch (err) {
       console.error('搜索行程失败:', err);
@@ -634,16 +647,16 @@ export const useHomepageData = () => {
     try {
       const response = await apiClient.get('/blogs');
       if (response.data.success) {
-        const matchedBlogs = response.data.data.filter((blog: any) =>
-          blog.title.includes(keyword)
+        const matchedBlogs = response.data.data.filter((blog: any) => blog.title.includes(keyword));
+        results.push(
+          ...matchedBlogs.map((blog: any) => ({
+            type: 'blog' as const,
+            id: blog.id,
+            title: blog.title,
+            subtitle: blog.city || '游记',
+            image: blog.coverImage,
+          }))
         );
-        results.push(...matchedBlogs.map((blog: any) => ({
-          type: 'blog' as const,
-          id: blog.id,
-          title: blog.title,
-          subtitle: blog.city || '游记',
-          image: blog.coverImage,
-        })));
       }
     } catch (err) {
       console.error('搜索Blog失败:', err);
@@ -706,9 +719,8 @@ export const useHomepageData = () => {
           fetchPackingList(currentTrip.id),
           fetchPackingProgress(currentTrip.id),
           fetchBudgetData(), // 不传递tripId，自动获取最近的非协同行程预算
-          calculateFootprintCities(trips).then(cities => setFootprintCities(cities)),
+          calculateFootprintCities(trips).then((cities) => setFootprintCities(cities)),
         ]);
-
       } catch (err) {
         setError('加载数据失败');
         console.error('初始化数据失败:', err);

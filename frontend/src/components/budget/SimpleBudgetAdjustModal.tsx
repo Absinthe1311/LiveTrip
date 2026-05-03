@@ -19,7 +19,7 @@ export default function SimpleBudgetAdjustModal({
   tripId,
   currentBudget,
   onClose,
-  onUpdate
+  onUpdate,
 }: SimpleBudgetAdjustModalProps) {
   const [newBudget, setNewBudget] = useState(currentBudget.toString());
   const [loading, setLoading] = useState(false);
@@ -38,7 +38,11 @@ export default function SimpleBudgetAdjustModal({
 
     setLoading(true);
     try {
-      const response = await adjustBudget(tripId, budget, `调整总预算从¥${currentBudget}到¥${budget}`);
+      const response = await adjustBudget(
+        tripId,
+        budget,
+        `调整总预算从¥${currentBudget}到¥${budget}`
+      );
       if (response.success) {
         message.success('预算调整成功');
         onUpdate?.();
@@ -94,9 +98,11 @@ export default function SimpleBudgetAdjustModal({
 
         {/* 变化提示 */}
         {!isNaN(parseFloat(newBudget)) && parseFloat(newBudget) !== currentBudget && (
-          <div className={`flex items-center gap-2 p-3 rounded-lg ${
-            difference > 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-          }`}>
+          <div
+            className={`flex items-center gap-2 p-3 rounded-lg ${
+              difference > 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+            }`}
+          >
             {difference > 0 ? (
               <TrendingUp className="h-4 w-4" />
             ) : (

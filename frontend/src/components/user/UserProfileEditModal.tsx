@@ -88,7 +88,7 @@ const UserProfileEditModal: React.FC<UserProfileEditModalProps> = ({
       const uploadResponse = await fetch(`${API_BASE_URL}/users/avatar`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: formData,
       });
@@ -117,7 +117,7 @@ const UserProfileEditModal: React.FC<UserProfileEditModalProps> = ({
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
           nickname,
@@ -211,10 +211,18 @@ const UserProfileEditModal: React.FC<UserProfileEditModalProps> = ({
                 onChange={(e) => setGender(e.target.value)}
                 className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white focus:border-amber-400/50 focus:outline-none transition-colors"
               >
-                <option value="" className="bg-gray-800">请选择</option>
-                <option value="男" className="bg-gray-800">男</option>
-                <option value="女" className="bg-gray-800">女</option>
-                <option value="保密" className="bg-gray-800">保密</option>
+                <option value="" className="bg-gray-800">
+                  请选择
+                </option>
+                <option value="男" className="bg-gray-800">
+                  男
+                </option>
+                <option value="女" className="bg-gray-800">
+                  女
+                </option>
+                <option value="保密" className="bg-gray-800">
+                  保密
+                </option>
               </select>
             </div>
 
@@ -266,5 +274,3 @@ const UserProfileEditModal: React.FC<UserProfileEditModalProps> = ({
 };
 
 export default UserProfileEditModal;
-
-

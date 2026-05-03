@@ -51,8 +51,10 @@ router.get('/alternatives/:spotId', async (req, res) => {
     }
 
     // 解析excludeSpotIds参数
-    const excludeIds = excludeSpotIds 
-      ? (typeof excludeSpotIds === 'string' ? JSON.parse(excludeSpotIds) : excludeSpotIds)
+    const excludeIds = excludeSpotIds
+      ? typeof excludeSpotIds === 'string'
+        ? JSON.parse(excludeSpotIds)
+        : excludeSpotIds
       : [];
 
     console.log(`🔍 接收获取备选景点请求: ${spotId}, 城市: ${city}`);
@@ -60,7 +62,7 @@ router.get('/alternatives/:spotId', async (req, res) => {
 
     // 判断spotId是景点名称还是景点ID
     let actualSpotId = spotId;
-    
+
     // 如果spotId看起来像景点名称（不是cuid格式），则通过名称查找景点ID
     if (!spotId.startsWith('cml')) {
       console.log(`🔍 spotId是景点名称，正在查找对应的景点ID...`);
@@ -70,7 +72,7 @@ router.get('/alternatives/:spotId', async (req, res) => {
           city: city as string,
         },
       });
-      
+
       if (spot) {
         actualSpotId = spot.id;
         console.log(`✅ 找到景点ID: ${actualSpotId}`);
@@ -99,12 +101,16 @@ router.get('/alternatives/:spotId', async (req, res) => {
           name: true,
         },
       });
-      
-      actualExcludeIds = excludeSpots.map(s => s.id);
+
+      actualExcludeIds = excludeSpots.map((s) => s.id);
       console.log(`✅ 转换后的排除景点ID: ${actualExcludeIds.length} 个`);
     }
 
-    const alternatives = await alternativeRecommender.getRecommendations(actualSpotId, city as string, actualExcludeIds);
+    const alternatives = await alternativeRecommender.getRecommendations(
+      actualSpotId,
+      city as string,
+      actualExcludeIds
+    );
 
     res.json({
       success: true,

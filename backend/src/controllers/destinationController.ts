@@ -43,9 +43,10 @@ export const getHotCities = async (req: Request, res: Response) => {
         },
       });
 
-      const avgRating = spots.length > 0
-        ? spots.reduce((sum, s) => sum + (s.rating || 4.5), 0) / spots.length
-        : 4.5;
+      const avgRating =
+        spots.length > 0
+          ? spots.reduce((sum, s) => sum + (s.rating || 4.5), 0) / spots.length
+          : 4.5;
 
       // 获取该城市的景点分类
       const allSpotsForCategory = await prisma.spot.findMany({
@@ -57,7 +58,9 @@ export const getHotCities = async (req: Request, res: Response) => {
         },
       });
 
-      const categories = [...new Set(allSpotsForCategory.map(s => s.category).filter(Boolean))].slice(0, 3) as string[];
+      const categories = [
+        ...new Set(allSpotsForCategory.map((s) => s.category).filter(Boolean)),
+      ].slice(0, 3) as string[];
 
       citiesData.push({
         name: city.name,
@@ -109,10 +112,7 @@ export const getCitySpots = async (req: Request, res: Response) => {
         },
         iotData: true,
       },
-      orderBy: [
-        { rating: 'desc' },
-        { createdAt: 'desc' },
-      ],
+      orderBy: [{ rating: 'desc' }, { createdAt: 'desc' }],
       take: limit,
     });
 
@@ -180,10 +180,7 @@ export const getCityAllSpots = async (req: Request, res: Response) => {
         },
         iotData: true,
       },
-      orderBy: [
-        { rating: 'desc' },
-        { createdAt: 'desc' },
-      ],
+      orderBy: [{ rating: 'desc' }, { createdAt: 'desc' }],
       skip: (page - 1) * pageSize,
       take: pageSize,
     });

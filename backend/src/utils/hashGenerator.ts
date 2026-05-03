@@ -6,10 +6,7 @@ import crypto from 'crypto';
  * @returns SHA256 hash值的十六进制字符串
  */
 export function generateFileHash(buffer: Buffer): string {
-  return crypto
-    .createHash('sha256')
-    .update(buffer)
-    .digest('hex');
+  return crypto.createHash('sha256').update(buffer).digest('hex');
 }
 
 /**
@@ -18,10 +15,7 @@ export function generateFileHash(buffer: Buffer): string {
  * @returns SHA256 hash值的十六进制字符串
  */
 export function generateStringHash(str: string): string {
-  return crypto
-    .createHash('sha256')
-    .update(str)
-    .digest('hex');
+  return crypto.createHash('sha256').update(str).digest('hex');
 }
 
 /**

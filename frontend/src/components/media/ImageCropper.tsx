@@ -10,7 +10,12 @@ interface ImageCropperProps {
   onCancel: () => void;
 }
 
-export default function ImageCropper({ visible, imageFile, onConfirm, onCancel }: ImageCropperProps) {
+export default function ImageCropper({
+  visible,
+  imageFile,
+  onConfirm,
+  onCancel,
+}: ImageCropperProps) {
   const [imageUrl, setImageUrl] = useState<string>('');
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -36,19 +41,19 @@ export default function ImageCropper({ visible, imageFile, onConfirm, onCancel }
     if (imageFile) {
       const url = URL.createObjectURL(imageFile);
       setImageUrl(url);
-      
+
       // 重置状态
       setCrop({ x: 0, y: 0 });
       setZoom(1);
       setCroppedAreaPixels(null);
-      
+
       // 获取图片自然尺寸
       const img = new window.Image();
       img.onload = () => {
         setImageNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
       };
       img.src = url;
-      
+
       return () => URL.revokeObjectURL(url);
     }
   }, [imageFile]);
@@ -66,7 +71,7 @@ export default function ImageCropper({ visible, imageFile, onConfirm, onCancel }
       // 创建图片元素
       const image = new window.Image();
       image.src = imageUrl;
-      
+
       await new Promise((resolve) => {
         image.onload = resolve;
       });
@@ -150,7 +155,7 @@ export default function ImageCropper({ visible, imageFile, onConfirm, onCancel }
           />
         )}
       </div>
-      
+
       {/* 缩放控制 */}
       <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
         <span style={{ fontSize: '14px', color: '#666' }}>缩放:</span>
@@ -167,11 +172,14 @@ export default function ImageCropper({ visible, imageFile, onConfirm, onCancel }
           {zoom.toFixed(1)}x
         </span>
       </div>
-      
+
       {/* 提示信息 */}
-      <div style={{ marginTop: '12px', padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
+      <div
+        style={{ marginTop: '12px', padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}
+      >
         <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>
-          💡 提示：裁剪框比例已自动适配您的屏幕比例（{screenAspectRatio.toFixed(2)}:1），裁剪后的图片将完美铺满背景。
+          💡 提示：裁剪框比例已自动适配您的屏幕比例（{screenAspectRatio.toFixed(2)}
+          :1），裁剪后的图片将完美铺满背景。
         </p>
       </div>
     </Modal>

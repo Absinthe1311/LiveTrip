@@ -31,7 +31,7 @@ export async function retryWithBackoff<T>(
       console.warn(`⚠️  第 ${attempt + 1} 次尝试失败，${delay}ms 后重试...`, error);
 
       // 等待延迟时间
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 

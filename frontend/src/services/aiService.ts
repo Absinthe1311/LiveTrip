@@ -76,10 +76,7 @@ class AIService {
   /**
    * 发送消息（智能助手模式，SSE 流式步骤推送）
    */
-  async sendAgentMessageSSE(
-    question: string,
-    onStep: (step: string) => void
-  ): Promise<AIResponse> {
+  async sendAgentMessageSSE(question: string, onStep: (step: string) => void): Promise<AIResponse> {
     const userId = getUserId();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -187,13 +184,10 @@ class AIService {
       headers['x-user-id'] = userId;
     }
 
-    const response = await fetch(
-      `${this.baseUrl}/advisor/sessions${mode ? `?mode=${mode}` : ''}`,
-      {
-        method: 'GET',
-        headers,
-      }
-    );
+    const response = await fetch(`${this.baseUrl}/advisor/sessions${mode ? `?mode=${mode}` : ''}`, {
+      method: 'GET',
+      headers,
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);

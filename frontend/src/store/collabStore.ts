@@ -135,12 +135,14 @@ export const useCollabStore = create<CollabState>((set) => ({
   // 成员列表
   members: [],
   setMembers: (members) => set({ members }),
-  addMember: (member) => set((state) => ({
-    members: [...state.members, member],
-  })),
-  removeMember: (userId) => set((state) => ({
-    members: state.members.filter((m) => m.userId !== userId),
-  })),
+  addMember: (member) =>
+    set((state) => ({
+      members: [...state.members, member],
+    })),
+  removeMember: (userId) =>
+    set((state) => ({
+      members: state.members.filter((m) => m.userId !== userId),
+    })),
 
   // 我的草案
   myDrafts: new Map(),
@@ -151,44 +153,49 @@ export const useCollabStore = create<CollabState>((set) => ({
     });
     set({ myDrafts: map });
   },
-  updateDraft: (draft) => set((state) => {
-    const newMap = new Map(state.myDrafts);
-    newMap.set(draft.dayNumber, draft);
-    return { myDrafts: newMap };
-  }),
+  updateDraft: (draft) =>
+    set((state) => {
+      const newMap = new Map(state.myDrafts);
+      newMap.set(draft.dayNumber, draft);
+      return { myDrafts: newMap };
+    }),
 
   // 其他人的实时光标
   otherCursors: new Map(),
-  updateCursor: (userId, position) => set((state) => {
-    const newMap = new Map(state.otherCursors);
-    newMap.set(userId, position);
-    return { otherCursors: newMap };
-  }),
-  removeCursor: (userId) => set((state) => {
-    const newMap = new Map(state.otherCursors);
-    newMap.delete(userId);
-    return { otherCursors: newMap };
-  }),
+  updateCursor: (userId, position) =>
+    set((state) => {
+      const newMap = new Map(state.otherCursors);
+      newMap.set(userId, position);
+      return { otherCursors: newMap };
+    }),
+  removeCursor: (userId) =>
+    set((state) => {
+      const newMap = new Map(state.otherCursors);
+      newMap.delete(userId);
+      return { otherCursors: newMap };
+    }),
 
   // 可见图层
   visibleLayers: new Set(),
-  toggleLayer: (userId) => set((state) => {
-    const newSet = new Set(state.visibleLayers);
-    if (newSet.has(userId)) {
-      newSet.delete(userId);
-    } else {
-      newSet.add(userId);
-    }
-    return { visibleLayers: newSet };
-  }),
+  toggleLayer: (userId) =>
+    set((state) => {
+      const newSet = new Set(state.visibleLayers);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return { visibleLayers: newSet };
+    }),
   setVisibleLayers: (layers) => set({ visibleLayers: layers }),
 
   // 消息列表
   messages: [],
   setMessages: (messages) => set({ messages }),
-  addMessage: (message) => set((state) => ({
-    messages: [...state.messages, message],
-  })),
+  addMessage: (message) =>
+    set((state) => ({
+      messages: [...state.messages, message],
+    })),
 
   // 景点统计
   spotStats: [],
@@ -201,27 +208,30 @@ export const useCollabStore = create<CollabState>((set) => ({
   // 在线用户
   onlineUsers: new Set(),
   setOnlineUsers: (users) => set({ onlineUsers: users }),
-  addOnlineUser: (userId) => set((state) => {
-    const newSet = new Set(state.onlineUsers);
-    newSet.add(userId);
-    return { onlineUsers: newSet };
-  }),
-  removeOnlineUser: (userId) => set((state) => {
-    const newSet = new Set(state.onlineUsers);
-    newSet.delete(userId);
-    return { onlineUsers: newSet };
-  }),
+  addOnlineUser: (userId) =>
+    set((state) => {
+      const newSet = new Set(state.onlineUsers);
+      newSet.add(userId);
+      return { onlineUsers: newSet };
+    }),
+  removeOnlineUser: (userId) =>
+    set((state) => {
+      const newSet = new Set(state.onlineUsers);
+      newSet.delete(userId);
+      return { onlineUsers: newSet };
+    }),
 
   // 重置状态
-  reset: () => set({
-    currentRoom: null,
-    members: [],
-    myDrafts: new Map(),
-    otherCursors: new Map(),
-    visibleLayers: new Set(),
-    messages: [],
-    spotStats: [],
-    currentDay: 1,
-    onlineUsers: new Set(),
-  }),
+  reset: () =>
+    set({
+      currentRoom: null,
+      members: [],
+      myDrafts: new Map(),
+      otherCursors: new Map(),
+      visibleLayers: new Set(),
+      messages: [],
+      spotStats: [],
+      currentDay: 1,
+      onlineUsers: new Set(),
+    }),
 }));

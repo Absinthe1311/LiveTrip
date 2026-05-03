@@ -51,10 +51,7 @@ export default function GlobalSidebar({ isOpen, onToggle }: GlobalSidebarProps) 
     <>
       {/* 移动端遮罩 */}
       {isOpen && !isLargeScreen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30"
-          onClick={onToggle}
-        />
+        <div className="fixed inset-0 bg-black/50 z-30" onClick={onToggle} />
       )}
 
       {/* 侧边栏 */}
@@ -65,12 +62,11 @@ export default function GlobalSidebar({ isOpen, onToggle }: GlobalSidebarProps) 
       >
         {/* 品牌区 */}
         <div className="p-6 border-b border-white/10">
-          <div className="flex items-center justify-center cursor-pointer" onClick={() => navigate('/')}>
-            <img
-              src="/logo.png"
-              alt="LiveTrip Logo"
-              className="h-20 w-auto object-contain"
-            />
+          <div
+            className="flex items-center justify-center cursor-pointer"
+            onClick={() => navigate('/')}
+          >
+            <img src="/logo.png" alt="LiveTrip Logo" className="h-20 w-auto object-contain" />
           </div>
         </div>
 

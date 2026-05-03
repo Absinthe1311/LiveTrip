@@ -17,20 +17,20 @@ export default function FullscreenMap({
   defaultHeight = 'h-48',
   fullscreenHeight = 'h-[600px]',
   defaultWidth = 'w-full',
-  fullscreenWidth = 'w-full'
+  fullscreenWidth = 'w-full',
 }: FullscreenMapProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   return (
-    <div className={`bg-white/40 backdrop-blur-xl border border-white/30 rounded-2xl overflow-hidden shadow-xl transition-all duration-500 ${
-      isFullscreen ? 'ring-2 ring-green-400/50' : ''
-    }`}>
+    <div
+      className={`bg-white/40 backdrop-blur-xl border border-white/30 rounded-2xl overflow-hidden shadow-xl transition-all duration-500 ${
+        isFullscreen ? 'ring-2 ring-green-400/50' : ''
+      }`}
+    >
       {/* 地图标题条 */}
       <div className="bg-black/30 backdrop-blur-sm px-4 py-2 border-b border-white/20 flex items-center justify-between">
-        <span className="text-sm text-white font-medium">
-          {title}
-        </span>
-        
+        <span className="text-sm text-white font-medium">{title}</span>
+
         {/* 全屏按钮 */}
         <button
           onClick={() => setIsFullscreen(!isFullscreen)}
@@ -44,9 +44,11 @@ export default function FullscreenMap({
           )}
         </button>
       </div>
-      
+
       {/* 地图容器 - 动态高度和宽度 */}
-      <div className={`${isFullscreen ? fullscreenHeight : defaultHeight} ${isFullscreen ? fullscreenWidth : defaultWidth} relative transition-all duration-500`}>
+      <div
+        className={`${isFullscreen ? fullscreenHeight : defaultHeight} ${isFullscreen ? fullscreenWidth : defaultWidth} relative transition-all duration-500`}
+      >
         {children}
       </div>
     </div>

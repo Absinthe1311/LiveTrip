@@ -43,13 +43,13 @@ export const connectSocket = (token: string) => {
     console.log('👤 成员加入:', data);
     const store = useCollabStore.getState();
     store.addOnlineUser(data.userId);
-    
+
     // 重新获取房间信息（包含成员列表）
     if (store.currentRoom) {
       try {
         const response = await fetch(`${API_BASE_URL}/collab/rooms/${store.currentRoom.id}`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
         if (response.ok) {
@@ -70,13 +70,13 @@ export const connectSocket = (token: string) => {
     const store = useCollabStore.getState();
     store.removeOnlineUser(data.userId);
     store.removeCursor(data.userId);
-    
+
     // 重新获取房间信息（包含成员列表）
     if (store.currentRoom) {
       try {
         const response = await fetch(`${API_BASE_URL}/collab/rooms/${store.currentRoom.id}`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
         if (response.ok) {
@@ -94,60 +94,74 @@ export const connectSocket = (token: string) => {
   /**
    * 光标更新
    */
-  socket.on('cursor:update', (data: { userId: string; lat: number; lng: number; timestamp: Date }) => {
-    const store = useCollabStore.getState();
-    store.updateCursor(data.userId, {
-      userId: data.userId,
-      lat: data.lat,
-      lng: data.lng,
-      timestamp: new Date(data.timestamp),
-    });
-  });
+  socket.on(
+    'cursor:update',
+    (data: { userId: string; lat: number; lng: number; timestamp: Date }) => {
+      const store = useCollabStore.getState();
+      store.updateCursor(data.userId, {
+        userId: data.userId,
+        lat: data.lat,
+        lng: data.lng,
+        timestamp: new Date(data.timestamp),
+      });
+    }
+  );
 
   // ==================== 草案事件 ====================
 
   /**
    * 草案变化
    */
-  socket.on('draft:changed', (data: {
-    userId: string;
-    dayNumber: number;
-    spotSequence: string[];
-    polylineData: any;
-    timestamp: Date;
-  }) => {
-    console.log('📝 草案变化:', data);
-    // 可以选择显示其他人的草案预览
-  });
+  socket.on(
+    'draft:changed',
+    (data: {
+      userId: string;
+      dayNumber: number;
+      spotSequence: string[];
+      polylineData: any;
+      timestamp: Date;
+    }) => {
+      console.log('📝 草案变化:', data);
+      // 可以选择显示其他人的草案预览
+    }
+  );
 
   /**
    * 草案提交
    */
-  socket.on('draft:submitted', async (data: { userId: string; dayNumber: number; timestamp: Date }) => {
-    console.log('✅ 草案已提交:', data);
-    const store = useCollabStore.getState();
+  socket.on(
+    'draft:submitted',
+    async (data: { userId: string; dayNumber: number; timestamp: Date }) => {
+      console.log('✅ 草案已提交:', data);
+      const store = useCollabStore.getState();
 
-    // 重新获取所有成员的草案，以便实时更新路线图
-    if (store.currentRoom) {
-      try {
-        const response = await fetch(`${API_BASE_URL}/collab/rooms/${store.currentRoom.id}/drafts/all`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        if (response.ok) {
-          const draftsData = await response.json();
-          // 触发自定义事件，通知CollabRoom更新
-          window.dispatchEvent(new CustomEvent('draft-submitted', {
-            detail: draftsData.data
-          }));
-          console.log('📊 已更新所有成员草案:', draftsData.data);
+      // 重新获取所有成员的草案，以便实时更新路线图
+      if (store.currentRoom) {
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/collab/rooms/${store.currentRoom.id}/drafts/all`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          if (response.ok) {
+            const draftsData = await response.json();
+            // 触发自定义事件，通知CollabRoom更新
+            window.dispatchEvent(
+              new CustomEvent('draft-submitted', {
+                detail: draftsData.data,
+              })
+            );
+            console.log('📊 已更新所有成员草案:', draftsData.data);
+          }
+        } catch (error) {
+          console.error('获取草案列表失败:', error);
         }
-      } catch (error) {
-        console.error('获取草案列表失败:', error);
       }
     }
-  });
+  );
 
   // ==================== 房间状态事件 ====================
 
@@ -168,13 +182,18 @@ export const connectSocket = (token: string) => {
   /**
    * 行程保存成功 - 通知所有成员跳转
    */
-  socket.on('trip:saved', (data: { hostTripId: string; memberTripIds: string[]; timestamp: Date }) => {
-    console.log('✅ 协同行程已保存，准备跳转:', data);
-    // 触发自定义事件，通知CollabRoom组件跳转
-    window.dispatchEvent(new CustomEvent('trip-saved', {
-      detail: data
-    }));
-  });
+  socket.on(
+    'trip:saved',
+    (data: { hostTripId: string; memberTripIds: string[]; timestamp: Date }) => {
+      console.log('✅ 协同行程已保存，准备跳转:', data);
+      // 触发自定义事件，通知CollabRoom组件跳转
+      window.dispatchEvent(
+        new CustomEvent('trip-saved', {
+          detail: data,
+        })
+      );
+    }
+  );
 
   // ==================== 消息事件 ====================
 

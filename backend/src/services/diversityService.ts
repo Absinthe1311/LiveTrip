@@ -5,10 +5,7 @@ class DiversityService {
   /**
    * 应用多样性约束，从候选景点中选择景点
    */
-  applyDiversityConstraints(
-    scoredSpots: SpotScore[],
-    maxSpots: number
-  ): SpotScore[] {
+  applyDiversityConstraints(scoredSpots: SpotScore[], maxSpots: number): SpotScore[] {
     console.log(`\n🎨 应用多样性约束，候选景点: ${scoredSpots.length}，最大选择: ${maxSpots}`);
 
     if (scoredSpots.length <= maxSpots) {
@@ -47,14 +44,10 @@ class DiversityService {
   /**
    * 检查是否可以添加该景点
    */
-  private canAddSpot(
-    spot: SpotScore,
-    selectedSpots: SpotScore[],
-    maxSpots: number
-  ): boolean {
+  private canAddSpot(spot: SpotScore, selectedSpots: SpotScore[], maxSpots: number): boolean {
     // 规则1：每天相同 CategoryTag 的景点不超过 2 个
     for (const category of spot.categories) {
-      const count = selectedSpots.filter(s => s.categories.includes(category)).length;
+      const count = selectedSpots.filter((s) => s.categories.includes(category)).length;
       if (count >= 2) {
         return false;
       }
@@ -64,7 +57,7 @@ class DiversityService {
     const totalSelected = selectedSpots.length;
     if (totalSelected > 0) {
       for (const category of spot.categories) {
-        const count = selectedSpots.filter(s => s.categories.includes(category)).length;
+        const count = selectedSpots.filter((s) => s.categories.includes(category)).length;
         const ratio = (count + 1) / (totalSelected + 1);
         if (ratio > 0.5) {
           return false;
@@ -76,7 +69,7 @@ class DiversityService {
     if (selectedSpots.length >= maxSpots - 1) {
       const allCategories = new Set<CategoryTag>();
       for (const s of [...selectedSpots, spot]) {
-        s.categories.forEach(cat => allCategories.add(cat));
+        s.categories.forEach((cat) => allCategories.add(cat));
       }
 
       if (allCategories.size < 2) {
@@ -114,7 +107,7 @@ class DiversityService {
     // 检查类别多样性
     const totalCategories = new Set<CategoryTag>();
     for (const spot of allSpots) {
-      spot.categories.forEach(cat => totalCategories.add(cat));
+      spot.categories.forEach((cat) => totalCategories.add(cat));
     }
 
     if (totalCategories.size < 2) {

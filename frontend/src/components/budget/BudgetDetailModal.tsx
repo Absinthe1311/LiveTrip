@@ -3,7 +3,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal, Input, message } from 'antd';
-import { Wallet, Building2, Utensils, Ticket, Car, ShoppingBag, History, Edit2, TrendingUp, TrendingDown } from 'lucide-react';
+import {
+  Wallet,
+  Building2,
+  Utensils,
+  Ticket,
+  Car,
+  ShoppingBag,
+  History,
+  Edit2,
+  TrendingUp,
+  TrendingDown,
+} from 'lucide-react';
 import { getBudgetStatus, adjustBudget, getBudgetHistory } from '../../api/client';
 
 interface BudgetDetailModalProps {
@@ -50,7 +61,7 @@ export default function BudgetDetailModal({
   tripId,
   tripTitle,
   onClose,
-  onUpdate
+  onUpdate,
 }: BudgetDetailModalProps) {
   const [budgetInfo, setBudgetInfo] = useState<BudgetInfo | null>(null);
   const [history, setHistory] = useState<BudgetRecord[]>([]);
@@ -159,7 +170,7 @@ export default function BudgetDetailModal({
       dining: '餐饮',
       tickets: '门票',
       shopping: '购物',
-      other: '其他'
+      other: '其他',
     };
     return names[category] || category;
   };
@@ -226,9 +237,7 @@ export default function BudgetDetailModal({
                     if (value === 0) return null;
                     return (
                       <div key={key} className="flex items-center gap-2 bg-gray-50 rounded p-2">
-                        <div className="text-blue-500">
-                          {getCategoryIcon(key)}
-                        </div>
+                        <div className="text-blue-500">{getCategoryIcon(key)}</div>
                         <div className="flex-1">
                           <div className="text-xs text-gray-500">{getCategoryName(key)}</div>
                           <div className="font-semibold">¥{value.toFixed(0)}</div>
@@ -285,12 +294,18 @@ export default function BudgetDetailModal({
                             )}
                             <span className="text-gray-600">{record.description}</span>
                           </div>
-                          <span className="text-gray-400 text-xs">{formatTime(record.createdAt)}</span>
+                          <span className="text-gray-400 text-xs">
+                            {formatTime(record.createdAt)}
+                          </span>
                         </div>
                         <div className="text-gray-500">
                           ¥{record.previousAmount.toFixed(0)} → ¥{record.newAmount.toFixed(0)}
-                          <span className={record.difference > 0 ? 'text-red-500' : 'text-green-500'}>
-                            {' '}({record.difference > 0 ? '+' : ''}{record.difference.toFixed(0)})
+                          <span
+                            className={record.difference > 0 ? 'text-red-500' : 'text-green-500'}
+                          >
+                            {' '}
+                            ({record.difference > 0 ? '+' : ''}
+                            {record.difference.toFixed(0)})
                           </span>
                         </div>
                       </div>

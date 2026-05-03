@@ -74,7 +74,10 @@ async function getSpotCoordinates(spotId: string): Promise<{ lat: number; lon: n
 /**
  * 从 OpenWeatherMap 获取实时天气数据
  */
-async function getOpenWeatherData(lat: number, lon: number): Promise<{
+async function getOpenWeatherData(
+  lat: number,
+  lon: number
+): Promise<{
   temperature: number;
   humidity: number;
   description: string;
@@ -126,9 +129,7 @@ async function getOpenWeatherForecast(lat: number, lon: number): Promise<number>
     const now = Date.now() / 1000;
     const future24Hours = now + 24 * 60 * 60;
 
-    const futureForecasts = data.list.filter(
-      (item) => item.dt >= now && item.dt <= future24Hours
-    );
+    const futureForecasts = data.list.filter((item) => item.dt >= now && item.dt <= future24Hours);
 
     if (futureForecasts.length === 0) {
       return 0;
@@ -208,7 +209,7 @@ export async function getSpotWeatherData(spotId: string): Promise<WeatherData> {
     humidity: baseWeatherData.humidity,
     rainProbability: baseWeatherData.rainProbability,
     description: baseWeatherData.description,
-    icon: baseWeatherData.icon
+    icon: baseWeatherData.icon,
   });
 
   const weatherData: WeatherData = {

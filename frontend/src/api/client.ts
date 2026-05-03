@@ -22,7 +22,7 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     // 添加 userId 到请求头 (用于权限验证)
     const userStr = localStorage.getItem('user');
     if (userStr) {
@@ -35,7 +35,7 @@ apiClient.interceptors.request.use(
         console.warn('解析用户信息失败:', e);
       }
     }
-    
+
     return config;
   },
   (error) => {
@@ -244,10 +244,10 @@ export const getAlternativeSpots = async (
   excludeSpotIds: string[] = []
 ): Promise<AlternativeSpotsResponse> => {
   const response = await apiClient.get<AlternativeSpotsResponse>(`/spots/alternatives/${spotId}`, {
-    params: { 
+    params: {
       city,
-      excludeSpotIds: JSON.stringify(excludeSpotIds)
-    }
+      excludeSpotIds: JSON.stringify(excludeSpotIds),
+    },
   });
   return response.data;
 };
@@ -258,12 +258,19 @@ export const getAlternativeSpots = async (
  * @param newSpotId 新景点ID
  * @param city 城市名称
  */
-export const updateAlternativeRelations = async (oldSpotId: string, newSpotId: string, city: string): Promise<{ success: boolean; message: string }> => {
-  const response = await apiClient.post<{ success: boolean; message: string }>('/spots/alternatives/update', {
-    oldSpotId,
-    newSpotId,
-    city
-  });
+export const updateAlternativeRelations = async (
+  oldSpotId: string,
+  newSpotId: string,
+  city: string
+): Promise<{ success: boolean; message: string }> => {
+  const response = await apiClient.post<{ success: boolean; message: string }>(
+    '/spots/alternatives/update',
+    {
+      oldSpotId,
+      newSpotId,
+      city,
+    }
+  );
   return response.data;
 };
 
@@ -377,7 +384,7 @@ export const updateItemPrice = async (
     category,
     itemName,
     previousPrice,
-    newPrice
+    newPrice,
   });
   return response.data;
 };
@@ -387,7 +394,7 @@ export const updateItemPrice = async (
  */
 export const getBudgetHistory = async (tripId: string, limit: number = 20) => {
   const response = await apiClient.get(`/trips/${tripId}/budget/history`, {
-    params: { limit }
+    params: { limit },
   });
   return response.data;
 };
@@ -689,15 +696,19 @@ export const getBlogPostById = async (id: string) => {
  * @param data 更新数据
  * @returns 更新后的博客
  */
-export const updateBlog = async (id: string, userId: string, data: {
-  title?: string;
-  content?: string;
-  coverImage?: string;
-  tags?: string[];
-  city?: string;
-  spotIds?: string[];
-  isPublished?: boolean;
-}) => {
+export const updateBlog = async (
+  id: string,
+  userId: string,
+  data: {
+    title?: string;
+    content?: string;
+    coverImage?: string;
+    tags?: string[];
+    city?: string;
+    spotIds?: string[];
+    isPublished?: boolean;
+  }
+) => {
   const response = await apiClient.put(`/blogs/${id}`, { userId, ...data });
   return response.data;
 };
@@ -934,10 +945,13 @@ export const savePackingList = async (tripId: string, items: any[]) => {
  * @param updates 更新内容
  * @returns 更新后的物品
  */
-export const updatePackingItem = async (itemId: string, updates: {
-  isPacked?: boolean;
-  itemName?: string;
-}) => {
+export const updatePackingItem = async (
+  itemId: string,
+  updates: {
+    isPacked?: boolean;
+    itemName?: string;
+  }
+) => {
   const response = await apiClient.patch(`/packing/${itemId}`, updates);
   return response.data;
 };

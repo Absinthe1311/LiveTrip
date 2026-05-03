@@ -10,7 +10,11 @@ declare module 'marked' {
 
   function marked(src: string, options?: MarkedOptions): string;
   function marked(src: string, callback: (err: Error | null, result: string) => void): void;
-  function marked(src: string, options: MarkedOptions, callback: (err: Error | null, result: string) => void): void;
+  function marked(
+    src: string,
+    options: MarkedOptions,
+    callback: (err: Error | null, result: string) => void
+  ): void;
 
   namespace marked {
     function setOptions(options: MarkedOptions): typeof marked;

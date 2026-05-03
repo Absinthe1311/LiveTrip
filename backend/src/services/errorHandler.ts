@@ -85,7 +85,8 @@ class ErrorHandler {
         console.log(`✅ 回退策略执行成功`);
         return { success: true, result, errorInfo };
       } catch (fallbackError) {
-        const fallbackErrorMessage = fallbackError instanceof Error ? fallbackError.message : '未知错误';
+        const fallbackErrorMessage =
+          fallbackError instanceof Error ? fallbackError.message : '未知错误';
         console.error(`❌ 回退策略执行失败:`, fallbackErrorMessage);
       }
     }
@@ -153,7 +154,7 @@ class ErrorHandler {
    */
   getErrors(severity?: ErrorSeverity): ErrorInfo[] {
     if (severity) {
-      return this.errors.filter(e => e.severity === severity);
+      return this.errors.filter((e) => e.severity === severity);
     }
     return [...this.errors];
   }
@@ -279,7 +280,7 @@ class ErrorHandler {
     console.log('\n🔄 生成简化版行程作为回退方案...');
 
     // 简化策略：每天只保留前2个景点
-    const simplifiedItinerary = originalItinerary.itinerary.map(day => ({
+    const simplifiedItinerary = originalItinerary.itinerary.map((day) => ({
       ...day,
       attractions: day.attractions.slice(0, 2),
     }));
@@ -293,7 +294,9 @@ class ErrorHandler {
     const originalDays = originalItinerary.itinerary.length;
 
     // 按比例减少住宿和餐饮费用
-    const accommodation = Math.round(originalItinerary.budget_breakdown.accommodation * (days / originalDays));
+    const accommodation = Math.round(
+      originalItinerary.budget_breakdown.accommodation * (days / originalDays)
+    );
     const dining = Math.round(originalItinerary.budget_breakdown.dining * (days / originalDays));
     const transportation = Math.round(originalItinerary.budget_breakdown.transportation * 0.8);
 

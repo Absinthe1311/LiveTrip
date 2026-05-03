@@ -33,15 +33,16 @@ export const useAppStore = create<AppState>((set) => ({
   isLoading: false,
   setIsLoading: (loading) => set({ isLoading: loading }),
 
-  completeTrip: () => set((state) => {
-    if (state.currentItinerary) {
-      return {
-        currentItinerary: {
-          ...state.currentItinerary,
-          status: 'completed',
-        },
-      };
-    }
-    return state;
-  }),
+  completeTrip: () =>
+    set((state) => {
+      if (state.currentItinerary) {
+        return {
+          currentItinerary: {
+            ...state.currentItinerary,
+            status: 'completed',
+          },
+        };
+      }
+      return state;
+    }),
 }));

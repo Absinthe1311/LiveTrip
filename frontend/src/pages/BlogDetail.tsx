@@ -20,11 +20,18 @@ import {
   Tag,
   MapPin,
   Edit2,
-  Trash2
+  Trash2,
 } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
-import { getBlogPostById, deleteBlog, toggleLike, incrementBlogViewCount, addBlogComment, deleteBlogComment } from '../api/client';
+import {
+  getBlogPostById,
+  deleteBlog,
+  toggleLike,
+  incrementBlogViewCount,
+  addBlogComment,
+  deleteBlogComment,
+} from '../api/client';
 import { message, Popconfirm } from 'antd';
 import { exportBlogToPDF } from '../utils/exportPDF';
 
@@ -112,7 +119,7 @@ export default function BlogDetailGlass() {
         setLiked(response.data.liked);
         setBlog({
           ...blog,
-          likeCount: response.data.likeCount
+          likeCount: response.data.likeCount,
         });
       }
     } catch (error) {
@@ -193,13 +200,7 @@ export default function BlogDetailGlass() {
         day: 'numeric',
       });
 
-      await exportBlogToPDF(
-        blog.title,
-        blog.content,
-        authorName,
-        dateStr,
-        blog.city
-      );
+      await exportBlogToPDF(blog.title, blog.content, authorName, dateStr, blog.city);
 
       message.success({ content: 'PDF导出成功！', key: 'pdf' });
     } catch (error) {
@@ -262,11 +263,7 @@ export default function BlogDetailGlass() {
         {/* 封面图片 */}
         {blog.coverImage && (
           <GlassCard className="p-0 overflow-hidden" hover={false}>
-            <img
-              src={blog.coverImage}
-              alt={blog.title}
-              className="w-full h-96 object-cover"
-            />
+            <img src={blog.coverImage} alt={blog.title} className="w-full h-96 object-cover" />
           </GlassCard>
         )}
 
@@ -300,15 +297,18 @@ export default function BlogDetailGlass() {
           {/* 标签 */}
           {blog.tags && (
             <div className="flex flex-wrap gap-2 mb-6">
-              {blog.tags.split(',').filter(t => t.trim()).map((tag, idx) => (
-                <span
-                  key={idx}
-                  className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-400/30 flex items-center gap-1"
-                >
-                  <Tag className="w-3 h-3" />
-                  {tag.trim()}
-                </span>
-              ))}
+              {blog.tags
+                .split(',')
+                .filter((t) => t.trim())
+                .map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-400/30 flex items-center gap-1"
+                  >
+                    <Tag className="w-3 h-3" />
+                    {tag.trim()}
+                  </span>
+                ))}
             </div>
           )}
 
@@ -324,9 +324,7 @@ export default function BlogDetailGlass() {
               <button
                 onClick={handleLike}
                 className={`flex items-center gap-2 transition-all ${
-                  liked
-                    ? 'text-red-400'
-                    : 'text-white/60 hover:text-red-400'
+                  liked ? 'text-red-400' : 'text-white/60 hover:text-red-400'
                 }`}
               >
                 <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
@@ -410,7 +408,11 @@ export default function BlogDetailGlass() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       {comment.user?.avatar ? (
-                        <img src={comment.user.avatar} alt="avatar" className="w-8 h-8 rounded-full" />
+                        <img
+                          src={comment.user.avatar}
+                          alt="avatar"
+                          className="w-8 h-8 rounded-full"
+                        />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-[#145F39]/20 flex items-center justify-center">
                           <User className="w-4 h-4 text-[#145F39]" />
@@ -438,9 +440,7 @@ export default function BlogDetailGlass() {
                         okText="确定"
                         cancelText="取消"
                       >
-                        <button className="text-red-400 hover:text-red-300 text-sm">
-                          删除
-                        </button>
+                        <button className="text-red-400 hover:text-red-300 text-sm">删除</button>
                       </Popconfirm>
                     )}
                   </div>
@@ -449,20 +449,10 @@ export default function BlogDetailGlass() {
               ))}
             </div>
           ) : (
-            <div className="text-center text-white/40 py-8">
-              暂无评论，快来发表第一条评论吧！
-            </div>
+            <div className="text-center text-white/40 py-8">暂无评论，快来发表第一条评论吧！</div>
           )}
         </GlassCard>
       </div>
     </GlassLayout>
   );
 }
-
-
-
-
-
-
-
-

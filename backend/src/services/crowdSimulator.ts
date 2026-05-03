@@ -98,7 +98,8 @@ async function getSpotHeatCoefficient(spotId: string): Promise<number> {
       return baseCoefficient;
     }
 
-    const coefficient = baseCoefficient + (favoriteCount / maxFavorites) * (maxCoefficient - baseCoefficient);
+    const coefficient =
+      baseCoefficient + (favoriteCount / maxFavorites) * (maxCoefficient - baseCoefficient);
     return Math.min(maxCoefficient, Math.max(baseCoefficient, coefficient));
   } catch (error) {
     console.error(`获取景点 ${spotId} 的热度系数失败:`, error);

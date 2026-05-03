@@ -37,7 +37,10 @@ export const initSocketIO = (server: HttpServer) => {
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'livetrip-secret-key-2024') as any;
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'livetrip-secret-key-2024'
+      ) as any;
       socket.data.userId = decoded.userId;
       socket.data.username = decoded.username;
       next();
@@ -123,41 +126,47 @@ export const initSocketIO = (server: HttpServer) => {
     /**
      * 光标移动
      */
-    socket.on('cursor:move', (data: { roomId: string; userId: string; lat: number; lng: number }) => {
-      const { roomId, userId, lat, lng } = data;
+    socket.on(
+      'cursor:move',
+      (data: { roomId: string; userId: string; lat: number; lng: number }) => {
+        const { roomId, userId, lat, lng } = data;
 
-      // 广播光标更新给房间其他人
-      socket.to(roomId).emit('cursor:update', {
-        userId,
-        lat,
-        lng,
-        timestamp: new Date(),
-      });
-    });
+        // 广播光标更新给房间其他人
+        socket.to(roomId).emit('cursor:update', {
+          userId,
+          lat,
+          lng,
+          timestamp: new Date(),
+        });
+      }
+    );
 
     // ==================== 草案相关事件 ====================
 
     /**
      * 草案更新
      */
-    socket.on('draft:update', (data: {
-      roomId: string;
-      userId: string;
-      dayNumber: number;
-      spotSequence: string[];
-      polylineData: any;
-    }) => {
-      const { roomId, userId, dayNumber, spotSequence, polylineData } = data;
+    socket.on(
+      'draft:update',
+      (data: {
+        roomId: string;
+        userId: string;
+        dayNumber: number;
+        spotSequence: string[];
+        polylineData: any;
+      }) => {
+        const { roomId, userId, dayNumber, spotSequence, polylineData } = data;
 
-      // 广播草案变化给房间其他人
-      socket.to(roomId).emit('draft:changed', {
-        userId,
-        dayNumber,
-        spotSequence,
-        polylineData,
-        timestamp: new Date(),
-      });
-    });
+        // 广播草案变化给房间其他人
+        socket.to(roomId).emit('draft:changed', {
+          userId,
+          dayNumber,
+          spotSequence,
+          polylineData,
+          timestamp: new Date(),
+        });
+      }
+    );
 
     /**
      * 草案提交

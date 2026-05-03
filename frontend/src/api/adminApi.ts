@@ -23,7 +23,9 @@ export async function getAdminSpots(
 /**
  * 获取景点图片列表
  */
-export async function getSpotImages(spotId: string): Promise<{ success: boolean; data: SpotImagesResponse; message?: string }> {
+export async function getSpotImages(
+  spotId: string
+): Promise<{ success: boolean; data: SpotImagesResponse; message?: string }> {
   const response = await apiClient.get(`/admin/spots/${spotId}/images`);
   return response.data;
 }
@@ -46,7 +48,9 @@ export async function reviewImage(
 /**
  * 删除图片
  */
-export async function deleteAdminImage(imageId: string): Promise<{ success: boolean; message: string }> {
+export async function deleteAdminImage(
+  imageId: string
+): Promise<{ success: boolean; message: string }> {
   const response = await apiClient.delete(`/admin/images/${imageId}`);
   return response.data;
 }
@@ -67,10 +71,7 @@ export async function getPendingImages(
 /**
  * 上传景点图片（管理员专用，自动审核通过）
  */
-export async function uploadAdminImage(
-  spotId: string,
-  file: File
-): Promise<UploadImageResponse> {
+export async function uploadAdminImage(spotId: string, file: File): Promise<UploadImageResponse> {
   const formData = new FormData();
   formData.append('images', file); // 注意：后端期望的字段名是 'images'
 

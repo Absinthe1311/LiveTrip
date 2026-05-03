@@ -1,7 +1,21 @@
 ﻿// 我的行程页面 - 毛玻璃风格版本
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Users, Clock, MoreVertical, Trash2, Share2, Search, Filter, Share as ShareIcon, Trash, Plane, Wallet } from 'lucide-react';
+import {
+  Calendar,
+  MapPin,
+  Users,
+  Clock,
+  MoreVertical,
+  Trash2,
+  Share2,
+  Search,
+  Filter,
+  Share as ShareIcon,
+  Trash,
+  Plane,
+  Wallet,
+} from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
 import { getUserTrips, deleteTrip, shareTrip } from '../api/client';
@@ -70,7 +84,10 @@ export default function MyTripsGlass() {
 
   // 预算详情弹窗
   const [budgetModalVisible, setBudgetModalVisible] = useState(false);
-  const [selectedTripForBudget, setSelectedTripForBudget] = useState<{ id: string; title: string } | null>(null);
+  const [selectedTripForBudget, setSelectedTripForBudget] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   useEffect(() => {
     loadTrips();
@@ -105,13 +122,13 @@ export default function MyTripsGlass() {
 
   // 获取所有不重复的目的地
   const destinations = useMemo(() => {
-    const destSet = new Set(trips.map(trip => trip.destination));
+    const destSet = new Set(trips.map((trip) => trip.destination));
     return Array.from(destSet).sort();
   }, [trips]);
 
   // 根据当前标签、搜索和筛选过滤行程
   const filteredTrips = useMemo(() => {
-    return trips.filter(trip => {
+    return trips.filter((trip) => {
       // 按标签筛选
       if (activeTab === 'normal' && trip.isCollab) return false;
       if (activeTab === 'collab' && !trip.isCollab) return false;
@@ -192,7 +209,7 @@ export default function MyTripsGlass() {
     if (selectedTrips.size === filteredTrips.length) {
       setSelectedTrips(new Set());
     } else {
-      setSelectedTrips(new Set(filteredTrips.map(trip => trip.id)));
+      setSelectedTrips(new Set(filteredTrips.map((trip) => trip.id)));
     }
   };
 
@@ -214,19 +231,27 @@ export default function MyTripsGlass() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'planning': return 'bg-blue-500';
-      case 'ongoing': return 'bg-green-500';
-      case 'completed': return 'bg-gray-500';
-      default: return 'bg-gray-500';
+      case 'planning':
+        return 'bg-blue-500';
+      case 'ongoing':
+        return 'bg-green-500';
+      case 'completed':
+        return 'bg-gray-500';
+      default:
+        return 'bg-gray-500';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'planning': return '规划中';
-      case 'ongoing': return '进行中';
-      case 'completed': return '已完成';
-      default: return '未知';
+      case 'planning':
+        return '规划中';
+      case 'ongoing':
+        return '进行中';
+      case 'completed':
+        return '已完成';
+      default:
+        return '未知';
     }
   };
 
@@ -241,7 +266,9 @@ export default function MyTripsGlass() {
               <div className="flex items-center gap-2">
                 <Checkbox
                   checked={selectedTrips.size === filteredTrips.length && filteredTrips.length > 0}
-                  indeterminate={selectedTrips.size > 0 && selectedTrips.size < filteredTrips.length}
+                  indeterminate={
+                    selectedTrips.size > 0 && selectedTrips.size < filteredTrips.length
+                  }
                   onChange={toggleSelectAll}
                   className="text-white"
                 >
@@ -366,10 +393,7 @@ export default function MyTripsGlass() {
                 onClick={() => navigate(`/trip/${trip.id}`)}
               >
                 {/* 选择框 */}
-                <div
-                  className="absolute top-4 left-4 z-10"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                <div className="absolute top-4 left-4 z-10" onClick={(e) => e.stopPropagation()}>
                   <Checkbox
                     checked={selectedTrips.has(trip.id)}
                     onChange={() => toggleTripSelection(trip.id)}
@@ -396,7 +420,9 @@ export default function MyTripsGlass() {
                         协同
                       </span>
                     )}
-                    <span className={`px-3 py-1 rounded-full text-white text-xs font-medium ${getStatusColor(trip.status)}`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-white text-xs font-medium ${getStatusColor(trip.status)}`}
+                    >
                       {getStatusText(trip.status)}
                     </span>
                   </div>
@@ -521,11 +547,3 @@ export default function MyTripsGlass() {
     </GlassLayout>
   );
 }
-
-
-
-
-
-
-
-

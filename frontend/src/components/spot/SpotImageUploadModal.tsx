@@ -161,7 +161,9 @@ export default function SpotImageUploadModal({
     setUploading(false);
 
     if (successCount > 0) {
-      message.success(`成功上传 ${successCount} 张图片${failCount > 0 ? `，${failCount} 张失败` : ''}`);
+      message.success(
+        `成功上传 ${successCount} 张图片${failCount > 0 ? `，${failCount} 张失败` : ''}`
+      );
       onSuccess();
       setFileList([]);
       onClose();
@@ -196,9 +198,7 @@ export default function SpotImageUploadModal({
         <p style={{ color: '#666', marginBottom: 8 }}>
           上传您在景点拍摄的照片，审核通过后将展示在景点详情中。最多可上传5张图片。
         </p>
-        <p style={{ color: '#999', fontSize: 12 }}>
-          支持 JPG、PNG 格式，单张图片不超过 20MB
-        </p>
+        <p style={{ color: '#999', fontSize: 12 }}>支持 JPG、PNG 格式，单张图片不超过 20MB</p>
       </div>
 
       {/* 图片预览列表 */}
@@ -280,5 +280,3 @@ export default function SpotImageUploadModal({
     </Modal>
   );
 }
-
-

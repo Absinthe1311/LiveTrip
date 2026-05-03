@@ -123,14 +123,14 @@ function addDays(date: Date, days: number): Date {
  */
 function getDayOfWeek(dayStr: string): number {
   const map: Record<string, number> = {
-    '一': 1,
-    '二': 2,
-    '三': 3,
-    '四': 4,
-    '五': 5,
-    '六': 6,
-    '日': 0,
-    '天': 0,
+    一: 1,
+    二: 2,
+    三: 3,
+    四: 4,
+    五: 5,
+    六: 6,
+    日: 0,
+    天: 0,
   };
   return map[dayStr] ?? 0;
 }
@@ -141,11 +141,15 @@ function getDayOfWeek(dayStr: string): number {
  * @param targetDay 目标星期几（0=周日，1=周一，...，6=周六）
  * @param weekType 'this' | 'next' | 'nextNext'
  */
-function getDayOfWeekDate(baseDate: Date, targetDay: number, weekType: 'this' | 'next' | 'nextNext'): Date {
+function getDayOfWeekDate(
+  baseDate: Date,
+  targetDay: number,
+  weekType: 'this' | 'next' | 'nextNext'
+): Date {
   const currentDay = baseDate.getDay();
   const daysUntilTarget = (targetDay - currentDay + 7) % 7;
 
-  let result = new Date(baseDate);
+  const result = new Date(baseDate);
   result.setDate(result.getDate() + daysUntilTarget);
 
   if (weekType === 'next') {

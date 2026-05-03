@@ -19,7 +19,7 @@ export default function ActionButton({
   onNext,
   onPrevious,
   onSave,
-  saveButtonText = '保存行程'
+  saveButtonText = '保存行程',
 }: ActionButtonProps) {
   return (
     <div className="fixed bottom-8 right-8 z-50 flex items-center gap-3">

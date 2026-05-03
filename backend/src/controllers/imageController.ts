@@ -136,10 +136,7 @@ export class ImageController {
       const status = isAdmin ? 'approved' : 'pending';
 
       // 上传到 Cloudinary
-      const cloudinaryResult = await cloudinaryService.uploadImage(
-        req.file.buffer,
-        folder
-      );
+      const cloudinaryResult = await cloudinaryService.uploadImage(req.file.buffer, folder);
 
       // 写入数据库
       const image = await prisma.spotImage.create({

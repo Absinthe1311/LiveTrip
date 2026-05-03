@@ -13,7 +13,14 @@ interface ReviewFormProps {
   userId?: string;
 }
 
-export default function ReviewForm({ visible, spotId, spotName, onCancel, onSuccess, userId = 'default-user' }: ReviewFormProps) {
+export default function ReviewForm({
+  visible,
+  spotId,
+  spotName,
+  onCancel,
+  onSuccess,
+  userId = 'default-user',
+}: ReviewFormProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -21,11 +28,11 @@ export default function ReviewForm({ visible, spotId, spotName, onCancel, onSucc
   const handleSubmit = async (values: any) => {
     try {
       setLoading(true);
-      
+
       // 获取图片URLs
       const imageUrls = fileList
-        .filter(file => file.status === 'done')
-        .map(file => file.response?.url || file.url);
+        .filter((file) => file.status === 'done')
+        .map((file) => file.response?.url || file.url);
 
       await createReview({
         spotId,
@@ -47,29 +54,10 @@ export default function ReviewForm({ visible, spotId, spotName, onCancel, onSucc
   };
 
   return (
-    <Modal
-      title={`评价 ${spotName}`}
-      open={visible}
-      onCancel={onCancel}
-      footer={null}
-      width={600}
-    >
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        initialValues={{ rating: 5 }}
-      >
-        <Form.Item
-          label="评分"
-          name="rating"
-          rules={[{ required: true, message: '请选择评分' }]}
-        >
-          <Rate 
-            allowHalf 
-            character={<StarOutlined />}
-            style={{ fontSize: 24 }}
-          />
+    <Modal title={`评价 ${spotName}`} open={visible} onCancel={onCancel} footer={null} width={600}>
+      <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={{ rating: 5 }}>
+        <Form.Item label="评分" name="rating" rules={[{ required: true, message: '请选择评分' }]}>
+          <Rate allowHalf character={<StarOutlined />} style={{ fontSize: 24 }} />
         </Form.Item>
 
         <Form.Item
@@ -77,18 +65,10 @@ export default function ReviewForm({ visible, spotId, spotName, onCancel, onSucc
           name="comment"
           rules={[{ required: true, message: '请输入评价内容' }]}
         >
-          <Input.TextArea
-            rows={4}
-            placeholder="分享您的游览体验..."
-            maxLength={500}
-            showCount
-          />
+          <Input.TextArea rows={4} placeholder="分享您的游览体验..." maxLength={500} showCount />
         </Form.Item>
 
-        <Form.Item
-          label="上传图片"
-          name="images"
-        >
+        <Form.Item label="上传图片" name="images">
           <Upload
             listType="picture-card"
             fileList={fileList}
@@ -121,4 +101,3 @@ export default function ReviewForm({ visible, spotId, spotName, onCancel, onSucc
     </Modal>
   );
 }
-

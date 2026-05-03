@@ -17,19 +17,19 @@ export const getBudgetStatus = async (req: Request, res: Response) => {
     if (!budgetInfo) {
       return res.status(404).json({
         success: false,
-        message: '行程不存在'
+        message: '行程不存在',
       });
     }
 
     res.json({
       success: true,
-      data: budgetInfo
+      data: budgetInfo,
     });
   } catch (error) {
     console.error('获取预算状态失败:', error);
     res.status(500).json({
       success: false,
-      message: '获取预算状态失败'
+      message: '获取预算状态失败',
     });
   }
 };
@@ -46,7 +46,7 @@ export const adjustBudget = async (req: Request, res: Response) => {
     if (!newBudget || newBudget < 0) {
       return res.status(400).json({
         success: false,
-        message: '预算金额无效'
+        message: '预算金额无效',
       });
     }
 
@@ -55,19 +55,19 @@ export const adjustBudget = async (req: Request, res: Response) => {
     if (!result.success) {
       return res.status(400).json({
         success: false,
-        message: result.error
+        message: result.error,
       });
     }
 
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('调整预算失败:', error);
     res.status(500).json({
       success: false,
-      message: '调整预算失败'
+      message: '调整预算失败',
     });
   }
 };
@@ -84,7 +84,7 @@ export const updateItemPrice = async (req: Request, res: Response) => {
     if (!category || !itemName || previousPrice === undefined || newPrice === undefined) {
       return res.status(400).json({
         success: false,
-        message: '参数不完整'
+        message: '参数不完整',
       });
     }
 
@@ -99,19 +99,19 @@ export const updateItemPrice = async (req: Request, res: Response) => {
     if (!result.success) {
       return res.status(400).json({
         success: false,
-        message: result.error
+        message: result.error,
       });
     }
 
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('更新项目价格失败:', error);
     res.status(500).json({
       success: false,
-      message: '更新项目价格失败'
+      message: '更新项目价格失败',
     });
   }
 };
@@ -129,13 +129,13 @@ export const getBudgetHistory = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: records
+      data: records,
     });
   } catch (error) {
     console.error('获取预算变更历史失败:', error);
     res.status(500).json({
       success: false,
-      message: '获取预算变更历史失败'
+      message: '获取预算变更历史失败',
     });
   }
 };

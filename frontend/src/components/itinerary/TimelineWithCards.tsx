@@ -54,7 +54,7 @@ function SortableSpotCardWrapper({
   alternatives,
   isLoading,
   handleCloseAlternatives,
-  handleReplaceAttraction
+  handleReplaceAttraction,
 }: {
   item: AttractionItem;
   index: number;
@@ -70,14 +70,9 @@ function SortableSpotCardWrapper({
   handleCloseAlternatives: (item: AttractionItem) => void;
   handleReplaceAttraction: (newItem: any, originalItem: any) => void;
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: index });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: index,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -91,8 +86,18 @@ function SortableSpotCardWrapper({
       <div className="group relative">
         {/* 拖拽手柄 */}
         <div className="absolute -left-2 top-4 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-grab">
-          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+          <svg
+            className="w-4 h-4 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 8h16M4 16h16"
+            />
           </svg>
         </div>
 
@@ -136,7 +141,7 @@ export default function TimelineWithCards({
   handleCloseAlternatives,
   handleReplaceAttraction,
   onAttractionsReorder,
-  readOnly = false
+  readOnly = false,
 }: TimelineWithCardsProps) {
   const [cardHeights, setCardHeights] = useState<number[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -172,12 +177,12 @@ export default function TimelineWithCards({
 
   // 获取景点的IoT数据
   const getAttractionIoTData = (item: AttractionItem, allIoTData: any[]) => {
-    return allIoTData.find(data => data.name === item.name || data.spotName === item.name);
+    return allIoTData.find((data) => data.name === item.name || data.spotName === item.name);
   };
 
   // 处理卡片高度变化
   const handleCardHeightChange = (index: number, height: number) => {
-    setCardHeights(prev => {
+    setCardHeights((prev) => {
       const newHeights = [...prev];
       newHeights[index] = height;
       return newHeights;
@@ -199,7 +204,7 @@ export default function TimelineWithCards({
         {/* 左侧：时间轴 */}
         <div className="flex-shrink-0">
           <ImprovedTimeline
-            timeSlots={attractions.map(item => item.time)}
+            timeSlots={attractions.map((item) => item.time)}
             currentIndex={currentCardIndex}
             cardHeights={cardHeights}
           />
@@ -284,6 +289,3 @@ export default function TimelineWithCards({
     </div>
   );
 }
-
-
-

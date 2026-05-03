@@ -155,10 +155,7 @@ export function NotificationBell() {
       {isOpen && (
         <>
           {/* 遮罩层 */}
-          <div
-            className="fixed inset-0 z-[9998]"
-            onClick={() => setIsOpen(false)}
-          />
+          <div className="fixed inset-0 z-[9998]" onClick={() => setIsOpen(false)} />
 
           {/* 通知面板 */}
           <div className="absolute right-0 top-12 w-96 max-h-[500px] bg-slate-900/95 backdrop-blur-xl rounded-xl border border-white/30 shadow-2xl z-[9999] overflow-hidden">

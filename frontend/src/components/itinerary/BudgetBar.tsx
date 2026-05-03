@@ -15,7 +15,7 @@ interface ImprovedBudgetBarProps {
 export default function ImprovedBudgetBar({
   categories,
   totalBudget,
-  usedBudget
+  usedBudget,
 }: ImprovedBudgetBarProps) {
   // 调试信息
   console.log('📊 预算数据:', { categories, totalBudget, usedBudget });
@@ -58,10 +58,12 @@ export default function ImprovedBudgetBar({
       <div className="mb-5">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-white/60">已用预算</span>
-          <span className="text-xs text-white/60">¥{usedBudget} / ¥{totalBudget}</span>
+          <span className="text-xs text-white/60">
+            ¥{usedBudget} / ¥{totalBudget}
+          </span>
         </div>
         <div className="h-2.5 rounded-full overflow-hidden bg-white/20">
-          <div 
+          <div
             className={`h-full transition-all duration-300 ${
               usageRate > 100 ? 'bg-red-500' : usageRate > 95 ? 'bg-yellow-500' : 'bg-green-500'
             }`}
@@ -95,7 +97,9 @@ export default function ImprovedBudgetBar({
                 {/* 分类金额和占比 */}
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-semibold text-white">¥{category.amount}</span>
-                  <span className="text-xs text-white/60 w-12 text-right">{percentage.toFixed(1)}%</span>
+                  <span className="text-xs text-white/60 w-12 text-right">
+                    {percentage.toFixed(1)}%
+                  </span>
                 </div>
               </div>
 

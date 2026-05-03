@@ -35,31 +35,36 @@ export const sendTestNotification = async (req: Request, res: Response) => {
         break;
       case 'rain-danger':
         title = '⚠️ 紧急：长城 降雨提醒';
-        content = '⚠️ 长城降雨概率极高(85%)\n📍 景点类型：户外景点\n💡 建议：调整行程或携带雨具\n⏰ 最佳游览时间：雨后';
+        content =
+          '⚠️ 长城降雨概率极高(85%)\n📍 景点类型：户外景点\n💡 建议：调整行程或携带雨具\n⏰ 最佳游览时间：雨后';
         sensorType = SensorType.RAIN;
         level = SensorLevel.DANGER;
         break;
       case 'crowd':
         title = '⚡ 警告：天安门广场 人流提醒';
-        content = '👥 天安门广场人流较多(72%)\n📍 当前状态：人流适中\n💡 建议：可能需要排队，建议错峰游览\n⏰ 最佳游览时间：早8:00-9:00';
+        content =
+          '👥 天安门广场人流较多(72%)\n📍 当前状态：人流适中\n💡 建议：可能需要排队，建议错峰游览\n⏰ 最佳游览时间：早8:00-9:00';
         sensorType = SensorType.CROWD;
         level = SensorLevel.WARNING;
         break;
       case 'crowd-danger':
         title = '⚠️ 紧急：颐和园 人流提醒';
-        content = '👥 颐和园极度拥挤(92%)\n📍 当前状态：极度拥挤\n💡 建议：避开或选择其他时间\n⏰ 推荐替代景点：圆明园、北海公园';
+        content =
+          '👥 颐和园极度拥挤(92%)\n📍 当前状态：极度拥挤\n💡 建议：避开或选择其他时间\n⏰ 推荐替代景点：圆明园、北海公园';
         sensorType = SensorType.CROWD;
         level = SensorLevel.DANGER;
         break;
       case 'temperature':
         title = '⚡ 警告：三亚 温度提醒';
-        content = '🌡️ 三亚温度较高(36°C)\n📍 天气状况：晴朗\n💡 建议：做好防晒，多补充水分\n⏰ 最佳游览时间：早6:00-9:00，晚17:00-19:00';
+        content =
+          '🌡️ 三亚温度较高(36°C)\n📍 天气状况：晴朗\n💡 建议：做好防晒，多补充水分\n⏰ 最佳游览时间：早6:00-9:00，晚17:00-19:00';
         sensorType = SensorType.TEMPERATURE;
         level = SensorLevel.WARNING;
         break;
       case 'close':
         title = '⚠️ 紧急：圆明园 关闭提醒';
-        content = '🚫 圆明园已关闭\n📍 关闭原因：维护中\n💡 建议：调整行程，选择其他景点\n⏰ 预计开放时间：明日9:00';
+        content =
+          '🚫 圆明园已关闭\n📍 关闭原因：维护中\n💡 建议：调整行程，选择其他景点\n⏰ 预计开放时间：明日9:00';
         sensorType = SensorType.CLOSE;
         level = SensorLevel.DANGER;
         break;
@@ -70,18 +75,22 @@ export const sendTestNotification = async (req: Request, res: Response) => {
     }
 
     // 发送通知
-    await notificationService.notify(userId, {
-      type: sensorType,
-      spotId: 'test-spot-id',
-      spotName: '测试景点',
-      level,
-      message: content,
-      data: {
-        test: true,
+    await notificationService.notify(
+      userId,
+      {
+        type: sensorType,
+        spotId: 'test-spot-id',
+        spotName: '测试景点',
+        level,
+        message: content,
+        data: {
+          test: true,
+          timestamp: new Date(),
+        },
         timestamp: new Date(),
       },
-      timestamp: new Date(),
-    }, [NotificationChannel.WEBSOCKET, NotificationChannel.IN_APP]);
+      [NotificationChannel.WEBSOCKET, NotificationChannel.IN_APP]
+    );
 
     res.json({
       success: true,
@@ -149,18 +158,17 @@ export const sendBatchTestNotifications = async (req: Request, res: Response) =>
     ];
 
     // 批量发送通知
-    await notificationService.notifyBatch(
-      userId,
-      testResults,
-      [NotificationChannel.WEBSOCKET, NotificationChannel.IN_APP]
-    );
+    await notificationService.notifyBatch(userId, testResults, [
+      NotificationChannel.WEBSOCKET,
+      NotificationChannel.IN_APP,
+    ]);
 
     res.json({
       success: true,
       message: '批量测试通知已发送',
       data: {
         count: testResults.length,
-        notifications: testResults.map(r => ({
+        notifications: testResults.map((r) => ({
           spotName: r.spotName,
           level: r.level,
           message: r.message,

@@ -50,7 +50,7 @@ export const createPlan = async (req: Request, res: Response) => {
     // 步骤 1: 调用 spotService 获取景点（同时存储到数据库）
     console.log('\n步骤 1: 获取景点数据并存储到数据库...');
     const spots = await spotService.getCitySpots(planData.destination, 50);
-    
+
     if (spots.length === 0) {
       return res.status(404).json({
         success: false,
@@ -79,7 +79,11 @@ export const createPlan = async (req: Request, res: Response) => {
     const itinerary = await traditionalRecommender().recommendItinerary({
       attractions,
       destination: planData.destination,
-      preferences: planData.preferences || { pace: 'moderate', energy_level: 'medium', categories: [] },
+      preferences: planData.preferences || {
+        pace: 'moderate',
+        energy_level: 'medium',
+        categories: [],
+      },
       budget: planData.budget || 5000,
       days,
       groupSize: planData.groupSize || 1,

@@ -12,7 +12,19 @@
 // 修复问题：无编译错误，代码直接可用
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, User, Heart, MessageCircle, Eye, Edit2, Trash2, Plus, MapPin, Search, X } from 'lucide-react';
+import {
+  Calendar,
+  User,
+  Heart,
+  MessageCircle,
+  Eye,
+  Edit2,
+  Trash2,
+  Plus,
+  MapPin,
+  Search,
+  X,
+} from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
 import { getBlogPosts, deleteBlog } from '../api/client';
@@ -90,8 +102,7 @@ export default function BlogsGlass() {
       else if (Array.isArray(response)) {
         setBlogs(response);
         console.log(`✅ 加载了 ${response.length} 篇博客`);
-      }
-      else {
+      } else {
         console.warn('⚠️ 未知的响应格式:', response);
         setBlogs([]);
       }
@@ -105,7 +116,7 @@ export default function BlogsGlass() {
   };
 
   // 过滤博客
-  const filteredBlogs = blogs.filter(blog => {
+  const filteredBlogs = blogs.filter((blog) => {
     // 搜索文本（标题）
     if (searchText && !blog.title.toLowerCase().includes(searchText.toLowerCase())) {
       return false;
@@ -116,8 +127,8 @@ export default function BlogsGlass() {
     }
     // 搜索标签
     if (searchTag && blog.tags) {
-      const tags = blog.tags.split(',').map(t => t.trim().toLowerCase());
-      if (!tags.some(t => t.includes(searchTag.toLowerCase()))) {
+      const tags = blog.tags.split(',').map((t) => t.trim().toLowerCase());
+      if (!tags.some((t) => t.includes(searchTag.toLowerCase()))) {
         return false;
       }
     }
@@ -143,7 +154,8 @@ export default function BlogsGlass() {
   const getLikes = (blog: Blog) => blog.likeCount || blog.likes || 0;
   const getComments = (blog: Blog) => blog.commentCount || blog.comments || 0;
   const getViews = (blog: Blog) => blog.viewCount || blog.views || 0;
-  const getAuthorName = (blog: Blog) => blog.author?.nickname || blog.author?.username || '匿名用户';
+  const getAuthorName = (blog: Blog) =>
+    blog.author?.nickname || blog.author?.username || '匿名用户';
   const getAuthorAvatar = (blog: Blog) => blog.author?.avatar;
 
   // 处理编辑
@@ -158,7 +170,7 @@ export default function BlogsGlass() {
       if (response.success) {
         message.success('博客删除成功');
         // 直接从列表中移除，无需重新加载
-        setBlogs(prevBlogs => prevBlogs.filter(blog => blog.id !== blogId));
+        setBlogs((prevBlogs) => prevBlogs.filter((blog) => blog.id !== blogId));
       }
     } catch (error: any) {
       message.error(error.response?.data?.message || '删除失败');
@@ -272,7 +284,7 @@ export default function BlogsGlass() {
                       className="w-full h-full object-cover"
                     />
                   )}
-                  
+
                   {/* 操作按钮 - 仅作者可见 */}
                   {currentUserId && blog.userId === currentUserId && (
                     <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -317,25 +329,35 @@ export default function BlogsGlass() {
                         {blog.city}
                       </span>
                     )}
-                    {blog.tags && blog.tags.trim() && blog.tags.split(',').filter(t => t.trim()).length > 0 && (
-                      <>
-                        {blog.tags.split(',').filter(t => t.trim()).slice(0, 2).map((tag, idx) => (
-                          <span
-                            key={idx}
-                            className="px-2 py-1 rounded-md bg-[#008F8D]/20 text-[#CDEDDE] text-xs border border-[#008F8D]/30"
-                          >
-                            {tag.trim()}
-                          </span>
-                        ))}
-                      </>
-                    )}
+                    {blog.tags &&
+                      blog.tags.trim() &&
+                      blog.tags.split(',').filter((t) => t.trim()).length > 0 && (
+                        <>
+                          {blog.tags
+                            .split(',')
+                            .filter((t) => t.trim())
+                            .slice(0, 2)
+                            .map((tag, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2 py-1 rounded-md bg-[#008F8D]/20 text-[#CDEDDE] text-xs border border-[#008F8D]/30"
+                              >
+                                {tag.trim()}
+                              </span>
+                            ))}
+                        </>
+                      )}
                   </div>
 
                   {/* 作者和日期 */}
                   <div className="flex items-center justify-between mb-4 text-white/60">
                     <div className="flex items-center gap-2">
                       {getAuthorAvatar(blog) ? (
-                        <img src={getAuthorAvatar(blog)} alt="avatar" className="h-5 w-5 rounded-full" />
+                        <img
+                          src={getAuthorAvatar(blog)}
+                          alt="avatar"
+                          className="h-5 w-5 rounded-full"
+                        />
                       ) : (
                         <User className="h-4 w-4" />
                       )}
@@ -371,11 +393,3 @@ export default function BlogsGlass() {
     </GlassLayout>
   );
 }
-
-
-
-
-
-
-
-

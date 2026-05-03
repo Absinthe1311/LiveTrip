@@ -64,7 +64,7 @@ class AdvisorService {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Length': Buffer.byteLength(data),
       },
       timeout: 30000,
@@ -79,13 +79,17 @@ class AdvisorService {
    */
   private needsSpotData(question: string): boolean {
     const keywords = ['景点', '推荐', '必去', '玩', '看', '参观', '游览'];
-    return keywords.some(keyword => question.includes(keyword));
+    return keywords.some((keyword) => question.includes(keyword));
   }
 
   /**
    * 从数据库获取景点数据
    */
-  private async getSpotsFromDatabase(city: string, preferences?: string[], limit: number = 20): Promise<any[]> {
+  private async getSpotsFromDatabase(
+    city: string,
+    preferences?: string[],
+    limit: number = 20
+  ): Promise<any[]> {
     try {
       console.log(`🔍 从数据库获取 ${city} 的景点数据...`);
 
@@ -105,10 +109,7 @@ class AdvisorService {
             },
           },
           take: limit,
-          orderBy: [
-            { rating: 'desc' },
-            { ticketPrice: 'asc' },
-          ],
+          orderBy: [{ rating: 'desc' }, { ticketPrice: 'asc' }],
           select: {
             name: true,
             category: true,
@@ -136,10 +137,7 @@ class AdvisorService {
             },
           },
           take: remainingCount,
-          orderBy: [
-            { rating: 'desc' },
-            { ticketPrice: 'asc' },
-          ],
+          orderBy: [{ rating: 'desc' }, { ticketPrice: 'asc' }],
           select: {
             name: true,
             category: true,
@@ -158,10 +156,7 @@ class AdvisorService {
       const spots = await prisma.spot.findMany({
         where,
         take: limit,
-        orderBy: [
-          { rating: 'desc' },
-          { ticketPrice: 'asc' },
-        ],
+        orderBy: [{ rating: 'desc' }, { ticketPrice: 'asc' }],
         select: {
           name: true,
           category: true,
@@ -249,7 +244,7 @@ class AdvisorService {
       ];
 
       // 添加历史消息到上下文
-      messageHistory.forEach(msg => {
+      messageHistory.forEach((msg) => {
         messages.push({
           role: msg.role,
           content: msg.content,
@@ -376,7 +371,8 @@ class AdvisorService {
       if (planContext.startDate && planContext.endDate) {
         const startDate = new Date(planContext.startDate);
         const endDate = new Date(planContext.endDate);
-        const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        const days =
+          Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
         prompt += `\n出行天数：${days}天`;
       }
     }

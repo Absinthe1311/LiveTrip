@@ -1,6 +1,18 @@
 ﻿// 打包清单抽屉组件
 import { useState, useEffect } from 'react';
-import { Drawer, Checkbox, Button, Input, Select, Empty, message, Spin, Progress, Space, Popconfirm } from 'antd';
+import {
+  Drawer,
+  Checkbox,
+  Button,
+  Input,
+  Select,
+  Empty,
+  message,
+  Spin,
+  Progress,
+  Space,
+  Popconfirm,
+} from 'antd';
 import { Plus, Trash2, CheckCircle, Circle, Briefcase, RefreshCw } from 'lucide-react';
 import {
   getPackingList,
@@ -107,9 +119,9 @@ export default function PackingListDrawer({ visible, onClose, tripId }: PackingL
   const handleTogglePacked = async (itemId: string, currentStatus: boolean) => {
     try {
       await updatePackingItem(itemId, { isPacked: !currentStatus });
-      setItems(items.map(item =>
-        item.id === itemId ? { ...item, isPacked: !currentStatus } : item
-      ));
+      setItems(
+        items.map((item) => (item.id === itemId ? { ...item, isPacked: !currentStatus } : item))
+      );
       await loadProgress();
     } catch (error: any) {
       console.error('更新物品状态失败:', error);
@@ -152,13 +164,16 @@ export default function PackingListDrawer({ visible, onClose, tripId }: PackingL
   };
 
   // 按分类分组物品
-  const groupedItems = items.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = [];
-    }
-    acc[item.category].push(item);
-    return acc;
-  }, {} as Record<string, PackingItem[]>);
+  const groupedItems = items.reduce(
+    (acc, item) => {
+      if (!acc[item.category]) {
+        acc[item.category] = [];
+      }
+      acc[item.category].push(item);
+      return acc;
+    },
+    {} as Record<string, PackingItem[]>
+  );
 
   // 初始化时加载数据
   useEffect(() => {
@@ -187,7 +202,7 @@ export default function PackingListDrawer({ visible, onClose, tripId }: PackingL
             <Progress
               percent={progress.percentage}
               size="small"
-              format={percent => `${percent}% (${progress.packed}/${progress.total})`}
+              format={(percent) => `${percent}% (${progress.packed}/${progress.total})`}
               style={{ width: 200 }}
             />
           </div>
@@ -213,7 +228,7 @@ export default function PackingListDrawer({ visible, onClose, tripId }: PackingL
                     placeholder="选择分类"
                     value={newItemCategory}
                     onChange={setNewItemCategory}
-                    options={categories.map(cat => ({
+                    options={categories.map((cat) => ({
                       label: cat.name,
                       value: cat.key,
                     }))}
@@ -221,9 +236,7 @@ export default function PackingListDrawer({ visible, onClose, tripId }: PackingL
                   <Button type="primary" onClick={handleAddItem}>
                     添加
                   </Button>
-                  <Button onClick={() => setIsAdding(false)}>
-                    取消
-                  </Button>
+                  <Button onClick={() => setIsAdding(false)}>取消</Button>
                 </div>
               </Space>
             ) : (
@@ -250,13 +263,14 @@ export default function PackingListDrawer({ visible, onClose, tripId }: PackingL
                     {CATEGORY_ICONS[category]}
                     <span className="font-medium">{CATEGORY_NAMES[category] || category}</span>
                     <span className="text-sm text-gray-500">
-                      ({categoryItems.filter(item => item.isPacked).length}/{categoryItems.length})
+                      ({categoryItems.filter((item) => item.isPacked).length}/{categoryItems.length}
+                      )
                     </span>
                   </div>
 
                   {/* 物品列表 */}
                   <div className="p-2">
-                    {categoryItems.map(item => (
+                    {categoryItems.map((item) => (
                       <div
                         key={item.id}
                         className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded group"
@@ -297,5 +311,3 @@ export default function PackingListDrawer({ visible, onClose, tripId }: PackingL
     </Drawer>
   );
 }
-
-

@@ -77,7 +77,9 @@ class AmapService {
     pageSize: number = 20
   ): Promise<AmapAttraction[]> {
     try {
-      console.log(`📡 [高德API] 关键字搜索 - 城市: ${city}, 关键词: ${keywords}, 类型: ${types}, 用途: 获取景点数据`);
+      console.log(
+        `📡 [高德API] 关键字搜索 - 城市: ${city}, 关键词: ${keywords}, 类型: ${types}, 用途: 获取景点数据`
+      );
 
       const params: Record<string, any> = {
         keywords: keywords || '景点',
@@ -102,7 +104,9 @@ class AmapService {
         params,
       });
 
-      console.log(`📊 高德API响应状态: ${response.data.status}, 信息: ${response.data.info}, 数量: ${response.data.count}`);
+      console.log(
+        `📊 高德API响应状态: ${response.data.status}, 信息: ${response.data.info}, 数量: ${response.data.count}`
+      );
 
       if (response.data.status !== '1') {
         throw new Error(`高德 API 错误: ${response.data.info} (${response.data.infocode})`);
@@ -237,7 +241,9 @@ class AmapService {
     pageSize: number = 20
   ): Promise<AmapAttraction[]> {
     try {
-      console.log(`📡 [高德API] 周边搜索 - 关键词: ${keywords}, 中心点: ${location}, 半径: ${radius}m, 用途: ${keywords === '酒店' ? '酒店推荐' : keywords === '餐厅' ? '餐厅推荐' : '周边搜索'}`);
+      console.log(
+        `📡 [高德API] 周边搜索 - 关键词: ${keywords}, 中心点: ${location}, 半径: ${radius}m, 用途: ${keywords === '酒店' ? '酒店推荐' : keywords === '餐厅' ? '餐厅推荐' : '周边搜索'}`
+      );
 
       const params: Record<string, any> = {
         location: location,
@@ -315,10 +321,7 @@ class AmapService {
    * 计算两个经纬度之间的距离（单位：公里）
    * 使用 Haversine 公式
    */
-  calculateDistance(
-    location1: string,
-    location2: string
-  ): number {
+  calculateDistance(location1: string, location2: string): number {
     const { lng: lng1, lat: lat1 } = this.parseLocation(location1);
     const { lng: lng2, lat: lat2 } = this.parseLocation(location2);
 

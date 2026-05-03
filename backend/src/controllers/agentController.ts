@@ -17,7 +17,7 @@ export const chatWithAgent = async (req: Request, res: Response) => {
         success: false,
         error: '请先登录以使用 AI 助手',
         needLogin: true,
-        loginUrl: '/auth'
+        loginUrl: '/auth',
       });
     }
 
@@ -25,7 +25,7 @@ export const chatWithAgent = async (req: Request, res: Response) => {
     const prisma = getPrismaClient();
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, username: true, email: true }
+      select: { id: true, username: true, email: true },
     });
 
     if (!user) {
@@ -34,7 +34,7 @@ export const chatWithAgent = async (req: Request, res: Response) => {
         success: false,
         error: '用户信息无效，请重新登录',
         needLogin: true,
-        loginUrl: '/auth'
+        loginUrl: '/auth',
       });
     }
 
@@ -42,7 +42,7 @@ export const chatWithAgent = async (req: Request, res: Response) => {
 
     const response = await agentService.processRequest({
       question: question.trim(),
-      userId
+      userId,
     });
 
     console.log('✅ Agent 回答完成');

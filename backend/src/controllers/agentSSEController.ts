@@ -9,17 +9,21 @@ export const chatWithAgentSSE = async (req: Request, res: Response) => {
 
   const userId = req.headers['x-user-id'] as string;
   if (!userId) {
-    return res.status(401).json({ success: false, error: '请先登录以使用 AI 助手', needLogin: true });
+    return res
+      .status(401)
+      .json({ success: false, error: '请先登录以使用 AI 助手', needLogin: true });
   }
 
   const { getPrismaClient } = await import('../lib/prisma');
   const prisma = getPrismaClient();
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, username: true }
+    select: { id: true, username: true },
   });
   if (!user) {
-    return res.status(401).json({ success: false, error: '用户信息无效，请重新登录', needLogin: true });
+    return res
+      .status(401)
+      .json({ success: false, error: '用户信息无效，请重新登录', needLogin: true });
   }
 
   res.setHeader('Content-Type', 'text/event-stream');
@@ -43,7 +47,7 @@ export const chatWithAgentSSE = async (req: Request, res: Response) => {
     const resultData: any = {
       type: 'result',
       success: true,
-      data: response
+      data: response,
     };
 
     if (confirmTool?.result?.needsConfirmation) {
@@ -60,7 +64,9 @@ export const chatWithAgentSSE = async (req: Request, res: Response) => {
     res.write(`data: ${JSON.stringify(resultData)}\n\n`);
     res.end();
   } catch (err: any) {
-    res.write(`data: ${JSON.stringify({ type: 'error', message: 'AI 服务暂时不可用，请稍后重试' })}\n\n`);
+    res.write(
+      `data: ${JSON.stringify({ type: 'error', message: 'AI 服务暂时不可用，请稍后重试' })}\n\n`
+    );
     res.end();
   }
 };

@@ -1,6 +1,16 @@
 // 按天绘制最终路线 - 优化版
 import { useState, useEffect } from 'react';
-import { MapPin, Plus, Trash2, ChevronDown, ChevronUp, Users, Utensils, AlertCircle, TrendingUp } from 'lucide-react';
+import {
+  MapPin,
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  Users,
+  Utensils,
+  AlertCircle,
+  TrendingUp,
+} from 'lucide-react';
 
 interface Spot {
   id: string;
@@ -43,8 +53,8 @@ export default function DayRoutePlanner({
   const [daySpots, setDaySpots] = useState<SpotWithStats[]>([]);
   const [selectedSpots, setSelectedSpots] = useState<RouteSpotWithTime[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
-  const [mealReminders, setMealReminders] = useState<{time: string, type: string}[]>([]);
-  
+  const [mealReminders, setMealReminders] = useState<{ time: string; type: string }[]>([]);
+
   // 当路线变化时，通知父组件
   // AI辅助生成：GLM-5, 2026-3-26
   useEffect(() => {
@@ -52,18 +62,18 @@ export default function DayRoutePlanner({
       onRouteChange(selectedSpots);
     }
   }, [selectedSpots, onRouteChange]);
-  
+
   // 计算该天被选择的景点及统计
   useEffect(() => {
     const spotMap = new Map<string, SpotWithStats>();
-    
+
     // 遍历所有成员的草案
     allMemberDrafts.forEach((member: any) => {
       const draft = member.drafts.find((d: any) => d.dayNumber === day);
       if (draft) {
         const spotIds: string[] = JSON.parse(draft.spotSequence);
-        spotIds.forEach(spotId => {
-          const spot = citySpots.find(s => s.id === spotId);
+        spotIds.forEach((spotId) => {
+          const spot = citySpots.find((s) => s.id === spotId);
           if (spot) {
             if (spotMap.has(spotId)) {
               const existing = spotMap.get(spotId)!;
@@ -80,20 +90,22 @@ export default function DayRoutePlanner({
         });
       }
     });
-    
+
     // 按选择次数排序
-    const sortedSpots = Array.from(spotMap.values()).sort((a, b) => b.selectedCount - a.selectedCount);
+    const sortedSpots = Array.from(spotMap.values()).sort(
+      (a, b) => b.selectedCount - a.selectedCount
+    );
     setDaySpots(sortedSpots);
   }, [day, allMemberDrafts, citySpots]);
-  
+
   // 检测用餐时间提醒
   useEffect(() => {
-    const reminders: {time: string, type: string}[] = [];
-    
-    selectedSpots.forEach(spot => {
+    const reminders: { time: string; type: string }[] = [];
+
+    selectedSpots.forEach((spot) => {
       const [hours] = spot.arrivalTime.split(':').map(Number);
       const [departHours] = spot.departureTime.split(':').map(Number);
-      
+
       // 检测是否跨越午餐时间（11:30-13:30）
       if (hours < 11.5 && departHours >= 11.5 && departHours <= 13.5) {
         reminders.push({
@@ -101,7 +113,7 @@ export default function DayRoutePlanner({
           type: '午餐',
         });
       }
-      
+
       // 检测是否跨越晚餐时间（17:30-19:30）
       if (hours < 17.5 && departHours >= 17.5 && departHours <= 19.5) {
         reminders.push({
@@ -110,10 +122,10 @@ export default function DayRoutePlanner({
         });
       }
     });
-    
+
     setMealReminders(reminders);
   }, [selectedSpots]);
-  
+
   // 添加景点到最终路线
   const handleAddSpot = (spot: SpotWithStats) => {
     // 计算到达时间
@@ -121,10 +133,10 @@ export default function DayRoutePlanner({
     if (selectedSpots.length > 0) {
       arrivalTime = selectedSpots[selectedSpots.length - 1].departureTime;
     }
-    
+
     // 使用推荐时长
     const recommendedDuration = getRecommendedDuration(spot.category);
-    
+
     const newSpot: RouteSpotWithTime = {
       id: spot.id,
       name: spot.name,
@@ -134,10 +146,10 @@ export default function DayRoutePlanner({
       duration: recommendedDuration,
       departureTime: calculateDepartureTime(arrivalTime, recommendedDuration),
     };
-    
+
     setSelectedSpots([...selectedSpots, newSpot]);
   };
-  
+
   // 计算离开时间
   const calculateDepartureTime = (arrival: string, duration: number): string => {
     const [hours, minutes] = arrival.split(':').map(Number);
@@ -146,41 +158,45 @@ export default function DayRoutePlanner({
     const newMinutes = totalMinutes % 60;
     return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
   };
-  
+
   // 根据景点类型推荐游玩时长（分钟）
   const getRecommendedDuration = (category?: string): number => {
     if (!category) return 120; // 默认2小时
-    
+
     const categoryMap: Record<string, number> = {
-      '博物馆': 180,
-      '博物馆馆': 180,
-      '美术馆': 150,
-      '公园': 120,
-      '景点': 90,
-      '古迹': 120,
-      '寺庙': 90,
-      '游乐场': 240,
-      '主题公园': 300,
-      '自然风光': 150,
-      '海滩': 180,
-      '购物中心': 120,
-      '市场': 90,
+      博物馆: 180,
+      博物馆馆: 180,
+      美术馆: 150,
+      公园: 120,
+      景点: 90,
+      古迹: 120,
+      寺庙: 90,
+      游乐场: 240,
+      主题公园: 300,
+      自然风光: 150,
+      海滩: 180,
+      购物中心: 120,
+      市场: 90,
     };
-    
+
     for (const [key, value] of Object.entries(categoryMap)) {
       if (category.includes(key)) {
         return value;
       }
     }
-    
+
     return 120;
   };
-  
+
   // 更新时间
-  const handleUpdateTime = (index: number, field: 'arrivalTime' | 'duration', value: string | number) => {
+  const handleUpdateTime = (
+    index: number,
+    field: 'arrivalTime' | 'duration',
+    value: string | number
+  ) => {
     const newRoute = [...selectedSpots];
     const spot = newRoute[index];
-    
+
     if (field === 'arrivalTime') {
       spot.arrivalTime = value as string;
       spot.departureTime = calculateDepartureTime(spot.arrivalTime, spot.duration);
@@ -188,16 +204,19 @@ export default function DayRoutePlanner({
       spot.duration = value as number;
       spot.departureTime = calculateDepartureTime(spot.arrivalTime, spot.duration);
     }
-    
+
     // 更新后续景点
     for (let i = index + 1; i < newRoute.length; i++) {
       newRoute[i].arrivalTime = newRoute[i - 1].departureTime;
-      newRoute[i].departureTime = calculateDepartureTime(newRoute[i].arrivalTime, newRoute[i].duration);
+      newRoute[i].departureTime = calculateDepartureTime(
+        newRoute[i].arrivalTime,
+        newRoute[i].duration
+      );
     }
-    
+
     setSelectedSpots(newRoute);
   };
-  
+
   // 移除景点
   const handleRemoveSpot = (index: number) => {
     const newRoute = selectedSpots.filter((_, i) => i !== index);
@@ -210,15 +229,15 @@ export default function DayRoutePlanner({
     });
     setSelectedSpots(newRoute);
   };
-  
+
   // 移动景点
   const handleMoveSpot = (index: number, direction: 'up' | 'down') => {
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= selectedSpots.length) return;
-    
+
     const newRoute = [...selectedSpots];
     [newRoute[index], newRoute[newIndex]] = [newRoute[newIndex], newRoute[index]];
-    
+
     newRoute.forEach((spot, i) => {
       spot.order = i + 1;
       if (i === 0) {
@@ -228,20 +247,20 @@ export default function DayRoutePlanner({
       }
       spot.departureTime = calculateDepartureTime(spot.arrivalTime, spot.duration);
     });
-    
+
     setSelectedSpots(newRoute);
   };
-  
+
   // 一键添加所有热门景点（被2人以上选择）
   const handleAddAllHotSpots = () => {
-    const hotSpots = daySpots.filter(s => s.selectedCount >= 2);
-    hotSpots.forEach(spot => {
-      if (!selectedSpots.find(s => s.id === spot.id)) {
+    const hotSpots = daySpots.filter((s) => s.selectedCount >= 2);
+    hotSpots.forEach((spot) => {
+      if (!selectedSpots.find((s) => s.id === spot.id)) {
         handleAddSpot(spot);
       }
     });
   };
-  
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/10 backdrop-blur-xl border-t-2 border-amber-500/50 shadow-lg">
       {/* 标题栏 */}
@@ -265,10 +284,14 @@ export default function DayRoutePlanner({
           >
             保存最终路线
           </button>
-          {isExpanded ? <ChevronDown className="h-5 w-5 text-white/60" /> : <ChevronUp className="h-5 w-5 text-white/60" />}
+          {isExpanded ? (
+            <ChevronDown className="h-5 w-5 text-white/60" />
+          ) : (
+            <ChevronUp className="h-5 w-5 text-white/60" />
+          )}
         </div>
       </div>
-      
+
       {/* 内容区 */}
       {isExpanded && (
         <div className="p-4 max-h-[60vh] overflow-y-auto">
@@ -283,13 +306,15 @@ export default function DayRoutePlanner({
                 {mealReminders.map((reminder, index) => (
                   <div key={index} className="flex items-center gap-2 text-sm text-blue-300/80">
                     <AlertCircle className="h-3 w-3" />
-                    <span>建议在 {reminder.time} 附近安排{reminder.type}</span>
+                    <span>
+                      建议在 {reminder.time} 附近安排{reminder.type}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
           )}
-          
+
           <div className="grid grid-cols-2 gap-4">
             {/* 左侧：成员路线统计 */}
             <div>
@@ -306,16 +331,16 @@ export default function DayRoutePlanner({
                 </button>
               </div>
               <div className="space-y-2 max-h-80 overflow-y-auto">
-                {daySpots.map(spot => {
-                  const isSelected = selectedSpots.find(s => s.id === spot.id);
+                {daySpots.map((spot) => {
+                  const isSelected = selectedSpots.find((s) => s.id === spot.id);
                   const isHot = spot.selectedCount >= 2;
-                  
+
                   return (
                     <div
                       key={spot.id}
                       className={`p-2 border rounded-lg transition-all duration-200 ${
-                        isSelected 
-                          ? 'bg-amber-500/20 border-amber-500/50' 
+                        isSelected
+                          ? 'bg-amber-500/20 border-amber-500/50'
                           : 'bg-white/5 border-white/10 hover:bg-white/10 cursor-pointer'
                       }`}
                       onClick={() => !isSelected && handleAddSpot(spot)}
@@ -346,34 +371,35 @@ export default function DayRoutePlanner({
                           </div>
                           {/* 频率条 */}
                           <div className="mt-1 h-1 bg-white/10 rounded-full overflow-hidden">
-                            <div 
+                            <div
                               className="h-full bg-amber-500 rounded-full"
-                              style={{ width: `${(spot.selectedCount / allMemberDrafts.length) * 100}%` }}
+                              style={{
+                                width: `${(spot.selectedCount / allMemberDrafts.length) * 100}%`,
+                              }}
                             />
                           </div>
                         </div>
-                        {!isSelected && (
-                          <Plus className="h-4 w-4 text-amber-400" />
-                        )}
+                        {!isSelected && <Plus className="h-4 w-4 text-amber-400" />}
                       </div>
                     </div>
                   );
                 })}
-                
+
                 {daySpots.length === 0 && (
-                  <div className="text-center text-white/50 py-8 text-sm">
-                    该天暂无成员选择景点
-                  </div>
+                  <div className="text-center text-white/50 py-8 text-sm">该天暂无成员选择景点</div>
                 )}
               </div>
             </div>
-            
+
             {/* 右侧：最终路线编辑 */}
             <div>
               <h4 className="text-sm font-semibold text-white/80 mb-2">最终路线</h4>
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {selectedSpots.map((spot, index) => (
-                  <div key={spot.id} className="p-2 border border-amber-500/30 rounded-lg bg-amber-500/10 backdrop-blur-md">
+                  <div
+                    key={spot.id}
+                    className="p-2 border border-amber-500/30 rounded-lg bg-amber-500/10 backdrop-blur-md"
+                  >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-amber-300">
@@ -405,7 +431,7 @@ export default function DayRoutePlanner({
                         </button>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-3 gap-2">
                       <div>
                         <label className="block text-xs text-white/50 mb-0.5">到达</label>
@@ -421,7 +447,9 @@ export default function DayRoutePlanner({
                         <input
                           type="number"
                           value={spot.duration}
-                          onChange={(e) => handleUpdateTime(index, 'duration', Number(e.target.value))}
+                          onChange={(e) =>
+                            handleUpdateTime(index, 'duration', Number(e.target.value))
+                          }
                           min={15}
                           step={15}
                           className="w-full px-1.5 py-1 border border-white/20 rounded text-xs bg-white/10 text-white focus:outline-none focus:border-amber-500/50"
@@ -439,7 +467,7 @@ export default function DayRoutePlanner({
                     </div>
                   </div>
                 ))}
-                
+
                 {selectedSpots.length === 0 && (
                   <div className="text-center text-white/50 py-8 text-sm">
                     点击左侧景点添加到路线

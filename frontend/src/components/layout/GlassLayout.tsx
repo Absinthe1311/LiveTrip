@@ -1,7 +1,22 @@
 ﻿// 沉浸式毛玻璃布局组件 - 用于所有页面
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home as HomeIcon, Plus, Sparkles, Globe, Heart, PenLine, List, MapPin, Users, Search, Bell, Settings, Sun, Image as ImageIcon } from "lucide-react";
+import {
+  Home as HomeIcon,
+  Plus,
+  Sparkles,
+  Globe,
+  Heart,
+  PenLine,
+  List,
+  MapPin,
+  Users,
+  Search,
+  Bell,
+  Settings,
+  Sun,
+  Image as ImageIcon,
+} from 'lucide-react';
 import { GlassCard, LogoutButton } from '../home';
 import ImageCropper from '../media/ImageCropper';
 import GlobalSidebar from '../layout/GlobalSidebar';
@@ -83,7 +98,7 @@ export default function GlassLayout({ children, showSearch = true }: GlassLayout
       const uploadResponse = await fetch(`${API_BASE_URL}/upload/image`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: formData,
       });
@@ -122,9 +137,7 @@ export default function GlassLayout({ children, showSearch = true }: GlassLayout
   return (
     <div className="min-h-screen relative">
       {/* 全屏背景 - 使用裁剪后的图片，完美铺满屏幕 */}
-      <div
-        className="fixed inset-0"
-      >
+      <div className="fixed inset-0">
         <img
           src={bgImage}
           alt="Background"
@@ -147,15 +160,10 @@ export default function GlassLayout({ children, showSearch = true }: GlassLayout
       {/* 主容器 */}
       <div className="relative min-h-screen flex">
         {/* 全局侧边栏 */}
-        <GlobalSidebar
-          isOpen={sidebarOpen}
-          onToggle={() => setSidebarOpen(!sidebarOpen)}
-        />
+        <GlobalSidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
         {/* 主内容区 */}
-        <main className={`flex-1 p-6 transition-all duration-300 ${
-          sidebarOpen ? 'ml-[15%]' : ''
-        }`}>
+        <main className={`flex-1 p-6 transition-all duration-300 ${sidebarOpen ? 'ml-[15%]' : ''}`}>
           {/* 顶部栏 */}
           {showSearch && (
             <div className="mb-6">
@@ -196,9 +204,7 @@ export default function GlassLayout({ children, showSearch = true }: GlassLayout
           )}
 
           {/* 页面内容 */}
-          <div className="max-w-full">
-            {children}
-          </div>
+          <div className="max-w-full">{children}</div>
         </main>
       </div>
 
@@ -212,8 +218,3 @@ export default function GlassLayout({ children, showSearch = true }: GlassLayout
     </div>
   );
 }
-
-
-
-
-

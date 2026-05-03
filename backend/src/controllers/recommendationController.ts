@@ -2,7 +2,10 @@
 import { Request, Response } from 'express';
 import { getPrismaClient } from '../lib/prisma';
 import { hotelRecommender, HotelRecommendRequest } from '../services/hotelRecommender';
-import { restaurantRecommender, RestaurantRecommendRequest } from '../services/restaurantRecommender';
+import {
+  restaurantRecommender,
+  RestaurantRecommendRequest,
+} from '../services/restaurantRecommender';
 import { amapService } from '../services/amapService';
 import { restaurantCacheService } from '../services/restaurantCacheService';
 import { hotelCacheService } from '../services/hotelCacheService';
@@ -12,7 +15,7 @@ const prisma = getPrismaClient();
 /**
  * 获取酒店推荐
  * POST /api/recommendations/hotels
- * 
+ *
  * 请求体:
  * {
  *   spots: [{ name: string, location: string }],
@@ -112,7 +115,7 @@ export const getHotelRecommendations = async (req: Request, res: Response) => {
 /**
  * 获取餐厅推荐（按天）
  * POST /api/recommendations/restaurants
- * 
+ *
  * 请求体:
  * {
  *   days: [{
@@ -183,7 +186,7 @@ export const getRestaurantRecommendations = async (req: Request, res: Response) 
         let hasValidCache = false;
 
         for (const day of days) {
-          const dayRecord = trip.days.find(d => d.dayNumber === day.day);
+          const dayRecord = trip.days.find((d) => d.dayNumber === day.day);
           if (dayRecord && dayRecord.restaurantRecommendationsCache) {
             try {
               const cachedRestaurants = JSON.parse(dayRecord.restaurantRecommendationsCache);
@@ -257,7 +260,7 @@ export const getRestaurantRecommendations = async (req: Request, res: Response) 
 /**
  * 自定义餐厅搜索
  * POST /api/recommendations/restaurants/custom
- * 
+ *
  * 请求体:
  * {
  *   name: string,    // 餐厅名称
@@ -283,7 +286,9 @@ export const searchCustomRestaurant = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`📡 [高德API] 自定义餐厅搜索 - 名称: ${name}, 城市: ${city}, 中心位置: ${location || '无'}`);
+    console.log(
+      `📡 [高德API] 自定义餐厅搜索 - 名称: ${name}, 城市: ${city}, 中心位置: ${location || '无'}`
+    );
 
     const amapServiceInstance = amapService();
 
@@ -293,13 +298,25 @@ export const searchCustomRestaurant = async (req: Request, res: Response) => {
       // 如果提供了中心位置，使用周边搜索
       if (location) {
         console.log(`🔍 使用周边搜索 - 中心: ${location}, 关键词: ${name}, 半径: 5000m`);
-        finalRestaurants = await amapServiceInstance.searchAround(location, name, '050000', 5000, 20);
+        finalRestaurants = await amapServiceInstance.searchAround(
+          location,
+          name,
+          '050000',
+          5000,
+          20
+        );
         console.log(`✅ [高德API] 周边搜索 - 返回 ${finalRestaurants.length} 个结果`);
 
         // 如果周边搜索无结果，扩大搜索半径
         if (finalRestaurants.length === 0) {
           console.log(`⚠️  5km范围内无结果，扩大到10km`);
-          finalRestaurants = await amapServiceInstance.searchAround(location, name, '050000', 10000, 20);
+          finalRestaurants = await amapServiceInstance.searchAround(
+            location,
+            name,
+            '050000',
+            10000,
+            20
+          );
           console.log(`✅ [高德API] 扩大范围搜索 - 返回 ${finalRestaurants.length} 个结果`);
         }
       }
@@ -361,7 +378,7 @@ export const searchCustomRestaurant = async (req: Request, res: Response) => {
 /**
  * 自定义酒店搜索
  * POST /api/recommendations/hotels/custom
- * 
+ *
  * 请求体:
  * {
  *   name: string,    // 酒店名称
@@ -405,7 +422,7 @@ export const searchCustomHotel = async (req: Request, res: Response) => {
 
     // 保存到数据库缓存
     if (finalHotels.length > 0) {
-      const hotelCaches = finalHotels.map(h => ({
+      const hotelCaches = finalHotels.map((h) => ({
         name: h.name,
         address: h.address,
         location: h.location,

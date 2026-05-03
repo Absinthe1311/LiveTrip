@@ -2,10 +2,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api';
-import { 
-  Sparkles, 
-  Send, 
-  Bot, 
+import {
+  Sparkles,
+  Send,
+  Bot,
   MessageCircle,
   History,
   Lightbulb,
@@ -17,7 +17,7 @@ import {
   MapPin,
   Calendar,
   FileText,
-  Heart
+  Heart,
 } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
@@ -43,8 +43,10 @@ const QUICK_EXAMPLES = {
 
 // 欢迎消息 - 移除emoji
 const WELCOME_MESSAGES = {
-  advisor: '您好！我是您的旅行问答助手。\n\n我可以帮您解答关于旅行目的地、行程规划、预算安排、旅行攻略等问题。请随时向我提问！',
-  agent: '您好！我是您的智能旅行助手。\n\n我可以帮您：\n- 创建和规划旅行行程\n- 查看和管理您的旅行计划\n- 生成和发布旅行游记\n- 推荐景点和目的地\n\n请告诉我您需要什么帮助？',
+  advisor:
+    '您好！我是您的旅行问答助手。\n\n我可以帮您解答关于旅行目的地、行程规划、预算安排、旅行攻略等问题。请随时向我提问！',
+  agent:
+    '您好！我是您的智能旅行助手。\n\n我可以帮您：\n- 创建和规划旅行行程\n- 查看和管理您的旅行计划\n- 生成和发布旅行游记\n- 推荐景点和目的地\n\n请告诉我您需要什么帮助？',
 };
 
 // 模式配置 - 使用UI设计指导配色
@@ -99,7 +101,7 @@ export default function AIFeaturesGlass() {
   const [showHistory, setShowHistory] = useState(true);
   const [userInfo, setUserInfo] = useState(getUserInfo());
   const [currentStep, setCurrentStep] = useState<string>('');
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -118,16 +120,16 @@ export default function AIFeaturesGlass() {
     const updateUserInfo = () => {
       setUserInfo(getUserInfo());
     };
-    
+
     // 初始加载
     updateUserInfo();
-    
+
     // 监听 storage 事件
     window.addEventListener('storage', updateUserInfo);
-    
+
     // 定期检查用户信息（处理同一标签页的更新）
     const interval = setInterval(updateUserInfo, 1000);
-    
+
     return () => {
       window.removeEventListener('storage', updateUserInfo);
       clearInterval(interval);
@@ -137,12 +139,14 @@ export default function AIFeaturesGlass() {
   // 初始化欢迎消息
   useEffect(() => {
     if (messages.length === 0) {
-      setMessages([{
-        id: '1',
-        role: 'assistant',
-        content: WELCOME_MESSAGES[mode],
-        createdAt: new Date().toISOString(),
-      }]);
+      setMessages([
+        {
+          id: '1',
+          role: 'assistant',
+          content: WELCOME_MESSAGES[mode],
+          createdAt: new Date().toISOString(),
+        },
+      ]);
       setShowExamples(true);
     }
   }, [mode]);
@@ -179,8 +183,8 @@ export default function AIFeaturesGlass() {
       content: inputValue,
       createdAt: new Date().toISOString(),
     };
-    
-    setMessages(prev => [...prev, userMessage]);
+
+    setMessages((prev) => [...prev, userMessage]);
     const currentInput = inputValue;
     setInputValue('');
     setLoading(true);
@@ -208,7 +212,7 @@ export default function AIFeaturesGlass() {
             needsConfirmation: true,
             sessionId: data.sessionId,
           };
-          setMessages(prev => [...prev, aiResponse]);
+          setMessages((prev) => [...prev, aiResponse]);
         }
         // 检查是否需要补充信息
         else if (data.needsMoreInfo) {
@@ -218,7 +222,7 @@ export default function AIFeaturesGlass() {
             content: data.error || '请提供更多信息',
             createdAt: new Date().toISOString(),
           };
-          setMessages(prev => [...prev, aiResponse]);
+          setMessages((prev) => [...prev, aiResponse]);
         }
         // 普通回答
         else if (data.data?.answer) {
@@ -228,7 +232,7 @@ export default function AIFeaturesGlass() {
             content: data.data.answer,
             createdAt: new Date().toISOString(),
           };
-          setMessages(prev => [...prev, aiResponse]);
+          setMessages((prev) => [...prev, aiResponse]);
           loadSessions();
         }
       } else {
@@ -242,7 +246,7 @@ export default function AIFeaturesGlass() {
         content: `抱歉，遇到了一些问题：${error.message || '请稍后再试'}`,
         createdAt: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setLoading(false);
       setCurrentStep('');
@@ -252,12 +256,14 @@ export default function AIFeaturesGlass() {
 
   // 清空对话
   const handleClearChat = () => {
-    setMessages([{
-      id: Date.now().toString(),
-      role: 'assistant',
-      content: WELCOME_MESSAGES[mode],
-      createdAt: new Date().toISOString(),
-    }]);
+    setMessages([
+      {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: WELCOME_MESSAGES[mode],
+        createdAt: new Date().toISOString(),
+      },
+    ]);
     setCurrentSessionId(null);
     setShowExamples(true);
   };
@@ -267,7 +273,7 @@ export default function AIFeaturesGlass() {
     e.stopPropagation();
     try {
       await aiService.deleteSession(sessionId);
-      setSessions(prev => prev.filter(s => s.id !== sessionId));
+      setSessions((prev) => prev.filter((s) => s.id !== sessionId));
       if (currentSessionId === sessionId) {
         handleClearChat();
       }
@@ -315,7 +321,7 @@ export default function AIFeaturesGlass() {
               const config = MODE_CONFIG[modeKey];
               const Icon = config.icon;
               const isActive = mode === modeKey;
-              
+
               return (
                 <button
                   key={modeKey}
@@ -365,12 +371,10 @@ export default function AIFeaturesGlass() {
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
                   {sessions.length === 0 ? (
-                    <div className="text-xs text-white/30 text-center py-4">
-                      暂无历史对话
-                    </div>
+                    <div className="text-xs text-white/30 text-center py-4">暂无历史对话</div>
                   ) : (
                     sessions.map((session) => (
                       <div
@@ -383,13 +387,19 @@ export default function AIFeaturesGlass() {
                         }`}
                       >
                         <div className="flex items-start gap-2">
-                          <MessageSquare className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
-                            currentSessionId === session.id ? currentModeConfig.textColor : 'text-white/40'
-                          }`} />
+                          <MessageSquare
+                            className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
+                              currentSessionId === session.id
+                                ? currentModeConfig.textColor
+                                : 'text-white/40'
+                            }`}
+                          />
                           <div className="flex-1 min-w-0">
-                            <div className={`text-xs font-medium truncate ${
-                              currentSessionId === session.id ? 'text-white' : 'text-white/70'
-                            }`}>
+                            <div
+                              className={`text-xs font-medium truncate ${
+                                currentSessionId === session.id ? 'text-white' : 'text-white/70'
+                              }`}
+                            >
                               {session.mode === 'agent' ? '智能助手' : '问答助手'}
                             </div>
                             <div className="text-[10px] text-white/40 mt-0.5">
@@ -402,7 +412,7 @@ export default function AIFeaturesGlass() {
                             </div>
                           </div>
                         </div>
-                        
+
                         {/* 删除按钮 */}
                         <button
                           onClick={(e) => handleDeleteSession(session.id, e)}
@@ -431,7 +441,7 @@ export default function AIFeaturesGlass() {
                 <History className="w-4 h-4" />
               </button>
             )}
-            
+
             {/* 消息列表 */}
             <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
               {messages.map((msg) => (
@@ -441,11 +451,13 @@ export default function AIFeaturesGlass() {
                 >
                   {/* AI 头像 */}
                   {msg.role === 'assistant' && (
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-full ${currentModeConfig.bgColor} flex items-center justify-center`}>
+                    <div
+                      className={`flex-shrink-0 w-8 h-8 rounded-full ${currentModeConfig.bgColor} flex items-center justify-center`}
+                    >
                       <Bot className={`w-5 h-5 ${currentModeConfig.textColor}`} />
                     </div>
                   )}
-                  
+
                   {/* 消息内容 */}
                   <div
                     className={`max-w-[70%] rounded-2xl px-4 py-3 backdrop-blur-md transition-all duration-300 ${
@@ -455,7 +467,7 @@ export default function AIFeaturesGlass() {
                     }`}
                   >
                     <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                    
+
                     {/* 预览卡片 */}
                     {(msg as any).previewData && (
                       <div className="mt-4 p-4 rounded-xl bg-white/5 border border-white/10">
@@ -464,40 +476,78 @@ export default function AIFeaturesGlass() {
                             {/* 行程预览 */}
                             <div className="text-sm font-bold text-white/90 mb-3">行程预览</div>
                             <div className="space-y-1.5 text-sm text-white/70">
-                              <div className="font-medium">📍 目的地：<span className="text-white/90 font-semibold">{(msg as any).previewData.destination}</span></div>
-                              <div className="font-medium">📅 日期：<span className="text-white/90">{(msg as any).previewData.startDate} - {(msg as any).previewData.endDate}</span></div>
-                              <div className="font-medium">⏱️ 天数：<span className="text-white/90">{(msg as any).previewData.days}天</span></div>
-                              <div className="font-medium">💰 预算：<span className="text-white/90 font-semibold">¥{(msg as any).previewData.budget?.toLocaleString()}</span></div>
+                              <div className="font-medium">
+                                📍 目的地：
+                                <span className="text-white/90 font-semibold">
+                                  {(msg as any).previewData.destination}
+                                </span>
+                              </div>
+                              <div className="font-medium">
+                                📅 日期：
+                                <span className="text-white/90">
+                                  {(msg as any).previewData.startDate} -{' '}
+                                  {(msg as any).previewData.endDate}
+                                </span>
+                              </div>
+                              <div className="font-medium">
+                                ⏱️ 天数：
+                                <span className="text-white/90">
+                                  {(msg as any).previewData.days}天
+                                </span>
+                              </div>
+                              <div className="font-medium">
+                                💰 预算：
+                                <span className="text-white/90 font-semibold">
+                                  ¥{(msg as any).previewData.budget?.toLocaleString()}
+                                </span>
+                              </div>
                             </div>
-                            
+
                             {(msg as any).previewData.dailyPlans && (
                               <div className="mt-3 space-y-2">
-                                {(msg as any).previewData.dailyPlans.map((day: any, idx: number) => (
-                                  <div key={idx} className="text-sm">
-                                    <span className="text-white/80 font-semibold">第{day.day}天</span>
-                                    <span className="text-white/50 ml-2">{day.spots.map((s: any) => s.name).join(' → ')}</span>
-                                  </div>
-                                ))}
+                                {(msg as any).previewData.dailyPlans.map(
+                                  (day: any, idx: number) => (
+                                    <div key={idx} className="text-sm">
+                                      <span className="text-white/80 font-semibold">
+                                        第{day.day}天
+                                      </span>
+                                      <span className="text-white/50 ml-2">
+                                        {day.spots.map((s: any) => s.name).join(' → ')}
+                                      </span>
+                                    </div>
+                                  )
+                                )}
                               </div>
                             )}
-                            
+
                             {(msg as any).previewData.summary && (
                               <div className="mt-3 pt-3 border-t border-white/10">
-                                <div className="text-sm font-bold text-white/80 mb-1.5">📝 行程总结</div>
-                                <div className="text-sm text-white/60 leading-relaxed">{(msg as any).previewData.summary}</div>
-                              </div>
-                            )}
-                            
-                            {(msg as any).previewData.tips && (msg as any).previewData.tips.length > 0 && (
-                              <div className="mt-3 pt-3 border-t border-white/10">
-                                <div className="text-sm font-bold text-white/80 mb-1.5">💡 旅行建议</div>
-                                <div className="space-y-1">
-                                  {(msg as any).previewData.tips.map((tip: string, idx: number) => (
-                                    <div key={idx} className="text-sm text-white/60">· {tip}</div>
-                                  ))}
+                                <div className="text-sm font-bold text-white/80 mb-1.5">
+                                  📝 行程总结
+                                </div>
+                                <div className="text-sm text-white/60 leading-relaxed">
+                                  {(msg as any).previewData.summary}
                                 </div>
                               </div>
                             )}
+
+                            {(msg as any).previewData.tips &&
+                              (msg as any).previewData.tips.length > 0 && (
+                                <div className="mt-3 pt-3 border-t border-white/10">
+                                  <div className="text-sm font-bold text-white/80 mb-1.5">
+                                    💡 旅行建议
+                                  </div>
+                                  <div className="space-y-1">
+                                    {(msg as any).previewData.tips.map(
+                                      (tip: string, idx: number) => (
+                                        <div key={idx} className="text-sm text-white/60">
+                                          · {tip}
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                           </>
                         ) : (
                           <>
@@ -505,24 +555,43 @@ export default function AIFeaturesGlass() {
                             <div className="text-sm font-bold text-white/90 mb-3">博客预览</div>
                             <div className="space-y-1.5 text-sm text-white/70">
                               {(msg as any).previewData.title && (
-                                <div className="font-medium">📝 标题：<span className="text-white/90 font-semibold">{(msg as any).previewData.title}</span></div>
+                                <div className="font-medium">
+                                  📝 标题：
+                                  <span className="text-white/90 font-semibold">
+                                    {(msg as any).previewData.title}
+                                  </span>
+                                </div>
                               )}
                               {(msg as any).previewData.city && (
-                                <div className="font-medium">📍 城市：<span className="text-white/90">{(msg as any).previewData.city}</span></div>
+                                <div className="font-medium">
+                                  📍 城市：
+                                  <span className="text-white/90">
+                                    {(msg as any).previewData.city}
+                                  </span>
+                                </div>
                               )}
                               {(msg as any).previewData.imageCount > 0 && (
-                                <div className="font-medium">🖼️ 关联图片：<span className="text-white/90">{(msg as any).previewData.imageCount} 张</span></div>
+                                <div className="font-medium">
+                                  🖼️ 关联图片：
+                                  <span className="text-white/90">
+                                    {(msg as any).previewData.imageCount} 张
+                                  </span>
+                                </div>
                               )}
                             </div>
                             {(msg as any).previewData.content && (
                               <div className="mt-3 pt-3 border-t border-white/10">
-                                <div className="text-sm font-bold text-white/80 mb-1.5">📄 内容预览</div>
-                                <div className="text-sm text-white/60 leading-relaxed max-h-40 overflow-y-auto whitespace-pre-wrap">{(msg as any).previewData.content}</div>
+                                <div className="text-sm font-bold text-white/80 mb-1.5">
+                                  📄 内容预览
+                                </div>
+                                <div className="text-sm text-white/60 leading-relaxed max-h-40 overflow-y-auto whitespace-pre-wrap">
+                                  {(msg as any).previewData.content}
+                                </div>
                               </div>
                             )}
                           </>
                         )}
-                        
+
                         {/* 确认/取消按钮 */}
                         <div className="flex gap-3 mt-4">
                           <button
@@ -537,7 +606,7 @@ export default function AIFeaturesGlass() {
                               try {
                                 const res = await fetch(confirmUrl, {
                                   method: 'POST',
-                                  headers: { 
+                                  headers: {
                                     'Content-Type': 'application/json',
                                     'x-user-id': userInfo?.id || '',
                                   },
@@ -545,11 +614,18 @@ export default function AIFeaturesGlass() {
                                 });
                                 const result = await res.json();
                                 if (result.success) {
-                                  setMessages(prev => prev.map(m => 
-                                    m.id === msg.id 
-                                      ? { ...m, content: successMsg, previewData: null, needsConfirmation: false }
-                                      : m
-                                  ));
+                                  setMessages((prev) =>
+                                    prev.map((m) =>
+                                      m.id === msg.id
+                                        ? {
+                                            ...m,
+                                            content: successMsg,
+                                            previewData: null,
+                                            needsConfirmation: false,
+                                          }
+                                        : m
+                                    )
+                                  );
                                   loadSessions();
                                 } else {
                                   console.error('确认失败:', result.error);
@@ -574,11 +650,18 @@ export default function AIFeaturesGlass() {
                                 });
                                 const result = await res.json();
                                 if (result.success) {
-                                  setMessages(prev => prev.map(m => 
-                                    m.id === msg.id 
-                                      ? { ...m, content: '已取消', previewData: null, needsConfirmation: false }
-                                      : m
-                                  ));
+                                  setMessages((prev) =>
+                                    prev.map((m) =>
+                                      m.id === msg.id
+                                        ? {
+                                            ...m,
+                                            content: '已取消',
+                                            previewData: null,
+                                            needsConfirmation: false,
+                                          }
+                                        : m
+                                    )
+                                  );
                                 }
                               } catch (error) {
                                 console.error('取消失败:', error);
@@ -591,21 +674,24 @@ export default function AIFeaturesGlass() {
                         </div>
                       </div>
                     )}
-                    
+
                     {msg.createdAt && (
                       <div className="text-[10px] text-white/30 mt-2">
-                        {new Date(msg.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(msg.createdAt).toLocaleTimeString('zh-CN', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                       </div>
                     )}
                   </div>
-                  
+
                   {/* 用户头像 */}
                   {msg.role === 'user' && (
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center border border-white/20 overflow-hidden">
                       {userInfo?.avatar ? (
-                        <img 
-                          src={userInfo.avatar} 
-                          alt="用户头像" 
+                        <img
+                          src={userInfo.avatar}
+                          alt="用户头像"
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -615,10 +701,12 @@ export default function AIFeaturesGlass() {
                   )}
                 </div>
               ))}
-              
+
               {loading && (
                 <div className="flex gap-3 justify-start">
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full ${currentModeConfig.bgColor} flex items-center justify-center`}>
+                  <div
+                    className={`flex-shrink-0 w-8 h-8 rounded-full ${currentModeConfig.bgColor} flex items-center justify-center`}
+                  >
                     <Bot className={`w-5 h-5 ${currentModeConfig.textColor}`} />
                   </div>
                   <div className="bg-white/10 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/10">
@@ -630,14 +718,20 @@ export default function AIFeaturesGlass() {
                     ) : (
                       <div className="flex gap-1">
                         <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" />
-                        <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0.1s' }} />
-                        <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0.2s' }} />
+                        <div
+                          className="w-2 h-2 rounded-full bg-white/40 animate-bounce"
+                          style={{ animationDelay: '0.1s' }}
+                        />
+                        <div
+                          className="w-2 h-2 rounded-full bg-white/40 animate-bounce"
+                          style={{ animationDelay: '0.2s' }}
+                        />
                       </div>
                     )}
                   </div>
                 </div>
               )}
-              
+
               <div ref={messagesEndRef} />
             </div>
 
@@ -684,10 +778,16 @@ export default function AIFeaturesGlass() {
                       handleSend();
                     }
                   }}
-                  placeholder={loading ? 'AI 正在思考中，请稍候...' : (mode === 'agent' ? '输入您的需求，如"我想去北京玩三天"...' : '输入您的问题...')}
+                  placeholder={
+                    loading
+                      ? 'AI 正在思考中，请稍候...'
+                      : mode === 'agent'
+                        ? '输入您的需求，如"我想去北京玩三天"...'
+                        : '输入您的问题...'
+                  }
                   className={`w-full px-4 py-3 pr-14 rounded-xl backdrop-blur-md border text-white text-sm outline-none transition-all duration-300 resize-none overflow-y-auto ${
-                    loading 
-                      ? 'bg-white/5 border-white/5 text-white/30 cursor-not-allowed' 
+                    loading
+                      ? 'bg-white/5 border-white/5 text-white/30 cursor-not-allowed'
                       : 'bg-white/5 border-white/10 placeholder-white/30 focus:bg-white/10 focus:border-white/20 focus:shadow-lg'
                   }`}
                   style={{ minHeight: '48px', maxHeight: '120px' }}
@@ -698,8 +798,8 @@ export default function AIFeaturesGlass() {
                   onClick={handleSend}
                   disabled={loading || !inputValue.trim()}
                   className={`absolute right-2 bottom-2 p-2.5 rounded-lg text-white transition-all duration-300 ${
-                    loading 
-                      ? 'bg-white/10 cursor-not-allowed opacity-30' 
+                    loading
+                      ? 'bg-white/10 cursor-not-allowed opacity-30'
                       : `bg-gradient-to-r ${currentModeConfig.color} hover:shadow-lg disabled:opacity-30 disabled:cursor-not-allowed`
                   }`}
                 >
@@ -707,7 +807,9 @@ export default function AIFeaturesGlass() {
                 </button>
               </div>
               <div className="text-[10px] text-white/30 mt-2 text-center">
-                {loading ? 'AI 正在回答，请等待...' : `按 Enter 发送 · Shift + Enter 换行 · ${currentModeConfig.name}模式`}
+                {loading
+                  ? 'AI 正在回答，请等待...'
+                  : `按 Enter 发送 · Shift + Enter 换行 · ${currentModeConfig.name}模式`}
               </div>
             </div>
           </GlassCard>
@@ -716,11 +818,3 @@ export default function AIFeaturesGlass() {
     </GlassLayout>
   );
 }
-
-
-
-
-
-
-
-

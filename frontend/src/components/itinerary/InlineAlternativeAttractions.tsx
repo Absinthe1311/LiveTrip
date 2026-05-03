@@ -17,7 +17,7 @@ export default function InlineAlternativeAttractions({
   originalItem,
   city,
   onClose,
-  onReplace
+  onReplace,
 }: InlineAlternativeAttractionsProps) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [spotImages, setSpotImages] = useState<Record<string, string>>({});
@@ -28,16 +28,14 @@ export default function InlineAlternativeAttractions({
       if (alternatives.length === 0) return;
 
       // 收集所有景点ID
-      const spotIds = alternatives
-        .map(alt => alt.spotId || alt.id)
-        .filter(id => id);
+      const spotIds = alternatives.map((alt) => alt.spotId || alt.id).filter((id) => id);
 
       if (spotIds.length === 0) return;
 
       try {
         console.log('📸 加载备选景点图片，景点数:', spotIds.length);
         const response = await batchGetSpotImagesByIds(spotIds);
-        
+
         if (response.success && response.data) {
           const imageMap: Record<string, string> = {};
           response.data.forEach((item: any) => {
@@ -70,10 +68,7 @@ export default function InlineAlternativeAttractions({
       {/* 标题行 */}
       <div className="flex items-center justify-between mb-4">
         <span className="text-sm font-semibold text-white/80">备选景点</span>
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
-        >
+        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
           <X className="w-4 h-4 text-white/60" />
         </button>
       </div>
@@ -83,14 +78,14 @@ export default function InlineAlternativeAttractions({
         {alternatives.map((attraction, index) => {
           const spotId = attraction.spotId || attraction.id;
           const imageUrl = spotImages[spotId] || attraction.image; // 优先使用加载的图片
-          
+
           return (
             <CompactAlternativeSpotCard
               key={spotId || index}
               item={{
                 ...attraction,
                 index: index + 1,
-                iotData: attraction.iotData // 传递IoT数据
+                iotData: attraction.iotData, // 传递IoT数据
               }}
               city={city}
               onReplace={() => handleReplace(attraction)}

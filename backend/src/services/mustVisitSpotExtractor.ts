@@ -35,7 +35,9 @@ class MustVisitSpotExtractor {
 
     // 步骤1：从用户输入中识别可能的景点名称
     const potentialSpotNames = this.identifyPotentialSpotNames(userInput);
-    console.log(`   识别到 ${potentialSpotNames.length} 个潜在景点: ${potentialSpotNames.join(', ')}`);
+    console.log(
+      `   识别到 ${potentialSpotNames.length} 个潜在景点: ${potentialSpotNames.join(', ')}`
+    );
 
     if (potentialSpotNames.length === 0) {
       return {
@@ -66,7 +68,9 @@ class MustVisitSpotExtractor {
     // 步骤3：计算置信度
     const confidence = matchedSpots.length / potentialSpotNames.length;
 
-    console.log(`✅ 提取完成: 匹配 ${matchedSpots.length}/${potentialSpotNames.length} 个景点，置信度: ${(confidence * 100).toFixed(1)}%`);
+    console.log(
+      `✅ 提取完成: 匹配 ${matchedSpots.length}/${potentialSpotNames.length} 个景点，置信度: ${(confidence * 100).toFixed(1)}%`
+    );
 
     return {
       mustVisitSpots: matchedSpots,
@@ -83,11 +87,32 @@ class MustVisitSpotExtractor {
 
     // 先尝试常见景点关键词（最准确）
     const commonKeywords = [
-      '外滩', '东方明珠', '故宫', '长城', '天坛', '颐和园',
-      '豫园', '城隍庙', '西湖', '雷峰塔', '灵隐寺',
-      '兵马俑', '大雁塔', '华清池', '鼓浪屿', '中山路',
-      '张家界', '天门山', '凤凰古城', '漓江', '象鼻山',
-      '黄山', '九华山', '天柱山', '宏村', '西递',
+      '外滩',
+      '东方明珠',
+      '故宫',
+      '长城',
+      '天坛',
+      '颐和园',
+      '豫园',
+      '城隍庙',
+      '西湖',
+      '雷峰塔',
+      '灵隐寺',
+      '兵马俑',
+      '大雁塔',
+      '华清池',
+      '鼓浪屿',
+      '中山路',
+      '张家界',
+      '天门山',
+      '凤凰古城',
+      '漓江',
+      '象鼻山',
+      '黄山',
+      '九华山',
+      '天柱山',
+      '宏村',
+      '西递',
       '黄鹤楼', // 添加黄鹤楼
     ];
 
@@ -123,9 +148,11 @@ class MustVisitSpotExtractor {
       for (const pattern of patterns) {
         const matches = userInput.match(pattern);
         if (matches) {
-          matches.forEach(match => {
+          matches.forEach((match) => {
             // 提取景点名称（去除前缀）
-            const spotName = match.replace(/^(一定要去\s*|必须去\s*|想要去\s*|想看\s*|想参观\s*|要去\s*)/, '').trim();
+            const spotName = match
+              .replace(/^(一定要去\s*|必须去\s*|想要去\s*|想看\s*|想参观\s*|要去\s*)/, '')
+              .trim();
             if (spotName.length > 0 && !potentialNames.includes(spotName)) {
               potentialNames.push(spotName);
             }
@@ -143,59 +170,58 @@ class MustVisitSpotExtractor {
   private async matchSpotInDatabase(spotName: string, city?: string): Promise<MustVisitSpot[]> {
     try {
       console.log(`\n🔍 [景点匹配] 开始匹配: "${spotName}"`);
-      
+
       // 第一层: 精确匹配
       let spots = await this.matchExact(spotName, city);
       if (spots.length > 0) {
-        console.log(`   ✅ 第一层(精确匹配)找到: ${spots.map(s => s.name).join(', ')}`);
+        console.log(`   ✅ 第一层(精确匹配)找到: ${spots.map((s) => s.name).join(', ')}`);
         return spots;
       }
-      
+
       // 第二层: 包含匹配
       spots = await this.matchContains(spotName, city);
       if (spots.length > 0) {
-        console.log(`   ✅ 第二层(包含匹配)找到: ${spots.map(s => s.name).join(', ')}`);
+        console.log(`   ✅ 第二层(包含匹配)找到: ${spots.map((s) => s.name).join(', ')}`);
         return spots;
       }
-      
+
       // 第三层: 关键词匹配(去除后缀)
       spots = await this.matchKeyword(spotName, city);
       if (spots.length > 0) {
-        console.log(`   ✅ 第三层(关键词匹配)找到: ${spots.map(s => s.name).join(', ')}`);
+        console.log(`   ✅ 第三层(关键词匹配)找到: ${spots.map((s) => s.name).join(', ')}`);
         return spots;
       }
-      
+
       // 第四层: 高德API搜索
       console.log(`   📡 数据库中未找到,尝试高德API...`);
       const amapSpots = await this.searchFromAmap(spotName, city);
       if (amapSpots.length > 0) {
-        console.log(`   ✅ 第四层(高德API)找到: ${amapSpots.map(s => s.name).join(', ')}`);
+        console.log(`   ✅ 第四层(高德API)找到: ${amapSpots.map((s) => s.name).join(', ')}`);
         return amapSpots;
       }
-      
+
       console.log(`   ❌ 所有层级均未找到匹配`);
       return [];
-      
     } catch (error) {
       console.error(`❌ 景点匹配失败: ${error}`);
       return [];
     }
   }
-  
+
   /**
    * 第一层: 精确匹配
    */
   private async matchExact(spotName: string, city?: string): Promise<MustVisitSpot[]> {
     const where: any = { name: { equals: spotName } };
     if (city) where.city = city;
-    
+
     return await prisma.spot.findMany({
       where,
       take: 1,
       select: this.getSpotSelect(),
     });
   }
-  
+
   /**
    * 第二层: 包含匹配
    */
@@ -208,13 +234,13 @@ class MustVisitSpotExtractor {
       ],
     };
     if (city) where.city = city;
-    
+
     const spots = await prisma.spot.findMany({
       where,
       take: 5,
       select: this.getSpotSelect(),
     });
-    
+
     // 按匹配度排序(越接近越好)
     return spots.sort((a, b) => {
       const aScore = this.calculateSimilarity(spotName, a.name);
@@ -222,7 +248,7 @@ class MustVisitSpotExtractor {
       return bScore - aScore;
     });
   }
-  
+
   /**
    * 第三层: 关键词匹配(去除常见后缀)
    */
@@ -230,31 +256,28 @@ class MustVisitSpotExtractor {
     // 去除常见后缀
     const suffixes = ['公园', '景区', '景点', '风景区', '名胜区', '旅游区', '度假区'];
     let keyword = spotName;
-    
+
     for (const suffix of suffixes) {
       if (spotName.endsWith(suffix)) {
         keyword = spotName.slice(0, -suffix.length);
         break;
       }
     }
-    
+
     if (keyword === spotName) return []; // 没有可去除的后缀
-    
+
     const where: any = {
-      OR: [
-        { name: { contains: keyword } },
-        { name: { startsWith: keyword } },
-      ],
+      OR: [{ name: { contains: keyword } }, { name: { startsWith: keyword } }],
     };
     if (city) where.city = city;
-    
+
     return await prisma.spot.findMany({
       where,
       take: 3,
       select: this.getSpotSelect(),
     });
   }
-  
+
   /**
    * 第四层: 高德API搜索
    */
@@ -263,32 +286,32 @@ class MustVisitSpotExtractor {
     let retryCount = 0;
     let amapAttractions: any[] = [];
     const searchCity = city || '全国';
-    
+
     while (retryCount < maxRetries) {
       try {
         const { amapService } = await import('./amapService');
         const amapServiceInstance = amapService();
-        
+
         amapAttractions = await amapServiceInstance.getAttractions(
           searchCity,
           spotName,
           undefined,
           5
         );
-        
+
         break;
       } catch (amapError: any) {
         retryCount++;
         console.error(`❌ 高德API失败 (重试 ${retryCount}/${maxRetries}):`, amapError.message);
-        
+
         if (retryCount < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
     }
-    
+
     if (amapAttractions.length === 0) return [];
-    
+
     // 保存第一个匹配的景点到数据库
     const attraction = amapAttractions[0];
     let ticketPrice: number | null = null;
@@ -296,9 +319,9 @@ class MustVisitSpotExtractor {
       const match = attraction.cost.match(/(\d+)/);
       if (match) ticketPrice = parseFloat(match[1]);
     }
-    
+
     const amapId = attraction.name + attraction.location;
-    
+
     const savedSpot = await prisma.spot.upsert({
       where: { amapId },
       update: {
@@ -325,9 +348,9 @@ class MustVisitSpotExtractor {
         source: 'amap',
       },
     });
-    
+
     console.log(`✅ 景点已保存: ${savedSpot.name} (ID: ${savedSpot.id})`);
-    
+
     // 生成IoT数据
     try {
       const { spotService } = await import('./spotService');
@@ -335,20 +358,22 @@ class MustVisitSpotExtractor {
     } catch (iotError) {
       console.warn(`⚠️  生成IoT数据失败:`, iotError);
     }
-    
-    return [{
-      id: savedSpot.id,
-      name: savedSpot.name,
-      location: savedSpot.location,
-      address: savedSpot.address,
-      city: savedSpot.city,
-      category: savedSpot.category,
-      ticketPrice: savedSpot.ticketPrice,
-      rating: savedSpot.rating,
-      description: savedSpot.description,
-    }];
+
+    return [
+      {
+        id: savedSpot.id,
+        name: savedSpot.name,
+        location: savedSpot.location,
+        address: savedSpot.address,
+        city: savedSpot.city,
+        category: savedSpot.category,
+        ticketPrice: savedSpot.ticketPrice,
+        rating: savedSpot.rating,
+        description: savedSpot.description,
+      },
+    ];
   }
-  
+
   /**
    * 计算字符串相似度(0-1)
    */
@@ -356,9 +381,9 @@ class MustVisitSpotExtractor {
     const len1 = str1.length;
     const len2 = str2.length;
     const maxLen = Math.max(len1, len2);
-    
+
     if (maxLen === 0) return 1;
-    
+
     // 计算编辑距离
     const matrix: number[][] = [];
     for (let i = 0; i <= len1; i++) {
@@ -367,7 +392,7 @@ class MustVisitSpotExtractor {
     for (let j = 0; j <= len2; j++) {
       matrix[0][j] = j;
     }
-    
+
     for (let i = 1; i <= len1; i++) {
       for (let j = 1; j <= len2; j++) {
         const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
@@ -378,11 +403,11 @@ class MustVisitSpotExtractor {
         );
       }
     }
-    
+
     const editDistance = matrix[len1][len2];
     return 1 - editDistance / maxLen;
   }
-  
+
   /**
    * 获取景点查询的select字段
    */

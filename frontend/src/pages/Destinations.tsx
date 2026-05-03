@@ -5,7 +5,14 @@ import { MapPin, Star, ChevronRight } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
 import { SpotCard } from '../components/spot/SpotCard';
-import { getHotCities, getCitySpots, getCityAllSpots, getFavorites, HotCity, HotSpot } from '../api/client';
+import {
+  getHotCities,
+  getCitySpots,
+  getCityAllSpots,
+  getFavorites,
+  HotCity,
+  HotSpot,
+} from '../api/client';
 import { message } from 'antd';
 
 // 根据分类生成标签颜色
@@ -32,11 +39,14 @@ const getTagColor = (category: string) => {
 // 生成描述文字
 const generateDescription = (name: string, category?: string, city?: string) => {
   const descriptions: Record<string, string> = {
-    '巧克巧蔻·巧克力博物馆(北京馆)': 
+    '巧克巧蔻·巧克力博物馆(北京馆)':
       '探索巧克力的奇妙世界，了解巧克力制作工艺与文化历史。这里展示了来自世界各地的珍贵巧克力藏品，是巧克力爱好者的天堂。您可以参与互动体验，亲手制作属于自己的巧克力作品，感受甜蜜与创意的完美结合。',
   };
-  
-  return descriptions[name] || `${name}是一处值得探访的${category || '景点'}，位于${city || '北京'}，为游客提供独特的游览体验。`;
+
+  return (
+    descriptions[name] ||
+    `${name}是一处值得探访的${category || '景点'}，位于${city || '北京'}，为游客提供独特的游览体验。`
+  );
 };
 
 export default function DestinationsGlass() {
@@ -344,11 +354,3 @@ export default function DestinationsGlass() {
     </GlassLayout>
   );
 }
-
-
-
-
-
-
-
-

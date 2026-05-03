@@ -99,15 +99,17 @@ class BlogService {
   /**
    * 获取博客文章列表
    */
-  async getBlogPosts(params: {
-    userId?: string;
-    city?: string;
-    tags?: string[];
-    isPublished?: boolean;
-    page?: number;
-    pageSize?: number;
-    sortBy?: 'latest' | 'popular' | 'mostLiked';
-  } = {}): Promise<{
+  async getBlogPosts(
+    params: {
+      userId?: string;
+      city?: string;
+      tags?: string[];
+      isPublished?: boolean;
+      page?: number;
+      pageSize?: number;
+      sortBy?: 'latest' | 'popular' | 'mostLiked';
+    } = {}
+  ): Promise<{
     posts: BlogPostWithRelations[];
     total: number;
   }> {
@@ -260,7 +262,11 @@ class BlogService {
   /**
    * 更新博客文章
    */
-  async updateBlog(id: string, userId: string, data: UpdateBlogData): Promise<BlogPostWithRelations | null> {
+  async updateBlog(
+    id: string,
+    userId: string,
+    data: UpdateBlogData
+  ): Promise<BlogPostWithRelations | null> {
     try {
       // 检查权限
       const existingBlog = await prisma.blogPost.findUnique({
@@ -345,7 +351,10 @@ class BlogService {
   /**
    * 点赞/取消点赞
    */
-  async toggleLike(postId: string, userId: string): Promise<{
+  async toggleLike(
+    postId: string,
+    userId: string
+  ): Promise<{
     liked: boolean;
     likeCount: number;
   }> {
@@ -402,7 +411,11 @@ class BlogService {
   /**
    * 添加评论
    */
-  async addComment(postId: string, userId: string, content: string): Promise<{
+  async addComment(
+    postId: string,
+    userId: string,
+    content: string
+  ): Promise<{
     id: string;
     content: string;
     userId: string;
@@ -474,7 +487,10 @@ class BlogService {
   /**
    * 点赞/取消点赞评论
    */
-  async toggleCommentLike(commentId: string, userId: string): Promise<{
+  async toggleCommentLike(
+    commentId: string,
+    userId: string
+  ): Promise<{
     liked: boolean;
     likeCount: number;
   }> {

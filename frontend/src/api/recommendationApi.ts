@@ -9,9 +9,9 @@ export interface Hotel {
   address: string;
   location: string;
   tel?: string;
-  type: string;           // 酒店类型/档次
-  rating?: number;        // 高德评分
-  avgDistance: number;    // 到各天景点的平均距离（km）
+  type: string; // 酒店类型/档次
+  rating?: number; // 高德评分
+  avgDistance: number; // 到各天景点的平均距离（km）
   distanceDetails: number[]; // 到每天景点的平均距离明细
 }
 
@@ -38,16 +38,16 @@ export interface Restaurant {
   address: string;
   location: string;
   tel?: string;
-  type: string;           // 菜系/类型
-  rating?: number;        // 高德评分
-  distance: number;       // 距中心点距离（m）
+  type: string; // 菜系/类型
+  rating?: number; // 高德评分
+  distance: number; // 距中心点距离（m）
 }
 
 // 每天餐厅推荐结果
 export interface DayRestaurantRecommendation {
   day: number;
   date: string;
-  centerSpot: string;     // 中心点景点名称
+  centerSpot: string; // 中心点景点名称
   centerLocation: string; // 中心点坐标
   restaurants: Restaurant[];
 }
@@ -111,10 +111,13 @@ export const getRestaurantRecommendations = async (
   tripId?: string
 ): Promise<RestaurantRecommendResponse> => {
   // 直接调用API，由后端处理数据库缓存
-  const response = await apiClient.post<RestaurantRecommendResponse>('/recommendations/restaurants', {
-    days,
-    tripId, // 传递tripId给后端
-  });
+  const response = await apiClient.post<RestaurantRecommendResponse>(
+    '/recommendations/restaurants',
+    {
+      days,
+      tripId, // 传递tripId给后端
+    }
+  );
 
   return response.data;
 };
@@ -131,11 +134,14 @@ export const searchCustomRestaurant = async (
   city: string,
   location?: string
 ): Promise<RestaurantRecommendResponse> => {
-  const response = await apiClient.post<RestaurantRecommendResponse>('/recommendations/restaurants/custom', {
-    name,
-    city,
-    location,
-  });
+  const response = await apiClient.post<RestaurantRecommendResponse>(
+    '/recommendations/restaurants/custom',
+    {
+      name,
+      city,
+      location,
+    }
+  );
 
   return response.data;
 };

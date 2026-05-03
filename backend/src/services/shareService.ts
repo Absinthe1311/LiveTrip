@@ -95,7 +95,7 @@ export async function getPublicTrip(token: string) {
   console.log(`📖 获取公开行程 - Token: ${token}`);
 
   // 1. 根据token查询行程，添加超时保护
-  const trip = await Promise.race([
+  const trip = (await Promise.race([
     prisma.trip.findUnique({
       where: { shareToken: token },
       include: {
@@ -114,10 +114,8 @@ export async function getPublicTrip(token: string) {
         },
       },
     }),
-    new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('数据库查询超时')), 10000)
-    )
-  ]) as any;
+    new Promise((_, reject) => setTimeout(() => reject(new Error('数据库查询超时')), 10000)),
+  ])) as any;
 
   // 2. 验证行程是否存在
   if (!trip) {

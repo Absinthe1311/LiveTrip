@@ -9,7 +9,7 @@ import {
   batchDetectAndNotify,
   recordIoTStatus,
   detectCriticalStatus,
-  sendIoTNotifications
+  sendIoTNotifications,
 } from './iotNotificationService';
 
 const prisma = new PrismaClient();
@@ -75,7 +75,7 @@ class SensorScheduler {
         return;
       }
 
-      const spotIds = spots.map(s => s.id);
+      const spotIds = spots.map((s) => s.id);
       console.log(`📍 共 ${spotIds.length} 个景点需要更新`);
 
       // 并行获取天气数据
@@ -126,7 +126,7 @@ class SensorScheduler {
         where: {
           status: 'planning',
           startDate: {
-            lte: new Date(Date.now() + 24 * 60 * 60 * 1000),  // 未来24小时
+            lte: new Date(Date.now() + 24 * 60 * 60 * 1000), // 未来24小时
             gte: new Date(),
           },
         },
@@ -152,8 +152,8 @@ class SensorScheduler {
       // 对每个行程进行感知
       for (const trip of upcomingTrips) {
         const spotIds = trip.days
-          .flatMap(day => day.itineraryItems)
-          .map(item => item.spotId)
+          .flatMap((day) => day.itineraryItems)
+          .map((item) => item.spotId)
           .filter(Boolean) as string[];
 
         if (spotIds.length === 0) continue;
@@ -163,20 +163,20 @@ class SensorScheduler {
         // 获取景点IoT数据
         const spots = await prisma.spot.findMany({
           where: { id: { in: spotIds } },
-          include: { iotData: true }
+          include: { iotData: true },
         });
 
         // 准备状态列表
-        const spotStatusList = spots.map(spot => ({
+        const spotStatusList = spots.map((spot) => ({
           spotId: spot.id,
           spotName: spot.name,
           status: {
             crowdLevel: spot.iotData?.crowdLevel || 50,
             temperature: spot.iotData?.temperature || 20,
             rainProbability: spot.iotData?.rainProbability || 0,
-            isOpen: spot.iotData?.isOpen ?? true
+            isOpen: spot.iotData?.isOpen ?? true,
           },
-          userId: trip.userId
+          userId: trip.userId,
         }));
 
         // 批量检测并发送通知（新逻辑）
@@ -211,7 +211,7 @@ class SensorScheduler {
         return;
       }
 
-      const spotIds = hotSpots.map(s => s.id);
+      const spotIds = hotSpots.map((s) => s.id);
       console.log(`📍 共 ${spotIds.length} 个热门景点`);
 
       // 执行感知
@@ -239,10 +239,10 @@ class SensorScheduler {
         include: {
           spot: {
             include: {
-              iotData: true
-            }
-          }
-        }
+              iotData: true,
+            },
+          },
+        },
       });
 
       if (favorites.length === 0) {
@@ -253,11 +253,14 @@ class SensorScheduler {
       console.log(`📍 共 ${favorites.length} 个收藏景点记录`);
 
       // 按用户分组
-      const userFavoritesMap = new Map<string, Array<{
-        spotId: string;
-        spotName: string;
-        status: any;
-      }>>();
+      const userFavoritesMap = new Map<
+        string,
+        Array<{
+          spotId: string;
+          spotName: string;
+          status: any;
+        }>
+      >();
 
       for (const favorite of favorites) {
         // 只关注有IoT数据的景点
@@ -274,16 +277,16 @@ class SensorScheduler {
             crowdLevel: favorite.spot.iotData.crowdLevel || 50,
             temperature: favorite.spot.iotData.temperature || 20,
             rainProbability: favorite.spot.iotData.rainProbability || 0,
-            isOpen: favorite.spot.iotData.isOpen ?? true
-          }
+            isOpen: favorite.spot.iotData.isOpen ?? true,
+          },
         });
       }
 
       // 对每个用户的收藏景点进行感知
       for (const [userId, spotList] of userFavoritesMap) {
-        const spotStatusList = spotList.map(item => ({
+        const spotStatusList = spotList.map((item) => ({
           ...item,
-          userId
+          userId,
         }));
 
         await batchDetectAndNotify(spotStatusList);

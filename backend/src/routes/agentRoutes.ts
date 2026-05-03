@@ -28,7 +28,7 @@ router.post('/chat/stream', chatWithAgentSSE);
 router.post('/confirm-trip', async (req, res) => {
   try {
     const { sessionId } = req.body;
-    const userId = (req as any).user?.id || req.headers['x-user-id'] as string;
+    const userId = (req as any).user?.id || (req.headers['x-user-id'] as string);
 
     const result = await agentService.confirmTrip(sessionId, userId);
 
@@ -77,7 +77,7 @@ router.post('/cancel-draft', async (req, res) => {
 router.post('/confirm-blog', async (req, res) => {
   try {
     const { sessionId } = req.body;
-    const userId = (req as any).user?.id || req.headers['x-user-id'] as string;
+    const userId = (req as any).user?.id || (req.headers['x-user-id'] as string);
 
     const result = await agentService.confirmBlogPublish(sessionId, userId);
 

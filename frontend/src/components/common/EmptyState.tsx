@@ -64,16 +64,12 @@ export default function EmptyState({
             {/* 背景光晕 */}
             <div className="absolute inset-0 bg-amber-500/10 rounded-full blur-3xl" />
             {/* 图标 */}
-            <div className="relative">
-              {config.icon}
-            </div>
+            <div className="relative">{config.icon}</div>
           </div>
         </div>
 
         {/* 标题 */}
-        <h3 className="text-2xl font-bold text-white mb-3">
-          {title || config.title}
-        </h3>
+        <h3 className="text-2xl font-bold text-white mb-3">{title || config.title}</h3>
 
         {/* 描述 */}
         <p className="text-white/60 mb-8 max-w-md mx-auto leading-relaxed">
@@ -150,4 +146,3 @@ export function ErrorState({
     </GlassCard>
   );
 }
-

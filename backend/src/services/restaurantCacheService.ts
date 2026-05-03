@@ -31,15 +31,13 @@ export class RestaurantCacheService {
 
       const restaurants = await prisma.restaurant.findMany({
         where: {
-          AND: [
-            { location: { not: '' } },
-          ],
+          AND: [{ location: { not: '' } }],
         },
         take: limit * 2,
       });
 
       // 精确过滤距离
-      const nearbyRestaurants = restaurants.filter(restaurant => {
+      const nearbyRestaurants = restaurants.filter((restaurant) => {
         if (!restaurant.location) return false;
         const [rLng, rLat] = restaurant.location.split(',').map(Number);
         const distance = this.calculateDistance(lat, lng, rLat, rLng);
@@ -52,7 +50,7 @@ export class RestaurantCacheService {
 
       // 更新命中次数
       await Promise.all(
-        nearbyRestaurants.map(restaurant =>
+        nearbyRestaurants.map((restaurant) =>
           prisma.restaurant.update({
             where: { id: restaurant.id },
             data: { hitCount: { increment: 1 } },
@@ -60,7 +58,7 @@ export class RestaurantCacheService {
         )
       );
 
-      return nearbyRestaurants.map(restaurant => ({
+      return nearbyRestaurants.map((restaurant) => ({
         name: restaurant.name,
         address: restaurant.address || '',
         location: restaurant.location,
@@ -121,12 +119,14 @@ export class RestaurantCacheService {
    */
   private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371000;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }

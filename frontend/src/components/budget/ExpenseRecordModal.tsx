@@ -3,7 +3,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal, Input, Select, message } from 'antd';
-import { Plus, Calendar, DollarSign, Trash2, Edit2, Car, Building2, Utensils, Ticket, ShoppingBag, Wallet } from 'lucide-react';
+import {
+  Plus,
+  Calendar,
+  DollarSign,
+  Trash2,
+  Edit2,
+  Car,
+  Building2,
+  Utensils,
+  Ticket,
+  ShoppingBag,
+  Wallet,
+} from 'lucide-react';
 import { getBudgetStatus, updateItemPrice, getBudgetHistory } from '../../api/client';
 
 interface ExpenseRecordModalProps {
@@ -41,7 +53,7 @@ export default function ExpenseRecordModal({
   visible,
   tripId,
   onClose,
-  onUpdate
+  onUpdate,
 }: ExpenseRecordModalProps) {
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<BudgetRecord[]>([]);
@@ -86,13 +98,7 @@ export default function ExpenseRecordModal({
 
     try {
       // 添加开支记录（previousAmount为0，newAmount为实际金额）
-      const response = await updateItemPrice(
-        tripId,
-        expenseCategory,
-        expenseName,
-        0,
-        amount
-      );
+      const response = await updateItemPrice(tripId, expenseCategory, expenseName, 0, amount);
 
       if (response.success) {
         message.success('开支记录已添加');
@@ -120,7 +126,7 @@ export default function ExpenseRecordModal({
       dining: '餐饮',
       tickets: '门票',
       shopping: '购物',
-      other: '其他'
+      other: '其他',
     };
     return names[category] || category;
   };
@@ -132,7 +138,7 @@ export default function ExpenseRecordModal({
       dining: <Utensils className="h-4 w-4" />,
       tickets: <Ticket className="h-4 w-4" />,
       shopping: <ShoppingBag className="h-4 w-4" />,
-      other: <Wallet className="h-4 w-4" />
+      other: <Wallet className="h-4 w-4" />,
     };
     return icons[category] || <Wallet className="h-4 w-4" />;
   };
@@ -240,7 +246,11 @@ export default function ExpenseRecordModal({
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-blue-400">
-                          {record.category ? getCategoryIcon(record.category) : <Wallet className="h-4 w-4" />}
+                          {record.category ? (
+                            getCategoryIcon(record.category)
+                          ) : (
+                            <Wallet className="h-4 w-4" />
+                          )}
                         </span>
                         <span className="font-medium text-gray-800">
                           {record.relatedItemName || record.description}
@@ -251,12 +261,12 @@ export default function ExpenseRecordModal({
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-gray-400">
-                        {formatDate(record.createdAt)}
-                      </div>
+                      <div className="text-xs text-gray-400">{formatDate(record.createdAt)}</div>
                     </div>
                     <div className="text-right">
-                      <div className={`text-lg font-bold ${record.difference > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                      <div
+                        className={`text-lg font-bold ${record.difference > 0 ? 'text-red-500' : 'text-green-500'}`}
+                      >
                         {record.difference > 0 ? '-' : '+'}¥{Math.abs(record.difference).toFixed(0)}
                       </div>
                       <div className="text-xs text-gray-400">

@@ -3,11 +3,7 @@
  */
 
 import { Router } from 'express';
-import {
-  shareTrip,
-  getSharedTrip,
-  cloneSharedTrip,
-} from '../controllers/shareController';
+import { shareTrip, getSharedTrip, cloneSharedTrip } from '../controllers/shareController';
 
 const router = Router();
 

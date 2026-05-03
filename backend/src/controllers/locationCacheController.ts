@@ -1,6 +1,10 @@
 // 地点缓存控制器 - 处理地点缓存的API请求
 import { Request, Response } from 'express';
-import { searchLocationWithCache, getPopularLocations, clearAllCache } from '../services/locationCacheService';
+import {
+  searchLocationWithCache,
+  getPopularLocations,
+  clearAllCache,
+} from '../services/locationCacheService';
 
 /**
  * 搜索地点（带缓存）
@@ -17,7 +21,7 @@ export const searchLocation = async (req: Request, res: Response) => {
       });
     }
 
-    const userId = req.headers['x-user-id'] as string || 'default-user';
+    const userId = (req.headers['x-user-id'] as string) || 'default-user';
 
     // 调用缓存服务
     const result = await searchLocationWithCache(keywords, userId);

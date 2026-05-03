@@ -125,10 +125,13 @@ class IotCheckService {
       return {
         checkedItinerary: itinerary,
         excludedSpots: [],
-        warnings: [...warnings, ...excludedSpots.map(e => ({
-          attraction: e.attraction,
-          reason: `IoT检查建议排除(${e.reason})，但为保证行程完整性已保留`
-        }))],
+        warnings: [
+          ...warnings,
+          ...excludedSpots.map((e) => ({
+            attraction: e.attraction,
+            reason: `IoT检查建议排除(${e.reason})，但为保证行程完整性已保留`,
+          })),
+        ],
       };
     }
 
@@ -144,20 +147,24 @@ class IotCheckService {
       for (const day of checkedItinerary) {
         for (const excludedSpot of keptSpots) {
           const shouldKeep = day.attractions.some(
-            (attr: any) => (attr.spotId || attr.id) === (excludedSpot.attraction.spotId || excludedSpot.attraction.id)
+            (attr: any) =>
+              (attr.spotId || attr.id) ===
+              (excludedSpot.attraction.spotId || excludedSpot.attraction.id)
           );
 
           if (!shouldKeep) {
             // 检查这个景点是否属于这一天
             const belongsToDay = itinerary[day.day - 1].attractions.some(
-              (attr: any) => (attr.spotId || attr.id) === (excludedSpot.attraction.spotId || excludedSpot.attraction.id)
+              (attr: any) =>
+                (attr.spotId || attr.id) ===
+                (excludedSpot.attraction.spotId || excludedSpot.attraction.id)
             );
 
             if (belongsToDay) {
               day.attractions.push(excludedSpot.attraction);
               warnings.push({
                 attraction: excludedSpot.attraction,
-                reason: `IoT检查建议排除(${excludedSpot.reason})，但为保证行程完整性已保留`
+                reason: `IoT检查建议排除(${excludedSpot.reason})，但为保证行程完整性已保留`,
               });
             }
           }
@@ -177,9 +184,20 @@ class IotCheckService {
    */
   private isOutdoorAttraction(attraction: RecommendedAttraction): boolean {
     const type = attraction.type || attraction.description || '';
-    const outdoorTypes = ['公园', '风景区', '广场', '街道', '古镇', '遗迹', '海滩', '山', '湖', '海岛'];
+    const outdoorTypes = [
+      '公园',
+      '风景区',
+      '广场',
+      '街道',
+      '古镇',
+      '遗迹',
+      '海滩',
+      '山',
+      '湖',
+      '海岛',
+    ];
 
-    return outdoorTypes.some(t => type.includes(t));
+    return outdoorTypes.some((t) => type.includes(t));
   }
 
   /**
@@ -222,7 +240,8 @@ class IotCheckService {
             time: attraction.time, // 保持原时间
             location: bestAlternative.spot.location,
             estimated_cost: bestAlternative.spot.ticketPrice || 0,
-            description: bestAlternative.spot.description || bestAlternative.spot.type || '备选景点',
+            description:
+              bestAlternative.spot.description || bestAlternative.spot.type || '备选景点',
             type: bestAlternative.spot.type,
             address: bestAlternative.spot.address,
           };
@@ -250,10 +269,7 @@ class IotCheckService {
    * 根据天气调整景点顺序
    * 如果上午降雨概率高，优先安排室内景点
    */
-  async adjustForWeather(
-    itinerary: any[],
-    weatherData: any
-  ): Promise<any[]> {
+  async adjustForWeather(itinerary: any[], weatherData: any): Promise<any[]> {
     console.log('\n🌤️ 开始根据天气调整景点顺序...');
 
     const adjustedItinerary = [];
@@ -283,8 +299,8 @@ class IotCheckService {
         const indoorSpots = [...morningAttractions, ...afternoonAttractions].filter(
           (attr) => !this.isOutdoorAttraction(attr)
         );
-        const outdoorSpots = [...morningAttractions, ...afternoonAttractions].filter(
-          (attr) => this.isOutdoorAttraction(attr)
+        const outdoorSpots = [...morningAttractions, ...afternoonAttractions].filter((attr) =>
+          this.isOutdoorAttraction(attr)
         );
 
         // 上午安排室内景点，下午安排户外景点
@@ -324,7 +340,7 @@ class IotCheckService {
       const [startStr, endStr] = attraction.time.split('-');
       const [startHours, startMinutes] = startStr.split(':').map(Number);
       const [endHours, endMinutes] = endStr.split(':').map(Number);
-      const duration = (endHours * 60 + endMinutes) - (startHours * 60 + startMinutes);
+      const duration = endHours * 60 + endMinutes - (startHours * 60 + startMinutes);
 
       // 计算新的时间段
       const newStart = currentTime;

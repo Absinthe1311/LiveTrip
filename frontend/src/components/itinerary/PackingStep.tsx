@@ -2,9 +2,21 @@
 import React, { useState, useEffect } from 'react';
 import { message, Modal, Input, Select } from 'antd';
 import {
-  Package, Check, Plus, Trash2, Edit2, X,
-  ChevronDown, ChevronUp, Briefcase, CreditCard,
-  Smartphone, Shirt, Droplets, Pill, MoreHorizontal
+  Package,
+  Check,
+  Plus,
+  Trash2,
+  Edit2,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Briefcase,
+  CreditCard,
+  Smartphone,
+  Shirt,
+  Droplets,
+  Pill,
+  MoreHorizontal,
 } from 'lucide-react';
 import { PRESET_CATEGORIES, getAllPresetItems, PresetItem } from '../../config/presetItems';
 
@@ -23,11 +35,7 @@ interface PackingStepProps {
   onSave: (items: PackingItemData[]) => Promise<void>;
 }
 
-export default function PackingStep({
-  tripId,
-  initialItems = [],
-  onSave,
-}: PackingStepProps) {
+export default function PackingStep({ tripId, initialItems = [], onSave }: PackingStepProps) {
   const [packingItems, setPackingItems] = useState<PackingItemData[]>(initialItems);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
@@ -39,13 +47,13 @@ export default function PackingStep({
 
   // 初始化：展开所有分类
   useEffect(() => {
-    const allCategories = new Set(PRESET_CATEGORIES.map(c => c.name));
+    const allCategories = new Set(PRESET_CATEGORIES.map((c) => c.name));
     setExpandedCategories(allCategories);
   }, []);
 
   // 切换分类展开状态
   const toggleCategory = (categoryName: string) => {
-    setExpandedCategories(prev => {
+    setExpandedCategories((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(categoryName)) {
         newSet.delete(categoryName);
@@ -59,7 +67,7 @@ export default function PackingStep({
   // 添加预设物品
   const addPresetItem = async (itemName: string, category: string) => {
     // 检查是否已存在
-    if (packingItems.some(item => item.itemName === itemName)) {
+    if (packingItems.some((item) => item.itemName === itemName)) {
       message.warning('该物品已在清单中');
       return;
     }
@@ -68,7 +76,7 @@ export default function PackingStep({
       itemName,
       category,
       isPacked: false,
-      isDefault: true
+      isDefault: true,
     };
 
     const newItems = [...packingItems, newItem];
@@ -87,22 +95,20 @@ export default function PackingStep({
       okText: '确定',
       cancelText: '取消',
       onOk: async () => {
-        const newItems = packingItems.filter(i => i.itemName !== item.itemName);
+        const newItems = packingItems.filter((i) => i.itemName !== item.itemName);
         setPackingItems(newItems);
         message.success('已移除');
 
         // 自动保存
         await onSave(newItems);
-      }
+      },
     });
   };
 
   // 切换打包状态
   const togglePacked = async (itemName: string) => {
-    const newItems = packingItems.map(item =>
-      item.itemName === itemName
-        ? { ...item, isPacked: !item.isPacked }
-        : item
+    const newItems = packingItems.map((item) =>
+      item.itemName === itemName ? { ...item, isPacked: !item.isPacked } : item
     );
     setPackingItems(newItems);
 
@@ -129,7 +135,7 @@ export default function PackingStep({
       return;
     }
 
-    if (packingItems.some(item => item.itemName === newItemName.trim())) {
+    if (packingItems.some((item) => item.itemName === newItemName.trim())) {
       message.error('该物品已在清单中');
       return;
     }
@@ -138,10 +144,10 @@ export default function PackingStep({
       itemName: newItemName.trim(),
       category: newItemCategory,
       isPacked: false,
-      isDefault: false
+      isDefault: false,
     };
 
-    setPackingItems(prev => [...prev, newItem]);
+    setPackingItems((prev) => [...prev, newItem]);
     setAddModalVisible(false);
     message.success(`已添加 ${newItemName.trim()}`);
   };
@@ -172,11 +178,13 @@ export default function PackingStep({
 
     if (!editingItem) return;
 
-    setPackingItems(prev => prev.map(item =>
-      item.itemName === editingItem.itemName
-        ? { ...item, itemName: newItemName.trim(), category: newItemCategory }
-        : item
-    ));
+    setPackingItems((prev) =>
+      prev.map((item) =>
+        item.itemName === editingItem.itemName
+          ? { ...item, itemName: newItemName.trim(), category: newItemCategory }
+          : item
+      )
+    );
     setEditModalVisible(false);
     message.success('已更新');
   };
@@ -195,18 +203,21 @@ export default function PackingStep({
   };
 
   // 计算打包进度
-  const packedCount = packingItems.filter(item => item.isPacked).length;
+  const packedCount = packingItems.filter((item) => item.isPacked).length;
   const totalCount = packingItems.length;
   const progress = totalCount > 0 ? (packedCount / totalCount) * 100 : 0;
 
   // 按分类分组物品
-  const itemsByCategory = packingItems.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = [];
-    }
-    acc[item.category].push(item);
-    return acc;
-  }, {} as Record<string, PackingItemData[]>);
+  const itemsByCategory = packingItems.reduce(
+    (acc, item) => {
+      if (!acc[item.category]) {
+        acc[item.category] = [];
+      }
+      acc[item.category].push(item);
+      return acc;
+    },
+    {} as Record<string, PackingItemData[]>
+  );
 
   return (
     <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-8 border border-white/30 shadow-lg">
@@ -216,16 +227,16 @@ export default function PackingStep({
           <Package className="w-8 h-8 text-[#145F39]" />
           <h2 className="text-3xl font-bold text-white">行李打包清单</h2>
         </div>
-        <p className="text-white/60 mb-4">
-          准备您的行李，确保旅途无忧
-        </p>
+        <p className="text-white/60 mb-4">准备您的行李，确保旅途无忧</p>
 
         {/* 进度条 */}
         {totalCount > 0 && (
           <div className="max-w-md mx-auto">
             <div className="flex items-center justify-between text-sm text-white/70 mb-2">
               <span>打包进度</span>
-              <span>{packedCount} / {totalCount} 已打包</span>
+              <span>
+                {packedCount} / {totalCount} 已打包
+              </span>
             </div>
             <div className="h-3 bg-white/20 rounded-full overflow-hidden">
               <div
@@ -250,26 +261,36 @@ export default function PackingStep({
 
       {/* 预设物品分类 */}
       <div className="space-y-4 mb-6">
-        {PRESET_CATEGORIES.map(category => {
+        {PRESET_CATEGORIES.map((category) => {
           const categoryItems = itemsByCategory[category.name] || [];
           const isExpanded = expandedCategories.has(category.name);
 
           // 获取图标组件
           const getIconComponent = (iconName: string) => {
             switch (iconName) {
-              case 'CreditCard': return CreditCard;
-              case 'Smartphone': return Smartphone;
-              case 'Shirt': return Shirt;
-              case 'Droplets': return Droplets;
-              case 'Pill': return Pill;
-              case 'Briefcase': return Briefcase;
-              default: return Package;
+              case 'CreditCard':
+                return CreditCard;
+              case 'Smartphone':
+                return Smartphone;
+              case 'Shirt':
+                return Shirt;
+              case 'Droplets':
+                return Droplets;
+              case 'Pill':
+                return Pill;
+              case 'Briefcase':
+                return Briefcase;
+              default:
+                return Package;
             }
           };
           const IconComponent = getIconComponent(category.icon);
 
           return (
-            <div key={category.name} className="bg-white/10 rounded-xl border border-white/20 overflow-hidden">
+            <div
+              key={category.name}
+              className="bg-white/10 rounded-xl border border-white/20 overflow-hidden"
+            >
               {/* 分类标题 */}
               <button
                 onClick={() => toggleCategory(category.name)}
@@ -297,7 +318,7 @@ export default function PackingStep({
                   {/* 已添加的物品 */}
                   {categoryItems.length > 0 && (
                     <div className="mb-3 space-y-2">
-                      {categoryItems.map(item => (
+                      {categoryItems.map((item) => (
                         <div
                           key={item.itemName}
                           className="flex items-center justify-between p-3 rounded-lg bg-white/10 border border-white/10"
@@ -313,7 +334,9 @@ export default function PackingStep({
                             >
                               {item.isPacked && <Check className="w-4 h-4 text-white" />}
                             </button>
-                            <span className={`text-white ${item.isPacked ? 'line-through opacity-50' : ''}`}>
+                            <span
+                              className={`text-white ${item.isPacked ? 'line-through opacity-50' : ''}`}
+                            >
                               {item.itemName}
                             </span>
                           </div>
@@ -340,8 +363,8 @@ export default function PackingStep({
 
                   {/* 预设物品网格 */}
                   <div className="grid grid-cols-3 gap-2">
-                    {category.items.map(itemName => {
-                      const isAdded = packingItems.some(item => item.itemName === itemName);
+                    {category.items.map((itemName) => {
+                      const isAdded = packingItems.some((item) => item.itemName === itemName);
                       return (
                         <button
                           key={itemName}
@@ -390,7 +413,7 @@ export default function PackingStep({
               value={newItemCategory}
               onChange={setNewItemCategory}
               className="w-full"
-              options={PRESET_CATEGORIES.map(c => ({ label: c.name, value: c.name }))}
+              options={PRESET_CATEGORIES.map((c) => ({ label: c.name, value: c.name }))}
             />
           </div>
         </div>
@@ -421,7 +444,7 @@ export default function PackingStep({
               value={newItemCategory}
               onChange={setNewItemCategory}
               className="w-full"
-              options={PRESET_CATEGORIES.map(c => ({ label: c.name, value: c.name }))}
+              options={PRESET_CATEGORIES.map((c) => ({ label: c.name, value: c.name }))}
             />
           </div>
         </div>

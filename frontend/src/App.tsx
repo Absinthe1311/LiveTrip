@@ -154,10 +154,7 @@ function AppContent() {
           }
         />
         {/* 管理员默认路由 - 重定向到景点管理 */}
-        <Route
-          path="/admin"
-          element={<Navigate to="/admin/spots" replace />}
-        />
+        <Route path="/admin" element={<Navigate to="/admin/spots" replace />} />
         {/* 协同规划路由 */}
         <Route
           path="/collab"

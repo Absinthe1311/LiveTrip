@@ -10,10 +10,7 @@ class ClusteringService {
   /**
    * 使用 K-means 算法将景点聚类
    */
-  async kMeansClustering(
-    spots: SpotScore[],
-    k: number
-  ): Promise<SpotCluster[]> {
+  async kMeansClustering(spots: SpotScore[], k: number): Promise<SpotCluster[]> {
     console.log(`\n🗺️  开始 K-means 聚类，K=${k}，景点数量=${spots.length}`);
 
     if (spots.length === 0) {
@@ -54,7 +51,7 @@ class ClusteringService {
     }
 
     console.log(`✅ 聚类完成，迭代次数: ${iteration}`);
-    console.log(`   各聚类景点数量: ${clusters.map(c => c.spots.length).join(', ')}`);
+    console.log(`   各聚类景点数量: ${clusters.map((c) => c.spots.length).join(', ')}`);
 
     // 3. 后处理：平衡聚类
     const balancedClusters = this.balanceClusters(clusters);
@@ -70,7 +67,7 @@ class ClusteringService {
     const sortedSpots = [...spots].sort((a, b) => b.totalScore - a.totalScore);
     const topKSpots = sortedSpots.slice(0, k);
 
-    return topKSpots.map(spot => this.parseLocation(spot.spot.location));
+    return topKSpots.map((spot) => this.parseLocation(spot.spot.location));
   }
 
   /**
@@ -108,7 +105,7 @@ class ClusteringService {
    * 重新计算每个聚类的中心点
    */
   private recalculateCenters(clusters: SpotCluster[]): Point[] {
-    return clusters.map(cluster => {
+    return clusters.map((cluster) => {
       if (cluster.spots.length === 0) {
         return cluster.center;
       }
@@ -140,7 +137,8 @@ class ClusteringService {
       const newCenter = newClusters[i].center;
 
       const distance = this.calculateDistance(oldCenter, newCenter);
-      if (distance > 0.001) { // 阈值：0.001 公里
+      if (distance > 0.001) {
+        // 阈值：0.001 公里
         return false;
       }
     }
@@ -182,9 +180,7 @@ class ClusteringService {
             .slice(0, 2);
 
           // 从原聚类移除
-          nearestCluster.spots = nearestCluster.spots.filter(
-            spot => !spotsToMove.includes(spot)
-          );
+          nearestCluster.spots = nearestCluster.spots.filter((spot) => !spotsToMove.includes(spot));
 
           // 添加到目标聚类
           cluster.spots.push(...spotsToMove);
@@ -213,14 +209,10 @@ class ClusteringService {
 
         // 移除 1-2 个低分景点
         if (nearestCluster) {
-          const spotsToMove = cluster.spots
-            .sort((a, b) => a.totalScore - b.totalScore)
-            .slice(0, 2);
+          const spotsToMove = cluster.spots.sort((a, b) => a.totalScore - b.totalScore).slice(0, 2);
 
           // 从原聚类移除
-          cluster.spots = cluster.spots.filter(
-            spot => !spotsToMove.includes(spot)
-          );
+          cluster.spots = cluster.spots.filter((spot) => !spotsToMove.includes(spot));
 
           // 添加到目标聚类
           nearestCluster.spots.push(...spotsToMove);
@@ -231,7 +223,7 @@ class ClusteringService {
     }
 
     console.log(`✅ 聚类平衡完成`);
-    console.log(`   各聚类景点数量: ${clusters.map(c => c.spots.length).join(', ')}`);
+    console.log(`   各聚类景点数量: ${clusters.map((c) => c.spots.length).join(', ')}`);
 
     return clusters;
   }

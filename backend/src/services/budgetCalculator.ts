@@ -4,12 +4,12 @@ import { Restaurant } from './restaurantRecommender';
 
 // 预算明细
 export interface BudgetBreakdown {
-  accommodation: number;  // 住宿
-  dining: number;         // 餐饮
+  accommodation: number; // 住宿
+  dining: number; // 餐饮
   transportation: number; // 交通
-  tickets: number;        // 门票
-  other: number;          // 其他
-  total: number;          // 总计
+  tickets: number; // 门票
+  other: number; // 其他
+  total: number; // 总计
 }
 
 // 预算状态
@@ -18,18 +18,18 @@ export type BudgetStatus = 'under_budget' | 'on_budget' | 'over_budget';
 // 预算信息
 export interface BudgetInfo extends BudgetBreakdown {
   status: BudgetStatus;
-  usageRate: number;      // 使用率 (0-1)
-  remaining: number;      // 剩余预算
-  totalBudget: number;    // 总预算
+  usageRate: number; // 使用率 (0-1)
+  remaining: number; // 剩余预算
+  totalBudget: number; // 总预算
   estimatedBudget?: BudgetBreakdown; // 预估预算（对比用）
 }
 
 // 预算计算选项
 export interface BudgetCalculateOptions {
-  totalBudget: number;    // 总预算
-  days: number;           // 天数
-  groupSize?: number;     // 人数，默认1
-  selectedHotel?: Hotel | null;  // 选中的酒店
+  totalBudget: number; // 总预算
+  days: number; // 天数
+  groupSize?: number; // 人数，默认1
+  selectedHotel?: Hotel | null; // 选中的酒店
   selectedRestaurants?: Record<number, Restaurant | null>; // 选中的餐厅（按天）
   itinerarySpots?: Array<{ estimated_cost: number }>; // 行程景点
   avgTransportCost?: number; // 平均交通成本，默认50元
@@ -110,22 +110,22 @@ class BudgetCalculator {
 
     if (days <= 2) {
       // 短途旅行（1-2天）
-      accommodationRatio = 0.35;  // 住宿 35%
-      diningRatio = 0.30;        // 餐饮 30%
+      accommodationRatio = 0.35; // 住宿 35%
+      diningRatio = 0.3; // 餐饮 30%
       transportationRatio = 0.15; // 交通 15%
-      ticketsRatio = 0.20;       // 门票 20%
+      ticketsRatio = 0.2; // 门票 20%
     } else if (days <= 5) {
       // 中途旅行（3-5天）
-      accommodationRatio = 0.40;  // 住宿 40%
-      diningRatio = 0.25;        // 餐饮 25%
-      transportationRatio = 0.20; // 交通 20%
-      ticketsRatio = 0.15;       // 门票 15%
+      accommodationRatio = 0.4; // 住宿 40%
+      diningRatio = 0.25; // 餐饮 25%
+      transportationRatio = 0.2; // 交通 20%
+      ticketsRatio = 0.15; // 门票 15%
     } else {
       // 长途旅行（6天以上）
-      accommodationRatio = 0.45;  // 住宿 45%
-      diningRatio = 0.20;        // 餐饮 20%
+      accommodationRatio = 0.45; // 住宿 45%
+      diningRatio = 0.2; // 餐饮 20%
       transportationRatio = 0.25; // 交通 25%
-      ticketsRatio = 0.10;       // 门票 10%
+      ticketsRatio = 0.1; // 门票 10%
     }
 
     const accommodation = Math.round(totalBudget * accommodationRatio);
@@ -158,7 +158,10 @@ class BudgetCalculator {
    * @param days 天数
    * @returns 住宿费用
    */
-  private calculateAccommodationCost(selectedHotel: Hotel | null | undefined, days: number): number {
+  private calculateAccommodationCost(
+    selectedHotel: Hotel | null | undefined,
+    days: number
+  ): number {
     if (!selectedHotel) {
       // 未选择酒店，使用默认估算：200元/晚
       return 200 * days;
@@ -177,7 +180,7 @@ class BudgetCalculator {
   private estimateHotelPrice(hotel: Hotel): number {
     // 如果酒店类型可以推断价格范围
     const type = hotel.type.toLowerCase();
-    
+
     if (type.includes('经济') || type.includes('快捷')) {
       return 200; // 经济型：200元/晚
     } else if (type.includes('舒适') || type.includes('商务') || type.includes('三星')) {
@@ -234,7 +237,7 @@ class BudgetCalculator {
   private estimateRestaurantPrice(restaurant: Restaurant): number {
     // 如果餐厅类型可以推断价格范围
     const type = restaurant.type.toLowerCase();
-    
+
     if (type.includes('小吃') || type.includes('快餐') || type.includes('面食')) {
       return 30; // 小吃/快餐：30元/人
     } else if (type.includes('中餐') || type.includes('家常菜')) {
@@ -312,7 +315,7 @@ class BudgetCalculator {
       return 3; // 红色预警
     } else if (budgetInfo.usageRate >= 0.95) {
       return 2; // 橙色预警
-    } else if (budgetInfo.usageRate >= 0.80) {
+    } else if (budgetInfo.usageRate >= 0.8) {
       return 1; // 黄色预警
     } else {
       return 0; // 无预警

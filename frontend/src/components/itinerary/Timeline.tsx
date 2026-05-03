@@ -10,7 +10,7 @@ interface ImprovedTimelineProps {
 export default function ImprovedTimeline({
   timeSlots,
   currentIndex = 0,
-  cardHeights = []
+  cardHeights = [],
 }: ImprovedTimelineProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -54,7 +54,7 @@ export default function ImprovedTimeline({
                   style={{
                     height: `${segmentHeight}px`,
                     marginTop: '12px',
-                    marginBottom: '12px'
+                    marginBottom: '12px',
                   }}
                 />
               )}
@@ -68,9 +68,7 @@ export default function ImprovedTimeline({
                   : 'border-white/30 hover:border-white/50'
               }`}
             >
-              <div className="text-base font-bold text-white whitespace-nowrap">
-                {time}
-              </div>
+              <div className="text-base font-bold text-white whitespace-nowrap">{time}</div>
             </div>
           </div>
         );

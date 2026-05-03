@@ -106,11 +106,11 @@ export const getTripById = async (req: Request, res: Response) => {
 
     // 生成备选景点池
     let alternativePools: Record<string, any[]> = {};
-    
+
     try {
       // 获取所有景点ID
-      const allSpotIds = trip.days.flatMap(day =>
-        day.itineraryItems.map(item => item.spotId).filter(id => id !== null)
+      const allSpotIds = trip.days.flatMap((day) =>
+        day.itineraryItems.map((item) => item.spotId).filter((id) => id !== null)
       ) as string[];
 
       // 获取行程中的景点信息（包含图片）
@@ -139,11 +139,11 @@ export const getTripById = async (req: Request, res: Response) => {
       const allSpots = [...itinerarySpots, ...candidateSpots];
 
       // 获取IoT数据
-      const allSpotIdsForIoT = allSpots.map(s => s.id);
+      const allSpotIdsForIoT = allSpots.map((s) => s.id);
       const iotDataMap = await spotService.getBatchIoTData(allSpotIdsForIoT);
 
       // 构造评分景点列表
-      const scoredSpots = allSpots.map(spot => ({
+      const scoredSpots = allSpots.map((spot) => ({
         spot,
         spotId: spot.id,
         totalScore: (spot.rating || 0) * 20, // 简单评分
@@ -151,10 +151,10 @@ export const getTripById = async (req: Request, res: Response) => {
       }));
 
       // 构造选中景点列表
-      const selectedSpots = trip.days.flatMap(day =>
-        day.itineraryItems.map(item => ({
+      const selectedSpots = trip.days.flatMap((day) =>
+        day.itineraryItems.map((item) => ({
           spotId: item.spotId,
-          spot: itinerarySpots.find(s => s.id === item.spotId),
+          spot: itinerarySpots.find((s) => s.id === item.spotId),
         }))
       );
 
@@ -163,8 +163,11 @@ export const getTripById = async (req: Request, res: Response) => {
       console.log(`   总景点数: ${allSpots.length}`);
 
       // 使用traditionalRecommender的generateAlternativePools方法
-      alternativePools = traditionalRecommender().generateAlternativePools(scoredSpots, selectedSpots);
-      
+      alternativePools = traditionalRecommender().generateAlternativePools(
+        scoredSpots,
+        selectedSpots
+      );
+
       console.log(`✅ 生成备选景点池: ${Object.keys(alternativePools).length} 个景点`);
     } catch (error) {
       console.error('⚠️  生成备选景点池失败:', error);
@@ -268,7 +271,15 @@ export const saveTrip = async (req: Request, res: Response) => {
       });
     }
 
-    const { summary, itinerary, total_cost, budget_breakdown, hotel, hotelRecommendations, restaurantRecommendations } = tripData;
+    const {
+      summary,
+      itinerary,
+      total_cost,
+      budget_breakdown,
+      hotel,
+      hotelRecommendations,
+      restaurantRecommendations,
+    } = tripData;
     const days = itinerary.itinerary.length;
 
     // 调试信息
@@ -284,8 +295,12 @@ export const saveTrip = async (req: Request, res: Response) => {
     const trip = await prisma.trip.create({
       data: {
         userId,
-        title: tripData.customization?.tripName || `${summary.origin || '出发地'} → ${summary.destination} (${days}天)`,
-        description: tripData.customization?.tripDescription || `从${summary.origin || '出发地'}到${summary.destination}的${days}天行程`,
+        title:
+          tripData.customization?.tripName ||
+          `${summary.origin || '出发地'} → ${summary.destination} (${days}天)`,
+        description:
+          tripData.customization?.tripDescription ||
+          `从${summary.origin || '出发地'}到${summary.destination}的${days}天行程`,
         coverImage: tripData.customization?.coverImage || '',
         destination: summary.destination,
         startDate: new Date(summary.start_date),
@@ -327,18 +342,24 @@ export const saveTrip = async (req: Request, res: Response) => {
     // 创建每天的行程记录
     for (const day of itinerary.itinerary) {
       // 获取该天的餐厅信息
-      const dayRestaurant = tripData.restaurants?.find((r: any) => r.day === day.day)?.selectedRestaurant;
+      const dayRestaurant = tripData.restaurants?.find(
+        (r: any) => r.day === day.day
+      )?.selectedRestaurant;
       // 获取该天的餐厅推荐缓存
-      const dayRestaurantRecommendations = restaurantRecommendations?.find((r: any) => r.day === day.day)?.restaurants;
+      const dayRestaurantRecommendations = restaurantRecommendations?.find(
+        (r: any) => r.day === day.day
+      )?.restaurants;
 
       console.log(`📝 第${day.day}天数据:`, {
         dayRestaurant,
         dayRestaurantRecommendations,
-        restaurantRecommendations
+        restaurantRecommendations,
       });
 
       // 确保 dayRestaurantRecommendations 是数组
-      const safeRestaurantRecommendations = Array.isArray(dayRestaurantRecommendations) ? dayRestaurantRecommendations : [];
+      const safeRestaurantRecommendations = Array.isArray(dayRestaurantRecommendations)
+        ? dayRestaurantRecommendations
+        : [];
 
       const dayRecord = await prisma.day.create({
         data: {
@@ -354,7 +375,10 @@ export const saveTrip = async (req: Request, res: Response) => {
           restaurantType: dayRestaurant?.type || null,
           restaurantRating: dayRestaurant?.rating || null,
           // 保存餐厅推荐缓存
-          restaurantRecommendationsCache: safeRestaurantRecommendations.length > 0 ? JSON.stringify(safeRestaurantRecommendations) : '',
+          restaurantRecommendationsCache:
+            safeRestaurantRecommendations.length > 0
+              ? JSON.stringify(safeRestaurantRecommendations)
+              : '',
         },
       });
 
@@ -366,7 +390,7 @@ export const saveTrip = async (req: Request, res: Response) => {
         const [startTimeStr, endTimeStr] = item.time.split('-');
         const [startHour, startMin] = startTimeStr.split(':').map(Number);
         const [endHour, endMin] = endTimeStr.split(':').map(Number);
-        
+
         // 创建日期对象
         const dayDate = new Date(day.date);
         const startTime = new Date(dayDate);
@@ -428,7 +452,7 @@ export const saveTrip = async (req: Request, res: Response) => {
 
     // 计算实际预算
     console.log('💰 开始计算实际预算...');
-    
+
     // 收集所有景点的费用
     const allSpots = itinerary.itinerary.flatMap((day: any) =>
       day.attractions.map((attr: any) => ({
@@ -442,12 +466,13 @@ export const saveTrip = async (req: Request, res: Response) => {
       days: days,
       groupSize: 1, // 默认为1人
       selectedHotel: hotel || null,
-      selectedRestaurants: tripData.restaurants?.reduce((acc: any, r: any) => {
-        if (r.selectedRestaurant) {
-          acc[r.day] = r.selectedRestaurant;
-        }
-        return acc;
-      }, {}) || {},
+      selectedRestaurants:
+        tripData.restaurants?.reduce((acc: any, r: any) => {
+          if (r.selectedRestaurant) {
+            acc[r.day] = r.selectedRestaurant;
+          }
+          return acc;
+        }, {}) || {},
       itinerarySpots: allSpots,
     });
 
@@ -692,7 +717,7 @@ export const completeTrip = async (req: Request, res: Response) => {
 
     // 从认证中间件获取用户ID
     const userId = (req as any).user?.userId;
-    
+
     if (!userId) {
       return res.status(401).json({
         success: false,

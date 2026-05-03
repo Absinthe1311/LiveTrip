@@ -1,6 +1,10 @@
 // 行程调整服务 - 根据物联网数据和调整原因动态调整行程
 import { RecommendedAttraction, DailyItinerary, FullItinerary } from '../types';
-import { getAlternativeSpots, filterAlternativeSpots, convertToItineraryAttraction } from '../data/alternativeSpots';
+import {
+  getAlternativeSpots,
+  filterAlternativeSpots,
+  convertToItineraryAttraction,
+} from '../data/alternativeSpots';
 
 // 调整请求接口
 export interface AdjustItineraryRequest {
@@ -50,7 +54,7 @@ class ItineraryAdjustService {
 
     // 查找目标景点在行程中的位置
     const targetDayIndex = await this.findAttractionInItinerary(itinerary, targetAttractionId);
-    
+
     if (targetDayIndex === null) {
       throw new Error(`未找到景点ID: ${targetAttractionId}`);
     }
@@ -60,7 +64,7 @@ class ItineraryAdjustService {
 
     // 查找目标景点的 IoT 数据
     const targetSpotData = spotsData.find((spot) => spot.name === targetAttraction.name);
-    
+
     if (!targetSpotData) {
       throw new Error(`未找到景点 ${targetAttraction.name} 的 IoT 数据`);
     }
@@ -258,7 +262,7 @@ class ItineraryAdjustService {
       isOutdoor: boolean;
       description: string;
     }>
-  ): typeof alternatives[0] {
+  ): (typeof alternatives)[0] {
     const targetLocation = this.parseLocation(targetAttraction.location);
 
     let closest = alternatives[0];

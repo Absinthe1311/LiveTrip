@@ -84,8 +84,8 @@ export class AlternativeRecommender {
     console.log(`✅ 找到 ${alternatives.length} 个备选景点`);
 
     // 为每个备选景点评分并添加模拟IoT数据
-    const scoredAlternatives = alternatives.map(alternative => {
-      const alternativeIoTData = iotData.find(spot => spot.name === alternative.name);
+    const scoredAlternatives = alternatives.map((alternative) => {
+      const alternativeIoTData = iotData.find((spot) => spot.name === alternative.name);
 
       // 如果没有IoT数据，生成模拟数据
       const simulatedIoTData = alternativeIoTData || {
@@ -103,7 +103,7 @@ export class AlternativeRecommender {
     });
 
     // 根据IoT数据筛选和排序
-    const filteredAlternatives = scoredAlternatives.filter(alt => {
+    const filteredAlternatives = scoredAlternatives.filter((alt) => {
       if (!alt.iotData) return true; // 如果没有IoT数据，默认保留
 
       const { rainProbability, crowdLevel, isOpen } = alt.iotData;
@@ -204,15 +204,12 @@ export class AlternativeRecommender {
     if (!iotData) return 'info';
 
     // 严重警告
-    if (iotData.rainProbability > 80 ||
-        iotData.crowdLevel > 90 ||
-        !iotData.isOpen) {
+    if (iotData.rainProbability > 80 || iotData.crowdLevel > 90 || !iotData.isOpen) {
       return 'severe';
     }
 
     // 注意提示
-    if (iotData.rainProbability > 50 ||
-        iotData.crowdLevel > 60) {
+    if (iotData.rainProbability > 50 || iotData.crowdLevel > 60) {
       return 'warning';
     }
 
@@ -231,10 +228,14 @@ export class AlternativeRecommender {
    */
   public getHealthColor(level: string): string {
     switch (level) {
-      case 'severe': return 'red';
-      case 'warning': return 'orange';
-      case 'good': return 'green';
-      default: return 'blue';
+      case 'severe':
+        return 'red';
+      case 'warning':
+        return 'orange';
+      case 'good':
+        return 'green';
+      default:
+        return 'blue';
     }
   }
 
@@ -245,10 +246,14 @@ export class AlternativeRecommender {
    */
   public getHealthIcon(level: string): string {
     switch (level) {
-      case 'severe': return '⚠️';
-      case 'warning': return '⚠️';
-      case 'good': return '✅';
-      default: return 'ℹ️';
+      case 'severe':
+        return '⚠️';
+      case 'warning':
+        return '⚠️';
+      case 'good':
+        return '✅';
+      default:
+        return 'ℹ️';
     }
   }
 

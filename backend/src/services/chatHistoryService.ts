@@ -7,15 +7,15 @@ const prisma = getPrismaClient();
 
 // ✅ P0优化: 会话状态类型
 export enum SessionState {
-  IDLE = 'idle',                    // 空闲状态
+  IDLE = 'idle', // 空闲状态
   WAITING_CONFIRMATION = 'waiting', // 等待确认
-  COMPLETED = 'completed',          // 已完成
+  COMPLETED = 'completed', // 已完成
 }
 
 // ✅ P0优化: 临时数据类型
 export enum TempDataType {
-  TRIP_DRAFT = 'trip_draft',        // 行程草稿
-  BLOG_DRAFT = 'blog_draft',        // 博客草稿
+  TRIP_DRAFT = 'trip_draft', // 行程草稿
+  BLOG_DRAFT = 'blog_draft', // 博客草稿
 }
 
 interface CreateSessionParams {
@@ -155,7 +155,7 @@ class ChatHistoryService {
     try {
       // 查找最近 10 分钟内的 advisor 模式会话
       const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
-      
+
       let session = await prisma.chatSession.findFirst({
         where: {
           userId: userId || null,
@@ -197,7 +197,7 @@ class ChatHistoryService {
     try {
       // 查找最近 10 分钟内的 agent 模式会话
       const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
-      
+
       let session = await prisma.chatSession.findFirst({
         where: {
           userId: userId || null,

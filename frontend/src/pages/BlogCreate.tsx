@@ -21,10 +21,5 @@ export default function BlogCreate() {
     }
   }, [user]);
 
-  return (
-    <BlogEditor
-      postId={postId || undefined}
-      userId={userId}
-    />
-  );
+  return <BlogEditor postId={postId || undefined} userId={userId} />;
 }

@@ -9,7 +9,11 @@ interface DestinationAttractionCardProps {
   onToggleFavorite: (attraction: Attraction) => void;
 }
 
-export default function DestinationAttractionCard({ attraction, isFavorite, onToggleFavorite }: DestinationAttractionCardProps) {
+export default function DestinationAttractionCard({
+  attraction,
+  isFavorite,
+  onToggleFavorite,
+}: DestinationAttractionCardProps) {
   const [imageError, setImageError] = useState(false);
 
   // 处理图片加载失败
@@ -25,12 +29,12 @@ export default function DestinationAttractionCard({ attraction, isFavorite, onTo
         borderRadius: '12px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         transition: 'all 0.3s',
-        overflow: 'hidden'
+        overflow: 'hidden',
       }}
       bodyStyle={{
         padding: '0',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-4px)';
@@ -42,15 +46,17 @@ export default function DestinationAttractionCard({ attraction, isFavorite, onTo
       }}
     >
       {/* 景点图片区域 */}
-      <div style={{
-        height: '200px',
-        background: 'linear-gradient(135deg, #667eea20 0%, #764ba220 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '60px',
-        position: 'relative'
-      }}>
+      <div
+        style={{
+          height: '200px',
+          background: 'linear-gradient(135deg, #667eea20 0%, #764ba220 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '60px',
+          position: 'relative',
+        }}
+      >
         {attraction.image && !imageError ? (
           <img
             src={attraction.image}
@@ -60,7 +66,7 @@ export default function DestinationAttractionCard({ attraction, isFavorite, onTo
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover'
+              objectFit: 'cover',
             }}
           />
         ) : (
@@ -68,11 +74,13 @@ export default function DestinationAttractionCard({ attraction, isFavorite, onTo
         )}
 
         {/* 分类标签 */}
-        <div style={{
-          position: 'absolute',
-          top: '12px',
-          left: '12px'
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: '12px',
+            left: '12px',
+          }}
+        >
           <Tag color="blue">{attraction.category}</Tag>
         </div>
 
@@ -96,72 +104,82 @@ export default function DestinationAttractionCard({ attraction, isFavorite, onTo
             alignItems: 'center',
             justifyContent: 'center',
             color: isFavorite ? '#ff4d4f' : '#999',
-            fontSize: '18px'
+            fontSize: '18px',
           }}
         />
       </div>
 
       {/* 景点信息 */}
-      <div style={{
-        padding: '20px',
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        background: '#fff',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        <h3 style={{
-          fontSize: '18px',
-          fontWeight: 600,
-          marginBottom: '8px',
-          color: '#333',
-          wordBreak: 'break-word'
-        }}>
+      <div
+        style={{
+          padding: '20px',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          background: '#fff',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
+        <h3
+          style={{
+            fontSize: '18px',
+            fontWeight: 600,
+            marginBottom: '8px',
+            color: '#333',
+            wordBreak: 'break-word',
+          }}
+        >
           {attraction.name}
         </h3>
 
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          marginBottom: '8px'
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '8px',
+          }}
+        >
           <Rate disabled value={attraction.rating} style={{ fontSize: '14px' }} />
-          <span style={{ fontSize: '14px', color: '#666' }}>
-            {attraction.rating.toFixed(1)}
-          </span>
+          <span style={{ fontSize: '14px', color: '#666' }}>{attraction.rating.toFixed(1)}</span>
         </div>
 
-        <p style={{
-          fontSize: '14px',
-          color: '#666',
-          marginBottom: '12px',
-          lineHeight: '1.5',
-          flex: 1,
-          wordBreak: 'break-word',
-          whiteSpace: 'pre-wrap',
-          background: '#fff'
-        }}>
+        <p
+          style={{
+            fontSize: '14px',
+            color: '#666',
+            marginBottom: '12px',
+            lineHeight: '1.5',
+            flex: 1,
+            wordBreak: 'break-word',
+            whiteSpace: 'pre-wrap',
+            background: '#fff',
+          }}
+        >
           {attraction.description}
         </p>
 
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingTop: '12px',
-          borderTop: '1px solid #f0f0f0',
-          background: '#fff'
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingTop: '12px',
+            borderTop: '1px solid #f0f0f0',
+            background: '#fff',
+          }}
+        >
           <div style={{ fontSize: '12px', color: '#999' }}>
             <div>开放时间: {attraction.openTime}</div>
           </div>
-          <div style={{
-            fontSize: '16px',
-            fontWeight: 600,
-            color: '#ff4d4f'
-          }}>
+          <div
+            style={{
+              fontSize: '16px',
+              fontWeight: 600,
+              color: '#ff4d4f',
+            }}
+          >
             {attraction.ticketPrice === 0 ? '免费' : `¥${attraction.ticketPrice}`}
           </div>
         </div>
