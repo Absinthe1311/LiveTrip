@@ -319,7 +319,7 @@ const SPOT_ALTERNATIVES_MAP: Record<string, string[]> = {
 /**
  * 根据景点 ID 获取备选景点列表
  */
-export const getAlternativeSpots = (spotId: string): typeof ALTERNATIVE_SPOTS => {
+export const altSpots = (spotId: string): typeof ALTERNATIVE_SPOTS => {
   const alternativeIds = SPOT_ALTERNATIVES_MAP[spotId] || [];
   return ALTERNATIVE_SPOTS.filter((spot) => alternativeIds.includes(spot.id));
 };
@@ -327,7 +327,7 @@ export const getAlternativeSpots = (spotId: string): typeof ALTERNATIVE_SPOTS =>
 /**
  * 根据类型和户外属性筛选备选景点
  */
-export const filterAlternativeSpots = (
+export const filterAlts = (
   category: string,
   isOutdoor: boolean
 ): typeof ALTERNATIVE_SPOTS => {
@@ -339,7 +339,7 @@ export const filterAlternativeSpots = (
 /**
  * 将备选景点转换为行程景点格式
  */
-export const convertToItineraryAttraction = (
+export const formatSpots = (
   spot: (typeof ALTERNATIVE_SPOTS)[0]
 ): RecommendedAttraction => {
   // 解析时间范围

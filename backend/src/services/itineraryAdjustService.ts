@@ -1,9 +1,9 @@
 // 行程调整服务 - 根据物联网数据和调整原因动态调整行程
 import { RecommendedAttraction, DailyItinerary, FullItinerary } from '../types';
 import {
-  getAlternativeSpots,
-  filterAlternativeSpots,
-  convertToItineraryAttraction,
+  altSpots,
+  filterAlts,
+  formatSpots,
 } from '../data/alternativeSpots';
 
 // 调整请求接口
@@ -179,7 +179,7 @@ class ItineraryAdjustService {
     console.log(`   策略: 人流过高 → 推荐备选景点（地理位置近的、同类型的）`);
 
     // 获取备选景点
-    const alternatives = getAlternativeSpots(targetSpotData.id);
+    const alternatives = altSpots(targetSpotData.id);
 
     if (alternatives.length === 0) {
       throw new Error(`没有找到 ${targetAttraction.name} 的备选景点`);
@@ -197,7 +197,7 @@ class ItineraryAdjustService {
     // 计算距离，选择最近的
     const closest = this.findClosestAlternative(targetAttraction, candidates);
 
-    return convertToItineraryAttraction(closest);
+    return formatSpots(closest);
   }
 
   /**
@@ -210,7 +210,7 @@ class ItineraryAdjustService {
     console.log(`   策略: 降雨概率高 → 把户外景点替换为室内景点`);
 
     // 获取备选景点
-    const alternatives = getAlternativeSpots(targetSpotData.id);
+    const alternatives = altSpots(targetSpotData.id);
 
     if (alternatives.length === 0) {
       throw new Error(`没有找到 ${targetAttraction.name} 的备选景点`);
@@ -221,11 +221,11 @@ class ItineraryAdjustService {
 
     if (indoorAlternatives.length === 0) {
       console.log(`   警告: 没有找到室内备选景点，使用第一个备选景点`);
-      return convertToItineraryAttraction(alternatives[0]);
+      return formatSpots(alternatives[0]);
     }
 
     // 选择第一个室内备选景点（也可以根据距离选择）
-    return convertToItineraryAttraction(indoorAlternatives[0]);
+    return formatSpots(indoorAlternatives[0]);
   }
 
   /**
@@ -238,14 +238,14 @@ class ItineraryAdjustService {
     console.log(`   策略: 景点关闭 → 直接替换为备选景点`);
 
     // 获取备选景点
-    const alternatives = getAlternativeSpots(targetSpotData.id);
+    const alternatives = altSpots(targetSpotData.id);
 
     if (alternatives.length === 0) {
       throw new Error(`没有找到 ${targetAttraction.name} 的备选景点`);
     }
 
     // 选择第一个备选景点（也可以根据距离选择）
-    return convertToItineraryAttraction(alternatives[0]);
+    return formatSpots(alternatives[0]);
   }
 
   /**
