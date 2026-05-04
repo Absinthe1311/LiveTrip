@@ -31,7 +31,7 @@ export class PackingService {
   /**
    * 获取行程的打包清单
    */
-  async packList(tripId: string) {
+  async getPack(tripId: string) {
     try {
       const prisma = getPrismaClient();
       const packingItems = await prisma.packingItem.findMany({
@@ -52,7 +52,7 @@ export class PackingService {
   /**
    * 初始化打包清单（添加默认预设物品）
    */
-  async initPack(tripId: string) {
+  async setupPack(tripId: string) {
     try {
       const prisma = getPrismaClient();
 
@@ -89,7 +89,7 @@ export class PackingService {
       });
 
       // 返回完整的清单
-      return this.packList(tripId);
+      return this.getPack(tripId);
     } catch (error) {
       console.error('初始化打包清单失败:', error);
       throw error;
@@ -99,7 +99,7 @@ export class PackingService {
   /**
    * 添加打包物品
    */
-  async addItem(tripId: string, itemName: string, category: string) {
+  async packAdd(tripId: string, itemName: string, category: string) {
     try {
       const prisma = getPrismaClient();
       const item = await prisma.packingItem.create({
@@ -126,7 +126,7 @@ export class PackingService {
   /**
    * 批量保存打包清单
    */
-  async batchSave(tripId: string, items: any[]) {
+  async savePackBatch(tripId: string, items: any[]) {
     try {
       const prisma = getPrismaClient();
 
@@ -150,7 +150,7 @@ export class PackingService {
       });
 
       // 返回完整的清单
-      return this.packList(tripId);
+      return this.getPack(tripId);
     } catch (error) {
       console.error('批量保存打包清单失败:', error);
       throw error;
@@ -201,14 +201,14 @@ export class PackingService {
   /**
    * 获取分类名称
    */
-  getCategoryName(category: string): string {
+  catName(category: string): string {
     return CATEGORY_NAMES[category] || category;
   }
 
   /**
    * 获取所有分类
    */
-  getAllCategories(): Array<{ key: string; name: string }> {
+  listCats(): Array<{ key: string; name: string }> {
     return Object.entries(CATEGORY_NAMES).map(([key, name]) => ({
       key,
       name,
@@ -218,7 +218,7 @@ export class PackingService {
   /**
    * 获取打包进度
    */
-  async packProgress(tripId: string) {
+  async packStats(tripId: string) {
     try {
       const prisma = getPrismaClient();
       return prisma.packingItem.groupBy({

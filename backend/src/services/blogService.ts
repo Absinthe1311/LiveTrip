@@ -60,7 +60,7 @@ class BlogService {
   /**
    * 创建博客文章
    */
-  async addBlog(data: addBlogData): Promise<BlogPostWithRelations> {
+  async newBlog(data: addBlogData): Promise<BlogPostWithRelations> {
     try {
       const blog = await prisma.blogPost.create({
         data: {
@@ -199,7 +199,7 @@ class BlogService {
   /**
    * 获取博客文章详情
    */
-  async loadBlogId(id: string): Promise<BlogPostWithRelations | null> {
+  async getPost(id: string): Promise<BlogPostWithRelations | null> {
     try {
       const blog = await prisma.blogPost.findUnique({
         where: { id },
@@ -245,7 +245,7 @@ class BlogService {
   /**
    * 增加博客浏览量
    */
-  async incViews(id: string): Promise<void> {
+  async bumpView(id: string): Promise<void> {
     try {
       await prisma.blogPost.update({
         where: { id },
@@ -262,7 +262,7 @@ class BlogService {
   /**
    * 更新博客文章
    */
-  async updBlog(
+  async editPost(
     id: string,
     userId: string,
     data: updBlogData
@@ -351,7 +351,7 @@ class BlogService {
   /**
    * 点赞/取消点赞
    */
-  async blogLike(
+  async Like(
     postId: string,
     userId: string
   ): Promise<{
@@ -411,7 +411,7 @@ class BlogService {
   /**
    * 添加评论
    */
-  async addCmt(
+  async cmtAdd(
     postId: string,
     userId: string,
     content: string
@@ -456,7 +456,7 @@ class BlogService {
   /**
    * 删除评论
    */
-  async delCmt(commentId: string, userId: string): Promise<boolean> {
+  async removeCmt(commentId: string, userId: string): Promise<boolean> {
     try {
       const comment = await prisma.blogComment.findUnique({
         where: { id: commentId },
@@ -487,7 +487,7 @@ class BlogService {
   /**
    * 点赞/取消点赞评论
    */
-  async likeCmt(
+  async cmtLike(
     commentId: string,
     userId: string
   ): Promise<{

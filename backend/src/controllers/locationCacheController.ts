@@ -1,9 +1,9 @@
 // 地点缓存控制器 - 处理地点缓存的API请求
 import { Request, Response } from 'express';
 import {
-  findLocWithCache,
-  getPopularLocations,
-  clearAllCache,
+  searchLoc,
+  hotLocs,
+  flushCache,
 } from '../services/locationCacheService';
 
 /**
@@ -24,7 +24,7 @@ export const findLoc = async (req: Request, res: Response) => {
     const userId = (req.headers['x-user-id'] as string) || 'default-user';
 
     // 调用缓存服务
-    const result = await findLocWithCache(keywords, userId);
+    const result = await searchLoc(keywords, userId);
 
     res.json(result);
   } catch (error: any) {
@@ -44,7 +44,7 @@ export const getPopularfindLocs = async (req: Request, res: Response) => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
 
-    const result = await getPopularLocations(limit);
+    const result = await hotLocs(limit);
 
     res.json(result);
   } catch (error: any) {
@@ -62,7 +62,7 @@ export const getPopularfindLocs = async (req: Request, res: Response) => {
  */
 export const clearLocs = async (req: Request, res: Response) => {
   try {
-    const result = await clearAllCache();
+    const result = await flushCache();
 
     res.json(result);
   } catch (error: any) {

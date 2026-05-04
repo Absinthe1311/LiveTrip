@@ -31,7 +31,7 @@ class UserProfileService {
    * @param userId 用户ID
    * @returns 用户画像信息
    */
-  async getUserProfile(userId?: string): Promise<UserProfile> {
+  async loadProfile(userId?: string): Promise<UserProfile> {
     console.log(`👤 开始构建用户画像...`);
 
     try {

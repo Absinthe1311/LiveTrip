@@ -40,7 +40,7 @@ export class RestaurantCacheService {
       const nearbyRestaurants = restaurants.filter((restaurant) => {
         if (!restaurant.location) return false;
         const [rLng, rLat] = restaurant.location.split(',').map(Number);
-        const distance = this.calculateDistance(lat, lng, rLat, rLng);
+        const distance = this.calcDist(lat, lng, rLat, rLng);
         return distance <= radius;
       });
 
@@ -77,7 +77,7 @@ export class RestaurantCacheService {
    * @param restaurants 餐厅数据
    * @param city 城市名称
    */
-  async saveRestaurants(restaurants: RestaurantCache[], city: string): Promise<void> {
+  async storeRes(restaurants: RestaurantCache[], city: string): Promise<void> {
     try {
       await Promise.all(
         restaurants.map(async (restaurant) => {
@@ -117,7 +117,7 @@ export class RestaurantCacheService {
   /**
    * 计算两点之间的距离（米）
    */
-  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  private calcDist(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371000;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLng = ((lng2 - lng1) * Math.PI) / 180;

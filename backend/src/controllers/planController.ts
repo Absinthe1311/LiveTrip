@@ -76,7 +76,7 @@ export const makePlan = async (req: Request, res: Response) => {
 
     // 步骤 2: 调用传统推荐算法推荐行程
     console.log('\n步骤 2: 传统推荐算法推荐行程...');
-    const itinerary = await traditionalRecommender().recommendItinerary({
+    const itinerary = await traditionalRecommender().suggestPlan({
       attractions,
       destination: planData.destination,
       preferences: planData.preferences || {
@@ -98,15 +98,15 @@ export const makePlan = async (req: Request, res: Response) => {
     console.log('\n步骤 3: 优化游览路径...');
     const optimizer = routeOptimizer();
     for (const day of itinerary.itinerary) {
-      day.attractions = optimizer.optimizeRoute(day.attractions);
+      day.attractions = optimizer.optRoute(day.attractions);
       // 重新分配时间段
-      day.attractions = optimizer.recalculateTimeSlots(day.attractions);
+      day.attractions = optimizer.reslot(day.attractions);
     }
 
     // 计算总距离
     let totalDistance = 0;
     for (const day of itinerary.itinerary) {
-      totalDistance += optimizer.calculateTotalDistance(day.attractions);
+      totalDistance += optimizer.totalDist(day.attractions);
     }
 
     console.log('\n✅ 行程规划完成！');

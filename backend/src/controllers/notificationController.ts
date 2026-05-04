@@ -25,7 +25,7 @@ export const fetNotifs = async (req: Request, res: Response) => {
     const offset = parseInt(req.query.offset as string) || 0;
     const unreadOnly = req.query.unreadOnly === 'true';
 
-    const result = await notificationService.getUserNotifications(userId, {
+    const result = await notificationService.fetchNotifs(userId, {
       limit,
       offset,
       unreadOnly,
@@ -60,7 +60,7 @@ export const readAllNotifs = async (req: Request, res: Response) => {
       });
     }
 
-    await notificationService.markAsRead(id, userId);
+    await notificationService.readNotif(id, userId);
 
     res.json({
       success: true,
@@ -90,7 +90,7 @@ export const markAllNotificationsAsRead = async (req: Request, res: Response) =>
       });
     }
 
-    await notificationService.markAllAsRead(userId);
+    await notificationService.readAll(userId);
 
     res.json({
       success: true,
@@ -113,7 +113,7 @@ export const fireSensor = async (req: Request, res: Response) => {
   try {
     const { spotIds } = req.body;
 
-    await sensorScheduler.triggerManualSensing(spotIds);
+    await sensorScheduler.fireSense(spotIds);
 
     res.json({
       success: true,

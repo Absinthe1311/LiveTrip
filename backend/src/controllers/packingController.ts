@@ -24,7 +24,7 @@ export class PackingController {
         return;
       }
 
-      const result = await packingService.packList(tripIdStr);
+      const result = await packingService.getPack(tripIdStr);
       res.status(200).json(result);
     } catch (error: any) {
       console.error('获取打包清单失败:', error);
@@ -53,7 +53,7 @@ export class PackingController {
         return;
       }
 
-      const result = await packingService.initPack(tripIdStr);
+      const result = await packingService.setupPack(tripIdStr);
       res.status(200).json(result);
     } catch (error: any) {
       console.error('初始化打包清单失败:', error);
@@ -83,7 +83,7 @@ export class PackingController {
         return;
       }
 
-      const result = await packingService.addItem(tripIdStr, itemName, category);
+      const result = await packingService.packAdd(tripIdStr, itemName, category);
       res.status(201).json(result);
     } catch (error: any) {
       console.error('添加打包物品失败:', error);
@@ -113,7 +113,7 @@ export class PackingController {
         return;
       }
 
-      const result = await packingService.batchSave(tripIdStr, items);
+      const result = await packingService.savePackBatch(tripIdStr, items);
       res.status(200).json(result);
     } catch (error: any) {
       console.error('批量保存打包清单失败:', error);
@@ -198,7 +198,7 @@ export class PackingController {
    */
   static async getCategories(req: Request, res: Response): Promise<void> {
     try {
-      const categories = packingService.getAllCategories();
+      const categories = packingService.listCats();
       res.status(200).json({
         success: true,
         data: categories,
@@ -230,7 +230,7 @@ export class PackingController {
         return;
       }
 
-      const progress = await packingService.packProgress(tripIdStr);
+      const progress = await packingService.packStats(tripIdStr);
 
       // 计算总进度
       const totalItems = progress.reduce((sum: number, item: any) => sum + item._count, 0);

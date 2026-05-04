@@ -15,7 +15,7 @@ export class CollabService {
    * @param hostId Host用户ID
    * @returns 房间信息和邀请链接
    */
-  async createRoom(tripId: string, hostId: string) {
+  async newRoom(tripId: string, hostId: string) {
     // 检查行程是否存在
     const trip = await prisma.trip.findUnique({
       where: { id: tripId },
@@ -84,7 +84,7 @@ export class CollabService {
    * @param userId 用户ID
    * @returns 房间信息
    */
-  async joinRoom(token: string, userId: string) {
+  async enterRoom(token: string, userId: string) {
     console.log('🔍 joinRoom 调用:', { token, userId });
 
     // 查找房间
@@ -193,7 +193,7 @@ export class CollabService {
    * @param roomId 房间ID
    * @returns 房间信息、成员列表、当前phase
    */
-  async getRoomInfo(roomId: string) {
+  async roomInfo(roomId: string) {
     const room = await prisma.collabRoom.findUnique({
       where: { id: roomId },
       include: {
@@ -285,7 +285,7 @@ export class CollabService {
    * @param roomId 房间ID
    * @returns 更新后的房间信息
    */
-  async closeRoom(roomId: string) {
+  async lock(roomId: string) {
     const room = await prisma.collabRoom.update({
       where: { id: roomId },
       data: {
@@ -359,7 +359,7 @@ export class CollabService {
    * @param userId 用户ID
    * @returns 更新后的草案信息
    */
-  async sendDraft(draftId: string, userId: string) {
+  async pushDraft(draftId: string, userId: string) {
     // 检查草案是否存在且属于该用户
     const draft = await prisma.draftRoute.findFirst({
       where: {
@@ -393,7 +393,7 @@ export class CollabService {
    * @param userId 用户ID
    * @returns 草案列表
    */
-  async myDrfts(roomId: string, userId: string) {
+  async myDrafts(roomId: string, userId: string) {
     const drafts = await prisma.draftRoute.findMany({
       where: {
         roomId,
@@ -414,7 +414,7 @@ export class CollabService {
    * @param content 消息内容
    * @returns 消息信息
    */
-  async msgSend(roomId: string, userId: string, content: string) {
+  async sendMsg(roomId: string, userId: string, content: string) {
     const message = await prisma.collabMessage.create({
       data: {
         roomId,
@@ -440,7 +440,7 @@ export class CollabService {
    * @param roomId 房间ID
    * @returns 消息列表
    */
-  async msgs(roomId: string) {
+  async loadMsgs(roomId: string) {
     const messages = await prisma.collabMessage.findMany({
       where: {
         roomId,

@@ -12,7 +12,7 @@ class TraditionalRecommender {
   /**
    * 推荐行程（多因素评分引擎）
    */
-  async recommendItinerary(request: any): Promise<FullItinerary> {
+  async suggestPlan(request: any): Promise<FullItinerary> {
     console.log('\n🤖 开始使用传统推荐算法推荐行程...');
     console.log(`   目的地: ${request.destination}`);
     console.log(`   天数: ${request.days}`);
@@ -31,7 +31,7 @@ class TraditionalRecommender {
 
       // 步骤2：为所有景点计算综合评分
       console.log('\n步骤2: 计算景点综合评分...');
-      const scoredSpots = await scoringEngine.scoreAllSpots(
+      const scoredSpots = await scoringEngine.rankSpots(
         request.attractions,
         request,
         iotDataMap
@@ -39,7 +39,7 @@ class TraditionalRecommender {
 
       // 步骤3：K-means 地理聚类
       console.log('\n步骤3: K-means 地理聚类...');
-      const clusters = await clusteringService.kMeansClustering(scoredSpots, request.days);
+      const clusters = await clusteringService.KMeans(scoredSpots, request.days);
 
       // 步骤4：在每个聚类内选择景点，应用多样性约束
       console.log('\n步骤4: 选择景点并应用多样性约束...');
@@ -54,7 +54,7 @@ class TraditionalRecommender {
 
       // 步骤6：计算总费用和预算分配
       console.log('\n步骤6: 动态计算费用和预算分配...');
-      const budgetResult = await budgetOptimizer.calculateBudget({
+      const budgetResult = await budgetOptimizer.calcBudget({
         itinerary,
         totalBudget: request.budget || 5000,
         days: request.days,
@@ -69,7 +69,7 @@ class TraditionalRecommender {
 
       // 步骤7：生成备选景点池
       console.log('\n步骤7: 生成备选景点池...');
-      const alternativePools = this.generateAlternativePools(scoredSpots, itineraryItems);
+      const alternativePools = this.altPool(scoredSpots, itineraryItems);
 
       // 步骤8：IoT 实时检查和景点替换
       console.log('\n步骤8: IoT 实时检查和景点替换...');
@@ -92,7 +92,7 @@ class TraditionalRecommender {
       }
 
       // 重新计算费用（替换后可能有变化）
-      const finalBudgetResult = await budgetOptimizer.calculateBudget({
+      const finalBudgetResult = await budgetOptimizer.calcBudget({
         itinerary: finalItinerary,
         totalBudget: request.budget || 5000,
         days: request.days,
@@ -123,7 +123,7 @@ class TraditionalRecommender {
       };
 
       // 验证结果
-      const validation = errorHandler.validateItinerary(result);
+      const validation = errorHandler.chkPlan(result);
       if (!validation.valid) {
         console.error('⚠️  行程验证失败:', validation.errors);
       }
@@ -220,7 +220,7 @@ class TraditionalRecommender {
       const sortedSpots = [...cluster.spots].sort((a, b) => b.totalScore - a.totalScore);
 
       // 应用多样性约束
-      const selected = diversityService.applyDiversityConstraints(sortedSpots, spotsPerDay);
+      const selected = diversityService.diversify(sortedSpots, spotsPerDay);
 
       selectedSpots.push(...selected);
     }
@@ -321,7 +321,7 @@ class TraditionalRecommender {
    * 4. 确保备选景点唯一性（每个未选中景点只对应一个选中景点）
    * 5. 每个景点最多2个备选
    */
-  public generateAlternativePools(scoredSpots: any[], selectedSpots: any[]): Record<string, any[]> {
+  public altPool(scoredSpots: any[], selectedSpots: any[]): Record<string, any[]> {
     console.log('\n🔄 生成备选景点池（新方案）...');
     console.log(`   总景点数: ${scoredSpots.length}`);
     console.log(`   选中景点数: ${selectedSpots.length}`);
@@ -447,7 +447,7 @@ class TraditionalRecommender {
    */
   private async spotIotMap(spotIds: string[]): Promise<Map<string, any>> {
     try {
-      const iotDataList = await spotService.getBatchIoTData(spotIds);
+      const iotDataList = await spotService.batchIot(spotIds);
       return iotDataList;
     } catch (error) {
       console.error('❌ 获取 IoT 数据失败:', error);

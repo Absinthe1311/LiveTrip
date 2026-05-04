@@ -80,7 +80,7 @@ class BudgetOptimizer {
   /**
    * 动态计算预算分配
    */
-  async calculateBudget(params: BudgetCalculationParams): Promise<BudgetResult> {
+  async calcBudget(params: BudgetCalculationParams): Promise<BudgetResult> {
     const { itinerary, totalBudget, days, groupSize, groupType, destination, startDate, endDate } =
       params;
 
@@ -91,7 +91,7 @@ class BudgetOptimizer {
     console.log(`   目的地: ${destination}`);
 
     // 1. 确定城市等级
-    const cityTier = this.getCityTier(destination);
+    const cityTier = this.cityLevel(destination);
     console.log(`   城市等级: ${cityTier}`);
 
     // 2. 确定季节
@@ -103,7 +103,7 @@ class BudgetOptimizer {
     console.log(`   预算档次: ${budgetTier}`);
 
     // 4. 计算门票费用（实际费用）
-    const tickets = this.calculateTickets(itinerary);
+    const tickets = this.calcTickets(itinerary);
     console.log(`   门票费用: ${tickets}元`);
 
     // 5. 计算住宿费用（动态）
@@ -161,7 +161,7 @@ class BudgetOptimizer {
   /**
    * 获取城市等级
    */
-  private getCityTier(destination: string): 'tier1' | 'tier2' | 'tier3' {
+  private cityLevel(destination: string): 'tier1' | 'tier2' | 'tier3' {
     const tier1Cities = ['北京', '上海', '广州', '深圳'];
     const tier2Cities = [
       '杭州',
@@ -241,7 +241,7 @@ class BudgetOptimizer {
   /**
    * 计算门票费用
    */
-  private calculateTickets(itinerary: DailyItinerary[]): number {
+  private calcTickets(itinerary: DailyItinerary[]): number {
     return itinerary.reduce((sum, day) => {
       return sum + day.attractions.reduce((daySum, attr) => daySum + attr.estimated_cost, 0);
     }, 0);

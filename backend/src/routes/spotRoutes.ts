@@ -200,7 +200,7 @@ router.post('/:id/iot/generate', async (req, res) => {
 
     console.log(`🔄 接收生成景点IoT数据请求: ${id}`);
 
-    const iotData = await spotService.generateIoTDataForSpot(id);
+    const iotData = await spotService.genIot(id);
 
     if (!iotData) {
       return res.status(404).json({
@@ -239,7 +239,7 @@ router.post('/iot/batch', async (req, res) => {
 
     console.log(`🔍 接收批量获取IoT数据请求: ${spotIds.length} 个景点`);
 
-    const iotDataMap = await spotService.getBatchIoTData(spotIds);
+    const iotDataMap = await spotService.batchIot(spotIds);
 
     // 转换为数组
     const iotDataList = Array.from(iotDataMap.entries()).map(([id, data]) => ({

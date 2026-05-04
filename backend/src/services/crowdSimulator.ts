@@ -13,7 +13,7 @@ export interface CrowdData {
 /**
  * 判断是否为周末或节假日
  */
-function isWeekendOrHoliday(): boolean {
+function isHoliday(): boolean {
   const now = new Date();
   const dayOfWeek = now.getDay(); // 0 = 周日, 6 = 周六
 
@@ -31,7 +31,7 @@ function isWeekendOrHoliday(): boolean {
 /**
  * 获取当前小时（0-23）
  */
-function getCurrentHour(): number {
+function nowHour(): number {
   const now = new Date();
   return now.getHours();
 }
@@ -39,11 +39,11 @@ function getCurrentHour(): number {
 /**
  * 计算基础时段人流系数
  */
-function calculateTimeSlotFactor(): number {
-  const hour = getCurrentHour();
+function timeFactor(): number {
+  const hour = nowHour();
 
   // 工作日时段模型
-  if (!isWeekendOrHoliday()) {
+  if (!isHoliday()) {
     // 工作日 9:00-11:00、14:00-16:00 为中等人流（30-50）
     if ((hour >= 9 && hour < 11) || (hour >= 14 && hour < 16)) {
       return 0.4; // 40% 基础人流
@@ -80,7 +80,7 @@ function calculateTimeSlotFactor(): number {
 /**
  * 获取景点的热度系数（基于收藏数量）
  */
-async function getSpotHeatCoefficient(spotId: string): Promise<number> {
+async function heatCoef(spotId: string): Promise<number> {
   try {
     // 统计该景点的收藏数量
     const favoriteCount = await prisma.favorite.count({
@@ -110,7 +110,7 @@ async function getSpotHeatCoefficient(spotId: string): Promise<number> {
 /**
  * 计算等待时间
  */
-function calculateWaitTime(crowdLevel: number): number {
+function calWait(crowdLevel: number): number {
   // crowdLevel 超过 60 时生成 20-60 分钟等待时间
   if (crowdLevel > 60 && crowdLevel <= 80) {
     return Math.floor(Math.random() * 40) + 20; // 20-60 分钟
@@ -128,8 +128,8 @@ function calculateWaitTime(crowdLevel: number): number {
 /**
  * 判断景点是否开放
  */
-function calculateIsOpen(): boolean {
-  const hour = getCurrentHour();
+function isOpen(): boolean {
+  const hour = nowHour();
 
   // 开放时间：6:00-22:00
   if (hour < 6 || hour >= 22) {
@@ -145,10 +145,10 @@ function calculateIsOpen(): boolean {
  */
 export async function getSpotCrowdData(spotId: string): Promise<CrowdData> {
   // 计算时段系数
-  const timeSlotFactor = calculateTimeSlotFactor();
+  const timeSlotFactor = timeFactor();
 
   // 获取热度系数
-  const heatCoefficient = await getSpotHeatCoefficient(spotId);
+  const heatCoefficient = await heatCoef(spotId);
 
   // 计算基础人流值（0-100）
   let crowdLevel = timeSlotFactor * 100 * heatCoefficient;
@@ -161,22 +161,22 @@ export async function getSpotCrowdData(spotId: string): Promise<CrowdData> {
   crowdLevel = Math.max(0, Math.min(100, crowdLevel));
 
   // 计算等待时间
-  const waitTime = calculateWaitTime(crowdLevel);
+  const waitTime = calWait(crowdLevel);
 
   // 判断是否开放
-  const isOpen = calculateIsOpen();
+  const open = isOpen();
 
   return {
     crowdLevel: Math.round(crowdLevel),
     waitTime,
-    isOpen,
+    isOpen: open,
   };
 }
 
 /**
  * 批量获取多个景点的人流数据
  */
-export async function getBatchCrowdData(spotIds: string[]): Promise<Map<string, CrowdData>> {
+export async function batchCrowd(spotIds: string[]): Promise<Map<string, CrowdData>> {
   const crowdMap = new Map<string, CrowdData>();
 
   // 并行获取所有景点的人流数据
@@ -197,7 +197,7 @@ export async function getBatchCrowdData(spotIds: string[]): Promise<Map<string, 
 /**
  * 更新数据库中的 IoT 数据
  */
-export async function updateSpotIoTData(
+export async function spotIoTUpd(
   spotId: string,
   crowdData: CrowdData,
   weatherData?: {

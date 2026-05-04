@@ -34,7 +34,7 @@ export class ImageService {
    * @param source 图片来源 ('admin', 'user_upload')
    * @returns 上传结果
    */
-  async imgUpload(
+  async uploadPic(
     spotId: string,
     file: {
       buffer: Buffer;
@@ -76,7 +76,7 @@ export class ImageService {
       const fileName = generateUniqueFileName(file.originalname, userId);
 
       // 上传到 Cloudinary
-      const cloudinaryResult = await cloudinaryService.imgUpload(file.buffer, 'spot-images');
+      const cloudinaryResult = await cloudinaryService.pushImg(file.buffer, 'spot-images');
 
       // 如果是主图，取消旧的主图
       if (isPrimary) {
@@ -150,7 +150,7 @@ export class ImageService {
       const isPrimary = i === 0; // 第一张设为主图
 
       try {
-        const result = await this.imgUpload(spotId, file, userId, isPrimary, source);
+        const result = await this.uploadPic(spotId, file, userId, isPrimary, source);
         results.push(result);
       } catch (error) {
         console.error(`第${i + 1}张图片上传失败:`, error);
@@ -168,7 +168,7 @@ export class ImageService {
    * @param limit 每页数量
    * @returns 图片列表
    */
-  async getSpotImgs(
+  async loadPics(
     spotId: string,
     page: number = 1,
     limit: number = 20
@@ -260,7 +260,7 @@ export class ImageService {
    * @param userId 用户ID
    * @param userRole 用户角色
    */
-  async delImg(imageId: string, userId: string, userRole: string): Promise<void> {
+  async dropPic(imageId: string, userId: string, userRole: string): Promise<void> {
     try {
       // 查询图片信息
       const image = await prisma.spotImage.findUnique({
@@ -279,7 +279,7 @@ export class ImageService {
       // 从 Cloudinary 删除文件
       try {
         // 从 URL 中提取 public_id
-        const cloudinaryId = this.extractCloudinaryIdFromUrl(image.url || '');
+        const cloudinaryId = this.extractId(image.url || '');
         if (cloudinaryId) {
           await cloudinaryService.delImg(cloudinaryId);
         }
@@ -329,7 +329,7 @@ export class ImageService {
    * @param url 图片 URL
    * @returns Cloudinary public_id
    */
-  private extractCloudinaryIdFromUrl(url: string): string | null {
+  private extractId(url: string): string | null {
     try {
       // Cloudinary URL 格式: https://res.cloudinary.com/{cloud_name}/image/upload/{public_id}.{format}
       const match = url.match(/\/upload\/(.+)\.[a-z]+$/);
@@ -345,7 +345,7 @@ export class ImageService {
    * @param userId 用户ID
    * @param userRole 用户角色
    */
-  async setAsPrimary(imageId: string, userId: string, userRole: string): Promise<void> {
+  async setMain(imageId: string, userId: string, userRole: string): Promise<void> {
     try {
       // 查询图片信息
       const image = await prisma.spotImage.findUnique({
@@ -392,7 +392,7 @@ export class ImageService {
    * @param imageId 图片ID
    * @returns 图片详情
    */
-  async getImageById(imageId: string) {
+  async imgById(imageId: string) {
     try {
       const image = await prisma.spotImage.findUnique({
         where: { id: imageId },
@@ -434,7 +434,7 @@ export class ImageService {
   /**
    * 根据景点ID批量获取图片（从数据库查询）
    */
-  async batchgetSpotImgsByIds(spotIds: string[]): Promise<Record<string, string>> {
+  async batchImgs(spotIds: string[]): Promise<Record<string, string>> {
     const prisma = await import('../lib/prisma').then((m) => m.getPrismaClient());
     const imageMap: Record<string, string> = {};
 

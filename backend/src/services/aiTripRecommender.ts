@@ -58,7 +58,7 @@ export class AiTripRecommender {
     try {
       // 1. 获取景点数据（包含 IoT 数据）
       console.log('\n步骤1: 获取景点数据...');
-      const spots = await this.spotDataSvc.citySpotsWithIoTData(
+      const spots = await this.spotDataSvc.cityIoT(
         params.destination,
         30 // 原值: 100 (30个景点足够AI规划行程，减少约60%输入Token)
       );
@@ -79,7 +79,7 @@ export class AiTripRecommender {
       // 2. 获取用户画像
       console.log('\n步骤2: 获取用户画像...');
       const userProfile = params.userId
-        ? await this.userProfileSvc.getUserProfile(params.userId)
+        ? await this.userProfileSvc.loadProfile(params.userId)
         : null;
       console.log(`✅ ${userProfile ? '获取到用户画像' : '无用户历史数据'}`);
 
@@ -89,12 +89,12 @@ export class AiTripRecommender {
 
       // 4. 调用智谱 AI
       console.log('\n步骤4: 调用智谱 AI...');
-      const response = await this.callZhipuAI(prompt);
+      const response = await this.aiCall(prompt);
       console.log('✅ AI 响应成功');
 
       // 5. 解析 AI 返回的结果
       console.log('\n步骤5: 解析 AI 返回结果...');
-      const result = this.parseAiResponse(response);
+      const result = this.parseAI(response);
       console.log('✅ 行程推荐完成');
 
       return result;
@@ -112,7 +112,7 @@ export class AiTripRecommender {
     spots: SpotWithIoT[],
     userProfile: UserProfile | null
   ): string {
-    const spotsInfo = this.spotDataSvc.formatSpotsForAI(spots);
+    const spotsInfo = this.spotDataSvc.fmtForAI(spots);
     const userProfileInfo = userProfile
       ? this.userProfileSvc.formatProfileAsPrompt(userProfile)
       : '暂无用户历史数据';
@@ -178,7 +178,7 @@ ${spotsInfo}
   /**
    * 调用智谱 AI
    */
-  private async callZhipuAI(prompt: string): Promise<any> {
+  private async aiCall(prompt: string): Promise<any> {
     const options = {
       hostname: this.apiUrl,
       path: '/api/paas/v4/chat/completions',
@@ -207,7 +207,7 @@ ${spotsInfo}
   /**
    * 解析 AI 返回的结果
    */
-  private parseAiResponse(response: any): AiTripRecommendation {
+  private parseAI(response: any): AiTripRecommendation {
     const content = response.choices[0]?.message?.content || '';
 
     console.log('AI 返回内容:', content);

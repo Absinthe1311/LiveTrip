@@ -41,7 +41,7 @@ class RestaurantRecommender {
    * @param days 每天的行程数据
    * @returns 每天的餐厅推荐列表
    */
-  async restaurantRecs(
+  async ResRec(
     days: Array<{
       day: number;
       date: string;
@@ -64,7 +64,7 @@ class RestaurantRecommender {
         }
 
         // 计算中间景点索引
-        const centerIndex = this.getCenterIndex(dayData.spots.length);
+        const centerIndex = this.centerIdx(dayData.spots.length);
         const centerSpot = dayData.spots[centerIndex];
 
         // 先从数据库查询附近餐厅
@@ -124,8 +124,8 @@ class RestaurantRecommender {
             rating: r.rating,
           }));
 
-          const city = this.inferCityFromSpots(dayData.spots);
-          await restaurantCacheService.saveRestaurants(restaurantCaches, city);
+          const city = this.guessCity(dayData.spots);
+          await restaurantCacheService.storeRes(restaurantCaches, city);
           console.log(`💾 [数据库] 第${dayData.day}天保存 ${restaurants.length} 个餐厅`);
         }
 
@@ -135,15 +135,15 @@ class RestaurantRecommender {
           address: r.address,
           location: r.location,
           tel: r.tel,
-          type: this.extractCuisineType(r.type),
+          type: this.foodType(r.type),
           rating: r.rating,
           distance: r.distance
             ? parseInt(r.distance)
-            : this.calculateDistanceFromLocation(r.location, centerSpot.location),
+            : this.calcDist(r.location, centerSpot.location),
         }));
 
         // 过滤不合适的餐厅（快餐、学校餐厅等）
-        const filteredRestaurants = this.filterInappropriateRestaurants(processedRestaurants);
+        const filteredRestaurants = this.filterBad(processedRestaurants);
 
         console.log(`🔍 过滤前: ${processedRestaurants.length} 个餐厅`);
         console.log(`✅ 过滤后: ${filteredRestaurants.length} 个合适餐厅`);
@@ -162,7 +162,7 @@ class RestaurantRecommender {
         }
 
         // 排序：有评分的优先，按评分降序；无评分的排在后面
-        const sortedRestaurants = this.sortRestaurants(finalRestaurants);
+        const sortedRestaurants = this.orderDining(finalRestaurants);
 
         // 返回最多5个推荐
         const recommendations = sortedRestaurants.slice(0, Math.min(5, sortedRestaurants.length));
@@ -190,7 +190,7 @@ class RestaurantRecommender {
    * @param count 景点数量
    * @returns 中间索引
    */
-  private getCenterIndex(count: number): number {
+  private centerIdx(count: number): number {
     if (count === 1) {
       return 0;
     }
@@ -204,7 +204,7 @@ class RestaurantRecommender {
    * @param type 高德POI type字段
    * @returns 菜系类型
    */
-  private extractCuisineType(type: string): string {
+  private foodType(type: string): string {
     if (!type) {
       return '餐厅';
     }
@@ -260,7 +260,7 @@ class RestaurantRecommender {
    * @param restaurants 餐厅列表
    * @returns 过滤后的餐厅列表
    */
-  private filterInappropriateRestaurants(restaurants: Restaurant[]): Restaurant[] {
+  private filterBad(restaurants: Restaurant[]): Restaurant[] {
     // 不合适的餐厅类型关键词（排除快餐、学校餐厅等）
     const excludedKeywords = [
       '快餐',
@@ -379,10 +379,10 @@ class RestaurantRecommender {
    * @param location2 坐标2
    * @returns 距离（米）
    */
-  private calculateDistanceFromLocation(location1: string, location2: string): number {
+  private calcDist(location1: string, location2: string): number {
     try {
       const amapServiceInstance = amapService();
-      const distanceKm = amapServiceInstance.calculateDistance(location1, location2);
+      const distanceKm = amapServiceInstance.calcDist(location1, location2);
       return Math.round(distanceKm * 1000); // 转换为米
     } catch (error) {
       console.error('❌ 计算距离失败:', error);
@@ -397,7 +397,7 @@ class RestaurantRecommender {
    * @param restaurants 餐厅列表
    * @returns 排序后的餐厅列表
    */
-  private sortRestaurants(restaurants: Restaurant[]): Restaurant[] {
+  private orderDining(restaurants: Restaurant[]): Restaurant[] {
     return restaurants.sort((a, b) => {
       // 有评分的排前面
       if (a.rating !== undefined && b.rating === undefined) {
@@ -418,7 +418,7 @@ class RestaurantRecommender {
   /**
    * 从景点列表推断城市名称
    */
-  private inferCityFromSpots(spots: Array<{ name: string; location: string }>): string {
+  private guessCity(spots: Array<{ name: string; location: string }>): string {
     return '未知城市';
   }
 }

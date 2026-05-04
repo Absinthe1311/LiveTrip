@@ -17,7 +17,7 @@ interface CacheResult {
  * @param userId 用户ID（可选）
  * @returns 搜索结果
  */
-export async function findLocWithCache(
+export async function searchLoc(
   keywords: string,
   userId?: string
 ): Promise<CacheResult> {
@@ -39,7 +39,7 @@ export async function findLocWithCache(
     });
 
     // 清理过期的缓存
-    await cleanExpiredCache();
+    await cleanOld();
 
     if (cachedResults.length > 0) {
       console.log(`✅ 缓存命中，找到 ${cachedResults.length} 个结果`);
@@ -189,7 +189,7 @@ export async function findLocWithCache(
 /**
  * 清理过期的缓存
  */
-async function cleanExpiredCache() {
+async function cleanOld() {
   try {
     const result = await prisma.locationCache.deleteMany({
       where: {
@@ -210,7 +210,7 @@ async function cleanExpiredCache() {
 /**
  * 获取热门搜索地点
  */
-export async function getPopularLocations(limit: number = 10) {
+export async function hotLocs(limit: number = 10) {
   try {
     const popularLocations = await prisma.locationCache.findMany({
       orderBy: {
@@ -235,7 +235,7 @@ export async function getPopularLocations(limit: number = 10) {
 /**
  * 清空所有缓存
  */
-export async function clearAllCache() {
+export async function flushCache() {
   try {
     const result = await prisma.locationCache.deleteMany({});
     console.log(`🧹 清空了 ${result.count} 个缓存`);

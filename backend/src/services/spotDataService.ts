@@ -40,7 +40,7 @@ export class SpotDataService {
    * 获取城市的景点列表（包含 IoT 数据）
    * 如果数据库中没有景点，会自动从高德 API 获取
    */
-  async citySpotsWithIoTData(city: string, limit: number = 50): Promise<SpotWithIoT[]> {
+  async cityIoT(city: string, limit: number = 50): Promise<SpotWithIoT[]> {
     console.log(`🔍 查询 ${city} 的景点列表，限制 ${limit} 个...`);
 
     // 1. 先从数据库查询
@@ -102,7 +102,7 @@ export class SpotDataService {
   /**
    * 格式化景点数据为 AI 可理解的格式
    */
-  formatSpotsForAI(spots: SpotWithIoT[]): string {
+  fmtForAI(spots: SpotWithIoT[]): string {
     return spots
       .map((spot, index) => {
         // 原格式包含: 地址、描述、是否户外、IoT详细数据(拥挤度/温度/下雨概率/是否开放/天气)
@@ -118,7 +118,7 @@ export class SpotDataService {
    * 根据景点名称查询景点
    * 如果数据库中没有，尝试从高德 API 获取
    */
-  async getSpotByName(name: string, city?: string): Promise<SpotWithIoT | null> {
+  async getSoptByName(name: string, city?: string): Promise<SpotWithIoT | null> {
     console.log(`🔍 查询景点: ${name}${city ? ` (${city})` : ''}`);
 
     // 1. 先从数据库查询

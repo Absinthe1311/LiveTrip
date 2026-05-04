@@ -129,7 +129,7 @@ class ConstraintAwarePlanner {
       console.log(`✅ 必选景点处理完成，共 ${mustVisitCount} 个`);
 
       // 步骤2：获取剩余需要填充的景点数量
-      const totalSpotsNeeded = this.calculateTotalSpotsNeeded(daysDiff, request.pace);
+      const totalSpotsNeeded = this.totalSpots(daysDiff, request.pace);
       const remainingSpots = totalSpotsNeeded - mustVisitCount;
 
       console.log(`   总共需要 ${totalSpotsNeeded} 个景点，还需填充 ${remainingSpots} 个`);
@@ -244,7 +244,7 @@ class ConstraintAwarePlanner {
   /**
    * 计算总共需要的景点数量
    */
-  private calculateTotalSpotsNeeded(days: number, pace?: string): number {
+  private totalSpots(days: number, pace?: string): number {
     const paceMap: Record<string, number> = {
       slow: 2,
       moderate: 3,
@@ -301,14 +301,14 @@ class ConstraintAwarePlanner {
         preferences: {
           pace: request.pace || 'moderate',
           energy_level: request.energy_level || 'medium',
-          categories: this.parsePreferences(request.preferences),
+          categories: this.prefs(request.preferences),
         },
         days: daysDiff,
         attractions: filteredAttractions,
       };
 
       // 调用推荐算法
-      const itinerary = await recommender.recommendItinerary(recommendRequest);
+      const itinerary = await recommender.suggestPlan(recommendRequest);
 
       console.log(`✅ 推荐算法执行完成，生成 ${itinerary.itinerary.length} 天行程`);
 
@@ -343,7 +343,7 @@ class ConstraintAwarePlanner {
             // 解析经纬度
             const [longitude, latitude] = attraction.location
               .split(',')
-              .map((coord) => parseFloat(coord.trim()));
+              .map((coord: string) => parseFloat(coord.trim()));
 
             await prisma.itineraryItem.create({
               data: {
@@ -378,7 +378,7 @@ class ConstraintAwarePlanner {
   /**
    * 解析用户偏好字符串，转换为类别数组
    */
-  private parsePreferences(preferences: string | undefined): string[] {
+  private prefs(preferences: string | undefined): string[] {
     if (!preferences) {
       return [];
     }

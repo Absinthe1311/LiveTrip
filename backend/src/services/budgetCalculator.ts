@@ -39,7 +39,7 @@ class BudgetCalculator {
   /**
    * 计算实际预算（基于用户实际选择）
    */
-  calculateActualBudget(options: BudgetCalculateOptions): BudgetInfo {
+  calcActual(options: BudgetCalculateOptions): BudgetInfo {
     const {
       totalBudget,
       days,
@@ -60,7 +60,7 @@ class BudgetCalculator {
     const tickets = this.calculateTicketsCost(itinerarySpots, groupSize);
 
     // 4. 计算交通费用
-    const transportation = this.calculateTransportationCost(days, avgTransportCost);
+    const transportation = this.calcTrans(days, avgTransportCost);
 
     // 5. 其他费用（预留）
     const other = 0;
@@ -99,7 +99,7 @@ class BudgetCalculator {
   /**
    * 计算预估预算（基于总预算的智能分配）
    */
-  calculateEstimatedBudget(totalBudget: number, days: number): BudgetBreakdown {
+  estBudget(totalBudget: number, days: number): BudgetBreakdown {
     // 根据天数调整预算分配比例
     // 天数越多，住宿和交通占比越高，餐饮和门票占比相对降低
 
@@ -168,7 +168,7 @@ class BudgetCalculator {
     }
 
     // 根据酒店类型估算价格
-    const estimatedPrice = this.estimateHotelPrice(selectedHotel);
+    const estimatedPrice = this.estHotel(selectedHotel);
     return Math.round(estimatedPrice * days);
   }
 
@@ -177,7 +177,7 @@ class BudgetCalculator {
    * @param hotel 酒店信息
    * @returns 估算价格（每晚）
    */
-  private estimateHotelPrice(hotel: Hotel): number {
+  private estHotel(hotel: Hotel): number {
     // 如果酒店类型可以推断价格范围
     const type = hotel.type.toLowerCase();
 
@@ -214,7 +214,7 @@ class BudgetCalculator {
       const restaurant = selectedRestaurants[day];
       if (restaurant) {
         // 根据餐厅类型估算价格
-        const estimatedPrice = this.estimateRestaurantPrice(restaurant);
+        const estimatedPrice = this.estFood(restaurant);
         const dayCost = estimatedPrice * groupSize;
         totalDiningCost += dayCost;
 
@@ -234,7 +234,7 @@ class BudgetCalculator {
    * @param restaurant 餐厅信息
    * @returns 估算价格（每人每餐）
    */
-  private estimateRestaurantPrice(restaurant: Restaurant): number {
+  private estFood(restaurant: Restaurant): number {
     // 如果餐厅类型可以推断价格范围
     const type = restaurant.type.toLowerCase();
 
@@ -280,7 +280,7 @@ class BudgetCalculator {
    * @param avgTransportCost 平均交通成本
    * @returns 交通费用
    */
-  private calculateTransportationCost(days: number, avgTransportCost: number): number {
+  private calcTrans(days: number, avgTransportCost: number): number {
     // 交通费用 = (天数 - 1) × 平均交通成本
     // 假设每天从一个景点到下一个景点需要交通
     const transportDays = Math.max(days - 1, 1);
@@ -310,7 +310,7 @@ class BudgetCalculator {
    * @param budgetInfo 预算信息
    * @returns 预警级别：0-无预警，1-黄色，2-橙色，3-红色
    */
-  getWarningLevel(budgetInfo: BudgetInfo): number {
+  warnLevel(budgetInfo: BudgetInfo): number {
     if (budgetInfo.status === 'over_budget') {
       return 3; // 红色预警
     } else if (budgetInfo.usageRate >= 0.95) {
@@ -327,8 +327,8 @@ class BudgetCalculator {
    * @param budgetInfo 预算信息
    * @returns 预警消息
    */
-  getWarningMessage(budgetInfo: BudgetInfo): string | null {
-    const level = this.getWarningLevel(budgetInfo);
+  warnMsg(budgetInfo: BudgetInfo): string | null {
+    const level = this.warnLevel(budgetInfo);
 
     if (level === 0) {
       return null;

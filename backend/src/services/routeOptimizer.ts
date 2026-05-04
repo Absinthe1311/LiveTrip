@@ -31,7 +31,7 @@ class RouteOptimizer {
    * 优化每天的景点游览顺序
    * 使用 2-opt 算法：在贪心算法的基础上进行局部优化
    */
-  optimizeRoute(attractions: RecommendedAttraction[]): RecommendedAttraction[] {
+  optRoute(attractions: RecommendedAttraction[]): RecommendedAttraction[] {
     if (attractions.length <= 1) {
       return attractions;
     }
@@ -41,18 +41,18 @@ class RouteOptimizer {
     // 解析经纬度
     const attractionsWithCoords: AttractionWithCoords[] = attractions.map((attr) => ({
       ...attr,
-      ...this.parseLocation(attr.location),
+      ...this.parseLoc(attr.location),
     }));
 
     // 步骤1：使用贪心算法生成初始路线
-    const initialRoute = this.greedyOptimization(attractionsWithCoords);
+    const initialRoute = this.greedyOpt(attractionsWithCoords);
     const initialRouteWithCoords = initialRoute.map((attr, index) => ({
       ...attr,
-      ...this.parseLocation(attr.location),
+      ...this.parseLoc(attr.location),
     }));
 
     // 步骤2：使用 2-opt 算法优化路线
-    const optimized = this.twoOptOptimization(initialRouteWithCoords);
+    const optimized = this.twoOpt(initialRouteWithCoords);
 
     console.log('✅ 路径优化完成（2-opt）');
     return optimized;
@@ -62,21 +62,21 @@ class RouteOptimizer {
    * 贪心算法优化路径（生成初始路线）
    * 从第一个景点开始，每次选择距离当前位置最近的未访问景点
    */
-  private greedyOptimization(attractions: AttractionWithCoords[]): RecommendedAttraction[] {
+  private greedyOpt(attractions: AttractionWithCoords[]): RecommendedAttraction[] {
     const unvisited = [...attractions];
     const optimized: RecommendedAttraction[] = [];
 
     // 从第一个景点开始
     let current = unvisited.shift()!;
-    optimized.push(this.stripCoords(current));
+    optimized.push(this.stripCoord(current));
 
     while (unvisited.length > 0) {
       // 找到距离当前位置最近的景点
       let nearestIndex = 0;
-      let nearestDistance = this.calculateDistance(current, unvisited[0]);
+      let nearestDistance = this.calcDist(current, unvisited[0]);
 
       for (let i = 1; i < unvisited.length; i++) {
-        const distance = this.calculateDistance(current, unvisited[i]);
+        const distance = this.calcDist(current, unvisited[i]);
         if (distance < nearestDistance) {
           nearestDistance = distance;
           nearestIndex = i;
@@ -85,7 +85,7 @@ class RouteOptimizer {
 
       // 移动到最近的景点
       current = unvisited.splice(nearestIndex, 1)[0];
-      optimized.push(this.stripCoords(current));
+      optimized.push(this.stripCoord(current));
     }
 
     return optimized;
@@ -95,9 +95,9 @@ class RouteOptimizer {
    * 2-opt 算法优化路径
    * 遍历所有可能的两条边交换，如果交换后总距离更短，则接受交换
    */
-  private twoOptOptimization(route: AttractionWithCoords[]): RecommendedAttraction[] {
+  private twoOpt(route: AttractionWithCoords[]): RecommendedAttraction[] {
     let bestRoute = [...route];
-    let bestDistance = this.calculateTotalDistanceWithCoords(bestRoute);
+    let bestDistance = this.sumDistCoord(bestRoute);
     let improved = true;
     const maxIterations = 100;
     let iteration = 0;
@@ -109,8 +109,8 @@ class RouteOptimizer {
       for (let i = 0; i < bestRoute.length - 1; i++) {
         for (let j = i + 2; j < bestRoute.length; j++) {
           // 尝试交换两条边
-          const newRoute = this.swapEdges(bestRoute, i, j);
-          const newDistance = this.calculateTotalDistanceWithCoords(newRoute);
+          const newRoute = this.flipEdges(bestRoute, i, j);
+          const newDistance = this.sumDistCoord(newRoute);
 
           if (newDistance < bestDistance) {
             bestRoute = newRoute;
@@ -123,7 +123,7 @@ class RouteOptimizer {
     }
 
     console.log(`   2-opt 迭代次数: ${iteration}，最终距离: ${bestDistance.toFixed(2)}km`);
-    return bestRoute.map((attr) => this.stripCoords(attr));
+    return bestRoute.map((attr) => this.stripCoord(attr));
   }
 
   /**
@@ -131,7 +131,7 @@ class RouteOptimizer {
    * 路径：A -> B -> ... -> C -> D
    * 交换后：A -> C -> ... -> B -> D
    */
-  private swapEdges(route: AttractionWithCoords[], i: number, j: number): AttractionWithCoords[] {
+  private flipEdges(route: AttractionWithCoords[], i: number, j: number): AttractionWithCoords[] {
     const newRoute = [...route];
 
     // 反转 i+1 到 j 的部分
@@ -149,7 +149,7 @@ class RouteOptimizer {
   /**
    * 解析经纬度字符串
    */
-  private parseLocation(location: string): { lng: number; lat: number } {
+  private parseLoc(location: string): { lng: number; lat: number } {
     const parts = location.split(',');
     if (parts.length !== 2) {
       console.warn(`⚠️  无效的经纬度格式: ${location}`);
@@ -171,16 +171,16 @@ class RouteOptimizer {
    * 计算两个坐标之间的距离（单位：公里）
    * 使用 Haversine 公式
    */
-  private calculateDistance(point1: AttractionWithCoords, point2: AttractionWithCoords): number {
+  private calcDist(point1: AttractionWithCoords, point2: AttractionWithCoords): number {
     const R = 6371; // 地球半径（公里）
 
-    const dLat = this.toRadians(point2.lat - point1.lat);
-    const dLng = this.toRadians(point2.lng - point1.lng);
+    const dLat = this.toRad(point2.lat - point1.lat);
+    const dLng = this.toRad(point2.lng - point1.lng);
 
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRadians(point1.lat)) *
-        Math.cos(this.toRadians(point2.lat)) *
+      Math.cos(this.toRad(point1.lat)) *
+        Math.cos(this.toRad(point2.lat)) *
         Math.sin(dLng / 2) *
         Math.sin(dLng / 2);
 
@@ -193,14 +193,14 @@ class RouteOptimizer {
   /**
    * 将角度转换为弧度
    */
-  private toRadians(degrees: number): number {
+  private toRad(degrees: number): number {
     return degrees * (Math.PI / 180);
   }
 
   /**
    * 移除坐标信息
    */
-  private stripCoords(attraction: AttractionWithCoords): RecommendedAttraction {
+  private stripCoord(attraction: AttractionWithCoords): RecommendedAttraction {
     const { lng, lat, ...rest } = attraction;
     return rest;
   }
@@ -208,30 +208,30 @@ class RouteOptimizer {
   /**
    * 计算总行程距离
    */
-  calculateTotalDistance(attractions: RecommendedAttraction[]): number {
+  totalDist(attractions: RecommendedAttraction[]): number {
     if (attractions.length <= 1) {
       return 0;
     }
 
     const attractionsWithCoords = attractions.map((attr) => ({
       ...attr,
-      ...this.parseLocation(attr.location),
+      ...this.parseLoc(attr.location),
     }));
 
-    return this.calculateTotalDistanceWithCoords(attractionsWithCoords);
+    return this.sumDistCoord(attractionsWithCoords);
   }
 
   /**
    * 计算带坐标的景点的总距离
    */
-  private calculateTotalDistanceWithCoords(attractions: AttractionWithCoords[]): number {
+  private sumDistCoord(attractions: AttractionWithCoords[]): number {
     if (attractions.length <= 1) {
       return 0;
     }
 
     let totalDistance = 0;
     for (let i = 0; i < attractions.length - 1; i++) {
-      totalDistance += this.calculateDistance(attractions[i], attractions[i + 1]);
+      totalDistance += this.calcDist(attractions[i], attractions[i + 1]);
     }
 
     return Math.round(totalDistance * 100) / 100;
@@ -240,7 +240,7 @@ class RouteOptimizer {
   /**
    * 获取景点的体力消耗
    */
-  private getSpotEnergyCost(attraction: RecommendedAttraction): number {
+  private spotCost(attraction: RecommendedAttraction): number {
     const type = attraction.type || attraction.description || '';
 
     // 根据类型查找体力消耗
@@ -256,12 +256,12 @@ class RouteOptimizer {
   /**
    * 计算路径的综合得分（距离 + 体力）
    */
-  private calculateRouteScore(route: AttractionWithCoords[]): number {
-    const totalDistance = this.calculateTotalDistanceWithCoords(route);
+  private scoreRoute(route: AttractionWithCoords[]): number {
+    const totalDistance = this.sumDistCoord(route);
     let totalEnergy = 0;
 
     for (const attraction of route) {
-      totalEnergy += this.getSpotEnergyCost(attraction);
+      totalEnergy += this.spotCost(attraction);
     }
 
     // 综合得分 = 距离得分 × 0.6 + 体力得分 × 0.4
@@ -269,7 +269,7 @@ class RouteOptimizer {
     // 体力得分：合理分布得分越高
 
     const distanceScore = Math.max(0, 100 - totalDistance * 2); // 假设 50km 是最大距离
-    const energyScore = this.calculateEnergyDistributionScore(totalEnergy, route.length);
+    const energyScore = this.distScore(totalEnergy, route.length);
 
     return distanceScore * 0.6 + energyScore * 0.4;
   }
@@ -278,7 +278,7 @@ class RouteOptimizer {
    * 计算体力分布得分
    * 体力消耗大的景点应该安排在上午，轻松的景点安排在下午
    */
-  private calculateEnergyDistributionScore(totalEnergy: number, spotCount: number): number {
+  private distScore(totalEnergy: number, spotCount: number): number {
     // 简单实现：平均每个景点的体力消耗
     const avgEnergy = totalEnergy / spotCount;
 
@@ -298,7 +298,7 @@ class RouteOptimizer {
    * 重新分配时间段（基于优化后的顺序）
    * 保持每个景点的游览时长不变，但调整开始和结束时间
    */
-  recalculateTimeSlots(attractions: RecommendedAttraction[]): RecommendedAttraction[] {
+  reslot(attractions: RecommendedAttraction[]): RecommendedAttraction[] {
     if (attractions.length === 0) {
       return attractions;
     }
@@ -324,7 +324,7 @@ class RouteOptimizer {
 
       return {
         ...attraction,
-        time: `${this.minutesToTime(newStart)}-${this.minutesToTime(newEnd)}`,
+        time: `${this.toTime(newStart)}-${this.toTime(newEnd)}`,
       };
     });
   }
@@ -332,7 +332,7 @@ class RouteOptimizer {
   /**
    * 将分钟数转换为时间字符串
    */
-  private minutesToTime(minutes: number): string {
+  private toTime(minutes: number): string {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;

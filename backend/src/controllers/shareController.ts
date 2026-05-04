@@ -4,7 +4,7 @@
  */
 
 import { Request, Response } from 'express';
-import { generateShareLink, getPublicTrip, cloneTrip } from '../services/shareService';
+import { shareLink, publicTrip, forkTrip } from '../services/shareService';
 
 /**
  * 分享行程
@@ -25,7 +25,7 @@ export const shareTrip = async (req: Request, res: Response) => {
     console.log(`👤 用户ID: ${userId}, 行程ID: ${tripId}`);
 
     // 调用服务生成分享链接
-    const result = await generateShareLink(tripId, userId);
+    const result = await shareLink(tripId, userId);
 
     console.log('✅ 分享链接生成成功');
 
@@ -73,7 +73,7 @@ export const getSharedTrip = async (req: Request, res: Response) => {
     console.log(`🔑 分享Token: ${shareToken}`);
 
     // 调用服务获取公开行程
-    const trip = await getPublicTrip(shareToken);
+    const trip = await publicTrip(shareToken);
 
     console.log('✅ 公开行程获取成功');
 
@@ -125,7 +125,7 @@ export const copyTrip = async (req: Request, res: Response) => {
     console.log(`👤 用户ID: ${userId}, 分享Token: ${shareToken}`);
 
     // 调用服务复刻行程
-    const result = await cloneTrip(shareToken, userId);
+    const result = await forkTrip(shareToken, userId);
 
     console.log('✅ 行程复刻成功');
 

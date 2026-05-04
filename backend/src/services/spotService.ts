@@ -82,7 +82,7 @@ class SpotService {
       console.log(`💾 已存储 ${spots.length} 个景点到数据库`);
 
       // 5. 为每个景点生成IoT数据
-      await this.generateIoTDataForSpots(spots);
+      await this.genIotBatch(spots);
       console.log(`💾 已生成并存储 ${spots.length} 个景点的IoT数据`);
 
       return spots;
@@ -226,11 +226,11 @@ class SpotService {
    * 为景点生成IoT数据
    * @param spots 景点列表
    */
-  private async generateIoTDataForSpots(spots: Spot[]): Promise<void> {
+  private async genIotBatch(spots: Spot[]): Promise<void> {
     for (const spot of spots) {
       try {
         // 动态生成IoT数据（不依赖预定义列表）
-        const iotData = this.generateDynamicIoTData(spot);
+        const iotData = this.liveIoT(spot);
 
         if (iotData) {
           await prisma.spotIoTData.upsert({
@@ -262,37 +262,37 @@ class SpotService {
    * @param spot 景点
    * @returns IoT数据
    */
-  private generateDynamicIoTData(spot: Spot): any {
+  private liveIoT(spot: Spot): any {
     const now = new Date();
     const hour = now.getHours();
     const day = now.getDay();
 
     // 计算基础人流（根据景点类型）
-    const baseCrowd = this.getBaseCrowdByType(spot.category);
+    const baseCrowd = this.crowdBase(spot.category);
 
     // 时间因子
-    const timeFactor = this.getTimeFactor(hour, day);
+    const timeFactor = this.timeFac(hour, day);
 
     // 季节因子
-    const seasonFactor = this.getSeasonFactor(now);
+    const seasonFactor = this.seasonFac(now);
 
     // 计算人流
     let crowdLevel = baseCrowd * timeFactor * seasonFactor;
     crowdLevel = Math.max(0, Math.min(100, crowdLevel + (Math.random() - 0.5) * 10));
 
     // 计算温度
-    const baseTemp = this.getBaseTemperature(spot.city, now);
+    const baseTemp = this.baseTemp(spot.city, now);
     const timeOfDayVariation = Math.sin(((hour - 6) * Math.PI) / 12) * 5;
     let temperature = baseTemp + timeOfDayVariation + (Math.random() - 0.5) * 4;
     temperature = Math.round(temperature * 10) / 10;
 
     // 计算降雨概率
-    const baseRainProb = this.getBaseRainProbability(spot.city, now);
+    const baseRainProb = this.baseRain(spot.city, now);
     let rainProbability = baseRainProb + (Math.random() - 0.5) * 20;
     rainProbability = Math.max(0, Math.min(100, rainProbability));
 
     // 判断是否开放
-    const isOpen = this.checkIsOpen(spot.openTime, now);
+    const isOpen = this.isOpen(spot.openTime, now);
 
     return {
       crowdLevel: Math.round(crowdLevel),
@@ -305,7 +305,7 @@ class SpotService {
   /**
    * 根据类型获取基础人流
    */
-  private getBaseCrowdByType(category: string | null): number {
+  private crowdBase(category: string | null): number {
     const crowdMap: Record<string, number> = {
       博物馆: 40,
       公园: 60,
@@ -325,7 +325,7 @@ class SpotService {
   /**
    * 时间因子
    */
-  private getTimeFactor(hour: number, day: number): number {
+  private timeFac(hour: number, day: number): number {
     const isWeekend = day === 0 || day === 6;
     const weekendFactor = isWeekend ? 1.3 : 1.0;
 
@@ -348,7 +348,7 @@ class SpotService {
   /**
    * 季节因子
    */
-  private getSeasonFactor(date: Date): number {
+  private seasonFac(date: Date): number {
     const month = date.getMonth() + 1;
     if ((month >= 3 && month <= 5) || (month >= 9 && month <= 11)) {
       return 1.2;
@@ -359,7 +359,7 @@ class SpotService {
   /**
    * 获取基础温度
    */
-  private getBaseTemperature(city: string, date: Date): number {
+  private baseTemp(city: string, date: Date): number {
     const month = date.getMonth() + 1;
     const cityBaseTemp: Record<string, number> = {
       北京: 12,
@@ -379,7 +379,7 @@ class SpotService {
   /**
    * 获取基础降雨概率
    */
-  private getBaseRainProbability(city: string, date: Date): number {
+  private baseRain(city: string, date: Date): number {
     const month = date.getMonth() + 1;
     const cityRainProb: Record<string, Record<number, number>> = {
       北京: {
@@ -431,7 +431,7 @@ class SpotService {
   /**
    * 检查是否开放
    */
-  private checkIsOpen(openTime: string | null, currentTime: Date): boolean {
+  private isOpen(openTime: string | null, currentTime: Date): boolean {
     if (!openTime || openTime === '全天开放') {
       return true;
     }
@@ -1064,7 +1064,7 @@ class SpotService {
    * @param spotId 景点ID
    * @returns IoT数据
    */
-  async generateIoTDataForSpot(spotId: string): Promise<SpotIoTData | null> {
+  async genIot(spotId: string): Promise<SpotIoTData | null> {
     try {
       // 检查是否已存在IoT数据
       const existingIoTData = await prisma.spotIoTData.findUnique({
@@ -1098,7 +1098,7 @@ class SpotService {
       console.log(`🔄 为景点 ${spot.name} 生成IoT数据...`);
 
       // 动态生成IoT数据
-      const iotData = this.generateDynamicIoTData(spot);
+      const iotData = this.liveIoT(spot);
 
       // 保存到数据库
       const createdIoTData = await prisma.spotIoTData.create({
@@ -1134,7 +1134,7 @@ class SpotService {
    * @param spotIds 景点ID列表
    * @returns IoT数据映射
    */
-  async getBatchIoTData(spotIds: string[]): Promise<Map<string, SpotIoTData>> {
+  async batchIot(spotIds: string[]): Promise<Map<string, SpotIoTData>> {
     return this.spotIotMap(spotIds);
   }
 
@@ -1238,7 +1238,7 @@ class SpotService {
    * @param location 经纬度（可选，用于精确匹配）
    * @returns 景点ID，如果找不到则返回null
    */
-  async findSpotIdByNameAndCity(
+  async spotId(
     name: string,
     city: string,
     location?: string

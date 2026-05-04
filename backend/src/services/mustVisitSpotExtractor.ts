@@ -34,7 +34,7 @@ class MustVisitSpotExtractor {
     console.log(`   目标城市: ${city || '未指定'}`);
 
     // 步骤1：从用户输入中识别可能的景点名称
-    const potentialSpotNames = this.identifyPotentialSpotNames(userInput);
+    const potentialSpotNames = this.findSpots(userInput);
     console.log(
       `   识别到 ${potentialSpotNames.length} 个潜在景点: ${potentialSpotNames.join(', ')}`
     );
@@ -82,7 +82,7 @@ class MustVisitSpotExtractor {
   /**
    * 从用户输入中识别可能的景点名称
    */
-  private identifyPotentialSpotNames(userInput: string): string[] {
+  private findSpots(userInput: string): string[] {
     const potentialNames: string[] = [];
 
     // 先尝试常见景点关键词（最准确）
@@ -243,8 +243,8 @@ class MustVisitSpotExtractor {
 
     // 按匹配度排序(越接近越好)
     return spots.sort((a, b) => {
-      const aScore = this.calculateSimilarity(spotName, a.name);
-      const bScore = this.calculateSimilarity(spotName, b.name);
+      const aScore = this.calcSim(spotName, a.name);
+      const bScore = this.calcSim(spotName, b.name);
       return bScore - aScore;
     });
   }
@@ -377,7 +377,7 @@ class MustVisitSpotExtractor {
   /**
    * 计算字符串相似度(0-1)
    */
-  private calculateSimilarity(str1: string, str2: string): number {
+  private calcSim(str1: string, str2: string): number {
     const len1 = str1.length;
     const len2 = str2.length;
     const maxLen = Math.max(len1, len2);

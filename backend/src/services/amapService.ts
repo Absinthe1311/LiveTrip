@@ -141,7 +141,7 @@ class AmapService {
    * @param typeCode POI 类型代码
    * @returns 景点列表
    */
-  async getAttractionsByType(city: string, typeCode: string): Promise<AmapAttraction[]> {
+  async byType(city: string, typeCode: string): Promise<AmapAttraction[]> {
     return this.getAttractions(city, '', typeCode);
   }
 
@@ -150,8 +150,8 @@ class AmapService {
    * @param city 城市名称
    * @returns 餐厅列表
    */
-  async getRestaurants(city: string): Promise<AmapAttraction[]> {
-    return this.getAttractionsByType(city, '050000');
+  async loadDining(city: string): Promise<AmapAttraction[]> {
+    return this.byType(city, '050000');
   }
 
   /**
@@ -159,8 +159,8 @@ class AmapService {
    * @param city 城市名称
    * @returns 风景名胜列表
    */
-  async getScenicSpots(city: string): Promise<AmapAttraction[]> {
-    return this.getAttractionsByType(city, '110000');
+  async loadScenic(city: string): Promise<AmapAttraction[]> {
+    return this.byType(city, '110000');
   }
 
   /**
@@ -168,8 +168,8 @@ class AmapService {
    * @param city 城市名称
    * @returns 旅游景点列表
    */
-  async getTouristAttractions(city: string): Promise<AmapAttraction[]> {
-    return this.getAttractionsByType(city, '140000');
+  async loadAttractions(city: string): Promise<AmapAttraction[]> {
+    return this.byType(city, '140000');
   }
 
   /**
@@ -177,11 +177,11 @@ class AmapService {
    * @param city 城市名称
    * @returns 景点列表（包含风景名胜、旅游景点、餐厅）
    */
-  async getAllAttractions(city: string): Promise<AmapAttraction[]> {
+  async allSpots(city: string): Promise<AmapAttraction[]> {
     try {
       // 首先尝试从缓存获取
       console.log(`📦 尝试从缓存获取 ${city} 的景点数据...`);
-      const cachedAttractions = await amapPOICacheService.getFromCache(city);
+      const cachedAttractions = await amapPOICacheService.fromCache(city);
 
       if (cachedAttractions && cachedAttractions.length > 0) {
         console.log(`✅ 从缓存获取成功，共 ${cachedAttractions.length} 个景点`);
@@ -192,15 +192,15 @@ class AmapService {
 
       // 并发获取多种类型的景点
       const [scenicSpots, touristAttractions, restaurants] = await Promise.all([
-        this.getScenicSpots(city).catch((e) => {
+        this.loadScenic(city).catch((e) => {
           console.warn('获取风景名胜失败:', e.message);
           return [];
         }),
-        this.getTouristAttractions(city).catch((e) => {
+        this.loadAttractions(city).catch((e) => {
           console.warn('获取旅游景点失败:', e.message);
           return [];
         }),
-        this.getRestaurants(city).catch((e) => {
+        this.loadDining(city).catch((e) => {
           console.warn('获取餐厅失败:', e.message);
           return [];
         }),
@@ -208,13 +208,13 @@ class AmapService {
 
       // 合并结果并去重（根据名称和位置）
       const allAttractions = [...scenicSpots, ...touristAttractions, ...restaurants];
-      const uniqueAttractions = this.deduplicateAttractions(allAttractions);
+      const uniqueAttractions = this.uniqSpots(allAttractions);
 
       console.log(`✅ 综合搜索完成，共 ${uniqueAttractions.length} 个不重复的景点`);
 
       // 保存到缓存
       if (uniqueAttractions.length > 0) {
-        await amapPOICacheService.saveToCache(uniqueAttractions, city);
+        await amapPOICacheService.toCache(uniqueAttractions, city);
       }
 
       return uniqueAttractions;
@@ -295,7 +295,7 @@ class AmapService {
    * @param attractions 景点列表
    * @returns 去重后的景点列表
    */
-  private deduplicateAttractions(attractions: AmapAttraction[]): AmapAttraction[] {
+  private uniqSpots(attractions: AmapAttraction[]): AmapAttraction[] {
     const seen = new Set<string>();
     return attractions.filter((attraction) => {
       const key = `${attraction.name}-${attraction.location}`;
@@ -312,7 +312,7 @@ class AmapService {
    * @param location 经纬度字符串 "116.397428,39.90923"
    * @returns 经纬度对象 { lng, lat }
    */
-  parseLocation(location: string): { lng: number; lat: number } {
+  parseLoc(location: string): { lng: number; lat: number } {
     const [lng, lat] = location.split(',').map(Number);
     return { lng, lat };
   }
@@ -321,18 +321,18 @@ class AmapService {
    * 计算两个经纬度之间的距离（单位：公里）
    * 使用 Haversine 公式
    */
-  calculateDistance(location1: string, location2: string): number {
-    const { lng: lng1, lat: lat1 } = this.parseLocation(location1);
-    const { lng: lng2, lat: lat2 } = this.parseLocation(location2);
+  calcDist(location1: string, location2: string): number {
+    const { lng: lng1, lat: lat1 } = this.parseLoc(location1);
+    const { lng: lng2, lat: lat2 } = this.parseLoc(location2);
 
     const R = 6371; // 地球半径（公里）
-    const dLat = this.toRadians(lat2 - lat1);
-    const dLng = this.toRadians(lng2 - lng1);
+    const dLat = this.toRad(lat2 - lat1);
+    const dLng = this.toRad(lng2 - lng1);
 
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRadians(lat1)) *
-        Math.cos(this.toRadians(lat2)) *
+      Math.cos(this.toRad(lat1)) *
+        Math.cos(this.toRad(lat2)) *
         Math.sin(dLng / 2) *
         Math.sin(dLng / 2);
 
@@ -342,7 +342,7 @@ class AmapService {
     return Math.round(distance * 100) / 100; // 保留两位小数
   }
 
-  private toRadians(degrees: number): number {
+  private toRad(degrees: number): number {
     return degrees * (Math.PI / 180);
   }
 }

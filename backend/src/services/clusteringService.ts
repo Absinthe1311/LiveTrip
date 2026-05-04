@@ -10,7 +10,7 @@ class ClusteringService {
   /**
    * 使用 K-means 算法将景点聚类
    */
-  async kMeansClustering(spots: SpotScore[], k: number): Promise<SpotCluster[]> {
+  async KMeans(spots: SpotScore[], k: number): Promise<SpotCluster[]> {
     console.log(`\n🗺️  开始 K-means 聚类，K=${k}，景点数量=${spots.length}`);
 
     if (spots.length === 0) {
@@ -23,28 +23,28 @@ class ClusteringService {
       return spots.map((spot, index) => ({
         clusterId: index,
         spots: [spot],
-        center: this.parseLocation(spot.spot.location),
+        center: this.parseLoc(spot.spot.location),
       }));
     }
 
     // 1. 选择初始中心点（使用评分最高的 K 个点）
-    const initialCenters = this.selectInitialCenters(spots, k);
+    const initialCenters = this.initCenters(spots, k);
 
     // 2. 迭代优化
-    let clusters = this.assignToClusters(spots, initialCenters);
+    let clusters = this.assign(spots, initialCenters);
     let iteration = 0;
     const maxIterations = 100;
     let converged = false;
 
     while (!converged && iteration < maxIterations) {
       // 重新计算中心点
-      const newCenters = this.recalculateCenters(clusters);
+      const newCenters = this.recalcCenters(clusters);
 
       // 重新分配景点
-      const newClusters = this.assignToClusters(spots, newCenters);
+      const newClusters = this.assign(spots, newCenters);
 
       // 检查是否收敛
-      converged = this.hasConverged(clusters, newClusters);
+      converged = this.converged(clusters, newClusters);
 
       clusters = newClusters;
       iteration++;
@@ -54,7 +54,7 @@ class ClusteringService {
     console.log(`   各聚类景点数量: ${clusters.map((c) => c.spots.length).join(', ')}`);
 
     // 3. 后处理：平衡聚类
-    const balancedClusters = this.balanceClusters(clusters);
+    const balancedClusters = this.evenOut(clusters);
 
     return balancedClusters;
   }
@@ -62,18 +62,18 @@ class ClusteringService {
   /**
    * 选择初始中心点（使用评分最高的 K 个点）
    */
-  private selectInitialCenters(spots: SpotScore[], k: number): Point[] {
+  private initCenters(spots: SpotScore[], k: number): Point[] {
     // 按评分降序排序，取前 K 个
     const sortedSpots = [...spots].sort((a, b) => b.totalScore - a.totalScore);
     const topKSpots = sortedSpots.slice(0, k);
 
-    return topKSpots.map((spot) => this.parseLocation(spot.spot.location));
+    return topKSpots.map((spot) => this.parseLoc(spot.spot.location));
   }
 
   /**
    * 将景点分配到最近的聚类
    */
-  private assignToClusters(spots: SpotScore[], centers: Point[]): SpotCluster[] {
+  private assign(spots: SpotScore[], centers: Point[]): SpotCluster[] {
     const clusters: SpotCluster[] = centers.map((center, index) => ({
       clusterId: index,
       spots: [],
@@ -81,14 +81,14 @@ class ClusteringService {
     }));
 
     for (const spot of spots) {
-      const spotLocation = this.parseLocation(spot.spot.location);
+      const spotLocation = this.parseLoc(spot.spot.location);
 
       // 找到最近的中心点
       let minDistance = Infinity;
       let nearestClusterId = 0;
 
       for (let i = 0; i < centers.length; i++) {
-        const distance = this.calculateDistance(spotLocation, centers[i]);
+        const distance = this.calcDist(spotLocation, centers[i]);
         if (distance < minDistance) {
           minDistance = distance;
           nearestClusterId = i;
@@ -104,7 +104,7 @@ class ClusteringService {
   /**
    * 重新计算每个聚类的中心点
    */
-  private recalculateCenters(clusters: SpotCluster[]): Point[] {
+  private recalcCenters(clusters: SpotCluster[]): Point[] {
     return clusters.map((cluster) => {
       if (cluster.spots.length === 0) {
         return cluster.center;
@@ -112,12 +112,12 @@ class ClusteringService {
 
       // 计算所有景点的平均位置
       const sumLng = cluster.spots.reduce((sum, spot) => {
-        const location = this.parseLocation(spot.spot.location);
+        const location = this.parseLoc(spot.spot.location);
         return sum + location.lng;
       }, 0);
 
       const sumLat = cluster.spots.reduce((sum, spot) => {
-        const location = this.parseLocation(spot.spot.location);
+        const location = this.parseLoc(spot.spot.location);
         return sum + location.lat;
       }, 0);
 
@@ -131,12 +131,12 @@ class ClusteringService {
   /**
    * 检查聚类是否收敛
    */
-  private hasConverged(oldClusters: SpotCluster[], newClusters: SpotCluster[]): boolean {
+  private converged(oldClusters: SpotCluster[], newClusters: SpotCluster[]): boolean {
     for (let i = 0; i < oldClusters.length; i++) {
       const oldCenter = oldClusters[i].center;
       const newCenter = newClusters[i].center;
 
-      const distance = this.calculateDistance(oldCenter, newCenter);
+      const distance = this.calcDist(oldCenter, newCenter);
       if (distance > 0.001) {
         // 阈值：0.001 公里
         return false;
@@ -149,7 +149,7 @@ class ClusteringService {
   /**
    * 平衡聚类（处理景点数量不均的情况）
    */
-  private balanceClusters(clusters: SpotCluster[]): SpotCluster[] {
+  private evenOut(clusters: SpotCluster[]): SpotCluster[] {
     console.log('\n⚖️  开始平衡聚类...');
 
     const averageSpots = clusters.reduce((sum, c) => sum + c.spots.length, 0) / clusters.length;
@@ -166,7 +166,7 @@ class ClusteringService {
         for (const otherCluster of clusters) {
           if (otherCluster.clusterId === cluster.clusterId) continue;
 
-          const distance = this.calculateDistance(cluster.center, otherCluster.center);
+          const distance = this.calcDist(cluster.center, otherCluster.center);
           if (distance < minDistance) {
             minDistance = distance;
             nearestCluster = otherCluster;
@@ -200,7 +200,7 @@ class ClusteringService {
         for (const otherCluster of clusters) {
           if (otherCluster.clusterId === cluster.clusterId) continue;
 
-          const distance = this.calculateDistance(cluster.center, otherCluster.center);
+          const distance = this.calcDist(cluster.center, otherCluster.center);
           if (distance < minDistance) {
             minDistance = distance;
             nearestCluster = otherCluster;
@@ -231,7 +231,7 @@ class ClusteringService {
   /**
    * 解析经纬度字符串
    */
-  private parseLocation(location: string): Point {
+  private parseLoc(location: string): Point {
     const parts = location.split(',');
     if (parts.length !== 2) {
       console.warn(`⚠️  无效的经纬度格式: ${location}`);
@@ -253,16 +253,16 @@ class ClusteringService {
    * 计算两点之间的距离（单位：公里）
    * 使用 Haversine 公式
    */
-  private calculateDistance(point1: Point, point2: Point): number {
+  private calcDist(point1: Point, point2: Point): number {
     const R = 6371; // 地球半径（公里）
 
-    const dLat = this.toRadians(point2.lat - point1.lat);
-    const dLng = this.toRadians(point2.lng - point1.lng);
+    const dLat = this.toRad(point2.lat - point1.lat);
+    const dLng = this.toRad(point2.lng - point1.lng);
 
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRadians(point1.lat)) *
-        Math.cos(this.toRadians(point2.lat)) *
+      Math.cos(this.toRad(point1.lat)) *
+        Math.cos(this.toRad(point2.lat)) *
         Math.sin(dLng / 2) *
         Math.sin(dLng / 2);
 
@@ -275,7 +275,7 @@ class ClusteringService {
   /**
    * 将角度转换为弧度
    */
-  private toRadians(degrees: number): number {
+  private toRad(degrees: number): number {
     return degrees * (Math.PI / 180);
   }
 }

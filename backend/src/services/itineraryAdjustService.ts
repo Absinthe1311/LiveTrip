@@ -263,14 +263,14 @@ class ItineraryAdjustService {
       description: string;
     }>
   ): (typeof alternatives)[0] {
-    const targetLocation = this.parseLocation(targetAttraction.location);
+    const targetLocation = this.parseLoc(targetAttraction.location);
 
     let closest = alternatives[0];
     let minDistance = Infinity;
 
     for (const alt of alternatives) {
-      const altLocation = this.parseLocation(alt.location);
-      const distance = this.calculateDistance(targetLocation, altLocation);
+      const altLocation = this.parseLoc(alt.location);
+      const distance = this.calcDist(targetLocation, altLocation);
 
       if (distance < minDistance) {
         minDistance = distance;
@@ -285,7 +285,7 @@ class ItineraryAdjustService {
   /**
    * 解析经纬度字符串
    */
-  private parseLocation(location: string): { lng: number; lat: number } {
+  private parseLoc(location: string): { lng: number; lat: number } {
     const parts = location.split(',');
     if (parts.length !== 2) {
       console.warn(`⚠️  无效的经纬度格式: ${location}`);
@@ -307,19 +307,19 @@ class ItineraryAdjustService {
    * 计算两个经纬度之间的距离（单位：公里）
    * 使用 Haversine 公式
    */
-  private calculateDistance(
+  private calcDist(
     point1: { lng: number; lat: number },
     point2: { lng: number; lat: number }
   ): number {
     const R = 6371; // 地球半径（公里）
 
-    const dLat = this.toRadians(point2.lat - point1.lat);
-    const dLng = this.toRadians(point2.lng - point1.lng);
+    const dLat = this.toRad(point2.lat - point1.lat);
+    const dLng = this.toRad(point2.lng - point1.lng);
 
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRadians(point1.lat)) *
-        Math.cos(this.toRadians(point2.lat)) *
+      Math.cos(this.toRad(point1.lat)) *
+        Math.cos(this.toRad(point2.lat)) *
         Math.sin(dLng / 2) *
         Math.sin(dLng / 2);
 
@@ -332,7 +332,7 @@ class ItineraryAdjustService {
   /**
    * 将角度转换为弧度
    */
-  private toRadians(degrees: number): number {
+  private toRad(degrees: number): number {
     return degrees * (Math.PI / 180);
   }
 }

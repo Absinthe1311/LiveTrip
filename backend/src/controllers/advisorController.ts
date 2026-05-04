@@ -14,7 +14,7 @@ export const fetchMsgs = async (req: Request, res: Response) => {
       limit = parseInt(String(Array.isArray(lim) ? lim[0] : lim));
     }
 
-    const messages = await chatHistoryService.msgs({ sessionId, limit });
+    const messages = await chatHistoryService.fetchMsgs({ sessionId, limit });
     res.json({ success: true, data: messages });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message || '获取消息历史失败' });
@@ -28,7 +28,7 @@ export const userSessions = async (req: Request, res: Response) => {
       ? ((Array.isArray(modeQuery) ? modeQuery[0] : modeQuery) as 'advisor' | 'agent' | undefined)
       : undefined;
 
-    const sessions = await chatHistoryService.userSessions(userId, mode);
+    const sessions = await chatHistoryService.listChats(userId, mode);
     res.json({ success: true, data: sessions });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message || '获取会话列表失败' });
@@ -59,7 +59,7 @@ export const delSession = async (req: Request, res: Response) => {
       }
     }
 
-    await chatHistoryService.delSession(sessionId);
+    await chatHistoryService.dropChat(sessionId);
 
     res.json({ success: true, message: '会话已删除' });
   } catch (err: any) {
@@ -76,7 +76,7 @@ export const chatAdvisor = async (req: Request, res: Response) => {
     }
 
     const userId = (req.headers['x-user-id'] as string) || undefined;
-    const response = await advisorService.answerQuestion(
+    const response = await advisorService.answer(
       {
         question: question.trim(),
         planContext,

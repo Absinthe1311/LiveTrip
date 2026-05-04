@@ -34,7 +34,7 @@ class HotelRecommender {
    * @param budget 用户预算
    * @returns 推荐的酒店列表（3-5个）
    */
-  async hotelRecs(
+  async loadHotels(
     spots: Array<{ name: string; location: string }>,
     budget: number
   ): Promise<Hotel[]> {
@@ -44,10 +44,10 @@ class HotelRecommender {
       }
 
       // 步骤1: 计算所有景点的地理重心
-      const centerPoint = this.calculateCenterPoint(spots);
+      const centerPoint = this.calcCenter(spots);
 
       // 步骤2: 根据预算确定酒店档次
-      const hotelTier = this.getHotelTierByBudget(budget);
+      const hotelTier = this.budgetTier(budget);
 
       // 步骤3: 先从数据库查询附近酒店
       const cachedHotels = await hotelCacheService.getNearbyHotels(centerPoint, 5000, 30);
@@ -90,13 +90,13 @@ class HotelRecommender {
         }));
 
         // 从景点中推断城市
-        const city = this.inferCityFromSpots(spots);
-        await hotelCacheService.saveHotels(hotelCaches, city);
+        const city = this.guessCity(spots);
+        await hotelCacheService.storeHotels(hotelCaches, city);
         console.log(`💾 [数据库] 保存 ${hotels.length} 个酒店`);
       }
 
       // 步骤6: 根据档次过滤酒店
-      const filteredHotels = this.filterHotelsByTier(hotels, hotelTier);
+      const filteredHotels = this.filterByTier(hotels, hotelTier);
 
       // 步骤7: 计算每个酒店到各天景点的平均距离
       const hotelsWithDistance = filteredHotels.map((hotel) => {
@@ -106,7 +106,7 @@ class HotelRecommender {
           address: hotel.address,
           location: hotel.location,
           tel: hotel.tel,
-          type: this.mapHotelType(hotel.type),
+          type: this.mapType(hotel.type),
           rating: hotel.rating,
           avgDistance,
           distanceDetails,
@@ -114,7 +114,7 @@ class HotelRecommender {
       });
 
       // 步骤8: 综合评分排序
-      const sortedHotels = this.sortHotels(hotelsWithDistance);
+      const sortedHotels = this.orderHotels(hotelsWithDistance);
 
       // 步骤9: 返回5个推荐
       return sortedHotels.slice(0, Math.min(5, sortedHotels.length));
@@ -129,7 +129,7 @@ class HotelRecommender {
    * @param spots 景点列表
    * @returns 重心坐标 "lng,lat"
    */
-  private calculateCenterPoint(spots: Array<{ name: string; location: string }>): string {
+  private calcCenter(spots: Array<{ name: string; location: string }>): string {
     let sumLng = 0;
     let sumLat = 0;
 
@@ -150,7 +150,7 @@ class HotelRecommender {
    * @param budget 用户预算
    * @returns 酒店档次
    */
-  private getHotelTierByBudget(budget: number): HotelTier {
+  private budgetTier(budget: number): HotelTier {
     // 根据预算划分档次
     // 假设住宿占总预算的40%，按3晚计算
     const accommodationBudget = budget * 0.4;
@@ -171,7 +171,7 @@ class HotelRecommender {
    * @param tier 档次
    * @returns 过滤后的酒店列表
    */
-  private filterHotelsByTier(hotels: AmapAttraction[], tier: HotelTier): AmapAttraction[] {
+  private filterByTier(hotels: AmapAttraction[], tier: HotelTier): AmapAttraction[] {
     const tierKeywords: Record<HotelTier, string[]> = {
       economy: [
         '快捷',
@@ -237,7 +237,7 @@ class HotelRecommender {
    * @param type 高德POI type字段
    * @returns 档次名称
    */
-  private mapHotelType(type: string): string {
+  private mapType(type: string): string {
     if (type.includes('五星') || type.includes('5星') || type.includes('豪华')) {
       return '豪华型';
     } else if (type.includes('四星') || type.includes('4星')) {
@@ -265,7 +265,7 @@ class HotelRecommender {
     const distances: number[] = [];
 
     for (const spot of spots) {
-      const distance = amapServiceInstance.calculateDistance(hotel.location, spot.location);
+      const distance = amapServiceInstance.calcDist(hotel.location, spot.location);
       distances.push(distance);
     }
 
@@ -280,7 +280,7 @@ class HotelRecommender {
    * @param hotels 酒店列表
    * @returns 排序后的酒店列表
    */
-  private sortHotels(hotels: Hotel[]): Hotel[] {
+  private orderHotels(hotels: Hotel[]): Hotel[] {
     return hotels.sort((a, b) => {
       const maxDistance = Math.max(...hotels.map((h) => h.avgDistance));
       const minDistance = Math.min(...hotels.map((h) => h.avgDistance));
@@ -302,7 +302,7 @@ class HotelRecommender {
   /**
    * 从景点列表推断城市名称
    */
-  private inferCityFromSpots(spots: Array<{ name: string; location: string }>): string {
+  private guessCity(spots: Array<{ name: string; location: string }>): string {
     // 简单实现：返回默认城市
     // 实际应用中可以通过逆地理编码获取城市
     return '未知城市';

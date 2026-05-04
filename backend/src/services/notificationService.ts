@@ -36,7 +36,7 @@ class NotificationService {
   ): Promise<void> {
     try {
       // 构建通知标题和内容
-      const title = this.getNotificationTitle(sensorResult);
+      const title = this.notifTitle(sensorResult);
       const content = sensorResult.message;
 
       // 1. 站内通知（始终创建）
@@ -169,7 +169,7 @@ class NotificationService {
   /**
    * 获取通知标题
    */
-  private getNotificationTitle(result: SensorResult): string {
+  private notifTitle(result: SensorResult): string {
     const levelText =
       result.level === SensorLevel.DANGER
         ? '⚠️ 紧急'
@@ -191,7 +191,7 @@ class NotificationService {
   /**
    * 获取用户通知列表
    */
-  async getUserNotifications(
+  async fetchNotifs(
     userId: string,
     options: {
       limit?: number;
@@ -234,7 +234,7 @@ class NotificationService {
   /**
    * 标记通知为已读
    */
-  async markAsRead(notificationId: string, userId: string): Promise<void> {
+  async readNotif(notificationId: string, userId: string): Promise<void> {
     try {
       await prisma.notification.update({
         where: { id: notificationId, userId },
@@ -251,7 +251,7 @@ class NotificationService {
   /**
    * 标记所有通知为已读
    */
-  async markAllAsRead(userId: string): Promise<void> {
+  async readAll(userId: string): Promise<void> {
     try {
       await prisma.notification.updateMany({
         where: { userId, isRead: false },

@@ -49,7 +49,7 @@ class BudgetTrackingService {
   /**
    * 创建预算变更记录
    */
-  async createBudgetRecord(data: BudgetRecordData): Promise<BudgetUpdateResult> {
+  async addBudget(data: BudgetRecordData): Promise<BudgetUpdateResult> {
     try {
       // 获取当前行程的预算信息
       const trip = await prisma.trip.findUnique({
@@ -115,7 +115,7 @@ class BudgetTrackingService {
   /**
    * 调整总预算
    */
-  async adjustTotalBudget(
+  async modBudget(
     tripId: string,
     newBudget: number,
     reason: string
@@ -143,7 +143,7 @@ class BudgetTrackingService {
       });
 
       // 创建预算变更记录
-      const result = await this.createBudgetRecord({
+      const result = await this.addBudget({
         tripId,
         changeType: 'total_budget_adjusted',
         previousAmount: previousBudget,
@@ -163,7 +163,7 @@ class BudgetTrackingService {
   /**
    * 更新项目价格
    */
-  async updPrice(
+  async adjustPrice(
     tripId: string,
     category: BudgetCategory,
     itemName: string,
@@ -191,13 +191,13 @@ class BudgetTrackingService {
       });
 
       // 创建预算变更记录
-      const result = await this.createBudgetRecord({
+      const result = await this.addBudget({
         tripId,
         changeType: 'item_price_updated',
         category,
         previousAmount: previousPrice,
         newAmount: newPrice,
-        description: `更新${this.getCategoryName(category)}价格：${itemName}`,
+        description: `更新${this.catName(category)}价格：${itemName}`,
         relatedItemName: itemName,
       });
 
@@ -232,7 +232,7 @@ class BudgetTrackingService {
   /**
    * 获取实时预算状态
    */
-  async getRealTimeBudget(tripId: string): Promise<any> {
+  async liveBudget(tripId: string): Promise<any> {
     try {
       const trip = await prisma.trip.findUnique({
         where: { id: tripId },
@@ -287,7 +287,7 @@ class BudgetTrackingService {
   /**
    * 获取分类名称
    */
-  private getCategoryName(category: BudgetCategory): string {
+  private catName(category: BudgetCategory): string {
     const names: Record<BudgetCategory, string> = {
       transportation: '交通',
       accommodation: '住宿',

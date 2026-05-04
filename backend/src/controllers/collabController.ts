@@ -26,7 +26,7 @@ export const createRoom = async (req: Request, res: Response) => {
       });
     }
 
-    const result = await collabService.createRoom(tripId, userId);
+    const result = await collabService.newRoom(tripId, userId);
 
     res.json({
       success: true,
@@ -68,7 +68,7 @@ export const joinRoom = async (req: Request, res: Response) => {
       });
     }
 
-    const room = await collabService.joinRoom(token, userId);
+    const room = await collabService.enterRoom(token, userId);
 
     if (!room) {
       console.error('❌ 加入房间失败: 返回的房间数据为空');
@@ -118,7 +118,7 @@ export const getRoomInfo = async (req: Request, res: Response) => {
       });
     }
 
-    const room = await collabService.getRoomInfo(roomId);
+    const room = await collabService.roomInfo(roomId);
 
     res.json({
       success: true,
@@ -198,7 +198,7 @@ export const closeRoom = async (req: Request, res: Response) => {
       });
     }
 
-    const room = await collabService.closeRoom(roomId);
+    const room = await collabService.lock(roomId);
 
     // 广播房间锁定事件
     broadcastToRoom(roomId, 'room:lock', {
@@ -287,7 +287,7 @@ export const sendDraft = async (req: Request, res: Response) => {
       });
     }
 
-    const draft = await collabService.sendDraft(draftId, userId);
+    const draft = await collabService.pushDraft(draftId, userId);
 
     // 广播草案提交事件
     broadcastToRoom(draft.roomId, 'draft:submitted', {
@@ -325,7 +325,7 @@ export const myDrfts = async (req: Request, res: Response) => {
       });
     }
 
-    const drafts = await collabService.myDrfts(roomId, userId);
+    const drafts = await collabService.myDrafts(roomId, userId);
 
     res.json({
       success: true,
@@ -366,7 +366,7 @@ export const allDrafts = async (req: Request, res: Response) => {
     }
 
     // 获取房间信息
-    const room = await collabService.getRoomInfo(roomId);
+    const room = await collabService.roomInfo(roomId);
     if (!room) {
       return res.status(404).json({
         success: false,
@@ -377,7 +377,7 @@ export const allDrafts = async (req: Request, res: Response) => {
     // 获取所有成员的草案
     const allDrafts = await Promise.all(
       room.members.map(async (member) => {
-        const drafts = await collabService.myDrfts(roomId, member.userId);
+        const drafts = await collabService.myDrafts(roomId, member.userId);
         return {
           userId: member.userId,
           username: member.user.username,
@@ -422,7 +422,7 @@ export const msgSend = async (req: Request, res: Response) => {
       });
     }
 
-    const message = await collabService.msgSend(roomId, userId, content);
+    const message = await collabService.sendMsg(roomId, userId, content);
 
     // 广播新消息事件
     broadcastToRoom(roomId, 'message:new', message);
@@ -465,7 +465,7 @@ export const msgs = async (req: Request, res: Response) => {
       });
     }
 
-    const messages = await collabService.msgs(roomId);
+    const messages = await collabService.loadMsgs(roomId);
 
     res.json({
       success: true,
@@ -515,7 +515,7 @@ export const commitTrip = async (req: Request, res: Response) => {
     }
 
     // 获取房间信息
-    const room = await collabService.getRoomInfo(roomId);
+    const room = await collabService.roomInfo(roomId);
     if (!room) {
       return res.status(404).json({
         success: false,

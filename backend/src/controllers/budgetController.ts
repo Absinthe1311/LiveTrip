@@ -12,7 +12,7 @@ export const budgetStats = async (req: Request, res: Response) => {
   try {
     const tripId = req.params.tripId as string;
 
-    const budgetInfo = await budgetTrackingService.getRealTimeBudget(tripId);
+    const budgetInfo = await budgetTrackingService.liveBudget(tripId);
 
     if (!budgetInfo) {
       return res.status(404).json({
@@ -50,7 +50,7 @@ export const modBudget = async (req: Request, res: Response) => {
       });
     }
 
-    const result = await budgetTrackingService.adjustTotalBudget(tripId, newBudget, reason);
+    const result = await budgetTrackingService.modBudget(tripId, newBudget, reason);
 
     if (!result.success) {
       return res.status(400).json({
@@ -88,7 +88,7 @@ export const updPrice = async (req: Request, res: Response) => {
       });
     }
 
-    const result = await budgetTrackingService.updPrice(
+    const result = await budgetTrackingService.adjustPrice(
       tripId,
       category as BudgetCategory,
       itemName,

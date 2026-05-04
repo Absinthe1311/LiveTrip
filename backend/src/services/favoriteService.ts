@@ -45,7 +45,7 @@ export interface FavoriteSpotWithIoT extends FavoriteSpot {
 /**
  * 获取用户的所有收藏景点
  */
-export async function getUserFavorites(userId: string = 'default-user'): Promise<FavoriteSpot[]> {
+export async function listFavs(userId: string = 'default-user'): Promise<FavoriteSpot[]> {
   try {
     const favorites = await prisma.favorite.findMany({
       where: {
@@ -69,7 +69,7 @@ export async function getUserFavorites(userId: string = 'default-user'): Promise
 /**
  * 获取用户的所有收藏景点（包含IoT数据）
  */
-export async function getUserFavoritesWithIoT(
+export async function favsWithData(
   userId: string = 'default-user'
 ): Promise<FavoriteSpotWithIoT[]> {
   try {
@@ -100,7 +100,7 @@ export async function getUserFavoritesWithIoT(
 /**
  * 添加收藏
  */
-export async function addFavorite(
+export async function addFav(
   spotId: string,
   userId: string = 'default-user',
   notes?: string
@@ -196,7 +196,7 @@ export async function addFavorite(
 /**
  * 取消收藏
  */
-export async function removeFavorite(
+export async function delFav(
   spotId: string,
   userId: string = 'default-user'
 ): Promise<void> {
@@ -218,7 +218,7 @@ export async function removeFavorite(
 /**
  * 检查是否已收藏
  */
-export async function isFavorite(
+export async function isFaved(
   spotId: string,
   userId: string = 'default-user'
 ): Promise<boolean> {
@@ -242,7 +242,7 @@ export async function isFavorite(
 /**
  * 获取收藏数量
  */
-export async function getFavoriteCount(userId: string = 'default-user'): Promise<number> {
+export async function favCount(userId: string = 'default-user'): Promise<number> {
   try {
     const count = await prisma.favorite.count({
       where: {

@@ -149,7 +149,7 @@ class AgentService {
   /**
    * 调用智谱AI API（支持 Function Calling，带重试机制）
    */
-  private async callZhipuAI(
+  private async aiCall(
     messages: any[],
     tools?: any[],
     toolChoice: any = 'auto',
@@ -421,7 +421,7 @@ class AgentService {
   private async buildSystemPrompt(userId?: string): Promise<string> {
     // ✅ 重新启用用户画像
     const startTime = Date.now();
-    const userProfile = await userProfileService.getUserProfile(userId);
+    const userProfile = await userProfileService.loadProfile(userId);
     const profilePrompt = userProfileService.formatProfileAsPrompt(userProfile);
     const elapsed = Date.now() - startTime;
     console.log(`⏱️  用户画像注入耗时: ${elapsed}ms`);
@@ -612,9 +612,9 @@ ${profilePrompt}
       console.log('   参数:', JSON.stringify(params, null, 2));
 
       // 1. 参数检查和追问
-      const missingParams = this.checkMissingTripParams(params);
+      const missingParams = this.chkParams(params);
       if (missingParams.length > 0) {
-        const question = this.generateParamQuestion(missingParams);
+        const question = this.askParam(missingParams);
         return {
           success: false,
           needsMoreInfo: true,
@@ -703,7 +703,7 @@ ${profilePrompt}
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + 24);
 
-        await chatHistoryService.updateSessionTempData(sessionId, {
+        await chatHistoryService.setTemp(sessionId, {
           type: 'trip_draft' as any,
           tripId: trip.id,
           data: previewData,
@@ -738,7 +738,7 @@ ${profilePrompt}
   /**
    * 检查缺失的行程参数
    */
-  private checkMissingTripParams(params: any): string[] {
+  private chkParams(params: any): string[] {
     const missing: string[] = [];
 
     if (!params.destination) {
@@ -755,7 +755,7 @@ ${profilePrompt}
   /**
    * 生成参数追问问题
    */
-  private generateParamQuestion(missingParams: string[]): string {
+  private askParam(missingParams: string[]): string {
     const questions: string[] = [];
 
     for (const param of missingParams) {
@@ -900,7 +900,7 @@ ${profilePrompt}
   /**
    * ✅ 任务A: 参数验证函数 - 返回结构化验证结果
    */
-  private validateCreateTripParams(params: any): {
+  private chkTripParams(params: any): {
     valid: boolean;
     needsMoreInfo?: boolean;
     message?: string;
@@ -989,7 +989,7 @@ ${profilePrompt}
       console.log('🗓️  创建行程（AI 推荐）:', params);
 
       // ✅ 任务A: 使用结构化参数验证
-      const validation = this.validateCreateTripParams(params);
+      const validation = this.chkTripParams(params);
 
       if (!validation.valid) {
         return {
@@ -1077,7 +1077,7 @@ ${profilePrompt}
         const recommendation = await aiRecommender.recommendTrip({
           destination: params.destination,
           days: daysDiff,
-          preferences: params.preferences ? this.parsePreferences(params.preferences) : undefined,
+          preferences: params.preferences ? this.readPrefs(params.preferences) : undefined,
           budget: params.budget,
           mustVisitSpots: params.mustVisitSpots,
           userId: userId,
@@ -1480,7 +1480,7 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
       try {
         const aiStartTime = Date.now();
         stepCallback?.('🤖 正在调用AI生成博客正文...');
-        const result = await this.callZhipuAI(
+        const result = await this.aiCall(
           [
             {
               role: 'system',
@@ -1508,7 +1508,7 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
         let blogContent = result.choices[0]?.message?.content || '';
 
         // 后处理：清理AI应答语和格式问题
-        blogContent = this.cleanBlogContent(blogContent);
+        blogContent = this.cleanBlog(blogContent);
 
         // Markdown转HTML（前端用dangerouslySetInnerHTML渲染，需要HTML格式）
         const blogContentHtml = marked(blogContent) as string;
@@ -1558,7 +1558,7 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
           const expiresAt = new Date();
           expiresAt.setHours(expiresAt.getHours() + 24); // 24小时后过期
 
-          await chatHistoryService.updateSessionTempData(lastSessionId, {
+          await chatHistoryService.setTemp(lastSessionId, {
             type: 'blog_draft' as any,
             blogId: blog.id,
             data: blogPreviewData,
@@ -1881,7 +1881,7 @@ ${blogContent.substring(0, 200)}...
   /**
    * 清理博客内容：去除AI应答语、分隔线等非正文内容
    */
-  private cleanBlogContent(content: string): string {
+  private cleanBlog(content: string): string {
     if (!content) return content;
 
     let cleaned = content;
@@ -1945,18 +1945,18 @@ ${blogContent.substring(0, 200)}...
 
     try {
       // 获取或创建 Agent 会话
-      const session = await chatHistoryService.getOrCreateAgentSession(userId);
+      const session = await chatHistoryService.agentSession(userId);
       console.log(`   会话ID: ${session.id}`);
 
       // 保存用户消息
-      await chatHistoryService.createMessage({
+      await chatHistoryService.newMsg({
         sessionId: session.id,
         role: 'user',
         content: question,
       });
 
       // ✅ P2优化: 减少历史消息数量（从 10 条减少到 5 条）
-      const messageHistory = await chatHistoryService.msgs({
+      const messageHistory = await chatHistoryService.fetchMsgs({
         sessionId: session.id,
         limit: 5,
       });
@@ -1991,7 +1991,7 @@ ${blogContent.substring(0, 200)}...
 
       if (isConfirm || isCancel) {
         // 检查会话中是否有待确认的临时数据
-        const sessionData = await chatHistoryService.getSession(session.id);
+        const sessionData = await chatHistoryService.getChat(session.id);
         if (sessionData?.tempData) {
           const tempData =
             typeof sessionData.tempData === 'string'
@@ -2010,7 +2010,7 @@ ${blogContent.substring(0, 200)}...
                 ? confirmResult.data?.message || '操作成功'
                 : confirmResult.error || '操作失败';
 
-              await chatHistoryService.createMessage({
+              await chatHistoryService.newMsg({
                 sessionId: session.id,
                 role: 'assistant',
                 content: finalAnswer,
@@ -2023,10 +2023,10 @@ ${blogContent.substring(0, 200)}...
             }
           } else if (isCancel) {
             console.log('\n❌ [检测到用户取消操作，直接执行]');
-            const cancelResult = await this.cancelDraft(session.id);
+            const cancelResult = await this.dropDraft(session.id);
             const finalAnswer = cancelResult.success ? '已取消' : cancelResult.error || '取消失败';
 
-            await chatHistoryService.createMessage({
+            await chatHistoryService.newMsg({
               sessionId: session.id,
               role: 'assistant',
               content: finalAnswer,
@@ -2045,7 +2045,7 @@ ${blogContent.substring(0, 200)}...
       console.log('   用户问题:', question);
       console.log('   消息数量:', messages.length);
 
-      const result = await this.callZhipuAI(
+      const result = await this.aiCall(
         messages,
         this.getTools(),
         'auto' // 让 AI 自动决定是否调用工具
@@ -2090,7 +2090,7 @@ ${blogContent.substring(0, 200)}...
         emitStep(stepMap[toolName] || '🔧 正在执行操作...');
 
         // 保存包含工具调用的 assistant 消息
-        await chatHistoryService.createMessage({
+        await chatHistoryService.newMsg({
           sessionId: session.id,
           role: 'assistant',
           content: answer,
@@ -2122,7 +2122,7 @@ ${blogContent.substring(0, 200)}...
 
         // ✅ 优化: 检查是否是用户确认操作，直接执行而不调用AI
         const lastUserMessage = messages.filter((m) => m.role === 'user').pop()?.content || '';
-        const isConfirmAction = this.checkIfConfirmAction(lastUserMessage, toolCallResults);
+        const isConfirmAction = this.chkConfirm(lastUserMessage, toolCallResults);
 
         if (isConfirmAction) {
           console.log('\n✅ [检测到用户确认操作，直接执行]');
@@ -2150,7 +2150,7 @@ ${blogContent.substring(0, 200)}...
             console.log('\n🔄 [需要AI继续处理多步骤任务]');
 
             // 再次调用AI，让它决定下一步操作
-            const continueResult = await this.callZhipuAI(messages, this.getTools(), 'auto');
+            const continueResult = await this.aiCall(messages, this.getTools(), 'auto');
 
             const continueMessage = continueResult.choices[0]?.message;
 
@@ -2190,7 +2190,7 @@ ${blogContent.substring(0, 200)}...
           : finalToolResult?.error || '操作失败';
 
         // 保存最终回复
-        await chatHistoryService.createMessage({
+        await chatHistoryService.newMsg({
           sessionId: session.id,
           role: 'assistant',
           content: finalAnswer,
@@ -2205,7 +2205,7 @@ ${blogContent.substring(0, 200)}...
       }
 
       // 没有工具调用，直接返回 AI 回复
-      await chatHistoryService.createMessage({
+      await chatHistoryService.newMsg({
         sessionId: session.id,
         role: 'assistant',
         content: answer,
@@ -2225,7 +2225,7 @@ ${blogContent.substring(0, 200)}...
   /**
    * 检查是否是用户确认操作
    */
-  private checkIfConfirmAction(userMessage: string, toolCallResults: any[]): boolean {
+  private chkConfirm(userMessage: string, toolCallResults: any[]): boolean {
     const confirmKeywords = ['确认', '发布', '好的', '是的', '保存', '同意'];
     const isConfirm = confirmKeywords.some((keyword) => userMessage.includes(keyword));
 
@@ -2262,7 +2262,7 @@ ${blogContent.substring(0, 200)}...
         return null;
       }
 
-      const session = await chatHistoryService.getSession(sessionId);
+      const session = await chatHistoryService.getChat(sessionId);
       if (!session || !session.tempData) {
         return {
           success: false,
@@ -2276,10 +2276,10 @@ ${blogContent.substring(0, 200)}...
       // 根据临时数据类型执行相应操作
       if (tempData.type === 'blog_draft') {
         // 发布博客
-        return await this.confirmBlogPublish(sessionId, userId);
+        return await this.confirmPost(sessionId, userId);
       } else if (tempData.type === 'trip_draft') {
         // 保存行程
-        return await this.confirmTrip(sessionId, userId);
+        return await this.saveTrip(sessionId, userId);
       }
 
       return null;
@@ -2346,7 +2346,7 @@ ${blogContent.substring(0, 200)}...
   /**
    * 解析用户偏好字符串，转换为类别数组
    */
-  private parsePreferences(preferences: string | undefined): string[] {
+  private readPrefs(preferences: string | undefined): string[] {
     if (!preferences) {
       return [];
     }
@@ -2383,7 +2383,7 @@ ${blogContent.substring(0, 200)}...
   /**
    * 从位置字符串中解析纬度
    */
-  private parseLatitude(location: string): number | null {
+  private parseLat(location: string): number | null {
     try {
       const coords = location.split(',');
       if (coords.length === 2) {
@@ -2398,7 +2398,7 @@ ${blogContent.substring(0, 200)}...
   /**
    * 从位置字符串中解析经度
    */
-  private parseLongitude(location: string): number | null {
+  private parseLng(location: string): number | null {
     try {
       const coords = location.split(',');
       if (coords.length === 2) {
@@ -2429,13 +2429,13 @@ ${blogContent.substring(0, 200)}...
     ) {
       // 1. 目的地推断
       if (!completedParams.destination) {
-        completedParams.destination = this.inferDestination(userMessage);
+        completedParams.destination = this.guessDest(userMessage);
         console.log('   ✅ 推断目的地:', completedParams.destination);
       }
 
       // 2. 日期推断
       if (!completedParams.startDate || !completedParams.endDate) {
-        const dateInfo = this.inferDates(userMessage);
+        const dateInfo = this.guessDates(userMessage);
         if (!completedParams.startDate) {
           completedParams.startDate = dateInfo.startDate;
         }
@@ -2445,7 +2445,7 @@ ${blogContent.substring(0, 200)}...
         console.log('   ✅ 推断日期:', completedParams.startDate, '至', completedParams.endDate);
       } else if (completedParams.startDate && !completedParams.endDate) {
         // 只有开始日期，推断结束日期
-        const days = this.inferDays(userMessage);
+        const days = this.guessDays(userMessage);
         const startDate = parseDate(completedParams.startDate);
         const endDate = new Date(startDate);
         endDate.setDate(endDate.getDate() + days - 1);
@@ -2455,19 +2455,19 @@ ${blogContent.substring(0, 200)}...
 
       // 3. 预算推断
       if (!completedParams.budget) {
-        completedParams.budget = this.inferBudget(userMessage);
+        completedParams.budget = this.guessBudget(userMessage);
         console.log('   ✅ 推断预算:', completedParams.budget);
       }
 
       // 4. 人数推断
       if (!completedParams.travelers && !completedParams.groupSize) {
-        completedParams.travelers = this.inferTravelers(userMessage);
+        completedParams.travelers = this.guessTravelers(userMessage);
         console.log('   ✅ 推断人数:', completedParams.travelers);
       }
 
       // 5. 偏好推断
       if (!completedParams.preferences) {
-        completedParams.preferences = this.inferPreferences(userMessage);
+        completedParams.preferences = this.guessPrefs(userMessage);
         console.log('   ✅ 推断偏好:', completedParams.preferences);
       }
     }
@@ -2479,7 +2479,7 @@ ${blogContent.substring(0, 200)}...
   /**
    * 推断目的地
    */
-  private inferDestination(message: string): string {
+  private guessDest(message: string): string {
     const cityKeywords = [
       '北京',
       '上海',
@@ -2520,7 +2520,7 @@ ${blogContent.substring(0, 200)}...
   /**
    * 推断日期
    */
-  private inferDates(message: string): { startDate: string; endDate: string } {
+  private guessDates(message: string): { startDate: string; endDate: string } {
     const today = new Date();
     let startDate = new Date(today);
     let days = 3; // 默认 3 天
@@ -2576,7 +2576,7 @@ ${blogContent.substring(0, 200)}...
     }
 
     // 推断天数
-    days = this.inferDays(message);
+    days = this.guessDays(message);
 
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + days - 1);
@@ -2590,7 +2590,7 @@ ${blogContent.substring(0, 200)}...
   /**
    * 推断天数
    */
-  private inferDays(message: string): number {
+  private guessDays(message: string): number {
     if (message.includes('三天') || message.includes('3天')) return 3;
     if (message.includes('两天') || message.includes('2天') || message.includes('二天')) return 2;
     if (message.includes('四天') || message.includes('4天')) return 4;
@@ -2610,7 +2610,7 @@ ${blogContent.substring(0, 200)}...
   /**
    * 推断预算
    */
-  private inferBudget(message: string): number {
+  private guessBudget(message: string): number {
     const budgetMatch =
       message.match(/预算[在约]?(\d+)/) ||
       message.match(/(\d+)\s*元/) ||
@@ -2632,7 +2632,7 @@ ${blogContent.substring(0, 200)}...
   /**
    * 推断人数
    */
-  private inferTravelers(message: string): number {
+  private guessTravelers(message: string): number {
     if (
       message.includes('一个人') ||
       message.includes('独自') ||
@@ -2661,7 +2661,7 @@ ${blogContent.substring(0, 200)}...
   /**
    * 推断偏好
    */
-  private inferPreferences(message: string): string {
+  private guessPrefs(message: string): string {
     if (
       message.includes('历史') ||
       message.includes('文化') ||
@@ -2691,7 +2691,7 @@ ${blogContent.substring(0, 200)}...
   /**
    * ✅ P0优化: 错误格式化 - 将技术错误转换为用户友好的提示
    */
-  private formatError(error: any): string {
+  private fmtErr(error: any): string {
     console.error('❌ 原始错误:', error);
 
     let errorType: ErrorType;
@@ -2775,10 +2775,10 @@ ${blogContent.substring(0, 200)}...
 
       switch (params.action) {
         case 'save_trip':
-          return await this.confirmTrip(sessionId, userId);
+          return await this.saveTrip(sessionId, userId);
 
         case 'publish_blog':
-          return await this.confirmBlogPublish(sessionId, userId);
+          return await this.confirmPost(sessionId, userId);
 
         default:
           return {
@@ -2820,13 +2820,13 @@ ${blogContent.substring(0, 200)}...
   /**
    * 确认保存行程
    */
-  async confirmTrip(sessionId: string, userId?: string): Promise<ToolExecutionResult> {
+  async saveTrip(sessionId: string, userId?: string): Promise<ToolExecutionResult> {
     try {
       console.log('\n✅ [确认保存行程]');
       console.log('   会话ID:', sessionId);
 
       // 获取会话临时数据
-      const session = await chatHistoryService.getSession(sessionId);
+      const session = await chatHistoryService.getChat(sessionId);
       if (!session || !session.tempData) {
         return {
           success: false,
@@ -2858,7 +2858,7 @@ ${blogContent.substring(0, 200)}...
         });
 
         // 清除临时数据
-        await chatHistoryService.clearSessionTempData(sessionId);
+        await chatHistoryService.clearTemp(sessionId);
 
         console.log('   ✅ 行程确认成功（状态 draft→planning）:', trip.id);
 
@@ -2916,7 +2916,7 @@ ${blogContent.substring(0, 200)}...
       }
 
       // 清除临时数据
-      await chatHistoryService.clearSessionTempData(sessionId);
+      await chatHistoryService.clearTemp(sessionId);
 
       console.log('   ✅ 行程保存成功:', trip.id);
 
@@ -2939,13 +2939,13 @@ ${blogContent.substring(0, 200)}...
   /**
    * 确认发布博客
    */
-  async confirmBlogPublish(sessionId: string, userId?: string): Promise<ToolExecutionResult> {
+  async confirmPost(sessionId: string, userId?: string): Promise<ToolExecutionResult> {
     try {
       console.log('\n✅ [确认发布博客]');
       console.log('   会话ID:', sessionId);
 
       // 获取会话临时数据
-      const session = await chatHistoryService.getSession(sessionId);
+      const session = await chatHistoryService.getChat(sessionId);
       if (!session || !session.tempData) {
         return {
           success: false,
@@ -3006,7 +3006,7 @@ ${blogContent.substring(0, 200)}...
       });
 
       // 清除临时数据
-      await chatHistoryService.clearSessionTempData(sessionId);
+      await chatHistoryService.clearTemp(sessionId);
 
       console.log('   ✅ 博客发布成功:', updatedBlog.id);
 
@@ -3040,13 +3040,13 @@ ${blogContent.substring(0, 200)}...
   /**
    * 取消草稿
    */
-  async cancelDraft(sessionId: string): Promise<ToolExecutionResult> {
+  async dropDraft(sessionId: string): Promise<ToolExecutionResult> {
     try {
       console.log('\n❌ [取消草稿]');
       console.log('   会话ID:', sessionId);
 
       // 获取会话临时数据，清理 draft 行程
-      const session = await chatHistoryService.getSession(sessionId);
+      const session = await chatHistoryService.getChat(sessionId);
       if (session && session.tempData) {
         const tempData =
           typeof session.tempData === 'string' ? JSON.parse(session.tempData) : session.tempData;
@@ -3082,7 +3082,7 @@ ${blogContent.substring(0, 200)}...
       }
 
       // 清除临时数据
-      await chatHistoryService.clearSessionTempData(sessionId);
+      await chatHistoryService.clearTemp(sessionId);
 
       console.log('   ✅ 草稿已取消');
 

@@ -23,7 +23,7 @@ export class BlogController {
         return;
       }
 
-      const blog = await blogService.addBlog({
+      const blog = await blogService.newBlog({
         userId,
         title,
         content,
@@ -103,7 +103,7 @@ export class BlogController {
       const { id } = req.params;
       const idStr = Array.isArray(id) ? id[0] : id;
 
-      const blog = await blogService.loadBlogId(idStr);
+      const blog = await blogService.getPost(idStr);
 
       if (!blog) {
         res.status(404).json({
@@ -135,7 +135,7 @@ export class BlogController {
       const { id } = req.params;
       const idStr = Array.isArray(id) ? id[0] : id;
 
-      await blogService.incViews(idStr);
+      await blogService.bumpView(idStr);
 
       res.status(200).json({
         success: true,
@@ -168,7 +168,7 @@ export class BlogController {
       }
 
       const idStr = Array.isArray(id) ? id[0] : id;
-      const blog = await blogService.updBlog(idStr, userId, {
+      const blog = await blogService.editPost(idStr, userId, {
         title,
         content,
         coverImage,
@@ -258,7 +258,7 @@ export class BlogController {
       }
 
       const postIdStr = Array.isArray(postId) ? postId[0] : postId;
-      const result = await blogService.blogLike(postIdStr, userId);
+      const result = await blogService.Like(postIdStr, userId);
 
       res.status(200).json({
         success: true,
@@ -292,7 +292,7 @@ export class BlogController {
       }
 
       const postIdStr = Array.isArray(postId) ? postId[0] : postId;
-      const comment = await blogService.addCmt(postIdStr, userId, content);
+      const comment = await blogService.cmtAdd(postIdStr, userId, content);
 
       res.status(201).json({
         success: true,
@@ -326,7 +326,7 @@ export class BlogController {
       }
 
       const commentIdStr = Array.isArray(commentId) ? commentId[0] : commentId;
-      const success = await blogService.delCmt(commentIdStr, userId);
+      const success = await blogService.removeCmt(commentIdStr, userId);
 
       if (success) {
         res.status(200).json({
@@ -366,7 +366,7 @@ export class BlogController {
       }
 
       const commentIdStr = Array.isArray(commentId) ? commentId[0] : commentId;
-      const result = await blogService.likeCmt(commentIdStr, userId);
+      const result = await blogService.cmtLike(commentIdStr, userId);
 
       res.status(200).json({
         success: true,

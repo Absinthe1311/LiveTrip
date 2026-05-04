@@ -130,7 +130,7 @@ class EnvironmentSensorService {
     if (!spot || !spot.iotData) return null;
 
     // 检查是否为户外景点
-    const isOutdoor = this.isOutdoorAttraction(spot);
+    const isOutdoor = this.isOutdoor(spot);
     if (this.ruleConfig.rain.outdoorOnly && !isOutdoor) return null;
 
     // 获取降雨概率
@@ -288,7 +288,7 @@ class EnvironmentSensorService {
   /**
    * 判断是否为户外景点
    */
-  private isOutdoorAttraction(spot: any): boolean {
+  private isOutdoor(spot: any): boolean {
     const type = spot.type || spot.description || '';
     const outdoorTypes = [
       '公园',
@@ -310,7 +310,7 @@ class EnvironmentSensorService {
   /**
    * 记录感知日志到数据库
    */
-  async logSensorResult(result: SensorResult): Promise<void> {
+  async logSense(result: SensorResult): Promise<void> {
     try {
       await prisma.environmentSensorLog.create({
         data: {
@@ -331,9 +331,9 @@ class EnvironmentSensorService {
   /**
    * 批量记录感知日志
    */
-  async logSensorResults(results: SensorResult[]): Promise<void> {
+  async logMany(results: SensorResult[]): Promise<void> {
     for (const result of results) {
-      await this.logSensorResult(result);
+      await this.logSense(result);
     }
   }
 }

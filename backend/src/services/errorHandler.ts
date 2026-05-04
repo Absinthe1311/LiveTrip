@@ -48,10 +48,10 @@ class ErrorHandler {
     fallback?: FallbackStrategy
   ): Promise<{ success: boolean; result?: any; errorInfo?: ErrorInfo }> {
     // 确定错误类型
-    const errorType = this.determineErrorType(error);
+    const errorType = this.errorKind(error);
 
     // 确定错误严重程度
-    const severity = this.determineErrorSeverity(error, errorType);
+    const severity = this.errServerity(error, errorType);
 
     // 创建错误信息
     const errorInfo: ErrorInfo = {
@@ -73,7 +73,7 @@ class ErrorHandler {
     }
 
     // 记录错误
-    this.recordError(errorInfo);
+    this.logErr(errorInfo);
 
     // 如果有回退策略，尝试执行
     if (fallback) {
@@ -97,7 +97,7 @@ class ErrorHandler {
   /**
    * 确定错误类型
    */
-  private determineErrorType(error: any): ErrorType {
+  private errorKind(error: any): ErrorType {
     if (error.response) {
       // HTTP 错误
       return ErrorType.API_ERROR;
@@ -119,7 +119,7 @@ class ErrorHandler {
   /**
    * 确定错误严重程度
    */
-  private determineErrorSeverity(error: any, errorType: ErrorType): ErrorSeverity {
+  private errServerity(error: any, errorType: ErrorType): ErrorSeverity {
     // 根据错误类型和内容判断严重程度
     if (errorType === ErrorType.VALIDATION_ERROR) {
       return ErrorSeverity.HIGH; // 验证错误通常需要用户干预
@@ -140,7 +140,7 @@ class ErrorHandler {
   /**
    * 记录错误
    */
-  private recordError(errorInfo: ErrorInfo): void {
+  private logErr(errorInfo: ErrorInfo): void {
     this.errors.push(errorInfo);
 
     // 限制错误记录数量
@@ -169,7 +169,7 @@ class ErrorHandler {
   /**
    * 获取错误统计
    */
-  getErrorStats(): {
+  errStats(): {
     total: number;
     byType: Record<ErrorType, number>;
     bySeverity: Record<ErrorSeverity, number>;
@@ -212,7 +212,7 @@ class ErrorHandler {
   /**
    * 验证行程数据
    */
-  validateItinerary(itinerary: FullItinerary): {
+  chkPlan(itinerary: FullItinerary): {
     valid: boolean;
     errors: string[];
     warnings: string[];
@@ -276,7 +276,7 @@ class ErrorHandler {
   /**
    * 生成简化版行程（回退方案）
    */
-  generateFallbackItinerary(originalItinerary: FullItinerary): FullItinerary {
+  backupTrip(originalItinerary: FullItinerary): FullItinerary {
     console.log('\n🔄 生成简化版行程作为回退方案...');
 
     // 简化策略：每天只保留前2个景点
@@ -318,8 +318,8 @@ class ErrorHandler {
   /**
    * 生成错误报告
    */
-  generateErrorReport(): string {
-    const stats = this.getErrorStats();
+  errReport(): string {
+    const stats = this.errStats();
     const recentErrors = this.errors.slice(-5); // 最近5条错误
 
     let report = '\n📊 错误统计报告\n';

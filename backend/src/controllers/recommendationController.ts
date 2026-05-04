@@ -80,7 +80,7 @@ export const hotelRecs = async (req: Request, res: Response) => {
     console.log('📡 [高德API] 酒店推荐 - 景点:', spots.length, '预算:', budget);
 
     // 调用酒店推荐服务
-    const hotels = await hotelRecommender.hotelRecs(spots, budget);
+    const hotels = await hotelRecommender.loadHotels(spots, budget);
 
     console.log(`✅ [高德API] 酒店推荐成功 - 返回 ${hotels.length} 个结果`);
 
@@ -221,7 +221,7 @@ export const restaurantRecs = async (req: Request, res: Response) => {
     console.log('📡 [高德API] 餐厅推荐 - 天数:', days.length);
 
     // 调用餐厅推荐服务
-    const recommendations = await restaurantRecommender.restaurantRecs(days);
+    const recommendations = await restaurantRecommender.ResRec(days);
 
     console.log(`✅ [高德API] 餐厅推荐成功 - 返回 ${recommendations.length} 天的结果`);
 
@@ -347,7 +347,7 @@ export const findRestaurant = async (req: Request, res: Response) => {
           type: r.type,
           rating: r.rating,
         }));
-        await restaurantCacheService.saveRestaurants(restaurantCaches, city);
+        await restaurantCacheService.storeRes(restaurantCaches, city);
         console.log(`💾 [数据库] 保存 ${finalRestaurants.length} 个餐厅到缓存`);
       }
 
@@ -430,7 +430,7 @@ export const findHotel = async (req: Request, res: Response) => {
         type: h.type,
         rating: h.rating,
       }));
-      await hotelCacheService.saveHotels(hotelCaches, city);
+      await hotelCacheService.storeHotels(hotelCaches, city);
       console.log(`💾 [数据库] 保存 ${finalHotels.length} 个酒店到缓存`);
     }
 

@@ -96,7 +96,7 @@ export class AdminController {
 
     for (const file of files) {
       const result = await imageService
-        .imgUpload(
+        .uploadPic(
           spotIdStr,
           {
             buffer: file.buffer,
@@ -198,7 +198,7 @@ export class AdminController {
     const { imageId } = req.params;
     const imageIdStr = typeof imageId === 'string' ? imageId : imageId[0];
 
-    const ok = await imageService.setAsPrimary(imageIdStr, userId, 'admin').catch((err) => {
+    const ok = await imageService.setMain(imageIdStr, userId, 'admin').catch((err) => {
       console.error('设置主图失败:', err);
       res.status(500).json({ success: false, message: '设置主图失败' });
       return null;

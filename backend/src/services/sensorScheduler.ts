@@ -3,8 +3,8 @@ import cron from 'node-cron';
 import { PrismaClient } from '@prisma/client';
 import { environmentSensorService, SensorLevel } from './environmentSensorService';
 import { notificationService, NotificationChannel } from './notificationService';
-import { getBatchWeatherData } from './weatherService';
-import { getBatchCrowdData, updateSpotIoTData } from './crowdSimulator';
+import { batchWeather } from './weatherService';
+import { batchCrowd, spotIoTUpd } from './crowdSimulator';
 import {
   batchDetectAndNotify,
   recordIoTStatus,
@@ -80,11 +80,11 @@ class SensorScheduler {
 
       // 并行获取天气数据
       console.log('🌤️  更新天气数据...');
-      const weatherMap = await getBatchWeatherData(spotIds);
+      const weatherMap = await batchWeather(spotIds);
 
       // 并行获取人流数据
       console.log('👥 更新人流数据...');
-      const crowdMap = await getBatchCrowdData(spotIds);
+      const crowdMap = await batchCrowd(spotIds);
 
       // 更新数据库
       let updateCount = 0;
@@ -93,7 +93,7 @@ class SensorScheduler {
         const crowd = crowdMap.get(spotId);
 
         if (weather && crowd) {
-          await updateSpotIoTData(spotId, crowd, {
+          await spotIoTUpd(spotId, crowd, {
             temperature: weather.temperature,
             rainProbability: weather.rainProbability,
             weatherDescription: weather.description,
@@ -184,7 +184,7 @@ class SensorScheduler {
 
         // 保留原有感知逻辑（用于日志记录）
         const sensorResults = await environmentSensorService.sense(spotIds);
-        await environmentSensorService.logSensorResults(sensorResults);
+        await environmentSensorService.logMany(sensorResults);
       }
 
       console.log('✅ 用户行程环境感知完成');
@@ -218,7 +218,7 @@ class SensorScheduler {
       const sensorResults = await environmentSensorService.sense(spotIds);
 
       // 记录感知日志
-      await environmentSensorService.logSensorResults(sensorResults);
+      await environmentSensorService.logMany(sensorResults);
 
       console.log('✅ 全局环境感知完成');
     } catch (error) {
@@ -301,12 +301,12 @@ class SensorScheduler {
   /**
    * 手动触发感知（用于测试）
    */
-  async triggerManualSensing(spotIds?: string[]): Promise<void> {
+  async fireSense(spotIds?: string[]): Promise<void> {
     console.log('\n🔧 手动触发环境感知...');
 
     if (spotIds && spotIds.length > 0) {
       const results = await environmentSensorService.sense(spotIds);
-      await environmentSensorService.logSensorResults(results);
+      await environmentSensorService.logMany(results);
       console.log(`✅ 手动感知完成，发现 ${results.length} 个感知结果`);
     } else {
       await this.runGlobalSensing();

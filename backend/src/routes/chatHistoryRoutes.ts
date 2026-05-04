@@ -13,7 +13,7 @@ router.get('/sessions', async (req: Request, res: Response) => {
     const userId = (req as any).user?.id;
     const mode = req.query.mode as 'advisor' | 'agent' | undefined;
 
-    const sessions = await chatHistoryService.userSessions(userId, mode);
+    const sessions = await chatHistoryService.listChats(userId, mode);
 
     res.json({
       success: true,
@@ -36,7 +36,7 @@ router.get('/sessions/:sessionId', async (req: Request, res: Response) => {
   try {
     const sessionId = req.params.sessionId as string;
 
-    const session = await chatHistoryService.getSessionWithMessages(sessionId);
+    const session = await chatHistoryService.chatWithMsgs(sessionId);
 
     if (!session) {
       return res.status(404).json({
@@ -74,7 +74,7 @@ router.post('/sessions', async (req: Request, res: Response) => {
       });
     }
 
-    const session = await chatHistoryService.createSession({
+    const session = await chatHistoryService.newSession({
       userId,
       mode,
     });
@@ -100,7 +100,7 @@ router.delete('/sessions/:sessionId', async (req: Request, res: Response) => {
   try {
     const sessionId = req.params.sessionId as string;
 
-    await chatHistoryService.delSession(sessionId);
+    await chatHistoryService.dropChat(sessionId);
 
     res.json({
       success: true,

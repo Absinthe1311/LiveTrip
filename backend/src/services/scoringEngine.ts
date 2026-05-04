@@ -59,7 +59,7 @@ class ScoringEngine {
   /**
    * 为所有景点计算综合评分
    */
-  async scoreAllSpots(
+  async rankSpots(
     spots: any[],
     request: makePlanRequest,
     iotDataMap: Map<string, any>
@@ -93,7 +93,7 @@ class ScoringEngine {
     iotDataMap: Map<string, any>
   ): Promise<SpotScore> {
     // 1. 获取景点的类别标签
-    const categories = this.inferSpotCategories(spot);
+    const categories = this.inferCats(spot);
 
     // 2. 计算偏好匹配分（35%）
     const preferenceScore = this.calculatePreferenceScore(
@@ -105,7 +105,7 @@ class ScoringEngine {
     const qualityScore = await this.calculateQualityScore(spot);
 
     // 4. 计算 IoT 实时分（25%）
-    const iotScore = this.calculateIoTScore(spot, iotDataMap.get(spot.id));
+    const iotScore = this.iotScore(spot, iotDataMap.get(spot.id));
 
     // 5. 计算人群适配分（15%）
     const crowdScore = this.calculateCrowdScore(
@@ -135,7 +135,7 @@ class ScoringEngine {
   /**
    * 推断景点的类别标签
    */
-  private inferSpotCategories(spot: any): CategoryTag[] {
+  private inferCats(spot: any): CategoryTag[] {
     const categories: CategoryTag[] = [];
     const category = spot.category || spot.type || '';
 
@@ -223,7 +223,7 @@ class ScoringEngine {
   /**
    * 计算 IoT 实时分
    */
-  private calculateIoTScore(spot: any, iotData: any): number {
+  private iotScore(spot: any, iotData: any): number {
     if (!iotData) {
       return 50; // 没有 IoT 数据，给中等分
     }

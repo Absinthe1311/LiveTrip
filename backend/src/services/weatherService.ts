@@ -149,7 +149,7 @@ async function getOpenWeatherForecast(lat: number, lon: number): Promise<number>
 /**
  * 获取景点的天气数据（带缓存）
  */
-export async function getSpotWeatherData(spotId: string): Promise<WeatherData> {
+export async function weather(spotId: string): Promise<WeatherData> {
   // 首先尝试从数据库获取缓存数据
   const cachedData = await prisma.spotIoTData.findUnique({
     where: { spotId },
@@ -249,13 +249,13 @@ export async function getSpotWeatherData(spotId: string): Promise<WeatherData> {
 /**
  * 批量获取多个景点的天气数据
  */
-export async function getBatchWeatherData(spotIds: string[]): Promise<Map<string, WeatherData>> {
+export async function batchWeather(spotIds: string[]): Promise<Map<string, WeatherData>> {
   const weatherMap = new Map<string, WeatherData>();
 
   // 并行获取所有景点的天气数据
   const promises = spotIds.map(async (spotId) => {
     try {
-      const weatherData = await getSpotWeatherData(spotId);
+      const weatherData = await weather(spotId);
       weatherMap.set(spotId, weatherData);
     } catch (error) {
       console.error(`获取景点 ${spotId} 的天气数据失败:`, error);

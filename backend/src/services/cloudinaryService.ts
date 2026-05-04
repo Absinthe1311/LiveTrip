@@ -32,7 +32,7 @@ export class CloudinaryService {
    * @param options 可选的优化选项
    * @returns 上传结果
    */
-  async imgUpload(
+  async pushImg(
     fileBuffer: Buffer,
     folder: string,
     options?: { width?: number; quality?: number }
@@ -100,7 +100,7 @@ export class CloudinaryService {
    * @param options 优化选项
    * @returns 优化后的 URL
    */
-  getOptimizedUrl(cloudinaryId: string, options: OptimizationOptions): string {
+  getUrl(cloudinaryId: string, options: OptimizationOptions): string {
     try {
       const result = cloudinary.url(cloudinaryId, {
         secure: true,
@@ -132,7 +132,7 @@ export class CloudinaryService {
 
     for (const file of files) {
       try {
-        const result = await this.imgUpload(file.buffer, folder);
+        const result = await this.pushImg(file.buffer, folder);
         results.push(result);
       } catch (error) {
         console.error(`上传文件 ${file.originalname} 失败:`, error);
@@ -148,7 +148,7 @@ export class CloudinaryService {
    * @param cloudinaryId Cloudinary public_id
    * @returns 图片是否存在
    */
-  async checkImageExists(cloudinaryId: string): Promise<boolean> {
+  async hasImg(cloudinaryId: string): Promise<boolean> {
     try {
       const result = await cloudinary.api.resource(cloudinaryId);
       return !!result;
@@ -162,7 +162,7 @@ export class CloudinaryService {
    * @param cloudinaryId Cloudinary public_id
    * @returns 图片信息
    */
-  async getImageInfo(cloudinaryId: string): Promise<any> {
+  async getImg(cloudinaryId: string): Promise<any> {
     try {
       const result = await cloudinary.api.resource(cloudinaryId);
       return result;

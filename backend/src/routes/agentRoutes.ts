@@ -30,7 +30,7 @@ router.post('/confirm-trip', async (req, res) => {
     const { sessionId } = req.body;
     const userId = (req as any).user?.id || (req.headers['x-user-id'] as string);
 
-    const result = await agentService.confirmTrip(sessionId, userId);
+    const result = await agentService.saveTrip(sessionId, userId);
 
     res.json({
       success: result.success,
@@ -54,7 +54,7 @@ router.post('/cancel-draft', async (req, res) => {
   try {
     const { sessionId } = req.body;
 
-    const result = await agentService.cancelDraft(sessionId);
+    const result = await agentService.dropDraft(sessionId);
 
     res.json({
       success: result.success,
@@ -79,7 +79,7 @@ router.post('/confirm-blog', async (req, res) => {
     const { sessionId } = req.body;
     const userId = (req as any).user?.id || (req.headers['x-user-id'] as string);
 
-    const result = await agentService.confirmBlogPublish(sessionId, userId);
+    const result = await agentService.confirmPost(sessionId, userId);
 
     res.json({
       success: result.success,

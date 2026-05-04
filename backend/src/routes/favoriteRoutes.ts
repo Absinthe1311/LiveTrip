@@ -2,8 +2,8 @@
 import { Router } from 'express';
 import {
   myFavs,
-  addFav,
-  delFav,
+  addFavCtrl,
+  delFavCtrl,
   chkFav,
   myFavsCount,
 } from '../controllers/favoriteController';
@@ -34,12 +34,12 @@ router.get('/check/:spotId', chkFav);
  * POST /api/favorites
  * Body: { spotId: string, notes?: string }
  */
-router.post('/', addFav);
+router.post('/', addFavCtrl);
 
 /**
  * 取消收藏
  * DELETE /api/favorites/:spotId
  */
-router.delete('/:spotId', delFav);
+router.delete('/:spotId', delFavCtrl);
 
 export default router;

@@ -73,7 +73,7 @@ class IotCheckService {
         // 3. 检查降雨概率（仅针对户外景点）
         else if (rainProbability > rainProbabilityThreshold) {
           // 检查是否为户外景点
-          const isOutdoor = this.isOutdoorAttraction(attraction);
+          const isOutdoor = this.isOutdoor(attraction);
           if (isOutdoor) {
             shouldExclude = true;
             excludeReason = '恶劣天气';
@@ -95,7 +95,7 @@ class IotCheckService {
             });
             console.log(`   ⚠️  警告: ${attraction.name} (拥挤度较高: ${crowdLevel}%)`);
           } else if (rainProbability > 50) {
-            const isOutdoor = this.isOutdoorAttraction(attraction);
+            const isOutdoor = this.isOutdoor(attraction);
             if (isOutdoor) {
               warnings.push({
                 attraction,
@@ -182,7 +182,7 @@ class IotCheckService {
   /**
    * 判断是否为户外景点
    */
-  private isOutdoorAttraction(attraction: RecommendedAttraction): boolean {
+  private isOutdoor(attraction: RecommendedAttraction): boolean {
     const type = attraction.type || attraction.description || '';
     const outdoorTypes = [
       '公园',
@@ -269,7 +269,7 @@ class IotCheckService {
    * 根据天气调整景点顺序
    * 如果上午降雨概率高，优先安排室内景点
    */
-  async adjustForWeather(itinerary: any[], weatherData: any): Promise<any[]> {
+  async weatherAdjust(itinerary: any[], weatherData: any): Promise<any[]> {
     console.log('\n🌤️ 开始根据天气调整景点顺序...');
 
     const adjustedItinerary = [];
@@ -297,10 +297,10 @@ class IotCheckService {
 
         // 将室内景点移到上午，户外景点移到下午
         const indoorSpots = [...morningAttractions, ...afternoonAttractions].filter(
-          (attr) => !this.isOutdoorAttraction(attr)
+          (attr) => !this.isOutdoor(attr)
         );
         const outdoorSpots = [...morningAttractions, ...afternoonAttractions].filter((attr) =>
-          this.isOutdoorAttraction(attr)
+          this.isOutdoor(attr)
         );
 
         // 上午安排室内景点，下午安排户外景点
@@ -309,7 +309,7 @@ class IotCheckService {
 
         // 重新分配时间
         const remixedAttractions = [...newMorning, ...newAfternoon];
-        const allAttractionsWithTimeSlots = this.reassignTimeSlots(remixedAttractions);
+        const allAttractionsWithTimeSlots = this.shiftSlots(remixedAttractions);
 
         adjustedItinerary.push({
           ...day,
@@ -328,7 +328,7 @@ class IotCheckService {
   /**
    * 重新分配时间段
    */
-  private reassignTimeSlots(attractions: RecommendedAttraction[]): RecommendedAttraction[] {
+  private shiftSlots(attractions: RecommendedAttraction[]): RecommendedAttraction[] {
     if (attractions.length === 0) {
       return attractions;
     }
@@ -351,7 +351,7 @@ class IotCheckService {
 
       return {
         ...attraction,
-        time: `${this.minutesToTime(newStart)}-${this.minutesToTime(newEnd)}`,
+        time: `${this.minsToTime(newStart)}-${this.minsToTime(newEnd)}`,
       };
     });
   }
@@ -359,7 +359,7 @@ class IotCheckService {
   /**
    * 将分钟数转换为时间字符串
    */
-  private minutesToTime(minutes: number): string {
+  private minsToTime(minutes: number): string {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;

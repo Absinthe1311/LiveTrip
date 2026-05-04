@@ -141,7 +141,7 @@ export const getTripById = async (req: Request, res: Response) => {
 
       // 获取IoT数据
       const allSpotIdsForIoT = allSpots.map((s) => s.id);
-      const iotDataMap = await spotService.getBatchIoTData(allSpotIdsForIoT);
+      const iotDataMap = await spotService.batchIot(allSpotIdsForIoT);
 
       // 构造评分景点列表
       const scoredSpots = allSpots.map((spot) => ({
@@ -163,8 +163,8 @@ export const getTripById = async (req: Request, res: Response) => {
       console.log(`   候选景点数: ${candidateSpots.length}`);
       console.log(`   总景点数: ${allSpots.length}`);
 
-      // 使用traditionalRecommender的generateAlternativePools方法
-      alternativePools = traditionalRecommender().generateAlternativePools(
+      // 使用traditionalRecommender的altPool方法
+      alternativePools = traditionalRecommender().altPool(
         scoredSpots,
         selectedSpots
       );
@@ -413,7 +413,7 @@ export const saveTrip = async (req: Request, res: Response) => {
 
         // 如果没有spotId，则查找
         if (!spotId) {
-          spotId = await spotService.findSpotIdByNameAndCity(
+          spotId = await spotService.spotId(
             item.name,
             summary.destination,
             item.location
@@ -462,7 +462,7 @@ export const saveTrip = async (req: Request, res: Response) => {
     );
 
     // 计算实际预算
-    const budgetInfo = budgetCalculator.calculateActualBudget({
+    const budgetInfo = budgetCalculator.calcActual({
       totalBudget: summary.budget || total_cost || 0,
       days: days,
       groupSize: 1, // 默认为1人
@@ -614,7 +614,7 @@ export const calBudget = async (req: Request, res: Response) => {
     }
 
     // 计算实际预算
-    const budgetInfo = budgetCalculator.calculateActualBudget({
+    const budgetInfo = budgetCalculator.calcActual({
       totalBudget,
       days,
       groupSize: groupSize || 1,
@@ -624,8 +624,8 @@ export const calBudget = async (req: Request, res: Response) => {
     });
 
     // 获取预警信息
-    const warningLevel = budgetCalculator.getWarningLevel(budgetInfo);
-    const warningMessage = budgetCalculator.getWarningMessage(budgetInfo);
+    const warningLevel = budgetCalculator.warnLevel(budgetInfo);
+    const warningMessage = budgetCalculator.warnMsg(budgetInfo);
 
     console.log('✅ 实时预算计算完成');
 

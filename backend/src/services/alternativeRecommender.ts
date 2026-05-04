@@ -57,7 +57,7 @@ class AlternativeRecommender {
 
       // 2. 获取IoT数据
       const spotIds = alternatives.map((s) => s.id);
-      const iotDataMap = await spotService.getBatchIoTData(spotIds);
+      const iotDataMap = await spotService.batchIot(spotIds);
 
       // 3. 组装返回数据
       const result: AlternativeSpot[] = alternatives.map((spot) => {
@@ -83,7 +83,7 @@ class AlternativeRecommender {
                 rainProbability: iotData.rainProbability,
                 isOpen: iotData.isOpen,
                 // 添加健康度等级
-                healthLevel: this.getHealthLevel(iotData),
+                healthLevel: this.healthLevel(iotData),
               }
             : undefined,
           // 添加estimated_cost字段（与ticketPrice相同，用于前端显示）
@@ -105,7 +105,7 @@ class AlternativeRecommender {
    * @param iotData IoT数据
    * @returns 健康度等级
    */
-  private getHealthLevel(iotData: any): string {
+  private healthLevel(iotData: any): string {
     const { rainProbability, crowdLevel, isOpen } = iotData;
 
     // 严重警告

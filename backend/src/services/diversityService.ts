@@ -5,7 +5,7 @@ class DiversityService {
   /**
    * 应用多样性约束，从候选景点中选择景点
    */
-  applyDiversityConstraints(scoredSpots: SpotScore[], maxSpots: number): SpotScore[] {
+  diversify(scoredSpots: SpotScore[], maxSpots: number): SpotScore[] {
     console.log(`\n🎨 应用多样性约束，候选景点: ${scoredSpots.length}，最大选择: ${maxSpots}`);
 
     if (scoredSpots.length <= maxSpots) {
@@ -22,7 +22,7 @@ class DiversityService {
       }
 
       // 检查是否可以添加该景点
-      if (this.canAddSpot(spot, selectedSpots, maxSpots)) {
+      if (this.spotOK(spot, selectedSpots, maxSpots)) {
         selectedSpots.push(spot);
         console.log(`   ✓ 添加景点: ${spot.spot.name} (评分: ${spot.totalScore.toFixed(2)})`);
       } else {
@@ -44,7 +44,7 @@ class DiversityService {
   /**
    * 检查是否可以添加该景点
    */
-  private canAddSpot(spot: SpotScore, selectedSpots: SpotScore[], maxSpots: number): boolean {
+  private spotOK(spot: SpotScore, selectedSpots: SpotScore[], maxSpots: number): boolean {
     // 规则1：每天相同 CategoryTag 的景点不超过 2 个
     for (const category of spot.categories) {
       const count = selectedSpots.filter((s) => s.categories.includes(category)).length;
@@ -83,7 +83,7 @@ class DiversityService {
   /**
    * 检查整个行程的多样性
    */
-  checkDiversity(allSpots: SpotScore[]): {
+  chkDiv(allSpots: SpotScore[]): {
     passed: boolean;
     issues: string[];
   } {

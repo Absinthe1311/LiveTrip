@@ -51,7 +51,7 @@ export class ImageController {
       }
 
       // 上传到 Cloudinary 博客文件夹
-      const cloudinaryResult = await cloudinaryService.imgUpload(
+      const cloudinaryResult = await cloudinaryService.pushImg(
         req.file.buffer,
         'blogs/content'
       );
@@ -136,7 +136,7 @@ export class ImageController {
       const status = isAdmin ? 'approved' : 'pending';
 
       // 上传到 Cloudinary
-      const cloudinaryResult = await cloudinaryService.imgUpload(req.file.buffer, folder);
+      const cloudinaryResult = await cloudinaryService.pushImg(req.file.buffer, folder);
 
       // 写入数据库
       const image = await prisma.spotImage.create({
@@ -190,7 +190,7 @@ export class ImageController {
         return;
       }
 
-      const imageMap = await imageService.batchgetSpotImgsByIds(spotIds);
+      const imageMap = await imageService.batchImgs(spotIds);
 
       res.status(200).json({
         success: true,
@@ -226,7 +226,7 @@ export class ImageController {
 
       const spotIdStr = Array.isArray(spotId) ? spotId[0] : spotId;
 
-      const result = await imageService.getSpotImgs(spotIdStr);
+      const result = await imageService.loadPics(spotIdStr);
 
       res.status(200).json({
         success: true,

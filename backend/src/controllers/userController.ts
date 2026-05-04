@@ -133,7 +133,7 @@ export class UserController {
       }
 
       // 上传到Cloudinary（将File转换为Buffer）
-      const result = await cloudinaryService.imgUpload(req.file.buffer, 'avatars');
+      const result = await cloudinaryService.pushImg(req.file.buffer, 'avatars');
 
       // 更新用户头像
       const user = await prisma.user.update({

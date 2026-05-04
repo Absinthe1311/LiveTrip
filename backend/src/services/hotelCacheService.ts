@@ -45,7 +45,7 @@ export class HotelCacheService {
       const nearbyHotels = hotels.filter((hotel) => {
         if (!hotel.location) return false;
         const [hLng, hLat] = hotel.location.split(',').map(Number);
-        const distance = this.calculateDistance(lat, lng, hLat, hLng);
+        const distance = this.calDist(lat, lng, hLat, hLng);
         return distance <= radius;
       });
 
@@ -82,7 +82,7 @@ export class HotelCacheService {
    * @param hotels 酒店数据
    * @param city 城市名称
    */
-  async saveHotels(hotels: HotelCache[], city: string): Promise<void> {
+  async storeHotels(hotels: HotelCache[], city: string): Promise<void> {
     try {
       await Promise.all(
         hotels.map(async (hotel) => {
@@ -122,7 +122,7 @@ export class HotelCacheService {
   /**
    * 计算两点之间的距离（米）
    */
-  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  private calDist(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371000; // 地球半径（米）
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLng = ((lng2 - lng1) * Math.PI) / 180;

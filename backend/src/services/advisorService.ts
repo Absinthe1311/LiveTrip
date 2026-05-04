@@ -46,7 +46,7 @@ class AdvisorService {
   /**
    * 调用智谱AI API（带重试机制）
    */
-  private async callZhipuAI(messages: any[]): Promise<any> {
+  private async aiCall(messages: any[]): Promise<any> {
     if (!this.apiKey) {
       throw new Error('AI服务未配置');
     }
@@ -78,7 +78,7 @@ class AdvisorService {
   /**
    * 判断是否需要获取景点数据
    */
-  private needsSpotData(question: string): boolean {
+  private needSpot(question: string): boolean {
     const keywords = ['景点', '推荐', '必去', '玩', '看', '参观', '游览'];
     return keywords.some((keyword) => question.includes(keyword));
   }
@@ -86,7 +86,7 @@ class AdvisorService {
   /**
    * 从数据库获取景点数据
    */
-  private async getSpotsFromDatabase(
+  private async loadSpots(
     city: string,
     preferences?: string[],
     limit: number = 20
@@ -179,7 +179,7 @@ class AdvisorService {
   /**
    * 格式化景点数据为提示词
    */
-  private formatSpotsForPrompt(spots: any[]): string {
+  private fmtSpots(spots: any[]): string {
     if (spots.length === 0) {
       return '';
     }
@@ -211,7 +211,7 @@ class AdvisorService {
   /**
    * 回答用户问题
    */
-  async answerQuestion(request: AdvisorRequest, userId?: string): Promise<AdvisorResponse> {
+  async answer(request: AdvisorRequest, userId?: string): Promise<AdvisorResponse> {
     const { question, planContext } = request;
 
     console.log('🤖 收到顾问请求');
@@ -220,18 +220,18 @@ class AdvisorService {
 
     try {
       // 获取或创建对话会话
-      const session = await chatHistoryService.getOrCreateAdvisorSession(userId);
+      const session = await chatHistoryService.advisorSession(userId);
       console.log(`   会话ID: ${session.id}`);
 
       // 保存用户消息
-      await chatHistoryService.createMessage({
+      await chatHistoryService.newMsg({
         sessionId: session.id,
         role: 'user',
         content: question,
       });
 
       // 获取历史消息（最近 10 条）
-      const messageHistory = await chatHistoryService.msgs({
+      const messageHistory = await chatHistoryService.fetchMsgs({
         sessionId: session.id,
         limit: 10,
       });
@@ -240,7 +240,7 @@ class AdvisorService {
       const messages: any[] = [
         {
           role: 'system',
-          content: this.buildSystemPrompt(),
+          content: this.sysPrompt(),
         },
       ];
 
@@ -259,11 +259,11 @@ class AdvisorService {
       });
 
       // 判断是否需要获取景点数据
-      if (this.needsSpotData(question) && planContext?.destination) {
+      if (this.needSpot(question) && planContext?.destination) {
         console.log('📝 检测到景点相关问题，从数据库获取景点数据...');
 
         // 从数据库获取景点数据
-        const spots = await this.getSpotsFromDatabase(
+        const spots = await this.loadSpots(
           planContext.destination,
           planContext.preferences,
           20
@@ -271,7 +271,7 @@ class AdvisorService {
 
         if (spots.length > 0) {
           // 将景点数据添加到最后一条用户消息
-          const spotsInfo = this.formatSpotsForPrompt(spots);
+          const spotsInfo = this.fmtSpots(spots);
           messages[messages.length - 1].content += spotsInfo;
           console.log(`✅ 已添加 ${spots.length} 个景点信息到上下文`);
         } else {
@@ -279,12 +279,12 @@ class AdvisorService {
         }
       }
 
-      const result = await this.callZhipuAI(messages);
+      const result = await this.aiCall(messages);
 
       const answer = result.choices[0]?.message?.content || '抱歉，我暂时无法回答这个问题。';
 
       // 保存 AI 回复
-      await chatHistoryService.createMessage({
+      await chatHistoryService.newMsg({
         sessionId: session.id,
         role: 'assistant',
         content: answer,
@@ -303,7 +303,7 @@ class AdvisorService {
   /**
    * 构建系统提示词
    */
-  private buildSystemPrompt(): string {
+  private sysPrompt(): string {
     return `你是一位专业的旅行规划顾问，为 LiveTrip 智能旅行平台的用户提供旅行咨询服务。
 
 【能力范围】

@@ -49,7 +49,7 @@ class ChatHistoryService {
   /**
    * 创建新的对话会话
    */
-  async createSession(params: CreateSessionParams) {
+  async newSession(params: CreateSessionParams) {
     try {
       const session = await prisma.chatSession.create({
         data: {
@@ -70,7 +70,7 @@ class ChatHistoryService {
   /**
    * ✅ P0优化: 更新会话状态
    */
-  async updateSessionState(sessionId: string, state: SessionState) {
+  async updState(sessionId: string, state: SessionState) {
     try {
       const session = await prisma.chatSession.update({
         where: { id: sessionId },
@@ -91,7 +91,7 @@ class ChatHistoryService {
   /**
    * ✅ P0优化: 更新会话临时数据
    */
-  async updateSessionTempData(sessionId: string, tempData: TempData) {
+  async setTemp(sessionId: string, tempData: TempData) {
     try {
       const session = await prisma.chatSession.update({
         where: { id: sessionId },
@@ -113,7 +113,7 @@ class ChatHistoryService {
   /**
    * ✅ P0优化: 清除会话临时数据
    */
-  async clearSessionTempData(sessionId: string) {
+  async clearTemp(sessionId: string) {
     try {
       const session = await prisma.chatSession.update({
         where: { id: sessionId },
@@ -135,7 +135,7 @@ class ChatHistoryService {
   /**
    * ✅ P0优化: 获取会话信息
    */
-  async getSession(sessionId: string) {
+  async getChat(sessionId: string) {
     try {
       const session = await prisma.chatSession.findUnique({
         where: { id: sessionId },
@@ -151,7 +151,7 @@ class ChatHistoryService {
   /**
    * 获取或创建会话（用于 advisor 模式）
    */
-  async getOrCreateAdvisorSession(userId?: string) {
+  async advisorSession(userId?: string) {
     try {
       // 查找最近 10 分钟内的 advisor 模式会话
       const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
@@ -171,7 +171,7 @@ class ChatHistoryService {
 
       // 如果没有找到，创建新会话
       if (!session) {
-        session = await this.createSession({
+        session = await this.newSession({
           userId,
           mode: 'advisor',
         });
@@ -193,7 +193,7 @@ class ChatHistoryService {
   /**
    * 获取或创建会话（用于 agent 模式）
    */
-  async getOrCreateAgentSession(userId?: string) {
+  async agentSession(userId?: string) {
     try {
       // 查找最近 10 分钟内的 agent 模式会话
       const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
@@ -213,7 +213,7 @@ class ChatHistoryService {
 
       // 如果没有找到，创建新会话
       if (!session) {
-        session = await this.createSession({
+        session = await this.newSession({
           userId,
           mode: 'agent',
         });
@@ -235,7 +235,7 @@ class ChatHistoryService {
   /**
    * 创建消息
    */
-  async createMessage(params: CreateMessageParams) {
+  async newMsg(params: CreateMessageParams) {
     try {
       const message = await prisma.chatMessage.create({
         data: {
@@ -262,7 +262,7 @@ class ChatHistoryService {
   /**
    * 获取会话的消息历史（限制最近 N 条）
    */
-  async msgs(params: msgsParams) {
+  async fetchMsgs(params: msgsParams) {
     try {
       const messages = await prisma.chatMessage.findMany({
         where: {
@@ -284,7 +284,7 @@ class ChatHistoryService {
   /**
    * 获取用户的所有会话列表
    */
-  async userSessions(userId?: string, mode?: 'advisor' | 'agent') {
+  async listChats(userId?: string, mode?: 'advisor' | 'agent') {
     try {
       const where: any = {};
 
@@ -316,7 +316,7 @@ class ChatHistoryService {
   /**
    * 删除会话（及关联的所有消息）
    */
-  async delSession(sessionId: string) {
+  async dropChat(sessionId: string) {
     try {
       await prisma.chatSession.delete({
         where: { id: sessionId },
@@ -332,7 +332,7 @@ class ChatHistoryService {
   /**
    * 获取会话详情（包含消息）
    */
-  async getSessionWithMessages(sessionId: string) {
+  async chatWithMsgs(sessionId: string) {
     try {
       const session = await prisma.chatSession.findUnique({
         where: { id: sessionId },

@@ -18,7 +18,7 @@ const prisma = getPrismaClient();
  * @param userId 用户ID
  * @returns 分享链接信息
  */
-export async function generateShareLink(tripId: string, userId: string) {
+export async function shareLink(tripId: string, userId: string) {
   console.log(`🔗 生成分享链接 - 行程ID: ${tripId}, 用户ID: ${userId}`);
 
   // 1. 查询行程是否存在
@@ -91,7 +91,7 @@ export async function generateShareLink(tripId: string, userId: string) {
  * @param token 分享token
  * @returns 行程只读数据
  */
-export async function getPublicTrip(token: string) {
+export async function publicTrip(token: string) {
   console.log(`📖 获取公开行程 - Token: ${token}`);
 
   // 1. 根据token查询行程，添加超时保护
@@ -186,7 +186,7 @@ export async function getPublicTrip(token: string) {
  * @param userId 当前用户ID
  * @returns 新行程ID
  */
-export async function cloneTrip(token: string, userId: string) {
+export async function forkTrip(token: string, userId: string) {
   console.log(`📋 复刻行程 - Token: ${token}, 用户ID: ${userId}`);
 
   // 1. 获取原行程数据

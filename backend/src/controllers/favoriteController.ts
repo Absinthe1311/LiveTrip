@@ -1,12 +1,12 @@
 // 收藏控制器 - 处理收藏相关的API请求
 import { Request, Response } from 'express';
 import {
-  getUserFavorites,
-  getUserFavoritesWithIoT,
-  addFavorite,
-  removeFavorite,
-  isFavorite,
-  getFavoriteCount,
+  listFavs,
+  favsWithData,
+  addFav,
+  delFav,
+  isFaved,
+  favCount,
 } from '../services/favoriteService';
 
 /**
@@ -22,9 +22,9 @@ export const myFavs = async (req: Request, res: Response) => {
 
     let favorites;
     if (includeIoT) {
-      favorites = await getUserFavoritesWithIoT(userId);
+      favorites = await favsWithData(userId);
     } else {
-      favorites = await getUserFavorites(userId);
+      favorites = await listFavs(userId);
     }
 
     res.json({
@@ -45,7 +45,7 @@ export const myFavs = async (req: Request, res: Response) => {
  * 添加收藏
  * POST /api/favorites
  */
-export const addFav = async (req: Request, res: Response) => {
+export const addFavCtrl = async (req: Request, res: Response) => {
   try {
     const { spotId, notes } = req.body;
     const userId = (req.headers['x-user-id'] as string) || 'default-user';
@@ -59,7 +59,7 @@ export const addFav = async (req: Request, res: Response) => {
 
     console.log(`❤️ 添加收藏: 景点ID=${spotId}, 用户ID=${userId}`);
 
-    const favorite = await addFavorite(spotId, userId, notes);
+    const favorite = await addFav(spotId, userId, notes);
 
     res.json({
       success: true,
@@ -94,14 +94,14 @@ export const addFav = async (req: Request, res: Response) => {
  * 取消收藏
  * DELETE /api/favorites/:spotId
  */
-export const delFav = async (req: Request, res: Response) => {
+export const delFavCtrl = async (req: Request, res: Response) => {
   try {
     const { spotId } = req.params;
     const userId = (req.headers['x-user-id'] as string) || 'default-user';
 
     console.log(`💔 取消收藏: 景点ID=${spotId}, 用户ID=${userId}`);
 
-    await removeFavorite(spotId.toString(), userId);
+    await delFav(spotId.toString(), userId);
 
     res.json({
       success: true,
@@ -127,7 +127,7 @@ export const chkFav = async (req: Request, res: Response) => {
 
     console.log(`🔍 检查收藏状态: 景点ID=${spotId}, 用户ID=${userId}`);
 
-    const isFavorited = await isFavorite(spotId.toString(), userId);
+    const isFavorited = await isFaved(spotId.toString(), userId);
 
     res.json({
       success: true,
@@ -155,7 +155,7 @@ export const myFavsCount = async (req: Request, res: Response) => {
 
     console.log(`🔢 获取收藏数量: 用户ID=${userId}`);
 
-    const count = await getFavoriteCount(userId);
+    const count = await favCount(userId);
 
     res.json({
       success: true,

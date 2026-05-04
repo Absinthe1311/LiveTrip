@@ -1,8 +1,8 @@
 // IoT数据控制器 - 处理IoT实时数据相关请求
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { getBatchWeatherData } from '../services/weatherService';
-import { getBatchCrowdData, updateSpotIoTData } from '../services/crowdSimulator';
+import { batchWeather } from '../services/weatherService';
+import { batchCrowd, spotIoTUpd } from '../services/crowdSimulator';
 
 const prisma = new PrismaClient();
 
@@ -58,11 +58,11 @@ export const spotIot = async (req: Request, res: Response) => {
 
     // 并行获取所有景点的天气数据
     console.log('🌤️  获取天气数据...');
-    const weatherMap = await getBatchWeatherData(spotIds);
+    const weatherMap = await batchWeather(spotIds);
 
     // 并行获取所有景点的人流数据
     console.log('👥 获取人流数据...');
-    const crowdMap = await getBatchCrowdData(spotIds);
+    const crowdMap = await batchCrowd(spotIds);
 
     // 构建响应数据
     const spotsData: SpotIoTData[] = spots.map((spot) => {
@@ -71,7 +71,7 @@ export const spotIot = async (req: Request, res: Response) => {
 
       // 更新数据库中的 IoT 数据
       if (weather && crowd) {
-        updateSpotIoTData(spot.id, crowd, {
+        spotIoTUpd(spot.id, crowd, {
           temperature: weather.temperature,
           rainProbability: weather.rainProbability,
           weatherDescription: weather.description,
@@ -147,16 +147,16 @@ export const spotIoT = async (req: Request, res: Response) => {
     }
 
     // 获取天气数据
-    const weatherData = await getBatchWeatherData([spotId]);
+    const weatherData = await batchWeather([spotId]);
     const weather = weatherData.get(spotId);
 
     // 获取人流数据
-    const crowdData = await getBatchCrowdData([spotId]);
+    const crowdData = await batchCrowd([spotId]);
     const crowd = crowdData.get(spotId);
 
     // 更新数据库
     if (weather && crowd) {
-      await updateSpotIoTData(spot.id, crowd, {
+      await spotIoTUpd(spot.id, crowd, {
         temperature: weather.temperature,
         rainProbability: weather.rainProbability,
         weatherDescription: weather.description,

@@ -51,7 +51,7 @@ export const syncSpot = async (req: Request, res: Response) => {
       if (!existingIoTData) {
         console.log(`🔄 为已存在的景点生成IoT数据: ${existingSpot.name}`);
         try {
-          const iotData = await spotService.generateIoTDataForSpot(existingSpot.id);
+          const iotData = await spotService.genIot(existingSpot.id);
           if (iotData) {
             console.log(`✅ IoT数据生成成功: ${existingSpot.name}`);
           }
@@ -90,7 +90,7 @@ export const syncSpot = async (req: Request, res: Response) => {
     // 自动生成IoT数据
     try {
       console.log(`🔄 为新景点生成IoT数据: ${spot.name}`);
-      const iotData = await spotService.generateIoTDataForSpot(spot.id);
+      const iotData = await spotService.genIot(spot.id);
       if (iotData) {
         console.log(`✅ IoT数据生成成功: ${spot.name}`);
       }

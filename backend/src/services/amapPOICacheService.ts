@@ -12,7 +12,7 @@ export class AmapPOICacheService {
    * @param typecode POI 类型代码
    * @returns 缓存的景点数据,如果没有缓存则返回 null
    */
-  async getFromCache(city: string, typecode?: string): Promise<AmapAttraction[] | null> {
+  async fromCache(city: string, typecode?: string): Promise<AmapAttraction[] | null> {
     try {
       const where: any = { city };
 
@@ -66,7 +66,7 @@ export class AmapPOICacheService {
    * @param attractions 景点数据
    * @param city 城市名称
    */
-  async saveToCache(attractions: AmapAttraction[], city: string): Promise<void> {
+  async toCache(attractions: AmapAttraction[], city: string): Promise<void> {
     try {
       // 批量创建或更新缓存
       await Promise.all(
@@ -115,7 +115,7 @@ export class AmapPOICacheService {
   /**
    * 获取缓存统计信息
    */
-  async getCacheStats(): Promise<{
+  async cacheInfo(): Promise<{
     total: number;
     byCity: Record<string, number>;
   }> {
