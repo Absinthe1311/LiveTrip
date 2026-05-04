@@ -1,8 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：控制器重构
- */
 import { Request, Response } from 'express';
 
 import { getPrismaClient } from '../lib/prisma';

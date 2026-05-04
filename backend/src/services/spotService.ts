@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：服务层重构
- */
-
 // 景点数据服务 - 整合高德API和数据库缓存
 import { getPrismaClient } from '../lib/prisma';
 
