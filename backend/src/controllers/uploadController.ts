@@ -6,7 +6,7 @@ import cloudinary from '../config/cloudinary';
  * 上传图片到 Cloudinary
  * POST /api/upload/image
  */
-export const uploadImage = async (req: Request, res: Response) => {
+export const imgUpload = async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -64,7 +64,7 @@ export const uploadImage = async (req: Request, res: Response) => {
  * 删除 Cloudinary 上的图片
  * DELETE /api/upload/image/:publicId
  */
-export const deleteImage = async (req: Request, res: Response) => {
+export const delImg = async (req: Request, res: Response) => {
   try {
     const { publicId } = req.params;
 

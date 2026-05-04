@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
-import { getUserTrips, deleteTrip, shareTrip } from '../api/client';
+import { listTrips, delTrip, shareTrip } from '../api/client';
 import { message, Dropdown, Modal, Checkbox } from 'antd';
 import BudgetDetailModal from '../components/budget/BudgetDetailModal';
 
@@ -95,7 +95,7 @@ export default function MyTripsGlass() {
 
   const loadTrips = async () => {
     try {
-      const response = await getUserTrips();
+      const response = await listTrips();
       console.log('API Response:', response);
 
       // 后端返回格式: { success: true, data: Trip[] }
@@ -149,7 +149,7 @@ export default function MyTripsGlass() {
 
   const handleDelete = async (tripId: string) => {
     try {
-      const response = await deleteTrip(tripId);
+      const response = await delTrip(tripId);
       if (response.success) {
         message.success('行程已删除');
         loadTrips();
@@ -168,7 +168,7 @@ export default function MyTripsGlass() {
 
     try {
       for (const tripId of selectedTrips) {
-        await deleteTrip(tripId);
+        await delTrip(tripId);
       }
       message.success(`成功删除 ${selectedTrips.size} 个行程`);
       setSelectedTrips(new Set());
@@ -183,7 +183,7 @@ export default function MyTripsGlass() {
   const handleDeleteAll = async () => {
     try {
       for (const trip of trips) {
-        await deleteTrip(trip.id);
+        await delTrip(trip.id);
       }
       message.success('成功删除所有行程');
       setDeleteAllModalVisible(false);

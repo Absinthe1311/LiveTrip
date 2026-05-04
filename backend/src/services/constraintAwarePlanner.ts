@@ -270,7 +270,7 @@ class ConstraintAwarePlanner {
 
     try {
       // 获取城市景点数据
-      const attractions = await spotService.getCitySpots(request.destination, 50);
+      const attractions = await spotService.citySpots(request.destination, 50);
 
       if (attractions.length === 0) {
         console.warn(`⚠️  未找到 ${request.destination} 的景点数据`);

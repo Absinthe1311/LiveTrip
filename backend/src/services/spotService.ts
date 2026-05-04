@@ -45,7 +45,7 @@ class SpotService {
    * @param limit 限制数量，默认20
    * @returns 景点列表
    */
-  async getCitySpots(city: string, limit: number = 20): Promise<Spot[]> {
+  async citySpots(city: string, limit: number = 20): Promise<Spot[]> {
     try {
       console.log(`🔍 获取 ${city} 的景点数据...`);
 
@@ -489,7 +489,7 @@ class SpotService {
         });
 
         // 获取IoT数据
-        const iotDataMap = await this.getIoTDataMap(alternativeIds);
+        const iotDataMap = await this.spotIotMap(alternativeIds);
 
         // 动态过滤：排除当前行程中的其他景点
         const filteredAlternatives = alternatives.filter(
@@ -610,7 +610,7 @@ class SpotService {
 
       // 3. 获取IoT数据
       const spotIds = candidates.map((s) => s.id);
-      const iotDataMap = await this.getIoTDataMap(spotIds);
+      const iotDataMap = await this.spotIotMap(spotIds);
 
       // 4. 评分所有候选景点（不筛选，保留所有）
       const scoredSpots = candidates.map((spot) => {
@@ -919,7 +919,7 @@ class SpotService {
    * @param spotIds 景点ID列表
    * @returns IoT数据映射
    */
-  private async getIoTDataMap(spotIds: string[]): Promise<Map<string, SpotIoTData>> {
+  private async spotIotMap(spotIds: string[]): Promise<Map<string, SpotIoTData>> {
     const iotDataList = await prisma.spotIoTData.findMany({
       where: {
         spotId: {
@@ -1040,7 +1040,7 @@ class SpotService {
    * @param spotId 景点ID
    * @returns IoT数据
    */
-  async getSpotIoTData(spotId: string): Promise<SpotIoTData | null> {
+  async spotIoT(spotId: string): Promise<SpotIoTData | null> {
     const iotData = await prisma.spotIoTData.findUnique({
       where: { spotId },
     });
@@ -1135,7 +1135,7 @@ class SpotService {
    * @returns IoT数据映射
    */
   async getBatchIoTData(spotIds: string[]): Promise<Map<string, SpotIoTData>> {
-    return this.getIoTDataMap(spotIds);
+    return this.spotIotMap(spotIds);
   }
 
   /**

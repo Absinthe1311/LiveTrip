@@ -19,7 +19,7 @@ const HOT_CITIES = [
  * 获取热门城市列表
  * GET /api/destinations/cities
  */
-export const getHotCities = async (req: Request, res: Response) => {
+export const hotCities = async (req: Request, res: Response) => {
   try {
     console.log('🏙️ 获取热门城市列表');
 
@@ -91,7 +91,7 @@ export const getHotCities = async (req: Request, res: Response) => {
  * 获取指定城市的热门景点（用于首页展示，限制9个）
  * GET /api/destinations/cities/:city/spots?limit=9
  */
-export const getCitySpots = async (req: Request, res: Response) => {
+export const citySpots = async (req: Request, res: Response) => {
   try {
     const city = req.params.city as string;
     const limit = parseInt(req.query.limit as string) || 9;
@@ -150,7 +150,7 @@ export const getCitySpots = async (req: Request, res: Response) => {
  * 获取指定城市的所有热门景点（用于城市详情页）
  * GET /api/destinations/cities/:city/all
  */
-export const getCityAllSpots = async (req: Request, res: Response) => {
+export const cityAll = async (req: Request, res: Response) => {
   try {
     const city = req.params.city as string;
     const page = parseInt(req.query.page as string) || 1;

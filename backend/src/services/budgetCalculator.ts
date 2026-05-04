@@ -69,7 +69,7 @@ class BudgetCalculator {
     const total = accommodation + dining + tickets + transportation + other;
 
     // 7. 计算预算状态
-    const status = this.getBudgetStatus(total, totalBudget);
+    const status = this.budgetStats(total, totalBudget);
     const usageRate = total / totalBudget;
     const remaining = totalBudget - total;
 
@@ -293,7 +293,7 @@ class BudgetCalculator {
    * @param budget 总预算
    * @returns 预算状态
    */
-  private getBudgetStatus(actual: number, budget: number): BudgetStatus {
+  private budgetStats(actual: number, budget: number): BudgetStatus {
     const usageRate = actual / budget;
 
     if (usageRate > 1.0) {

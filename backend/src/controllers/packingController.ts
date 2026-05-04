@@ -11,7 +11,7 @@ export class PackingController {
    * 获取行程的打包清单
    * GET /api/trips/:tripId/packing
    */
-  static async getPackingList(req: Request, res: Response): Promise<void> {
+  static async packList(req: Request, res: Response): Promise<void> {
     try {
       const { tripId } = req.params;
       const tripIdStr = Array.isArray(tripId) ? tripId[0] : tripId;
@@ -24,7 +24,7 @@ export class PackingController {
         return;
       }
 
-      const result = await packingService.getPackingList(tripIdStr);
+      const result = await packingService.packList(tripIdStr);
       res.status(200).json(result);
     } catch (error: any) {
       console.error('获取打包清单失败:', error);
@@ -40,7 +40,7 @@ export class PackingController {
    * 初始化打包清单（添加默认预设物品）
    * POST /api/trips/:tripId/packing/initialize
    */
-  static async initializePackingList(req: Request, res: Response): Promise<void> {
+  static async initPack(req: Request, res: Response): Promise<void> {
     try {
       const { tripId } = req.params;
       const tripIdStr = Array.isArray(tripId) ? tripId[0] : tripId;
@@ -53,7 +53,7 @@ export class PackingController {
         return;
       }
 
-      const result = await packingService.initializePackingList(tripIdStr);
+      const result = await packingService.initPack(tripIdStr);
       res.status(200).json(result);
     } catch (error: any) {
       console.error('初始化打包清单失败:', error);
@@ -69,7 +69,7 @@ export class PackingController {
    * 添加打包物品
    * POST /api/trips/:tripId/packing
    */
-  static async addPackingItem(req: Request, res: Response): Promise<void> {
+  static async addItem(req: Request, res: Response): Promise<void> {
     try {
       const { tripId } = req.params;
       const { itemName, category } = req.body;
@@ -83,7 +83,7 @@ export class PackingController {
         return;
       }
 
-      const result = await packingService.addPackingItem(tripIdStr, itemName, category);
+      const result = await packingService.addItem(tripIdStr, itemName, category);
       res.status(201).json(result);
     } catch (error: any) {
       console.error('添加打包物品失败:', error);
@@ -99,7 +99,7 @@ export class PackingController {
    * 批量保存打包清单
    * POST /api/trips/:tripId/packing/batch
    */
-  static async batchSavePackingList(req: Request, res: Response): Promise<void> {
+  static async batchSave(req: Request, res: Response): Promise<void> {
     try {
       const { tripId } = req.params;
       const { items } = req.body;
@@ -113,7 +113,7 @@ export class PackingController {
         return;
       }
 
-      const result = await packingService.batchSavePackingList(tripIdStr, items);
+      const result = await packingService.batchSave(tripIdStr, items);
       res.status(200).json(result);
     } catch (error: any) {
       console.error('批量保存打包清单失败:', error);
@@ -129,7 +129,7 @@ export class PackingController {
    * 更新打包物品状态
    * PATCH /api/packing/:itemId
    */
-  static async updatePackingItem(req: Request, res: Response): Promise<void> {
+  static async updItem(req: Request, res: Response): Promise<void> {
     try {
       const { itemId } = req.params;
       const itemIdStr = Array.isArray(itemId) ? itemId[0] : itemId;
@@ -151,7 +151,7 @@ export class PackingController {
         updates.itemName = itemName;
       }
 
-      const result = await packingService.updatePackingItem(itemIdStr, updates);
+      const result = await packingService.updItem(itemIdStr, updates);
       res.status(200).json(result);
     } catch (error: any) {
       console.error('更新打包物品失败:', error);
@@ -167,7 +167,7 @@ export class PackingController {
    * 删除打包物品
    * DELETE /api/packing/:itemId
    */
-  static async deletePackingItem(req: Request, res: Response): Promise<void> {
+  static async delItem(req: Request, res: Response): Promise<void> {
     try {
       const { itemId } = req.params;
       const itemIdStr = Array.isArray(itemId) ? itemId[0] : itemId;
@@ -180,7 +180,7 @@ export class PackingController {
         return;
       }
 
-      const result = await packingService.deletePackingItem(itemIdStr);
+      const result = await packingService.delItem(itemIdStr);
       res.status(200).json(result);
     } catch (error: any) {
       console.error('删除打包物品失败:', error);
@@ -217,7 +217,7 @@ export class PackingController {
    * 获取打包进度
    * GET /api/trips/:tripId/packing/progress
    */
-  static async getPackingProgress(req: Request, res: Response): Promise<void> {
+  static async packProgress(req: Request, res: Response): Promise<void> {
     try {
       const { tripId } = req.params;
       const tripIdStr = Array.isArray(tripId) ? tripId[0] : tripId;
@@ -230,7 +230,7 @@ export class PackingController {
         return;
       }
 
-      const progress = await packingService.getPackingProgress(tripIdStr);
+      const progress = await packingService.packProgress(tripIdStr);
 
       // 计算总进度
       const totalItems = progress.reduce((sum: number, item: any) => sum + item._count, 0);

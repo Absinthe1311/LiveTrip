@@ -10,11 +10,11 @@ import {
   ArrowLeftOutlined,
 } from '@ant-design/icons';
 import {
-  getBlogPostById,
-  toggleLike,
-  deleteBlog,
+  loadBlogId,
+  blogLike,
+  delBlog,
   addBlogComment,
-  deleteBlogComment,
+  delBlogComment,
   toggleBlogCommentLike,
   incrementBlogViewCount,
 } from '../../api/client';
@@ -39,7 +39,7 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
   const loadBlog = async () => {
     try {
       setLoading(true);
-      const response = await getBlogPostById(postId);
+      const response = await loadBlogId(postId);
 
       if (response.success && response.data) {
         setBlog(response.data);
@@ -61,18 +61,18 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
     }
   }, [postId]);
 
-  const handleToggleLike = async () => {
+  const handleblogLike = async () => {
     try {
-      await toggleLike(postId, userId);
+      await blogLike(postId, userId);
       loadBlog();
     } catch (error: any) {
       message.error('点赞失败');
     }
   };
 
-  const handleDeleteBlog = async () => {
+  const handledelBlog = async () => {
     try {
-      await deleteBlog(postId, userId);
+      await delBlog(postId, userId);
       message.success('博客删除成功');
       onBack();
     } catch (error: any) {
@@ -80,7 +80,7 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
     }
   };
 
-  const handleAddComment = async () => {
+  const handleaddCmt = async () => {
     if (!commentInput.trim()) {
       message.warning('请输入评论内容');
       return;
@@ -95,16 +95,16 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
     }
   };
 
-  const handleDeleteComment = async (commentId: string) => {
+  const handledelCmt = async (commentId: string) => {
     try {
-      await deleteBlogComment(commentId, userId);
+      await delBlogComment(commentId, userId);
       loadBlog();
     } catch (error: any) {
       message.error('删除评论失败');
     }
   };
 
-  const handleToggleCommentLike = async (commentId: string) => {
+  const handlelikeCmt = async (commentId: string) => {
     try {
       await toggleBlogCommentLike(commentId, userId);
       loadBlog();
@@ -158,7 +158,7 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
             {isAuthor && (
               <>
                 <Button icon={<EditOutlined />}>编辑</Button>
-                <Button danger icon={<DeleteOutlined />} onClick={handleDeleteBlog}>
+                <Button danger icon={<DeleteOutlined />} onClick={handledelBlog}>
                   删除
                 </Button>
               </>
@@ -225,7 +225,7 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
           <Button
             type={isLiked ? 'primary' : 'default'}
             icon={isLiked ? <LikeFilled /> : <LikeOutlined />}
-            onClick={handleToggleLike}
+            onClick={handleblogLike}
             size="large"
           >
             {blog.likeCount}
@@ -266,7 +266,7 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
                   onChange={(e) => setCommentInput(e.target.value)}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
-                      handleAddComment();
+                      handleaddCmt();
                     }
                   }}
                   style={{
@@ -278,7 +278,7 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
                   }}
                 />
                 <div style={{ marginTop: 8, textAlign: 'right' }}>
-                  <Button type="primary" onClick={handleAddComment} disabled={!commentInput.trim()}>
+                  <Button type="primary" onClick={handleaddCmt} disabled={!commentInput.trim()}>
                     发表评论
                   </Button>
                 </div>
@@ -312,7 +312,7 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
                             type="text"
                             size="small"
                             icon={isCommentLiked(comment) ? <LikeFilled /> : <LikeOutlined />}
-                            onClick={() => handleToggleCommentLike(comment.id)}
+                            onClick={() => handlelikeCmt(comment.id)}
                             style={{
                               color: isCommentLiked(comment) ? '#ff4d4f' : 'inherit',
                               padding: '0 4px',
@@ -328,7 +328,7 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
                               type="text"
                               size="small"
                               danger
-                              onClick={() => handleDeleteComment(comment.id)}
+                              onClick={() => handledelCmt(comment.id)}
                             >
                               删除
                             </Button>

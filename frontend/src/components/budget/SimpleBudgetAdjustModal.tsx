@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { Modal, Input, message } from 'antd';
 import { Wallet, TrendingUp, TrendingDown } from 'lucide-react';
-import { adjustBudget } from '../../api/client';
+import { modBudget } from '../../api/client';
 
 interface SimpleBudgetAdjustModalProps {
   visible: boolean;
@@ -38,7 +38,7 @@ export default function SimpleBudgetAdjustModal({
 
     setLoading(true);
     try {
-      const response = await adjustBudget(
+      const response = await modBudget(
         tripId,
         budget,
         `调整总预算从¥${currentBudget}到¥${budget}`

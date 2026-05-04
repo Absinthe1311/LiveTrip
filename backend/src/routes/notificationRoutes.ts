@@ -1,44 +1,44 @@
 // 通知路由
 import { Router } from 'express';
-import { authenticateToken } from '../controllers/authController';
+import { authToken } from '../controllers/authController';
 import {
-  getNotifications,
-  markNotificationAsRead,
+  fetNotifs,
+  readAllNotifs,
   markAllNotificationsAsRead,
-  triggerSensor,
-  deleteNotification,
-  clearAllNotifications,
+  fireSensor,
+  delNotif,
+  flushNotifs,
 } from '../controllers/notificationController';
 import {
-  sendTestNotification,
-  sendBatchTestNotifications,
+  testNotif,
+  batchTestNotifs,
 } from '../controllers/testNotificationController';
 
 const router = Router();
 
 // 所有通知路由都需要认证
-router.use(authenticateToken);
+router.use(authToken);
 
 // 获取通知列表
-router.get('/', getNotifications);
+router.get('/', fetNotifs);
 
 // 清空所有通知
-router.delete('/clear-all', clearAllNotifications);
+router.delete('/clear-all', flushNotifs);
 
 // 标记所有通知为已读
 router.put('/read-all', markAllNotificationsAsRead);
 
 // 标记单个通知为已读
-router.put('/:id/read', markNotificationAsRead);
+router.put('/:id/read', readAllNotifs);
 
 // 删除单个通知
-router.delete('/:id', deleteNotification);
+router.delete('/:id', delNotif);
 
 // 手动触发环境感知
-router.post('/sensor/run', triggerSensor);
+router.post('/sensor/run', fireSensor);
 
 // 测试通知接口
-router.post('/test', sendTestNotification);
-router.post('/test-batch', sendBatchTestNotifications);
+router.post('/test', testNotif);
+router.post('/test-batch', batchTestNotifs);
 
 export default router;

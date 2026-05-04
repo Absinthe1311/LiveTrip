@@ -1956,7 +1956,7 @@ ${blogContent.substring(0, 200)}...
       });
 
       // ✅ P2优化: 减少历史消息数量（从 10 条减少到 5 条）
-      const messageHistory = await chatHistoryService.getMessages({
+      const messageHistory = await chatHistoryService.msgs({
         sessionId: session.id,
         limit: 5,
       });

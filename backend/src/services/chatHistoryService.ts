@@ -30,7 +30,7 @@ interface CreateMessageParams {
   toolCall?: string;
 }
 
-interface GetMessagesParams {
+interface msgsParams {
   sessionId: string;
   limit?: number;
 }
@@ -262,7 +262,7 @@ class ChatHistoryService {
   /**
    * 获取会话的消息历史（限制最近 N 条）
    */
-  async getMessages(params: GetMessagesParams) {
+  async msgs(params: msgsParams) {
     try {
       const messages = await prisma.chatMessage.findMany({
         where: {
@@ -284,7 +284,7 @@ class ChatHistoryService {
   /**
    * 获取用户的所有会话列表
    */
-  async getUserSessions(userId?: string, mode?: 'advisor' | 'agent') {
+  async userSessions(userId?: string, mode?: 'advisor' | 'agent') {
     try {
       const where: any = {};
 
@@ -316,7 +316,7 @@ class ChatHistoryService {
   /**
    * 删除会话（及关联的所有消息）
    */
-  async deleteSession(sessionId: string) {
+  async delSession(sessionId: string) {
     try {
       await prisma.chatSession.delete({
         where: { id: sessionId },

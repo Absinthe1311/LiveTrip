@@ -16,7 +16,7 @@ import {
   ShoppingBag,
   Wallet,
 } from 'lucide-react';
-import { getBudgetStatus, updateItemPrice, getBudgetHistory } from '../../api/client';
+import { budgetStats, updPrice, budgetLog } from '../../api/client';
 
 interface ExpenseRecordModalProps {
   visible: boolean;
@@ -74,7 +74,7 @@ export default function ExpenseRecordModal({
   const loadHistory = async () => {
     setLoading(true);
     try {
-      const response = await getBudgetHistory(tripId, 50);
+      const response = await budgetLog(tripId, 50);
       if (response.success) {
         setHistory(response.data);
       }
@@ -98,7 +98,7 @@ export default function ExpenseRecordModal({
 
     try {
       // 添加开支记录（previousAmount为0，newAmount为实际金额）
-      const response = await updateItemPrice(tripId, expenseCategory, expenseName, 0, amount);
+      const response = await updPrice(tripId, expenseCategory, expenseName, 0, amount);
 
       if (response.success) {
         message.success('开支记录已添加');

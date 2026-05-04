@@ -31,7 +31,7 @@ export class PackingService {
   /**
    * 获取行程的打包清单
    */
-  async getPackingList(tripId: string) {
+  async packList(tripId: string) {
     try {
       const prisma = getPrismaClient();
       const packingItems = await prisma.packingItem.findMany({
@@ -52,7 +52,7 @@ export class PackingService {
   /**
    * 初始化打包清单（添加默认预设物品）
    */
-  async initializePackingList(tripId: string) {
+  async initPack(tripId: string) {
     try {
       const prisma = getPrismaClient();
 
@@ -89,7 +89,7 @@ export class PackingService {
       });
 
       // 返回完整的清单
-      return this.getPackingList(tripId);
+      return this.packList(tripId);
     } catch (error) {
       console.error('初始化打包清单失败:', error);
       throw error;
@@ -99,7 +99,7 @@ export class PackingService {
   /**
    * 添加打包物品
    */
-  async addPackingItem(tripId: string, itemName: string, category: string) {
+  async addItem(tripId: string, itemName: string, category: string) {
     try {
       const prisma = getPrismaClient();
       const item = await prisma.packingItem.create({
@@ -126,7 +126,7 @@ export class PackingService {
   /**
    * 批量保存打包清单
    */
-  async batchSavePackingList(tripId: string, items: any[]) {
+  async batchSave(tripId: string, items: any[]) {
     try {
       const prisma = getPrismaClient();
 
@@ -150,7 +150,7 @@ export class PackingService {
       });
 
       // 返回完整的清单
-      return this.getPackingList(tripId);
+      return this.packList(tripId);
     } catch (error) {
       console.error('批量保存打包清单失败:', error);
       throw error;
@@ -160,7 +160,7 @@ export class PackingService {
   /**
    * 更新打包物品状态
    */
-  async updatePackingItem(itemId: string, updates: { isPacked?: boolean; itemName?: string }) {
+  async updItem(itemId: string, updates: { isPacked?: boolean; itemName?: string }) {
     try {
       const prisma = getPrismaClient();
       const item = await prisma.packingItem.update({
@@ -181,7 +181,7 @@ export class PackingService {
   /**
    * 删除打包物品
    */
-  async deletePackingItem(itemId: string) {
+  async delItem(itemId: string) {
     try {
       const prisma = getPrismaClient();
       await prisma.packingItem.delete({
@@ -218,7 +218,7 @@ export class PackingService {
   /**
    * 获取打包进度
    */
-  async getPackingProgress(tripId: string) {
+  async packProgress(tripId: string) {
     try {
       const prisma = getPrismaClient();
       return prisma.packingItem.groupBy({

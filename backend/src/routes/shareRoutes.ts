@@ -3,7 +3,7 @@
  */
 
 import { Router } from 'express';
-import { shareTrip, getSharedTrip, cloneSharedTrip } from '../controllers/shareController';
+import { shareTrip, getSharedTrip, copyTrip } from '../controllers/shareController';
 
 const router = Router();
 
@@ -26,6 +26,6 @@ router.get('/trips/shared/:token', getSharedTrip);
  * POST /api/trips/shared/:token/clone
  * 需要认证,只有登录用户可以复刻
  */
-router.post('/trips/shared/:token/clone', cloneSharedTrip);
+router.post('/trips/shared/:token/clone', copyTrip);
 
 export default router;

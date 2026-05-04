@@ -26,7 +26,7 @@ class TraditionalRecommender {
       // 步骤1：获取 IoT 数据
       console.log('\n步骤1: 获取 IoT 数据...');
       const spotIds = request.attractions.map((a: any) => a.id || a.spotId);
-      const iotDataMap = await this.getIoTDataMap(spotIds);
+      const iotDataMap = await this.spotIotMap(spotIds);
       console.log(`✅ 获取到 ${iotDataMap.size} 个景点的 IoT 数据`);
 
       // 步骤2：为所有景点计算综合评分
@@ -445,7 +445,7 @@ class TraditionalRecommender {
   /**
    * 获取 IoT 数据映射
    */
-  private async getIoTDataMap(spotIds: string[]): Promise<Map<string, any>> {
+  private async spotIotMap(spotIds: string[]): Promise<Map<string, any>> {
     try {
       const iotDataList = await spotService.getBatchIoTData(spotIds);
       return iotDataList;

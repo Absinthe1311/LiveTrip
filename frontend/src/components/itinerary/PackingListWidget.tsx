@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { getPackingList, savePackingList } from '@/api/client';
+import { packList, savePackingList } from '@/api/client';
 import { PRESET_CATEGORIES } from '@/config/presetItems';
 
 interface PackingItem {
@@ -47,8 +47,8 @@ export function PackingListWidget({
     setLoading(true);
     try {
       // 获取现有清单
-      const response = await getPackingList(itineraryId);
-      console.log('📦 getPackingList 响应:', response);
+      const response = await packList(itineraryId);
+      console.log('📦 packList 响应:', response);
 
       if (response.success && response.data) {
         setItems(response.data);

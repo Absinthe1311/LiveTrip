@@ -23,13 +23,13 @@ CREATE TABLE "Review" (
 );
 
 -- CreateTable
-CREATE TABLE "ReviewImage" (
+CREATE TABLE "reviewImg" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "reviewId" TEXT NOT NULL,
     "imageUrl" TEXT NOT NULL,
     "altText" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "ReviewImage_reviewId_fkey" FOREIGN KEY ("reviewId") REFERENCES "Review" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "reviewImg_reviewId_fkey" FOREIGN KEY ("reviewId") REFERENCES "Review" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- RedefineTables
@@ -81,4 +81,4 @@ CREATE INDEX "Review_userId_idx" ON "Review"("userId");
 CREATE INDEX "Review_rating_idx" ON "Review"("rating");
 
 -- CreateIndex
-CREATE INDEX "ReviewImage_reviewId_idx" ON "ReviewImage"("reviewId");
+CREATE INDEX "reviewImg_reviewId_idx" ON "reviewImg"("reviewId");

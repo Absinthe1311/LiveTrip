@@ -56,7 +56,7 @@ export interface PendingImagesResponse {
 }
 
 // 上传图片响应
-export interface UploadImageResponse {
+export interface imgUploadResponse {
   success: boolean;
   message: string;
   data: {

@@ -1,11 +1,11 @@
 // 行程规划控制器 - 处理行程规划相关请求
 import { Request, Response } from 'express';
-import { CreatePlanRequest } from '../types';
+import { makePlanRequest } from '../types';
 import { amapService } from '../services/amapService';
 import { traditionalRecommender } from '../services/traditionalRecommender';
 import { routeOptimizer } from '../services/routeOptimizer';
 import { itineraryAdjustService } from '../services/itineraryAdjustService';
-import { AdjustItineraryRequest } from '../services/itineraryAdjustService';
+import { editTripRequest } from '../services/itineraryAdjustService';
 import { getPrismaClient } from '../lib/prisma';
 import { spotService } from '../services/spotService';
 
@@ -15,10 +15,10 @@ const prisma = getPrismaClient();
  * 创建行程计划
  * POST /api/plan
  */
-export const createPlan = async (req: Request, res: Response) => {
+export const makePlan = async (req: Request, res: Response) => {
   try {
     // 解析请求参数
-    const planData: CreatePlanRequest = req.body;
+    const planData: makePlanRequest = req.body;
 
     // 验证必填字段
     if (!planData.destination || !planData.start_date || !planData.end_date) {
@@ -49,7 +49,7 @@ export const createPlan = async (req: Request, res: Response) => {
 
     // 步骤 1: 调用 spotService 获取景点（同时存储到数据库）
     console.log('\n步骤 1: 获取景点数据并存储到数据库...');
-    const spots = await spotService.getCitySpots(planData.destination, 50);
+    const spots = await spotService.citySpots(planData.destination, 50);
 
     if (spots.length === 0) {
       return res.status(404).json({
@@ -149,7 +149,7 @@ export const createPlan = async (req: Request, res: Response) => {
  * 获取行程详情
  * GET /api/itinerary/:id
  */
-export const getItinerary = async (req: Request, res: Response) => {
+export const itinerary = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
@@ -175,13 +175,13 @@ export const getItinerary = async (req: Request, res: Response) => {
  * 调整行程
  * POST /api/adjust
  */
-export const adjustItinerary = async (req: Request, res: Response) => {
+export const editTrip = async (req: Request, res: Response) => {
   try {
     console.log('📝 收到行程调整请求');
     console.log('请求体:', JSON.stringify(req.body, null, 2));
 
     // 解析请求参数
-    const adjustRequest: AdjustItineraryRequest = req.body;
+    const adjustRequest: editTripRequest = req.body;
 
     // 验证必填字段
     if (!adjustRequest.itinerary || !adjustRequest.reason || !adjustRequest.targetAttractionId) {
@@ -200,7 +200,7 @@ export const adjustItinerary = async (req: Request, res: Response) => {
     }
 
     // 调用行程调整服务
-    const result = await itineraryAdjustService.adjustItinerary(adjustRequest);
+    const result = await itineraryAdjustService.editTrip(adjustRequest);
 
     console.log('✅ 行程调整完成');
     console.log(`   调整成功: ${result.success}`);

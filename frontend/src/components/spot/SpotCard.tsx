@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Heart, Star, ChevronRight, ChevronLeft, Image as ImageIcon } from 'lucide-react';
 import GlassCard from '../home/GlassCard';
-import { addFavorite, removeFavorite, checkFavorite } from '../../api/client';
+import { addFavorite, removeFavorite, chkFav } from '../../api/client';
 import { message } from 'antd';
 
 interface SpotCardProps {
@@ -42,9 +42,9 @@ export function SpotCard({
       return;
     }
 
-    const checkFavoriteStatus = async () => {
+    const chkFavStatus = async () => {
       try {
-        const response = await checkFavorite(spot.id);
+        const response = await chkFav(spot.id);
         if (response.success && response.data) {
           setIsLiked(response.data.isFavorite);
         }
@@ -55,7 +55,7 @@ export function SpotCard({
     };
 
     if (spot.id) {
-      checkFavoriteStatus();
+      chkFavStatus();
     }
   }, [spot.id, isFavorited]);
 

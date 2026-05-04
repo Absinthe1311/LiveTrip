@@ -26,9 +26,9 @@ import DayMap from '../components/itinerary/DayMap';
 import {
   getTripById,
   completeTrip,
-  getIoTData,
+  spotIot,
   updateAlternativeRelations,
-  batchGetSpotImagesByIds,
+  batchgetSpotImgsByIds,
 } from '../api/client';
 import { FullItinerary, AttractionItem } from '../api/client';
 import { alternativeRecommender } from '../services/alternativeRecommender';
@@ -172,7 +172,7 @@ export default function TripDetailPage() {
 
   const loadIoTData = async () => {
     try {
-      const response = await getIoTData();
+      const response = await spotIot();
       if (response.success && response.data) {
         setIoTData(response.data.spots);
       }
@@ -200,7 +200,7 @@ export default function TripDetailPage() {
       }
 
       console.log(`📸 批量获取 ${spotIds.length} 个景点的图片`);
-      const response = await batchGetSpotImagesByIds(spotIds);
+      const response = await batchgetSpotImgsByIds(spotIds);
 
       if (response.success && response.data) {
         setSpotImages(response.data.images);
@@ -231,7 +231,7 @@ export default function TripDetailPage() {
 
       console.log(`📸 批量获取 ${spotIds.length} 个景点的图片`);
       console.log('景点ID列表:', spotIds);
-      const response = await batchGetSpotImagesByIds(spotIds);
+      const response = await batchgetSpotImgsByIds(spotIds);
 
       if (response.success && response.data) {
         console.log(`✅ 成功加载 ${Object.keys(response.data.images).length} 个景点的图片`);
@@ -674,7 +674,7 @@ export default function TripDetailPage() {
                 totalBudget={trip?.totalBudget || 0}
                 budget={trip?.budget}
                 onRecordExpense={() => setExpenseRecordVisible(true)}
-                onAdjustBudget={() => setBudgetAdjustVisible(true)}
+                onmodBudget={() => setBudgetAdjustVisible(true)}
               />
 
               {/* 行李清单 */}

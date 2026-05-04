@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
-import { getBlogPosts, deleteBlog } from '../api/client';
+import { fetchPosts, delBlog } from '../api/client';
 import { message, Popconfirm } from 'antd';
 import { BlogListSkeleton } from '../components/blog/BlogSkeleton';
 import EmptyState from '../components/common/EmptyState';
@@ -77,7 +77,7 @@ export default function BlogsGlass() {
   const loadBlogs = async () => {
     try {
       console.log('📡 开始加载博客列表...');
-      const response = await getBlogPosts();
+      const response = await fetchPosts();
       console.log('📦 API响应:', response);
 
       // 处理不同的响应格式
@@ -166,7 +166,7 @@ export default function BlogsGlass() {
   // 处理删除
   const handleDelete = async (blogId: string) => {
     try {
-      const response = await deleteBlog(blogId, currentUserId || 'default-user');
+      const response = await delBlog(blogId, currentUserId || 'default-user');
       if (response.success) {
         message.success('博客删除成功');
         // 直接从列表中移除，无需重新加载

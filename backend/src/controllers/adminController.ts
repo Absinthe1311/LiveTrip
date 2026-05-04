@@ -54,11 +54,11 @@ interface AdminSpotListItem {
 }
 
 export class AdminController {
-  static async getDashboardStats(req: Request, res: Response): Promise<void> {
+  static async fetchDash(req: Request, res: Response): Promise<void> {
     const stats = await Promise.all([
       prisma.spot.count(),
       prisma.spot.count({ where: { image: { status: 'approved' } } }),
-      prisma.spot.count({ where: { id: { in: await this.getSpotIdsFromUserTrips() } } }),
+      prisma.spot.count({ where: { id: { in: await this.getSpotIDUser() } } }),
     ]).catch((err) => {
       console.error('仪表板统计查询失败:', err);
       res.status(500).json({ success: false, error: '查询失败' });
@@ -82,7 +82,7 @@ export class AdminController {
     });
   }
 
-  static async uploadSpotImages(req: Request, res: Response): Promise<void> {
+  static async uploadImgs(req: Request, res: Response): Promise<void> {
     const { spotId } = req.params;
     const userId = (req as any).user?.userId;
     const files = req.files as Array<{
@@ -96,7 +96,7 @@ export class AdminController {
 
     for (const file of files) {
       const result = await imageService
-        .uploadImage(
+        .imgUpload(
           spotIdStr,
           {
             buffer: file.buffer,
@@ -122,7 +122,7 @@ export class AdminController {
     });
   }
 
-  static async getSpotImageStatus(req: Request, res: Response): Promise<void> {
+  static async chkImgState(req: Request, res: Response): Promise<void> {
     const { status, keyword, city, page = 1, limit = 20 } = req.query;
     const where: any = {};
     if (keyword && typeof keyword === 'string') where.name = { contains: keyword };
@@ -138,7 +138,7 @@ export class AdminController {
       include: { image: { select: { status: true, isPrimary: true } } },
     });
 
-    const tripIds = await this.getSpotIdsFromUserTrips();
+    const tripIds = await this.getSpotIDUser();
 
     const statuses = spots.map((spot) => {
       const im = spot.image;
@@ -188,7 +188,7 @@ export class AdminController {
     });
   }
 
-  static async setPrimaryImage(req: Request, res: Response): Promise<void> {
+  static async setPImg(req: Request, res: Response): Promise<void> {
     const userId = (req as any).user?.userId;
     if (!userId) {
       res.status(401).json({ success: false, message: '请先登录' });
@@ -207,11 +207,11 @@ export class AdminController {
     if (ok) res.json({ success: true, message: '设置成功' });
   }
 
-  static async getUserTripSpots(req: Request, res: Response): Promise<void> {
+  static async fetchUserSpots(req: Request, res: Response): Promise<void> {
     const fail = (msg: string) => res.status(500).json({ success: false, error: msg });
 
     const { page = 1, limit = 20 } = req.query;
-    const spotIds = await this.getSpotIdsFromUserTrips();
+    const spotIds = await this.getSpotIDUser();
 
     const result = await Promise.all([
       prisma.spot.findMany({
@@ -303,7 +303,7 @@ export class AdminController {
     });
   }
 
-  static async reviewImage(req: Request, res: Response): Promise<void> {
+  static async reviewImg(req: Request, res: Response): Promise<void> {
     const fail = (msg: string) => res.status(500).json({ success: false, message: msg });
 
     const { imageId } = req.params;
@@ -349,7 +349,7 @@ export class AdminController {
     });
   }
 
-  static async getSpotImages(req: Request, res: Response): Promise<void> {
+  static async getSpotImgs(req: Request, res: Response): Promise<void> {
     const { spotId } = req.params;
     const spotIdStr = Array.isArray(spotId) ? spotId[0] : spotId;
     if (!spotIdStr) {
@@ -383,7 +383,7 @@ export class AdminController {
     res.json({ success: true, data: response, message: '获取景点图片成功' });
   }
 
-  static async deleteImage(req: Request, res: Response): Promise<void> {
+  static async delImg(req: Request, res: Response): Promise<void> {
     const { imageId } = req.params;
     const imageIdStr = Array.isArray(imageId) ? imageId[0] : imageId;
     if (!imageIdStr) {
@@ -402,7 +402,7 @@ export class AdminController {
 
     if (cloudinaryId) {
       await cloudinaryService
-        .deleteImage(cloudinaryId)
+        .delImg(cloudinaryId)
         .catch((err) => console.error('Cloudinary 删除失败:', err));
     }
 
@@ -419,7 +419,7 @@ export class AdminController {
     if (deleted) res.json({ success: true, message: '图片删除成功' });
   }
 
-  static async getPendingImages(req: Request, res: Response): Promise<void> {
+  static async fetchPendingImgs(req: Request, res: Response): Promise<void> {
     const fail = (msg: string) => res.status(500).json({ success: false, message: msg });
 
     const page = parseInt(req.query.page as string) || 1;
@@ -463,7 +463,7 @@ export class AdminController {
     });
   }
 
-  private static async getSpotIdsFromUserTrips(): Promise<string[]> {
+  private static async getSpotIDUser(): Promise<string[]> {
     const items = await prisma.itineraryItem
       .findMany({
         distinct: ['name'],

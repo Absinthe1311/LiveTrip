@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { Wallet, Plus, Settings } from 'lucide-react';
 
-import { getBudgetStatus } from '../../api/client';
+import { budgetStats } from '../../api/client';
 
 interface BudgetWidgetProps {
   tripId: string;
@@ -18,7 +18,7 @@ interface BudgetWidgetProps {
     other: number;
   } | null;
   onRecordExpense?: () => void;
-  onAdjustBudget?: () => void;
+  onmodBudget?: () => void;
   compact?: boolean; // 紧凑模式（用于MyTrips页面）
 }
 
@@ -27,7 +27,7 @@ export default function BudgetWidget({
   totalBudget,
   budget,
   onRecordExpense,
-  onAdjustBudget,
+  onmodBudget,
   compact = false,
 }: BudgetWidgetProps) {
   const [usageRate, setUsageRate] = useState(0);
@@ -61,14 +61,14 @@ export default function BudgetWidget({
   const remaining = totalBudget - spent;
 
   // 获取预算状态
-  const getBudgetStatus = () => {
+  const budgetStats = () => {
     if (usageRate > 100) return { color: 'text-red-400', bgColor: 'bg-red-500', text: '超支' };
     if (usageRate > 95) return { color: 'text-orange-400', bgColor: 'bg-orange-500', text: '紧张' };
     if (usageRate > 80) return { color: 'text-yellow-400', bgColor: 'bg-yellow-500', text: '适中' };
     return { color: 'text-green-400', bgColor: 'bg-green-500', text: '充足' };
   };
 
-  const status = getBudgetStatus();
+  const status = budgetStats();
 
   if (compact) {
     // 紧凑模式（用于MyTrips页面）
@@ -108,7 +108,7 @@ export default function BudgetWidget({
         </div>
 
         {/* 操作按钮 */}
-        {onRecordExpense && onAdjustBudget && (
+        {onRecordExpense && onmodBudget && (
           <div className="mt-2 flex gap-1.5">
             <button
               onClick={onRecordExpense}
@@ -117,7 +117,7 @@ export default function BudgetWidget({
               记账
             </button>
             <button
-              onClick={onAdjustBudget}
+              onClick={onmodBudget}
               className="flex-1 text-xs py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded transition"
             >
               调整
@@ -172,7 +172,7 @@ export default function BudgetWidget({
       </div>
 
       {/* 操作按钮 */}
-      {onRecordExpense && onAdjustBudget && (
+      {onRecordExpense && onmodBudget && (
         <div className="mt-3 flex gap-2">
           <button
             onClick={onRecordExpense}
@@ -182,7 +182,7 @@ export default function BudgetWidget({
             记账
           </button>
           <button
-            onClick={onAdjustBudget}
+            onClick={onmodBudget}
             className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg transition text-sm font-medium"
           >
             <Settings className="h-4 w-4" />

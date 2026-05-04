@@ -1,7 +1,7 @@
 // 图片上传路由
 import express from 'express';
 import multer from 'multer';
-import { uploadImage, deleteImage } from '../controllers/uploadController';
+import { imgUpload, delImg } from '../controllers/uploadController';
 
 const router = express.Router();
 
@@ -27,13 +27,13 @@ const upload = multer({
  * @desc    上传图片到 Cloudinary
  * @access  Private
  */
-router.post('/image', upload.single('image'), uploadImage);
+router.post('/image', upload.single('image'), imgUpload);
 
 /**
  * @route   DELETE /api/upload/image/:publicId
  * @desc    删除 Cloudinary 上的图片
  * @access  Private
  */
-router.delete('/image/:publicId', deleteImage);
+router.delete('/image/:publicId', delImg);
 
 export default router;

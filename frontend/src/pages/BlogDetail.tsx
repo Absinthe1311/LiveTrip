@@ -25,12 +25,12 @@ import {
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
 import {
-  getBlogPostById,
-  deleteBlog,
-  toggleLike,
+  loadBlogId,
+  delBlog,
+  blogLike,
   incrementBlogViewCount,
   addBlogComment,
-  deleteBlogComment,
+  delBlogComment,
 } from '../api/client';
 import { message, Popconfirm } from 'antd';
 import { exportBlogToPDF } from '../utils/exportPDF';
@@ -91,7 +91,7 @@ export default function BlogDetailGlass() {
   const loadBlogDetail = async (blogId: string) => {
     try {
       setLoading(true);
-      const response = await getBlogPostById(blogId);
+      const response = await loadBlogId(blogId);
       if (response.success && response.data) {
         setBlog(response.data);
 
@@ -114,7 +114,7 @@ export default function BlogDetailGlass() {
       return;
     }
     try {
-      const response = await toggleLike(blog.id, currentUserId);
+      const response = await blogLike(blog.id, currentUserId);
       if (response.success && response.data) {
         setLiked(response.data.liked);
         setBlog({
@@ -127,7 +127,7 @@ export default function BlogDetailGlass() {
     }
   };
 
-  const handleAddComment = async () => {
+  const handleaddCmt = async () => {
     if (!blog || !currentUserId) {
       message.warning('请先登录');
       return;
@@ -149,13 +149,13 @@ export default function BlogDetailGlass() {
     }
   };
 
-  const handleDeleteComment = async (commentId: string) => {
+  const handledelCmt = async (commentId: string) => {
     if (!currentUserId) {
       message.warning('请先登录');
       return;
     }
     try {
-      const response = await deleteBlogComment(commentId, currentUserId);
+      const response = await delBlogComment(commentId, currentUserId);
       if (response.success) {
         message.success('删除评论成功');
         // 重新加载博客详情
@@ -176,7 +176,7 @@ export default function BlogDetailGlass() {
   const handleDelete = async () => {
     if (!blog) return;
     try {
-      const response = await deleteBlog(blog.id, currentUserId || 'default-user');
+      const response = await delBlog(blog.id, currentUserId || 'default-user');
       if (response.success) {
         message.success('博客删除成功');
         // 使用 replace 而不是 push，避免回退到已删除的页面
@@ -392,7 +392,7 @@ export default function BlogDetailGlass() {
                 rows={3}
               />
               <button
-                onClick={handleAddComment}
+                onClick={handleaddCmt}
                 className="mt-3 px-6 py-2 rounded-lg bg-gradient-to-r from-[#CDEDDE] to-[#CDEDDE]/80 text-[#005746] font-semibold hover:shadow-lg hover:shadow-[#CDEDDE]/40 transition-all border border-[#CDEDDE]/50"
               >
                 发表评论
@@ -436,7 +436,7 @@ export default function BlogDetailGlass() {
                     {currentUserId && comment.userId === currentUserId && (
                       <Popconfirm
                         title="确定要删除这条评论吗？"
-                        onConfirm={() => handleDeleteComment(comment.id)}
+                        onConfirm={() => handledelCmt(comment.id)}
                         okText="确定"
                         cancelText="取消"
                       >

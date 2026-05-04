@@ -29,7 +29,7 @@ export interface IoTDataResponse {
  * 获取所有景点的 IoT 实时数据
  * GET /api/iot/data
  */
-export const getIoTData = async (req: Request, res: Response) => {
+export const spotIot = async (req: Request, res: Response) => {
   try {
     console.log('📡 获取 IoT 实时数据...');
 
@@ -121,7 +121,7 @@ export const getIoTData = async (req: Request, res: Response) => {
  * 获取指定景点的 IoT 数据
  * GET /api/iot/spot/:id
  */
-export const getSpotIoTData = async (req: Request, res: Response) => {
+export const spotIoT = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 

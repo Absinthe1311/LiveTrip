@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { agentService } from '../services/agentService';
 
-export const chatWithAgent = async (req: Request, res: Response) => {
+export const askAgent = async (req: Request, res: Response) => {
   try {
     const { question } = req.body;
     if (!question || typeof question !== 'string' || question.trim().length === 0) {

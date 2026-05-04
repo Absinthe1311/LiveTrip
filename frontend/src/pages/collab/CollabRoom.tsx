@@ -22,16 +22,16 @@ import GlobalSidebar from '../../components/layout/GlobalSidebar';
 import { useCollabStore } from '../../store/collabStore';
 import {
   getCollabRoomInfo,
-  getUserDrafts,
+  myDrfts,
   getCollabMessages,
-  getSpotStats,
+  spotStats,
   lockCollabRoom,
   sendCollabMessage,
-  upsertDraft,
-  submitDraft,
-  getCitySpots,
-  getAllDrafts,
-  saveFinalTrip,
+  saveDraft,
+  sendDraft,
+  citySpots,
+  allDrafts,
+  commitTrip,
   getLatestCollabTrip,
 } from '../../api/collabApi';
 import {
@@ -183,7 +183,7 @@ export default function CollabRoom() {
           setAllMemberDrafts(draftsData);
         } else {
           // 重新加载所有成员的草案
-          const response = await getAllDrafts(roomId);
+          const response = await allDrafts(roomId);
           if (response.success) {
             setAllMemberDrafts(response.data);
           }
@@ -365,7 +365,7 @@ export default function CollabRoom() {
           const dest = roomResponse.data.trip.destination;
           setDestination(dest);
 
-          const spotsResponse = await getCitySpots(dest, 50);
+          const spotsResponse = await citySpots(dest, 50);
           if (spotsResponse.success && spotsResponse.data) {
             const spots: Spot[] = spotsResponse.data.map((s: any) => ({
               id: s.id,
@@ -379,7 +379,7 @@ export default function CollabRoom() {
       }
 
       // 加载我的草案
-      const draftsResponse = await getUserDrafts(roomId!);
+      const draftsResponse = await myDrfts(roomId!);
       if (draftsResponse.success) {
         setMyDrafts(draftsResponse.data);
 
@@ -440,7 +440,7 @@ export default function CollabRoom() {
 
     const loadDayDraft = async () => {
       try {
-        const draftsResponse = await getUserDrafts(roomId);
+        const draftsResponse = await myDrfts(roomId);
         if (draftsResponse.success) {
           setMyDrafts(draftsResponse.data);
 
@@ -526,7 +526,7 @@ export default function CollabRoom() {
       return { lng, lat };
     });
 
-    upsertDraft(roomId, currentDay, spotSequence, polylineData);
+    saveDraft(roomId, currentDay, spotSequence, polylineData);
 
     // 通过WebSocket通知其他人
     updateDraft(roomId, currentUser.id, currentDay, spotSequence, polylineData);
@@ -539,7 +539,7 @@ export default function CollabRoom() {
   };
 
   // 提交草案
-  const handleSubmitDraft = async () => {
+  const handlesendDraft = async () => {
     if (!roomId) return;
 
     try {
@@ -547,11 +547,11 @@ export default function CollabRoom() {
       saveDraft();
 
       // 获取当前草案ID
-      const draftsResponse = await getUserDrafts(roomId);
+      const draftsResponse = await myDrfts(roomId);
       if (draftsResponse.success) {
         const currentDraft = draftsResponse.data.find((d) => d.dayNumber === currentDay);
         if (currentDraft) {
-          await submitDraft(currentDraft.id);
+          await sendDraft(currentDraft.id);
           alert('路线已提交！');
         }
       }
@@ -564,7 +564,7 @@ export default function CollabRoom() {
     if (!roomId) return;
 
     try {
-      const response = await getSpotStats(roomId);
+      const response = await spotStats(roomId);
       if (response.success) {
         setSpotStats(response.data);
         setStatsData(response.data);
@@ -587,7 +587,7 @@ export default function CollabRoom() {
     setShowStats(false);
   };
 
-  const handleLockRoom = async () => {
+  const handlecloseRoom = async () => {
     if (!roomId || !confirm('确定要锁定房间吗？锁定后所有成员都无法再修改草案。')) return;
 
     try {
@@ -611,7 +611,7 @@ export default function CollabRoom() {
     if (!roomId || !isMapLoaded) return;
 
     try {
-      const response = await getAllDrafts(roomId);
+      const response = await allDrafts(roomId);
       if (response.success && response.data) {
         // 保存所有草案数据
         setAllMemberDrafts(response.data);
@@ -681,7 +681,7 @@ export default function CollabRoom() {
     });
   };
 
-  const handleSendMessage = async (e?: React.FormEvent) => {
+  const handlemsgSend = async (e?: React.FormEvent) => {
     if (e) {
       e.preventDefault();
     }
@@ -752,7 +752,7 @@ export default function CollabRoom() {
       console.log('📝 开始保存最终行程，路线:', route);
 
       // 调用后端API保存最终行程
-      const response = await saveFinalTrip(roomId, route);
+      const response = await commitTrip(roomId, route);
 
       console.log('📝 保存响应:', response);
 
@@ -1016,7 +1016,7 @@ export default function CollabRoom() {
             <RouteEditor
               spots={routeSpots}
               onSpotsChange={handleRouteSpotsChange}
-              onSubmit={handleSubmitDraft}
+              onSubmit={handlesendDraft}
               isLocked={isLocked}
             />
           </div>
@@ -1117,7 +1117,7 @@ export default function CollabRoom() {
               </div>
 
               <div className="p-4 border-t border-white/10">
-                <form onSubmit={handleSendMessage} className="flex gap-2">
+                <form onSubmit={handlemsgSend} className="flex gap-2">
                   <input
                     type="text"
                     value={messageInput}
@@ -1184,7 +1184,7 @@ export default function CollabRoom() {
 
                   {!isLocked && (
                     <button
-                      onClick={handleLockRoom}
+                      onClick={handlecloseRoom}
                       className="w-full py-3 bg-gradient-to-r from-gray-700/80 to-gray-800/80 text-white rounded-xl font-medium hover:bg-gray-700 hover:shadow-lg hover:shadow-gray-500/20 transition-all duration-300 flex items-center justify-center gap-2 border border-white/20"
                     >
                       <Lock className="h-4 w-4" />

@@ -5,7 +5,7 @@
 
 import express from 'express';
 import { PackingController } from '../controllers/packingController';
-import { authenticateToken } from '../controllers/authController';
+import { authToken } from '../controllers/authController';
 
 const router = express.Router();
 
@@ -13,7 +13,7 @@ const router = express.Router();
  * 获取行程的打包清单
  * GET /api/trips/:tripId/packing
  */
-router.get('/trips/:tripId/packing', authenticateToken, PackingController.getPackingList);
+router.get('/trips/:tripId/packing', authToken, PackingController.packList);
 
 /**
  * 初始化打包清单（添加默认预设物品）
@@ -21,15 +21,15 @@ router.get('/trips/:tripId/packing', authenticateToken, PackingController.getPac
  */
 router.post(
   '/trips/:tripId/packing/initialize',
-  authenticateToken,
-  PackingController.initializePackingList
+  authToken,
+  PackingController.initPack
 );
 
 /**
  * 添加打包物品
  * POST /api/trips/:tripId/packing
  */
-router.post('/trips/:tripId/packing', authenticateToken, PackingController.addPackingItem);
+router.post('/trips/:tripId/packing', authToken, PackingController.addItem);
 
 /**
  * 批量保存打包清单
@@ -37,21 +37,21 @@ router.post('/trips/:tripId/packing', authenticateToken, PackingController.addPa
  */
 router.post(
   '/trips/:tripId/packing/batch',
-  authenticateToken,
-  PackingController.batchSavePackingList
+  authToken,
+  PackingController.batchSave
 );
 
 /**
  * 更新打包物品状态
  * PATCH /api/packing/:itemId
  */
-router.patch('/packing/:itemId', authenticateToken, PackingController.updatePackingItem);
+router.patch('/packing/:itemId', authToken, PackingController.updItem);
 
 /**
  * 删除打包物品
  * DELETE /api/packing/:itemId
  */
-router.delete('/packing/:itemId', authenticateToken, PackingController.deletePackingItem);
+router.delete('/packing/:itemId', authToken, PackingController.delItem);
 
 /**
  * 获取所有分类
@@ -65,8 +65,8 @@ router.get('/packing/categories', PackingController.getCategories);
  */
 router.get(
   '/trips/:tripId/packing/progress',
-  authenticateToken,
-  PackingController.getPackingProgress
+  authToken,
+  PackingController.packProgress
 );
 
 export default router;

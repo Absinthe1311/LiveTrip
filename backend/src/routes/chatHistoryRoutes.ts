@@ -13,7 +13,7 @@ router.get('/sessions', async (req: Request, res: Response) => {
     const userId = (req as any).user?.id;
     const mode = req.query.mode as 'advisor' | 'agent' | undefined;
 
-    const sessions = await chatHistoryService.getUserSessions(userId, mode);
+    const sessions = await chatHistoryService.userSessions(userId, mode);
 
     res.json({
       success: true,
@@ -100,7 +100,7 @@ router.delete('/sessions/:sessionId', async (req: Request, res: Response) => {
   try {
     const sessionId = req.params.sessionId as string;
 
-    await chatHistoryService.deleteSession(sessionId);
+    await chatHistoryService.delSession(sessionId);
 
     res.json({
       success: true,

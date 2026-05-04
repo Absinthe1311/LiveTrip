@@ -27,7 +27,7 @@ import {
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
 import {
   getAdminSpots,
-  getSpotImages,
+  getSpotImgs,
   deleteAdminImage,
   uploadAdminImage,
 } from '../../api/adminApi';
@@ -83,7 +83,7 @@ export default function SpotManagePage() {
     setModalVisible(true);
     setImagesLoading(true);
     try {
-      const response = await getSpotImages(spot.id);
+      const response = await getSpotImgs(spot.id);
       if (response.success && response.data) {
         const allImages: SpotImageItem[] = [
           ...(response.data.approved || []).map((img) => ({ ...img, status: 'approved' as const })),
@@ -99,7 +99,7 @@ export default function SpotManagePage() {
     }
   };
 
-  const handleDeleteImage = async (imageId: string) => {
+  const handledelImg = async (imageId: string) => {
     try {
       const response = await deleteAdminImage(imageId);
       if (response.success) {
@@ -118,7 +118,7 @@ export default function SpotManagePage() {
     try {
       const response = await uploadAdminImage(selectedSpot.id, file);
       if (response.success) {
-        const imagesResponse = await getSpotImages(selectedSpot.id);
+        const imagesResponse = await getSpotImgs(selectedSpot.id);
         if (imagesResponse.success && imagesResponse.data) {
           const allImages: SpotImageItem[] = [
             ...(imagesResponse.data.approved || []).map((img) => ({
@@ -406,7 +406,7 @@ export default function SpotManagePage() {
                           <div className="p-3">
                             {activeTab === 'approved' && (
                               <button
-                                onClick={() => handleDeleteImage(img.id)}
+                                onClick={() => handledelImg(img.id)}
                                 className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded transition-colors text-sm"
                               >
                                 <Trash2 className="h-4 w-4" />

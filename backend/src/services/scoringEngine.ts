@@ -1,5 +1,5 @@
 // 多因素评分引擎 - 替代智谱AI，实现智能景点推荐
-import { CategoryTag, GroupType, SpotScore, CreatePlanRequest } from '../types';
+import { CategoryTag, GroupType, SpotScore, makePlanRequest } from '../types';
 import { getPrismaClient } from '../lib/prisma';
 
 const prisma = getPrismaClient();
@@ -61,7 +61,7 @@ class ScoringEngine {
    */
   async scoreAllSpots(
     spots: any[],
-    request: CreatePlanRequest,
+    request: makePlanRequest,
     iotDataMap: Map<string, any>
   ): Promise<SpotScore[]> {
     console.log('\n📊 开始为景点计算综合评分...');
@@ -89,7 +89,7 @@ class ScoringEngine {
    */
   private async calculateSpotScore(
     spot: any,
-    request: CreatePlanRequest,
+    request: makePlanRequest,
     iotDataMap: Map<string, any>
   ): Promise<SpotScore> {
     // 1. 获取景点的类别标签

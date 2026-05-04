@@ -22,7 +22,7 @@ import {
   EditOutlined,
   DeleteOutlined,
 } from '@ant-design/icons';
-import { getBlogPosts, toggleLike, deleteBlog } from '../../api/client';
+import { fetchPosts, blogLike, delBlog } from '../../api/client';
 import BlogEditor from './BlogEditor';
 
 interface BlogListProps {
@@ -52,7 +52,7 @@ export default function BlogList({
   const loadBlogs = async (pageNum: number = page) => {
     try {
       setLoading(true);
-      const response = await getBlogPosts({
+      const response = await fetchPosts({
         userId,
         city,
         tags,
@@ -86,9 +86,9 @@ export default function BlogList({
     setPage(1);
   };
 
-  const handleToggleLike = async (postId: string) => {
+  const handleblogLike = async (postId: string) => {
     try {
-      await toggleLike(postId, userId || 'default-user');
+      await blogLike(postId, userId || 'default-user');
       loadBlogs(page);
     } catch (error: any) {
       console.error('点赞失败:', error);
@@ -100,16 +100,16 @@ export default function BlogList({
     setEditorVisible(true);
   };
 
-  const handleDeleteBlog = async (postId: string) => {
+  const handledelBlog = async (postId: string) => {
     try {
-      await deleteBlog(postId, userId || 'default-user');
+      await delBlog(postId, userId || 'default-user');
       loadBlogs(page);
     } catch (error: any) {
       console.error('删除博客失败:', error);
     }
   };
 
-  const handleCreateBlog = () => {
+  const handleaddBlog = () => {
     setEditingPostId(undefined);
     setEditorVisible(true);
   };
@@ -156,7 +156,7 @@ export default function BlogList({
           icon: <DeleteOutlined />,
           label: '删除',
           danger: true,
-          onClick: () => handleDeleteBlog(blog.id),
+          onClick: () => handledelBlog(blog.id),
         }
       );
     }
@@ -178,7 +178,7 @@ export default function BlogList({
                     : '最多点赞'}
               </Button>
             </Dropdown>
-            <Button type="primary" onClick={handleCreateBlog}>
+            <Button type="primary" onClick={handleaddBlog}>
               写博客
             </Button>
           </Space>

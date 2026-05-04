@@ -33,7 +33,7 @@ export interface UserPreferences {
 }
 
 // 行程规划请求参数
-export interface CreatePlanRequest {
+export interface makePlanRequest {
   origin?: string;
   destination: string;
   start_date: string;

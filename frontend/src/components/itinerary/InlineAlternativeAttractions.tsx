@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import CompactAlternativeSpotCard from './CompactAlternativeSpotCard';
-import { batchGetSpotImagesByIds } from '../../api/client';
+import { batchgetSpotImgsByIds } from '../../api/client';
 
 interface InlineAlternativeAttractionsProps {
   alternatives: any[];
@@ -34,7 +34,7 @@ export default function InlineAlternativeAttractions({
 
       try {
         console.log('📸 加载备选景点图片，景点数:', spotIds.length);
-        const response = await batchGetSpotImagesByIds(spotIds);
+        const response = await batchgetSpotImgsByIds(spotIds);
 
         if (response.success && response.data) {
           const imageMap: Record<string, string> = {};

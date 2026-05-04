@@ -7,7 +7,7 @@ import { getPrismaClient } from '../lib/prisma';
 
 const prisma = getPrismaClient();
 
-export interface CreateBlogData {
+export interface addBlogData {
   userId: string;
   title: string;
   content: string;
@@ -18,7 +18,7 @@ export interface CreateBlogData {
   isPublished?: boolean;
 }
 
-export interface UpdateBlogData {
+export interface updBlogData {
   title?: string;
   content?: string;
   coverImage?: string;
@@ -60,7 +60,7 @@ class BlogService {
   /**
    * 创建博客文章
    */
-  async createBlog(data: CreateBlogData): Promise<BlogPostWithRelations> {
+  async addBlog(data: addBlogData): Promise<BlogPostWithRelations> {
     try {
       const blog = await prisma.blogPost.create({
         data: {
@@ -99,7 +99,7 @@ class BlogService {
   /**
    * 获取博客文章列表
    */
-  async getBlogPosts(
+  async fetchPosts(
     params: {
       userId?: string;
       city?: string;
@@ -199,7 +199,7 @@ class BlogService {
   /**
    * 获取博客文章详情
    */
-  async getBlogPostById(id: string): Promise<BlogPostWithRelations | null> {
+  async loadBlogId(id: string): Promise<BlogPostWithRelations | null> {
     try {
       const blog = await prisma.blogPost.findUnique({
         where: { id },
@@ -245,7 +245,7 @@ class BlogService {
   /**
    * 增加博客浏览量
    */
-  async incrementViewCount(id: string): Promise<void> {
+  async incViews(id: string): Promise<void> {
     try {
       await prisma.blogPost.update({
         where: { id },
@@ -262,10 +262,10 @@ class BlogService {
   /**
    * 更新博客文章
    */
-  async updateBlog(
+  async updBlog(
     id: string,
     userId: string,
-    data: UpdateBlogData
+    data: updBlogData
   ): Promise<BlogPostWithRelations | null> {
     try {
       // 检查权限
@@ -326,7 +326,7 @@ class BlogService {
   /**
    * 删除博客文章
    */
-  async deleteBlog(id: string, userId: string): Promise<boolean> {
+  async delBlog(id: string, userId: string): Promise<boolean> {
     try {
       const blog = await prisma.blogPost.findUnique({
         where: { id },
@@ -351,7 +351,7 @@ class BlogService {
   /**
    * 点赞/取消点赞
    */
-  async toggleLike(
+  async blogLike(
     postId: string,
     userId: string
   ): Promise<{
@@ -411,7 +411,7 @@ class BlogService {
   /**
    * 添加评论
    */
-  async addComment(
+  async addCmt(
     postId: string,
     userId: string,
     content: string
@@ -456,7 +456,7 @@ class BlogService {
   /**
    * 删除评论
    */
-  async deleteComment(commentId: string, userId: string): Promise<boolean> {
+  async delCmt(commentId: string, userId: string): Promise<boolean> {
     try {
       const comment = await prisma.blogComment.findUnique({
         where: { id: commentId },
@@ -487,7 +487,7 @@ class BlogService {
   /**
    * 点赞/取消点赞评论
    */
-  async toggleCommentLike(
+  async likeCmt(
     commentId: string,
     userId: string
   ): Promise<{
@@ -547,7 +547,7 @@ class BlogService {
   /**
    * 获取热门标签
    */
-  async getPopularTags(limit: number = 20): Promise<Array<{ tag: string; count: number }>> {
+  async hotTags(limit: number = 20): Promise<Array<{ tag: string; count: number }>> {
     try {
       const posts = await prisma.blogPost.findMany({
         where: {

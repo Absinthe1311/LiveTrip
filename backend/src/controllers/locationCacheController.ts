@@ -1,7 +1,7 @@
 // 地点缓存控制器 - 处理地点缓存的API请求
 import { Request, Response } from 'express';
 import {
-  searchLocationWithCache,
+  findLocWithCache,
   getPopularLocations,
   clearAllCache,
 } from '../services/locationCacheService';
@@ -10,7 +10,7 @@ import {
  * 搜索地点（带缓存）
  * GET /api/location/search?keywords=xxx
  */
-export const searchLocation = async (req: Request, res: Response) => {
+export const findLoc = async (req: Request, res: Response) => {
   try {
     const { keywords } = req.query;
 
@@ -24,7 +24,7 @@ export const searchLocation = async (req: Request, res: Response) => {
     const userId = (req.headers['x-user-id'] as string) || 'default-user';
 
     // 调用缓存服务
-    const result = await searchLocationWithCache(keywords, userId);
+    const result = await findLocWithCache(keywords, userId);
 
     res.json(result);
   } catch (error: any) {
@@ -40,7 +40,7 @@ export const searchLocation = async (req: Request, res: Response) => {
  * 获取热门搜索地点
  * GET /api/location/popular?limit=10
  */
-export const getPopularSearchLocations = async (req: Request, res: Response) => {
+export const getPopularfindLocs = async (req: Request, res: Response) => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
 
@@ -60,7 +60,7 @@ export const getPopularSearchLocations = async (req: Request, res: Response) => 
  * 清空所有缓存
  * DELETE /api/location/cache
  */
-export const clearLocationCache = async (req: Request, res: Response) => {
+export const clearLocs = async (req: Request, res: Response) => {
   try {
     const result = await clearAllCache();
 

@@ -15,7 +15,7 @@ export class UserController {
    * 获取用户完整信息（含统计数据）
    * GET /api/users/profile
    */
-  static async getProfile(req: Request, res: Response): Promise<void> {
+  static async userInfo(req: Request, res: Response): Promise<void> {
     try {
       const userId = (req as any).user?.userId;
 
@@ -71,7 +71,7 @@ export class UserController {
    * 更新用户基本信息
    * PUT /api/users/profile
    */
-  static async updateProfile(req: Request, res: Response): Promise<void> {
+  static async saveProfile(req: Request, res: Response): Promise<void> {
     try {
       const userId = (req as any).user?.userId;
       const { nickname, gender, bio } = req.body;
@@ -133,7 +133,7 @@ export class UserController {
       }
 
       // 上传到Cloudinary（将File转换为Buffer）
-      const result = await cloudinaryService.uploadImage(req.file.buffer, 'avatars');
+      const result = await cloudinaryService.imgUpload(req.file.buffer, 'avatars');
 
       // 更新用户头像
       const user = await prisma.user.update({
@@ -165,7 +165,7 @@ export class UserController {
    * 更新用户统计数据
    * 内部方法，在创建/删除/完成行程时调用
    */
-  static async updateUserStats(userId: string): Promise<void> {
+  static async updStats(userId: string): Promise<void> {
     try {
       // 获取用户所有行程
       const trips = await prisma.trip.findMany({

@@ -32,7 +32,7 @@ export class CloudinaryService {
    * @param options 可选的优化选项
    * @returns 上传结果
    */
-  async uploadImage(
+  async imgUpload(
     fileBuffer: Buffer,
     folder: string,
     options?: { width?: number; quality?: number }
@@ -84,7 +84,7 @@ export class CloudinaryService {
    * 删除图片
    * @param cloudinaryId Cloudinary public_id
    */
-  async deleteImage(cloudinaryId: string): Promise<void> {
+  async delImg(cloudinaryId: string): Promise<void> {
     try {
       await cloudinary.uploader.destroy(cloudinaryId);
       console.log(`✅ Cloudinary 图片删除成功: ${cloudinaryId}`);
@@ -132,7 +132,7 @@ export class CloudinaryService {
 
     for (const file of files) {
       try {
-        const result = await this.uploadImage(file.buffer, folder);
+        const result = await this.imgUpload(file.buffer, folder);
         results.push(result);
       } catch (error) {
         console.error(`上传文件 ${file.originalname} 失败:`, error);

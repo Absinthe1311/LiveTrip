@@ -23,7 +23,7 @@ const prisma = getPrismaClient();
  *   tripId?: string (可选,如果提供则优先使用缓存)
  * }
  */
-export const getHotelRecommendations = async (req: Request, res: Response) => {
+export const hotelRecs = async (req: Request, res: Response) => {
   try {
     const { spots, budget, tripId } = req.body as HotelRecommendRequest & { tripId?: string };
 
@@ -80,7 +80,7 @@ export const getHotelRecommendations = async (req: Request, res: Response) => {
     console.log('📡 [高德API] 酒店推荐 - 景点:', spots.length, '预算:', budget);
 
     // 调用酒店推荐服务
-    const hotels = await hotelRecommender.getHotelRecommendations(spots, budget);
+    const hotels = await hotelRecommender.hotelRecs(spots, budget);
 
     console.log(`✅ [高德API] 酒店推荐成功 - 返回 ${hotels.length} 个结果`);
 
@@ -126,7 +126,7 @@ export const getHotelRecommendations = async (req: Request, res: Response) => {
  *   tripId?: string (可选,如果提供则优先使用缓存)
  * }
  */
-export const getRestaurantRecommendations = async (req: Request, res: Response) => {
+export const restaurantRecs = async (req: Request, res: Response) => {
   try {
     const { days, tripId } = req.body as RestaurantRecommendRequest & { tripId?: string };
 
@@ -221,7 +221,7 @@ export const getRestaurantRecommendations = async (req: Request, res: Response) 
     console.log('📡 [高德API] 餐厅推荐 - 天数:', days.length);
 
     // 调用餐厅推荐服务
-    const recommendations = await restaurantRecommender.getRestaurantRecommendations(days);
+    const recommendations = await restaurantRecommender.restaurantRecs(days);
 
     console.log(`✅ [高德API] 餐厅推荐成功 - 返回 ${recommendations.length} 天的结果`);
 
@@ -267,7 +267,7 @@ export const getRestaurantRecommendations = async (req: Request, res: Response) 
  *   city: string     // 城市名称
  * }
  */
-export const searchCustomRestaurant = async (req: Request, res: Response) => {
+export const findRestaurant = async (req: Request, res: Response) => {
   try {
     const { name, city, location } = req.body;
 
@@ -385,7 +385,7 @@ export const searchCustomRestaurant = async (req: Request, res: Response) => {
  *   city: string     // 城市名称
  * }
  */
-export const searchCustomHotel = async (req: Request, res: Response) => {
+export const findHotel = async (req: Request, res: Response) => {
   try {
     const { name, city } = req.body;
 

@@ -74,7 +74,7 @@ import CharacterCount from '@tiptap/extension-character-count';
 import { Extension } from '@tiptap/core';
 import GlassLayout from '../layout/GlassLayout';
 import { GlassCard } from '../home';
-import { createBlog, updateBlog, getBlogPostById } from '../../api/client';
+import { addBlog, updBlog, loadBlogId } from '../../api/client';
 import { message } from 'antd';
 import ImageCropper from '../media/ImageCropper';
 
@@ -442,7 +442,7 @@ export default function BlogEditorGlass({ postId, userId = 'default-user' }: Blo
   const loadBlogData = async (id: string) => {
     try {
       setLoading(true);
-      const response = await getBlogPostById(id);
+      const response = await loadBlogId(id);
 
       if (response.success && response.data) {
         const blog = response.data;
@@ -497,10 +497,10 @@ export default function BlogEditorGlass({ postId, userId = 'default-user' }: Blo
       };
 
       if (isEditMode && postId) {
-        await updateBlog(postId, userId, blogData);
+        await updBlog(postId, userId, blogData);
         message.success('博客更新成功！');
       } else {
-        await createBlog(blogData);
+        await addBlog(blogData);
         message.success(publish ? '博客发布成功！' : '博客保存成功！');
       }
 

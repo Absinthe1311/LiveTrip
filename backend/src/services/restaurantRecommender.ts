@@ -41,7 +41,7 @@ class RestaurantRecommender {
    * @param days 每天的行程数据
    * @returns 每天的餐厅推荐列表
    */
-  async getRestaurantRecommendations(
+  async restaurantRecs(
     days: Array<{
       day: number;
       date: string;

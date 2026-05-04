@@ -13,7 +13,7 @@ const prisma = getPrismaClient();
 /**
  * 上传图片响应接口
  */
-interface UploadImageResponse {
+interface imgUploadResponse {
   imageId: string;
   cloudinaryUrl: string;
   status: 'approved' | 'pending';
@@ -24,7 +24,7 @@ export class ImageController {
    * 上传博客内容图片（不需要spotId）
    * POST /api/images/blog-upload
    */
-  static async uploadBlogImage(req: Request, res: Response): Promise<void> {
+  static async blogImgUpload(req: Request, res: Response): Promise<void> {
     try {
       console.log('📤 上传博客图片请求');
       console.log('📦 req.file:', req.file ? '文件存在' : '文件不存在');
@@ -51,7 +51,7 @@ export class ImageController {
       }
 
       // 上传到 Cloudinary 博客文件夹
-      const cloudinaryResult = await cloudinaryService.uploadImage(
+      const cloudinaryResult = await cloudinaryService.imgUpload(
         req.file.buffer,
         'blogs/content'
       );
@@ -79,7 +79,7 @@ export class ImageController {
    * 上传图片（管理员和用户共用）
    * POST /api/images/upload
    */
-  static async uploadImage(req: Request, res: Response): Promise<void> {
+  static async imgUpload(req: Request, res: Response): Promise<void> {
     try {
       console.log('📤 上传图片请求');
       console.log('📦 req.body:', req.body);
@@ -136,7 +136,7 @@ export class ImageController {
       const status = isAdmin ? 'approved' : 'pending';
 
       // 上传到 Cloudinary
-      const cloudinaryResult = await cloudinaryService.uploadImage(req.file.buffer, folder);
+      const cloudinaryResult = await cloudinaryService.imgUpload(req.file.buffer, folder);
 
       // 写入数据库
       const image = await prisma.spotImage.create({
@@ -155,7 +155,7 @@ export class ImageController {
         },
       });
 
-      const response: UploadImageResponse = {
+      const response: imgUploadResponse = {
         imageId: image.id,
         cloudinaryUrl: cloudinaryResult.cloudinaryUrl,
         status: status as 'approved' | 'pending',
@@ -178,7 +178,7 @@ export class ImageController {
   /**
    * 根据景点ID批量获取图片（从数据库查询）
    */
-  static async batchGetSpotImagesByIds(req: Request, res: Response): Promise<void> {
+  static async batchgetSpotImgsByIds(req: Request, res: Response): Promise<void> {
     try {
       const { spotIds } = req.body;
 
@@ -190,7 +190,7 @@ export class ImageController {
         return;
       }
 
-      const imageMap = await imageService.batchGetSpotImagesByIds(spotIds);
+      const imageMap = await imageService.batchgetSpotImgsByIds(spotIds);
 
       res.status(200).json({
         success: true,
@@ -212,7 +212,7 @@ export class ImageController {
   /**
    * 获取景点的所有图片
    */
-  static async getSpotImages(req: Request, res: Response): Promise<void> {
+  static async getSpotImgs(req: Request, res: Response): Promise<void> {
     try {
       const { spotId } = req.params;
 
@@ -226,7 +226,7 @@ export class ImageController {
 
       const spotIdStr = Array.isArray(spotId) ? spotId[0] : spotId;
 
-      const result = await imageService.getSpotImages(spotIdStr);
+      const result = await imageService.getSpotImgs(spotIdStr);
 
       res.status(200).json({
         success: true,

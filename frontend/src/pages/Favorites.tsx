@@ -5,7 +5,7 @@ import { Heart, Trash2 } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
 import { SpotCard } from '../components/spot/SpotCard';
-import { getFavorites, removeFavorite } from '../api/client';
+import { myFavs, removeFavorite } from '../api/client';
 import { message } from 'antd';
 
 interface FavoriteItem {
@@ -70,7 +70,7 @@ export default function FavoritesGlass() {
 
   const loadFavorites = async () => {
     try {
-      const response = await getFavorites();
+      const response = await myFavs();
       console.log('📦 收藏数据:', response);
       if (response && response.data) {
         setFavorites(Array.isArray(response.data) ? response.data : []);

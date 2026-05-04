@@ -81,7 +81,7 @@ export interface RestaurantRecommendResponse {
  * @param tripId 行程ID(可选,如果提供则优先使用数据库缓存)
  * @returns 酒店推荐列表
  */
-export const getHotelRecommendations = async (
+export const hotelRecs = async (
   spots: Array<{ name: string; location: string }>,
   budget: number,
   tripId?: string
@@ -102,7 +102,7 @@ export const getHotelRecommendations = async (
  * @param tripId 行程ID(可选,如果提供则优先使用数据库缓存)
  * @returns 每天的餐厅推荐列表
  */
-export const getRestaurantRecommendations = async (
+export const restaurantRecs = async (
   days: Array<{
     day: number;
     date: string;
@@ -129,7 +129,7 @@ export const getRestaurantRecommendations = async (
  * @param location 中心位置坐标（可选，格式："lng,lat"）
  * @returns 匹配的餐厅列表
  */
-export const searchCustomRestaurant = async (
+export const findRestaurant = async (
   name: string,
   city: string,
   location?: string
@@ -152,7 +152,7 @@ export const searchCustomRestaurant = async (
  * @param city 城市名称
  * @returns 匹配的酒店列表
  */
-export const searchCustomHotel = async (
+export const findHotel = async (
   name: string,
   city: string
 ): Promise<HotelRecommendResponse> => {

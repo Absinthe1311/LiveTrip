@@ -7,7 +7,7 @@ import { SensorType, SensorLevel } from '../services/environmentSensorService';
  * 发送测试通知
  * POST /api/notifications/test
  */
-export const sendTestNotification = async (req: Request, res: Response) => {
+export const testNotif = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.userId;
 
@@ -115,7 +115,7 @@ export const sendTestNotification = async (req: Request, res: Response) => {
  * 批量发送测试通知
  * POST /api/notifications/test-batch
  */
-export const sendBatchTestNotifications = async (req: Request, res: Response) => {
+export const batchTestNotifs = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.userId;
 

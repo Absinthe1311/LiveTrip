@@ -31,13 +31,13 @@ export default function ImprovedBudgetBar({
   const remaining = totalBudget - usedBudget;
 
   // 预算状态
-  const getBudgetStatus = () => {
+  const budgetStats = () => {
     if (usageRate > 100) return { color: 'text-red-400', text: '超支', icon: TrendingDown };
     if (usageRate > 95) return { color: 'text-yellow-400', text: '紧张', icon: TrendingUp };
     return { color: 'text-green-400', text: '充足', icon: Wallet };
   };
 
-  const status = getBudgetStatus();
+  const status = budgetStats();
   const StatusIcon = status.icon;
 
   return (

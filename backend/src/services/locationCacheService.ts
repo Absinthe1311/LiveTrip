@@ -17,7 +17,7 @@ interface CacheResult {
  * @param userId 用户ID（可选）
  * @returns 搜索结果
  */
-export async function searchLocationWithCache(
+export async function findLocWithCache(
   keywords: string,
   userId?: string
 ): Promise<CacheResult> {

@@ -24,7 +24,7 @@ import DestinationAttractionCard from '../components/spot/DestinationAttractionC
 import ReviewList from '../components/review/ReviewList';
 import type { DestinationDetail, Attraction } from '../types/destination';
 import { destinationsData } from '../data/destinationsData';
-import { getFavorites, addFavorite, removeFavorite, checkFavorite, syncSpot } from '../api/client';
+import { myFavs, addFavorite, removeFavorite, chkFav, syncSpot } from '../api/client';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -108,7 +108,7 @@ export default function DestinationDetail() {
   // 从后端数据库加载收藏数据
   const loadFavoritesFromBackend = async () => {
     try {
-      const response = await getFavorites(true);
+      const response = await myFavs(true);
       if (response.success && response.data) {
         console.log('✅ 收藏数据加载成功:', response.data);
         setFavorites(response.data);
@@ -212,7 +212,7 @@ export default function DestinationDetail() {
   };
 
   // 获取所有分类
-  const getCategories = (): string[] => {
+  const categories = (): string[] => {
     if (!destination) return [];
 
     const categories = new Set(destination.attractions.map((attr) => attr.category));
@@ -257,7 +257,7 @@ export default function DestinationDetail() {
   }
 
   const filteredAttractions = getFilteredAttractions();
-  const categories = getCategories();
+  const categoryList = categories();
 
   return (
     <div style={{ minHeight: '100vh', background: '#f5f7fa' }}>
@@ -487,7 +487,7 @@ export default function DestinationDetail() {
               style={{ width: 150 }}
               options={[
                 { value: 'all', label: '全部景点' },
-                ...categories.map((cat) => ({ value: cat, label: cat })),
+                ...categoryList.map((cat) => ({ value: cat, label: cat })),
               ]}
             />
           </Space>

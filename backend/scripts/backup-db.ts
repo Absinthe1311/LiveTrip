@@ -32,7 +32,7 @@ async function backupDatabase() {
       'SpotIoTData',
       'SpotImage',
       'Review',
-      'ReviewImage',
+      'reviewImg',
       'ReviewLike',
       'SpotAlternative',
       'Favorite',

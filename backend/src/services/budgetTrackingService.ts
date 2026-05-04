@@ -163,7 +163,7 @@ class BudgetTrackingService {
   /**
    * 更新项目价格
    */
-  async updateItemPrice(
+  async updPrice(
     tripId: string,
     category: BudgetCategory,
     itemName: string,
@@ -213,7 +213,7 @@ class BudgetTrackingService {
   /**
    * 获取预算变更历史
    */
-  async getBudgetHistory(tripId: string, limit: number = 20): Promise<any[]> {
+  async budgetLog(tripId: string, limit: number = 20): Promise<any[]> {
     try {
       const records = await prisma.budgetRecord.findMany({
         where: { tripId },
@@ -266,7 +266,7 @@ class BudgetTrackingService {
         usedBudget,
         remainingBudget,
         usageRate,
-        budgetStatus: this.getBudgetStatus(usageRate),
+        budgetStatus: this.budgetStats(usageRate),
         breakdown: trip.budget
           ? {
               transportation: trip.budget.transportation,
@@ -302,7 +302,7 @@ class BudgetTrackingService {
   /**
    * 获取预算状态
    */
-  private getBudgetStatus(usageRate: number): string {
+  private budgetStats(usageRate: number): string {
     if (usageRate > 1.0) {
       return 'over_budget';
     } else if (usageRate >= 0.95) {

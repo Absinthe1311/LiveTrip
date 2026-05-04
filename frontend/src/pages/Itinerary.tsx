@@ -24,25 +24,25 @@ import { useAppStore } from '../store';
 import {
   FullItinerary,
   AttractionItem,
-  calculateRealTimeBudget,
+  calBudget,
   completeTrip,
 } from '../api/client';
 import {
-  getIoTData,
+  spotIot,
   saveTrip,
-  batchGetSpotImagesByIds,
-  addPackingItem,
-  updatePackingItem,
-  getPackingList,
+  batchgetSpotImgsByIds,
+  addItem,
+  updItem,
+  packList,
   savePackingList,
 } from '../api/client';
 import {
   Hotel,
   Restaurant,
-  getHotelRecommendations,
-  getRestaurantRecommendations,
-  searchCustomRestaurant,
-  searchCustomHotel,
+  hotelRecs,
+  restaurantRecs,
+  findRestaurant,
+  findHotel,
 } from '../api/recommendationApi';
 import { alternativeRecommender } from '../services/alternativeRecommender';
 import AMapLoader from '@amap/amap-jsapi-loader';
@@ -147,7 +147,7 @@ export default function Itinerary() {
       loadRestaurantRecommendations();
       loadHotelRecommendations();
       // 计算初始实时预算
-      calculateRealTimeBudgetData();
+      calBudgetData();
     }
   }, [itineraryData]);
 
@@ -192,7 +192,7 @@ export default function Itinerary() {
     if (!itineraryData) return;
 
     try {
-      const response = await getIoTData();
+      const response = await spotIot();
       if (response.success && response.data) {
         setIoTData(response.data.spots || []);
       }
@@ -222,7 +222,7 @@ export default function Itinerary() {
       }
 
       console.log(`📸 批量获取 ${spotIds.length} 个景点的图片`);
-      const response = await batchGetSpotImagesByIds(spotIds);
+      const response = await batchgetSpotImgsByIds(spotIds);
 
       if (response.success && response.data) {
         setSpotImages(response.data.images);
@@ -259,7 +259,7 @@ export default function Itinerary() {
       }));
 
       console.log(`🍽️ 加载 ${daysData.length} 天的餐厅推荐`);
-      const response = await getRestaurantRecommendations(daysData);
+      const response = await restaurantRecs(daysData);
 
       if (response.success && response.data) {
         // 将餐厅推荐按天存储
@@ -294,7 +294,7 @@ export default function Itinerary() {
       const budget = itineraryData.summary?.budget || 5000;
 
       console.log(`🏨 加载酒店推荐 - 景点数: ${allSpots.length}, 预算: ${budget}`);
-      const response = await getHotelRecommendations(allSpots, budget);
+      const response = await hotelRecs(allSpots, budget);
 
       if (response.success && response.data) {
         setHotelRecommendations(response.data);
@@ -329,7 +329,7 @@ export default function Itinerary() {
 
         console.log(`📍 搜索中心位置: ${centerLocation || '无，使用城市搜索'}`);
 
-        const response = await searchCustomRestaurant(searchKeyword, destination, centerLocation);
+        const response = await findRestaurant(searchKeyword, destination, centerLocation);
         console.log('📊 餐厅搜索响应:', response);
 
         if (response.success && response.data) {
@@ -345,7 +345,7 @@ export default function Itinerary() {
           message.error(response.error || '搜索失败');
         }
       } else {
-        const response = await searchCustomHotel(searchKeyword, destination);
+        const response = await findHotel(searchKeyword, destination);
         console.log('📊 酒店搜索响应:', response);
 
         if (response.success && response.data) {
@@ -385,12 +385,12 @@ export default function Itinerary() {
       setShowAllRestaurants(false); // 选择后关闭显示所有餐厅
       message.success(`已选择 ${item.name}`);
       // 重新计算实时预算
-      calculateRealTimeBudgetData();
+      calBudgetData();
     } else if (customSearchType === 'hotel') {
       setSelectedHotel(item);
       setShowAllDays(true);
       message.success(`已选择 ${item.name}`);
-      calculateRealTimeBudgetData();
+      calBudgetData();
     }
     setCustomSearchVisible(false);
     setSearchResults([]);
@@ -398,7 +398,7 @@ export default function Itinerary() {
   };
 
   // 计算实时预算
-  const calculateRealTimeBudgetData = async () => {
+  const calBudgetData = async () => {
     if (!itineraryData) return;
 
     try {
@@ -413,7 +413,7 @@ export default function Itinerary() {
       );
 
       console.log('💰 计算实时预算');
-      const response = await calculateRealTimeBudget({
+      const response = await calBudget({
         totalBudget,
         days,
         hotel: selectedHotel,
@@ -477,7 +477,7 @@ export default function Itinerary() {
     if (!tripId) return;
 
     try {
-      const response = await getPackingList(tripId);
+      const response = await packList(tripId);
       if (response.success && response.data) {
         setPackingItems(response.data);
         console.log(`✅ 加载了 ${response.data.length} 个打包物品`);
@@ -1139,7 +1139,7 @@ export default function Itinerary() {
                         setShowAllRestaurants(false); // 选择后关闭显示所有餐厅
                         message.success(`已选择 ${restaurant.name}`);
                         // 重新计算实时预算
-                        calculateRealTimeBudgetData();
+                        calBudgetData();
                       }}
                       className={`p-4 rounded-xl border transition-all text-left w-full ${
                         selectedRestaurants[currentStep.day || 0]?.name === restaurant.name
@@ -1261,7 +1261,7 @@ export default function Itinerary() {
                         setShowAllDays(true); // 确定酒店后显示所有天数路线
                         message.success(`已选择 ${hotel.name}`);
                         // 重新计算实时预算
-                        calculateRealTimeBudgetData();
+                        calBudgetData();
                       }}
                       className={`p-4 rounded-xl border transition-all text-left w-full ${
                         selectedHotel?.name === hotel.name
@@ -1328,10 +1328,10 @@ export default function Itinerary() {
                   for (const item of items) {
                     if (!item.id) {
                       // 新物品，添加
-                      await addPackingItem(tripId, item.itemName, item.category);
+                      await addItem(tripId, item.itemName, item.category);
                     } else {
                       // 已有物品，更新状态
-                      await updatePackingItem(item.id, {
+                      await updItem(item.id, {
                         isPacked: item.isPacked,
                       });
                     }

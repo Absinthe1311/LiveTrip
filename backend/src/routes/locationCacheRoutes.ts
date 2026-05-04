@@ -1,20 +1,20 @@
 // 地点缓存路由 - 定义地点缓存的API端点
 import { Router } from 'express';
 import {
-  searchLocation,
-  getPopularSearchLocations,
-  clearLocationCache,
+  findLoc,
+  getPopularfindLocs,
+  clearLocs,
 } from '../controllers/locationCacheController';
 
 const router = Router();
 
 // GET /api/location/search?keywords=xxx - 搜索地点（带缓存）
-router.get('/search', searchLocation);
+router.get('/search', findLoc);
 
 // GET /api/location/popular?limit=10 - 获取热门搜索地点
-router.get('/popular', getPopularSearchLocations);
+router.get('/popular', getPopularfindLocs);
 
 // DELETE /api/location/cache - 清空所有缓存
-router.delete('/cache', clearLocationCache);
+router.delete('/cache', clearLocs);
 
 export default router;

@@ -354,7 +354,7 @@ class MustVisitSpotExtractor {
     // 生成IoT数据
     try {
       const { spotService } = await import('./spotService');
-      await spotService.getCitySpots(searchCity, 1);
+      await spotService.citySpots(searchCity, 1);
     } catch (iotError) {
       console.warn(`⚠️  生成IoT数据失败:`, iotError);
     }

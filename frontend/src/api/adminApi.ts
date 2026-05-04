@@ -4,7 +4,7 @@ import type {
   AdminSpotListResponse,
   SpotImagesResponse,
   PendingImagesResponse,
-  UploadImageResponse,
+  imgUploadResponse,
 } from '../types/admin';
 
 /**
@@ -23,7 +23,7 @@ export async function getAdminSpots(
 /**
  * 获取景点图片列表
  */
-export async function getSpotImages(
+export async function getSpotImgs(
   spotId: string
 ): Promise<{ success: boolean; data: SpotImagesResponse; message?: string }> {
   const response = await apiClient.get(`/admin/spots/${spotId}/images`);
@@ -33,7 +33,7 @@ export async function getSpotImages(
 /**
  * 审核图片
  */
-export async function reviewImage(
+export async function reviewImg(
   imageId: string,
   action: 'approve' | 'reject',
   note?: string
@@ -58,7 +58,7 @@ export async function deleteAdminImage(
 /**
  * 获取待审核图片列表
  */
-export async function getPendingImages(
+export async function fetchPendingImgs(
   page: number,
   pageSize: number
 ): Promise<{ success: boolean; data: PendingImagesResponse; message?: string }> {
@@ -71,7 +71,7 @@ export async function getPendingImages(
 /**
  * 上传景点图片（管理员专用，自动审核通过）
  */
-export async function uploadAdminImage(spotId: string, file: File): Promise<UploadImageResponse> {
+export async function uploadAdminImage(spotId: string, file: File): Promise<imgUploadResponse> {
   const formData = new FormData();
   formData.append('images', file); // 注意：后端期望的字段名是 'images'
 

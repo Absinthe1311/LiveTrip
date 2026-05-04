@@ -54,7 +54,7 @@ export default function Auth() {
   };
 
   // 处理注册
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleregUser = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // 验证密码
@@ -71,7 +71,7 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, {
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/regUser`, {
         username: formData.username,
         email: formData.email,
         password: formData.password,
@@ -180,7 +180,7 @@ export default function Auth() {
             </button>
           </div>
 
-          <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-6">
+          <form onSubmit={isLogin ? handleLogin : handleregUser} className="space-y-6">
             {!isLogin && (
               <div className="space-y-2">
                 <label className="text-base text-gray-600" htmlFor="username">

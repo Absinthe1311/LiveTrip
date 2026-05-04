@@ -15,7 +15,7 @@ import {
   TrendingUp,
   TrendingDown,
 } from 'lucide-react';
-import { getBudgetStatus, adjustBudget, getBudgetHistory } from '../../api/client';
+import { budgetStats, modBudget, budgetLog } from '../../api/client';
 
 interface BudgetDetailModalProps {
   visible: boolean;
@@ -80,7 +80,7 @@ export default function BudgetDetailModal({
   const loadBudgetInfo = async () => {
     setLoading(true);
     try {
-      const response = await getBudgetStatus(tripId);
+      const response = await budgetStats(tripId);
       if (response.success) {
         setBudgetInfo(response.data);
       }
@@ -94,7 +94,7 @@ export default function BudgetDetailModal({
 
   const loadHistory = async () => {
     try {
-      const response = await getBudgetHistory(tripId, 10);
+      const response = await budgetLog(tripId, 10);
       if (response.success) {
         setHistory(response.data);
       }
@@ -103,7 +103,7 @@ export default function BudgetDetailModal({
     }
   };
 
-  const handleAdjustBudget = async () => {
+  const handlemodBudget = async () => {
     const budget = parseFloat(newBudget);
     if (isNaN(budget) || budget < 0) {
       message.error('请输入有效的预算金额');
@@ -111,7 +111,7 @@ export default function BudgetDetailModal({
     }
 
     try {
-      const response = await adjustBudget(tripId, budget, adjustReason || '调整总预算');
+      const response = await modBudget(tripId, budget, adjustReason || '调整总预算');
       if (response.success) {
         message.success('预算调整成功');
         setShowAdjustModal(false);
@@ -329,7 +329,7 @@ export default function BudgetDetailModal({
           setNewBudget('');
           setAdjustReason('');
         }}
-        onOk={handleAdjustBudget}
+        onOk={handlemodBudget}
         okText="确认调整"
         cancelText="取消"
       >

@@ -8,7 +8,7 @@ const prisma = getPrismaClient();
  * 获取热门景点
  * GET /api/hot-spots?city=北京
  */
-export const getHotSpots = async (req: Request, res: Response) => {
+export const hotSpots = async (req: Request, res: Response) => {
   try {
     const { city } = req.query;
 
@@ -74,7 +74,7 @@ export const getHotSpots = async (req: Request, res: Response) => {
  * 获取热门城市列表
  * GET /api/hot-cities
  */
-export const getHotCities = async (req: Request, res: Response) => {
+export const hotCities = async (req: Request, res: Response) => {
   try {
     console.log('🔥 获取热门城市列表');
 
@@ -119,7 +119,7 @@ export const getHotCities = async (req: Request, res: Response) => {
  * 获取热门城市列表（包含景点信息和评分）
  * GET /api/hot-spots/cities
  */
-export const getHotCitiesWithSpots = async (req: Request, res: Response) => {
+export const hotCitiesWithSpots = async (req: Request, res: Response) => {
   try {
     console.log('🔥 获取热门城市列表（包含景点）');
 

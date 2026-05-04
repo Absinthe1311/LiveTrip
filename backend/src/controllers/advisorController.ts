@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { advisorService } from '../services/advisorService';
 import { chatHistoryService } from '../services/chatHistoryService';
 
-export const getSessionMessages = async (req: Request, res: Response) => {
+export const fetchMsgs = async (req: Request, res: Response) => {
   try {
     const { sessionId: sid } = req.params;
     const sessionId = Array.isArray(sid) ? sid[0] : sid;
@@ -14,13 +14,13 @@ export const getSessionMessages = async (req: Request, res: Response) => {
       limit = parseInt(String(Array.isArray(lim) ? lim[0] : lim));
     }
 
-    const messages = await chatHistoryService.getMessages({ sessionId, limit });
+    const messages = await chatHistoryService.msgs({ sessionId, limit });
     res.json({ success: true, data: messages });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message || '获取消息历史失败' });
   }
 };
-export const getUserSessions = async (req: Request, res: Response) => {
+export const userSessions = async (req: Request, res: Response) => {
   try {
     const userId = (req.headers['x-user-id'] as string) || undefined;
     const modeQuery = req.query.mode;
@@ -28,14 +28,14 @@ export const getUserSessions = async (req: Request, res: Response) => {
       ? ((Array.isArray(modeQuery) ? modeQuery[0] : modeQuery) as 'advisor' | 'agent' | undefined)
       : undefined;
 
-    const sessions = await chatHistoryService.getUserSessions(userId, mode);
+    const sessions = await chatHistoryService.userSessions(userId, mode);
     res.json({ success: true, data: sessions });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message || '获取会话列表失败' });
   }
 };
 
-export const deleteSession = async (req: Request, res: Response) => {
+export const delSession = async (req: Request, res: Response) => {
   try {
     const { sessionId: sid } = req.params;
     const sessionId = Array.isArray(sid) ? sid[0] : sid;
@@ -59,7 +59,7 @@ export const deleteSession = async (req: Request, res: Response) => {
       }
     }
 
-    await chatHistoryService.deleteSession(sessionId);
+    await chatHistoryService.delSession(sessionId);
 
     res.json({ success: true, message: '会话已删除' });
   } catch (err: any) {
@@ -68,7 +68,7 @@ export const deleteSession = async (req: Request, res: Response) => {
   }
 };
 
-export const chatWithAdvisor = async (req: Request, res: Response) => {
+export const chatAdvisor = async (req: Request, res: Response) => {
   try {
     const { question, planContext } = req.body;
     if (!question || typeof question !== 'string' || question.trim().length === 0) {

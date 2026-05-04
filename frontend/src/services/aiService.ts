@@ -177,7 +177,7 @@ class AIService {
   /**
    * 获取用户会话列表
    */
-  async getUserSessions(mode?: ChatMode): Promise<ChatSession[]> {
+  async userSessions(mode?: ChatMode): Promise<ChatSession[]> {
     const headers: Record<string, string> = {};
     const userId = getUserId();
     if (userId) {
@@ -200,7 +200,7 @@ class AIService {
   /**
    * 获取会话的消息历史
    */
-  async getSessionMessages(sessionId: string, limit: number = 10): Promise<Message[]> {
+  async fetchMsgs(sessionId: string, limit: number = 10): Promise<Message[]> {
     const response = await fetch(
       `${this.baseUrl}/advisor/sessions/${sessionId}/messages?limit=${limit}`,
       {
@@ -219,7 +219,7 @@ class AIService {
   /**
    * 删除会话
    */
-  async deleteSession(sessionId: string): Promise<void> {
+  async delSession(sessionId: string): Promise<void> {
     const headers: Record<string, string> = {};
     const userId = getUserId();
     if (userId) {

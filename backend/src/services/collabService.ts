@@ -231,7 +231,7 @@ export class CollabService {
    * @param roomId 房间ID
    * @returns 景点统计列表
    */
-  async getSpotStats(roomId: string) {
+  async spotStats(roomId: string) {
     // 获取所有已提交的草案
     const submittedDrafts = await prisma.draftRoute.findMany({
       where: {
@@ -285,7 +285,7 @@ export class CollabService {
    * @param roomId 房间ID
    * @returns 更新后的房间信息
    */
-  async lockRoom(roomId: string) {
+  async closeRoom(roomId: string) {
     const room = await prisma.collabRoom.update({
       where: { id: roomId },
       data: {
@@ -305,7 +305,7 @@ export class CollabService {
    * @param polylineData 路线数据
    * @returns 草案信息
    */
-  async upsertDraft(
+  async saveDraft(
     roomId: string,
     userId: string,
     dayNumber: number,
@@ -359,7 +359,7 @@ export class CollabService {
    * @param userId 用户ID
    * @returns 更新后的草案信息
    */
-  async submitDraft(draftId: string, userId: string) {
+  async sendDraft(draftId: string, userId: string) {
     // 检查草案是否存在且属于该用户
     const draft = await prisma.draftRoute.findFirst({
       where: {
@@ -393,7 +393,7 @@ export class CollabService {
    * @param userId 用户ID
    * @returns 草案列表
    */
-  async getUserDrafts(roomId: string, userId: string) {
+  async myDrfts(roomId: string, userId: string) {
     const drafts = await prisma.draftRoute.findMany({
       where: {
         roomId,
@@ -414,7 +414,7 @@ export class CollabService {
    * @param content 消息内容
    * @returns 消息信息
    */
-  async sendMessage(roomId: string, userId: string, content: string) {
+  async msgSend(roomId: string, userId: string, content: string) {
     const message = await prisma.collabMessage.create({
       data: {
         roomId,
@@ -440,7 +440,7 @@ export class CollabService {
    * @param roomId 房间ID
    * @returns 消息列表
    */
-  async getMessages(roomId: string) {
+  async msgs(roomId: string) {
     const messages = await prisma.collabMessage.findMany({
       where: {
         roomId,

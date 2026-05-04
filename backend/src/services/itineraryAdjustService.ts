@@ -7,14 +7,14 @@ import {
 } from '../data/alternativeSpots';
 
 // 调整请求接口
-export interface AdjustItineraryRequest {
+export interface editTripRequest {
   itinerary: FullItinerary;
   reason: 'crowd' | 'weather' | 'closed';
   targetAttractionId: string;
 }
 
 // 调整响应接口
-export interface AdjustItineraryResponse {
+export interface editTripResponse {
   success: boolean;
   adjustedItinerary: FullItinerary;
   adjustments: Array<{
@@ -40,7 +40,7 @@ class ItineraryAdjustService {
   /**
    * 调整行程
    */
-  public async adjustItinerary(request: AdjustItineraryRequest): Promise<AdjustItineraryResponse> {
+  public async editTrip(request: editTripRequest): Promise<editTripResponse> {
     const { itinerary, reason, targetAttractionId } = request;
 
     console.log(`🔧 开始调整行程...`);

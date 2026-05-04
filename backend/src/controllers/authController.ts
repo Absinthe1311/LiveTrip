@@ -20,7 +20,7 @@ declare global {
   }
 }
 
-interface RegisterRequest {
+interface regUserRequest {
   username: string;
   email?: string;
   password: string;
@@ -32,9 +32,9 @@ interface LoginRequest {
   password: string;
 }
 
-export const register = async (req: Request, res: Response) => {
+export const regUser = async (req: Request, res: Response) => {
   try {
-    const { username, email, password, avatar }: RegisterRequest = req.body;
+    const { username, email, password, avatar }: regUserRequest = req.body;
     if (!username || !password) {
       return res.status(400).json({ success: false, error: '用户名和密码为必填项' });
     }
@@ -131,7 +131,7 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const getCurrentUser = async (req: Request, res: Response) => {
+export const currUser = async (req: Request, res: Response) => {
   try {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
@@ -166,7 +166,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
   }
 };
 
-export const updateProfile = async (req: Request, res: Response) => {
+export const saveProfile = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.userId;
     const { username, email, avatar } = req.body;
@@ -221,7 +221,7 @@ export const updateProfile = async (req: Request, res: Response) => {
   }
 };
 
-export const authenticateToken = (req: Request, res: Response, next: any) => {
+export const authToken = (req: Request, res: Response, next: any) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
   if (!token) {

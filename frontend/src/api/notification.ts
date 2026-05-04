@@ -22,7 +22,7 @@ export interface NotificationListResponse {
 /**
  * 获取通知列表
  */
-export const getNotifications = async (
+export const fetNotifs = async (
   options: {
     limit?: number;
     offset?: number;

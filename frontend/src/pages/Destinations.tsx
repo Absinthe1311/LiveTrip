@@ -6,10 +6,10 @@ import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
 import { SpotCard } from '../components/spot/SpotCard';
 import {
-  getHotCities,
-  getCitySpots,
-  getCityAllSpots,
-  getFavorites,
+  hotCities,
+  citySpots,
+  cityAll,
+  myFavs,
   HotCity,
   HotSpot,
 } from '../api/client';
@@ -79,7 +79,7 @@ export default function DestinationsGlass() {
       setLoading(true);
 
       // 1. 加载热门城市列表
-      const citiesResponse = await getHotCities();
+      const citiesResponse = await hotCities();
       if (!citiesResponse.success || !citiesResponse.data) {
         throw new Error('获取城市列表失败');
       }
@@ -89,7 +89,7 @@ export default function DestinationsGlass() {
 
       // 2. 并行加载每个城市的9个景点
       const spotsPromises = citiesData.map(async (city) => {
-        const spotsResponse = await getCitySpots(city.name, 9);
+        const spotsResponse = await citySpots(city.name, 9);
         if (spotsResponse.success && spotsResponse.data) {
           return { city: city.name, spots: spotsResponse.data as HotSpot[] };
         }
@@ -115,7 +115,7 @@ export default function DestinationsGlass() {
   const loadCityAllSpots = async (city: string, page: number) => {
     try {
       setCityAllSpotsLoading(true);
-      const response = await getCityAllSpots(city, page, 12);
+      const response = await cityAll(city, page, 12);
 
       if (response.success && response.data) {
         setCityAllSpots(response.data.spots);
@@ -133,7 +133,7 @@ export default function DestinationsGlass() {
   // 加载收藏数据
   const loadFavoritesData = async () => {
     try {
-      const response = await getFavorites(true);
+      const response = await myFavs(true);
       if (response.success && response.data) {
         setFavorites(response.data);
         console.log('✅ 收藏数据加载成功:', response.data.length, '个');

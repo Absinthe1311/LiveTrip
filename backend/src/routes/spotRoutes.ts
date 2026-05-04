@@ -18,7 +18,7 @@ router.get('/city/:city', async (req, res) => {
 
     console.log(`🔍 接收到获取 ${city} 景点的请求，限制数量: ${limit}`);
 
-    const spots = await spotService.getCitySpots(city, limit);
+    const spots = await spotService.citySpots(city, limit);
 
     res.json({
       success: true,
@@ -168,7 +168,7 @@ router.get('/:id/iot', async (req, res) => {
 
     console.log(`🔍 接收获取景点IoT数据请求: ${id}`);
 
-    const iotData = await spotService.getSpotIoTData(id);
+    const iotData = await spotService.spotIoT(id);
 
     if (!iotData) {
       return res.status(404).json({

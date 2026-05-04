@@ -154,7 +154,7 @@ export default function AIFeaturesGlass() {
   // 加载会话列表
   const loadSessions = async () => {
     try {
-      const sessionsData = await aiService.getUserSessions(mode);
+      const sessionsData = await aiService.userSessions(mode);
       setSessions(sessionsData);
     } catch (error) {
       console.error('加载会话列表失败:', error);
@@ -164,7 +164,7 @@ export default function AIFeaturesGlass() {
   // 加载会话消息
   const loadSessionMessages = async (sessionId: string) => {
     try {
-      const messagesData = await aiService.getSessionMessages(sessionId, 50);
+      const messagesData = await aiService.fetchMsgs(sessionId, 50);
       setMessages(messagesData);
       setCurrentSessionId(sessionId);
       setShowExamples(messagesData.length <= 1);
@@ -269,10 +269,10 @@ export default function AIFeaturesGlass() {
   };
 
   // 删除会话
-  const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
+  const handledelSession = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await aiService.deleteSession(sessionId);
+      await aiService.delSession(sessionId);
       setSessions((prev) => prev.filter((s) => s.id !== sessionId));
       if (currentSessionId === sessionId) {
         handleClearChat();
@@ -415,7 +415,7 @@ export default function AIFeaturesGlass() {
 
                         {/* 删除按钮 */}
                         <button
-                          onClick={(e) => handleDeleteSession(session.id, e)}
+                          onClick={(e) => handledelSession(session.id, e)}
                           className="absolute top-2 right-2 p-1 rounded hover:bg-white/10 transition-all"
                           title="删除对话"
                         >

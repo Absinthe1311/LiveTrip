@@ -284,7 +284,7 @@ export const updateDraft = (
  * @param userId 用户ID
  * @param dayNumber 天数
  */
-export const submitDraftEvent = (roomId: string, userId: string, dayNumber: number) => {
+export const sendDraftEvent = (roomId: string, userId: string, dayNumber: number) => {
   if (socket) {
     socket.emit('draft:submitted', { roomId, userId, dayNumber });
   }
@@ -294,7 +294,7 @@ export const submitDraftEvent = (roomId: string, userId: string, dayNumber: numb
  * 发送房间锁定事件
  * @param roomId 房间ID
  */
-export const lockRoomEvent = (roomId: string) => {
+export const closeRoomEvent = (roomId: string) => {
   if (socket) {
     socket.emit('room:lock', { roomId });
   }

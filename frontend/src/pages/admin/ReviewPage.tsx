@@ -24,7 +24,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
-import { getPendingImages, reviewImage } from '../../api/adminApi';
+import { fetchPendingImgs, reviewImg } from '../../api/adminApi';
 import type { PendingImageItem } from '../../types/admin';
 
 export default function ReviewPage() {
@@ -52,7 +52,7 @@ export default function ReviewPage() {
   const loadImages = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await getPendingImages(page, pageSize);
+      const response = await fetchPendingImgs(page, pageSize);
       if (response.success && response.data) {
         setImages(response.data.items || []);
         setTotal(response.data.total || 0);
@@ -71,7 +71,7 @@ export default function ReviewPage() {
   const handleApprove = async (imageId: string) => {
     setReviewing(imageId);
     try {
-      const response = await reviewImage(imageId, 'approve');
+      const response = await reviewImg(imageId, 'approve');
       if (response.success) {
         setImages((prev) => prev.filter((img) => img.id !== imageId));
         setTotal((prev) => prev - 1);
@@ -90,7 +90,7 @@ export default function ReviewPage() {
     }
     setReviewing(imageId);
     try {
-      const response = await reviewImage(imageId, 'reject', note);
+      const response = await reviewImg(imageId, 'reject', note);
       if (response.success) {
         setImages((prev) => prev.filter((img) => img.id !== imageId));
         setTotal((prev) => prev - 1);

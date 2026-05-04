@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { agentService } from '../services/agentService';
 
-export const chatWithAgentSSE = async (req: Request, res: Response) => {
+export const askAgentSSE = async (req: Request, res: Response) => {
   const { question } = req.body;
   if (!question || typeof question !== 'string' || question.trim().length === 0) {
     return res.status(400).json({ success: false, error: '缺少必填字段：question（字符串）' });

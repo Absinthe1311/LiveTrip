@@ -6,7 +6,7 @@
 import express from 'express';
 import { ImageController } from '../controllers/imageController';
 import { uploadSingleImage } from '../middleware/fileUploadMiddleware';
-import { authenticateToken } from '../controllers/authController';
+import { authToken } from '../controllers/authController';
 
 const router = express.Router();
 
@@ -14,24 +14,24 @@ const router = express.Router();
  * 上传博客内容图片（不需要spotId）
  * POST /api/images/blog-upload
  */
-router.post('/blog-upload', authenticateToken, uploadSingleImage, ImageController.uploadBlogImage);
+router.post('/blog-upload', authToken, uploadSingleImage, ImageController.blogImgUpload);
 
 /**
  * 上传图片（管理员和用户共用）
  * POST /api/images/upload
  */
-router.post('/upload', authenticateToken, uploadSingleImage, ImageController.uploadImage);
+router.post('/upload', authToken, uploadSingleImage, ImageController.imgUpload);
 
 /**
  * 根据景点ID批量获取图片（从数据库查询）
  * POST /images/batch-by-ids
  */
-router.post('/batch-by-ids', ImageController.batchGetSpotImagesByIds);
+router.post('/batch-by-ids', ImageController.batchgetSpotImgsByIds);
 
 /**
  * 获取景点的所有图片
  * GET /images/spot/:spotId
  */
-router.get('/spot/:spotId', ImageController.getSpotImages);
+router.get('/spot/:spotId', ImageController.getSpotImgs);
 
 export default router;

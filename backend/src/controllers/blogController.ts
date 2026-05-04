@@ -11,7 +11,7 @@ export class BlogController {
   /**
    * 创建博客文章
    */
-  static async createBlog(req: Request, res: Response): Promise<void> {
+  static async addBlog(req: Request, res: Response): Promise<void> {
     try {
       const { userId, title, content, coverImage, tags, city, spotIds, isPublished } = req.body;
 
@@ -23,7 +23,7 @@ export class BlogController {
         return;
       }
 
-      const blog = await blogService.createBlog({
+      const blog = await blogService.addBlog({
         userId,
         title,
         content,
@@ -52,7 +52,7 @@ export class BlogController {
   /**
    * 获取博客文章列表
    */
-  static async getBlogPosts(req: Request, res: Response): Promise<void> {
+  static async fetchPosts(req: Request, res: Response): Promise<void> {
     try {
       const {
         userId,
@@ -79,7 +79,7 @@ export class BlogController {
       params.pageSize = parseInt(pageSize as string);
       params.sortBy = sortBy as string;
 
-      const result = await blogService.getBlogPosts(params);
+      const result = await blogService.fetchPosts(params);
 
       res.status(200).json({
         success: true,
@@ -98,12 +98,12 @@ export class BlogController {
   /**
    * 获取博客文章详情
    */
-  static async getBlogPostById(req: Request, res: Response): Promise<void> {
+  static async loadBlogId(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const idStr = Array.isArray(id) ? id[0] : id;
 
-      const blog = await blogService.getBlogPostById(idStr);
+      const blog = await blogService.loadBlogId(idStr);
 
       if (!blog) {
         res.status(404).json({
@@ -130,12 +130,12 @@ export class BlogController {
   /**
    * 增加博客浏览量
    */
-  static async incrementViewCount(req: Request, res: Response): Promise<void> {
+  static async incViews(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const idStr = Array.isArray(id) ? id[0] : id;
 
-      await blogService.incrementViewCount(idStr);
+      await blogService.incViews(idStr);
 
       res.status(200).json({
         success: true,
@@ -154,7 +154,7 @@ export class BlogController {
   /**
    * 更新博客文章
    */
-  static async updateBlog(req: Request, res: Response): Promise<void> {
+  static async updBlog(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { userId, title, content, coverImage, tags, city, spotIds, isPublished } = req.body;
@@ -168,7 +168,7 @@ export class BlogController {
       }
 
       const idStr = Array.isArray(id) ? id[0] : id;
-      const blog = await blogService.updateBlog(idStr, userId, {
+      const blog = await blogService.updBlog(idStr, userId, {
         title,
         content,
         coverImage,
@@ -204,7 +204,7 @@ export class BlogController {
   /**
    * 删除博客文章
    */
-  static async deleteBlog(req: Request, res: Response): Promise<void> {
+  static async delBlog(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { userId } = req.body;
@@ -218,7 +218,7 @@ export class BlogController {
       }
 
       const idStr = Array.isArray(id) ? id[0] : id;
-      const success = await blogService.deleteBlog(idStr, userId);
+      const success = await blogService.delBlog(idStr, userId);
 
       if (success) {
         res.status(200).json({
@@ -244,7 +244,7 @@ export class BlogController {
   /**
    * 点赞/取消点赞
    */
-  static async toggleLike(req: Request, res: Response): Promise<void> {
+  static async blogLike(req: Request, res: Response): Promise<void> {
     try {
       const { postId } = req.params;
       const { userId } = req.body;
@@ -258,7 +258,7 @@ export class BlogController {
       }
 
       const postIdStr = Array.isArray(postId) ? postId[0] : postId;
-      const result = await blogService.toggleLike(postIdStr, userId);
+      const result = await blogService.blogLike(postIdStr, userId);
 
       res.status(200).json({
         success: true,
@@ -278,7 +278,7 @@ export class BlogController {
   /**
    * 添加评论
    */
-  static async addComment(req: Request, res: Response): Promise<void> {
+  static async addCmt(req: Request, res: Response): Promise<void> {
     try {
       const { postId } = req.params;
       const { userId, content } = req.body;
@@ -292,7 +292,7 @@ export class BlogController {
       }
 
       const postIdStr = Array.isArray(postId) ? postId[0] : postId;
-      const comment = await blogService.addComment(postIdStr, userId, content);
+      const comment = await blogService.addCmt(postIdStr, userId, content);
 
       res.status(201).json({
         success: true,
@@ -312,7 +312,7 @@ export class BlogController {
   /**
    * 删除评论
    */
-  static async deleteComment(req: Request, res: Response): Promise<void> {
+  static async delCmt(req: Request, res: Response): Promise<void> {
     try {
       const { commentId } = req.params;
       const { userId } = req.body;
@@ -326,7 +326,7 @@ export class BlogController {
       }
 
       const commentIdStr = Array.isArray(commentId) ? commentId[0] : commentId;
-      const success = await blogService.deleteComment(commentIdStr, userId);
+      const success = await blogService.delCmt(commentIdStr, userId);
 
       if (success) {
         res.status(200).json({
@@ -352,7 +352,7 @@ export class BlogController {
   /**
    * 点赞/取消点赞评论
    */
-  static async toggleCommentLike(req: Request, res: Response): Promise<void> {
+  static async likeCmt(req: Request, res: Response): Promise<void> {
     try {
       const { commentId } = req.params;
       const { userId } = req.body;
@@ -366,7 +366,7 @@ export class BlogController {
       }
 
       const commentIdStr = Array.isArray(commentId) ? commentId[0] : commentId;
-      const result = await blogService.toggleCommentLike(commentIdStr, userId);
+      const result = await blogService.likeCmt(commentIdStr, userId);
 
       res.status(200).json({
         success: true,
@@ -386,12 +386,12 @@ export class BlogController {
   /**
    * 获取热门标签
    */
-  static async getPopularTags(req: Request, res: Response): Promise<void> {
+  static async hotTags(req: Request, res: Response): Promise<void> {
     try {
       const { limit = '20' } = req.query;
       const limitNum = parseInt(limit as string);
 
-      const tags = await blogService.getPopularTags(limitNum);
+      const tags = await blogService.hotTags(limitNum);
 
       res.status(200).json({
         success: true,

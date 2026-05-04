@@ -24,7 +24,7 @@ import userRoutes from './userRoutes';
 import chatHistoryRoutes from './chatHistoryRoutes';
 import notificationRoutes from './notificationRoutes';
 import { PackingController } from '../controllers/packingController';
-import { authenticateToken } from '../controllers/authController';
+import { authToken } from '../controllers/authController';
 
 const router = Router();
 
@@ -55,10 +55,10 @@ router.use('/notifications', notificationRoutes);
 
 // ==================== 打包清单独立路由 ====================
 // PATCH /api/packing/:itemId - 更新打包物品状态
-router.patch('/packing/:itemId', authenticateToken, PackingController.updatePackingItem);
+router.patch('/packing/:itemId', authToken, PackingController.updItem);
 
 // DELETE /api/packing/:itemId - 删除打包物品
-router.delete('/packing/:itemId', authenticateToken, PackingController.deletePackingItem);
+router.delete('/packing/:itemId', authToken, PackingController.delItem);
 
 // GET /api/packing/categories - 获取所有分类
 router.get('/packing/categories', PackingController.getCategories);
@@ -66,28 +66,28 @@ router.get('/packing/categories', PackingController.getCategories);
 // POST /api/trips/:tripId/packing/batch - 批量保存打包清单
 router.post(
   '/trips/:tripId/packing/batch',
-  authenticateToken,
-  PackingController.batchSavePackingList
+  authToken,
+  PackingController.batchSave
 );
 
 // GET /api/trips/:tripId/packing - 获取打包清单
-router.get('/trips/:tripId/packing', authenticateToken, PackingController.getPackingList);
+router.get('/trips/:tripId/packing', authToken, PackingController.packList);
 
 // POST /api/trips/:tripId/packing/initialize - 初始化打包清单
 router.post(
   '/trips/:tripId/packing/initialize',
-  authenticateToken,
-  PackingController.initializePackingList
+  authToken,
+  PackingController.initPack
 );
 
 // POST /api/trips/:tripId/packing - 添加打包物品
-router.post('/trips/:tripId/packing', authenticateToken, PackingController.addPackingItem);
+router.post('/trips/:tripId/packing', authToken, PackingController.addItem);
 
 // GET /api/trips/:tripId/packing/progress - 获取打包进度
 router.get(
   '/trips/:tripId/packing/progress',
-  authenticateToken,
-  PackingController.getPackingProgress
+  authToken,
+  PackingController.packProgress
 );
 
 export default router;

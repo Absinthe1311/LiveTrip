@@ -40,7 +40,7 @@ export class SpotDataService {
    * 获取城市的景点列表（包含 IoT 数据）
    * 如果数据库中没有景点，会自动从高德 API 获取
    */
-  async getCitySpotsWithIoTData(city: string, limit: number = 50): Promise<SpotWithIoT[]> {
+  async citySpotsWithIoTData(city: string, limit: number = 50): Promise<SpotWithIoT[]> {
     console.log(`🔍 查询 ${city} 的景点列表，限制 ${limit} 个...`);
 
     // 1. 先从数据库查询
@@ -66,7 +66,7 @@ export class SpotDataService {
 
       try {
         // 调用 spotService 从高德 API 获取景点
-        const newSpots = await spotService.getCitySpots(city, limit);
+        const newSpots = await spotService.citySpots(city, limit);
 
         if (newSpots.length > 0) {
           console.log(`✅ 从高德 API 获取到 ${newSpots.length} 个景点`);
@@ -155,7 +155,7 @@ export class SpotDataService {
         console.log(`✅ 从高德 API 找到 ${amapAttractions.length} 个匹配的景点`);
 
         // 调用 spotService 保存到数据库（这会自动处理保存和 IoT 数据生成）
-        const savedSpots = await spotService.getCitySpots(searchCity, 1);
+        const savedSpots = await spotService.citySpots(searchCity, 1);
 
         if (savedSpots.length > 0) {
           console.log(`✅ 景点已保存到数据库: ${savedSpots[0].name}`);
@@ -206,7 +206,7 @@ export class SpotDataService {
   /**
    * 获取热门景点
    */
-  async getHotSpots(city: string, limit: number = 10): Promise<SpotWithIoT[]> {
+  async hotSpots(city: string, limit: number = 10): Promise<SpotWithIoT[]> {
     const spots = await prisma.spot.findMany({
       where: {
         city: city,

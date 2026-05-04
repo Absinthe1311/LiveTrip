@@ -15,7 +15,7 @@ import GlassLayout from '../components/layout/GlassLayout';
 import TimelineWithCards from '../components/itinerary/TimelineWithCards';
 import FullscreenMap from '../components/itinerary/FullscreenMap';
 import DayMap from '../components/itinerary/DayMap';
-import { getSharedTrip, batchGetSpotImagesByIds } from '../api/client';
+import { getSharedTrip, batchgetSpotImgsByIds } from '../api/client';
 import { FullItinerary } from '../api/client';
 
 // 辅助函数
@@ -131,7 +131,7 @@ export default function SharedTripPage() {
       }
 
       console.log(`📸 批量获取 ${spotIds.length} 个景点的图片`);
-      const response = await batchGetSpotImagesByIds(spotIds);
+      const response = await batchgetSpotImgsByIds(spotIds);
 
       if (response.success && response.data) {
         console.log(`✅ 成功加载 ${Object.keys(response.data.images).length} 个景点的图片`);

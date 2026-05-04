@@ -14,7 +14,7 @@ const prisma = getPrismaClient();
  * 获取用户的所有行程
  * GET /api/trips
  */
-export const getUserTrips = async (req: Request, res: Response) => {
+export const listTrips = async (req: Request, res: Response) => {
   try {
     console.log('📝 收到获取行程列表请求');
 
@@ -195,7 +195,7 @@ export const getTripById = async (req: Request, res: Response) => {
  * 删除行程
  * DELETE /api/trips/:id
  */
-export const deleteTrip = async (req: Request, res: Response) => {
+export const delTrip = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const tripId = Array.isArray(id) ? id[0] : id;
@@ -215,7 +215,7 @@ export const deleteTrip = async (req: Request, res: Response) => {
     // 更新用户统计数据
     if (userId) {
       const { UserController } = await import('./userController');
-      await UserController.updateUserStats(userId);
+      await UserController.updStats(userId);
     }
 
     res.json({
@@ -503,7 +503,7 @@ export const saveTrip = async (req: Request, res: Response) => {
 
     // 更新用户统计数据
     const { UserController } = await import('./userController');
-    await UserController.updateUserStats(userId);
+    await UserController.updStats(userId);
 
     res.json({
       success: true,
@@ -536,7 +536,7 @@ export const saveTrip = async (req: Request, res: Response) => {
  * 更新行程的酒店信息
  * PUT /api/trips/:id/hotel
  */
-export const updateTripHotel = async (req: Request, res: Response) => {
+export const updHotel = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const tripId = Array.isArray(id) ? id[0] : id;
@@ -591,7 +591,7 @@ export const updateTripHotel = async (req: Request, res: Response) => {
  * 计算实时预算（基于当前选择）
  * POST /api/trips/calculate-budget
  */
-export const calculateRealTimeBudget = async (req: Request, res: Response) => {
+export const calBudget = async (req: Request, res: Response) => {
   try {
     console.log('💰 收到实时预算计算请求');
     console.log('请求体:', JSON.stringify(req.body, null, 2));
@@ -650,7 +650,7 @@ export const calculateRealTimeBudget = async (req: Request, res: Response) => {
  * 更新某一天的餐厅信息
  * PUT /api/trips/:tripId/days/:dayNumber/restaurant
  */
-export const updateDayRestaurant = async (req: Request, res: Response) => {
+export const setDayDining = async (req: Request, res: Response) => {
   try {
     const { tripId, dayNumber } = req.params;
     const restaurant = req.body;

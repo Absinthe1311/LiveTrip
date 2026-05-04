@@ -48,7 +48,7 @@ import {
 } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
-import { createPlan } from '../api/client';
+import { makePlan } from '../api/client';
 import { useAppStore } from '../store';
 import AIAdvisorGlass from '../components/ai/AIAdvisor';
 import { popularDestinations } from '../data/popularDestinations';
@@ -248,7 +248,7 @@ export default function PlanGlass() {
 
       console.log('📝 发送行程规划请求:', request);
 
-      const response = await createPlan(request);
+      const response = await makePlan(request);
 
       if (response.success) {
         console.log('✅ 行程规划成功');

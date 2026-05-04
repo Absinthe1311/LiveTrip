@@ -58,7 +58,7 @@ export class AiTripRecommender {
     try {
       // 1. 获取景点数据（包含 IoT 数据）
       console.log('\n步骤1: 获取景点数据...');
-      const spots = await this.spotDataSvc.getCitySpotsWithIoTData(
+      const spots = await this.spotDataSvc.citySpotsWithIoTData(
         params.destination,
         30 // 原值: 100 (30个景点足够AI规划行程，减少约60%输入Token)
       );

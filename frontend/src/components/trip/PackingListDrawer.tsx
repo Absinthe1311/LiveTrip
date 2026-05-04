@@ -15,13 +15,13 @@ import {
 } from 'antd';
 import { Plus, Trash2, CheckCircle, Circle, Briefcase, RefreshCw } from 'lucide-react';
 import {
-  getPackingList,
-  initializePackingList,
-  addPackingItem,
-  updatePackingItem,
-  deletePackingItem,
+  packList,
+  initPack,
+  addItem,
+  updItem,
+  delItem,
   getPackingCategories,
-  getPackingProgress,
+  packProgress,
   type PackingItem,
   type PackingProgress,
 } from '../../api/client';
@@ -67,13 +67,13 @@ export default function PackingListDrawer({ visible, onClose, tripId }: PackingL
 
     try {
       setLoading(true);
-      const result = await getPackingList(tripId);
+      const result = await packList(tripId);
 
       if (result.success && result.data) {
         // 如果清单为空，自动初始化
         if (result.data.length === 0) {
-          await initializePackingList(tripId);
-          const initializedResult = await getPackingList(tripId);
+          await initPack(tripId);
+          const initializedResult = await packList(tripId);
           if (initializedResult.success && initializedResult.data) {
             setItems(initializedResult.data);
           }
@@ -106,7 +106,7 @@ export default function PackingListDrawer({ visible, onClose, tripId }: PackingL
     if (!tripId) return;
 
     try {
-      const result = await getPackingProgress(tripId);
+      const result = await packProgress(tripId);
       if (result.success && result.data) {
         setProgress(result.data);
       }
@@ -118,7 +118,7 @@ export default function PackingListDrawer({ visible, onClose, tripId }: PackingL
   // 切换物品打包状态
   const handleTogglePacked = async (itemId: string, currentStatus: boolean) => {
     try {
-      await updatePackingItem(itemId, { isPacked: !currentStatus });
+      await updItem(itemId, { isPacked: !currentStatus });
       setItems(
         items.map((item) => (item.id === itemId ? { ...item, isPacked: !currentStatus } : item))
       );
@@ -137,7 +137,7 @@ export default function PackingListDrawer({ visible, onClose, tripId }: PackingL
     }
 
     try {
-      await addPackingItem(tripId, newItemName.trim(), newItemCategory);
+      await addItem(tripId, newItemName.trim(), newItemCategory);
       message.success('添加成功');
       setNewItemName('');
       setNewItemCategory('other');
@@ -153,7 +153,7 @@ export default function PackingListDrawer({ visible, onClose, tripId }: PackingL
   // 删除物品
   const handleDeleteItem = async (itemId: string) => {
     try {
-      await deletePackingItem(itemId);
+      await delItem(itemId);
       message.success('删除成功');
       await loadPackingList();
       await loadProgress();

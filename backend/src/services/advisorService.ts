@@ -231,7 +231,7 @@ class AdvisorService {
       });
 
       // 获取历史消息（最近 10 条）
-      const messageHistory = await chatHistoryService.getMessages({
+      const messageHistory = await chatHistoryService.msgs({
         sessionId: session.id,
         limit: 10,
       });

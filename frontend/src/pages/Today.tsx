@@ -34,18 +34,18 @@ import MapCopyright from '../components/map/MapCopyright';
 import { GlassCard } from '../components/home';
 import {
   getTripById,
-  getUserTrips,
+  listTrips,
   completeTrip,
-  getPackingList,
-  initializePackingList,
-  updatePackingItem,
-  addPackingItem,
-  deletePackingItem,
-  batchGetSpotImagesByIds,
+  packList,
+  initPack,
+  updItem,
+  addItem,
+  delItem,
+  batchgetSpotImgsByIds,
   apiClient,
   AttractionItem,
   PackingItem,
-  getIoTData,
+  spotIot,
   IoTSpotData,
 } from '../api/client';
 import { message, Modal, Input } from 'antd';
@@ -211,7 +211,7 @@ export default function TodayGlass() {
       try {
         if (idsToLoad.length > 0) {
           // 使用批量API获取图片
-          const response = await batchGetSpotImagesByIds(idsToLoad);
+          const response = await batchgetSpotImgsByIds(idsToLoad);
 
           // 兼容后端实际返回结构：{ success, data: { images, count } }
           const imageMap = response?.data?.images || response?.images || response?.data || {};
@@ -286,7 +286,7 @@ export default function TodayGlass() {
   useEffect(() => {
     const loadIoTData = async () => {
       try {
-        const response = await getIoTData();
+        const response = await spotIot();
         if (response.success && response.data?.spots) {
           const iotMap: Record<string, IoTSpotData> = {};
           response.data.spots.forEach((spot) => {
@@ -513,7 +513,7 @@ export default function TodayGlass() {
   const loadUserTrips = async () => {
     try {
       setLoading(true);
-      const response = await getUserTrips();
+      const response = await listTrips();
       if (response.success && response.data) {
         setTripsList(response.data);
       }
@@ -527,11 +527,11 @@ export default function TodayGlass() {
 
   const loadPackingList = async (tripId: string) => {
     try {
-      const response = await getPackingList(tripId);
+      const response = await packList(tripId);
       if (response.success && response.data) {
         setPackingItems(response.data);
       } else {
-        const initResponse = await initializePackingList(tripId);
+        const initResponse = await initPack(tripId);
         if (initResponse.success && initResponse.data) {
           setPackingItems(initResponse.data);
         }
@@ -592,7 +592,7 @@ export default function TodayGlass() {
 
   const handlePackingToggle = async (item: PackingItem) => {
     try {
-      await updatePackingItem(item.id, { isPacked: !item.isPacked });
+      await updItem(item.id, { isPacked: !item.isPacked });
       setPackingItems((items) =>
         items.map((i) => (i.id === item.id ? { ...i, isPacked: !i.isPacked } : i))
       );
@@ -602,10 +602,10 @@ export default function TodayGlass() {
     }
   };
 
-  const handleAddPackingItem = async () => {
+  const handleaddItem = async () => {
     if (!newItemName.trim() || !currentTrip) return;
     try {
-      const response = await addPackingItem(currentTrip.id, newItemName.trim(), newItemCategory);
+      const response = await addItem(currentTrip.id, newItemName.trim(), newItemCategory);
       if (response.success && response.data) {
         setPackingItems((items) => [...items, response.data]);
         setNewItemName('');
@@ -621,7 +621,7 @@ export default function TodayGlass() {
   const handleEditPackingItem = async () => {
     if (!editingItem || !editItemName.trim()) return;
     try {
-      const response = await updatePackingItem(editingItem.id, { itemName: editItemName.trim() });
+      const response = await updItem(editingItem.id, { itemName: editItemName.trim() });
       if (response.success) {
         setPackingItems((items) =>
           items.map((i) => (i.id === editingItem.id ? { ...i, itemName: editItemName.trim() } : i))
@@ -636,9 +636,9 @@ export default function TodayGlass() {
     }
   };
 
-  const handleDeletePackingItem = async (itemId: string) => {
+  const handledelItem = async (itemId: string) => {
     try {
-      const response = await deletePackingItem(itemId);
+      const response = await delItem(itemId);
       if (response.success) {
         setPackingItems((items) => items.filter((i) => i.id !== itemId));
         message.success('删除成功');
@@ -1279,7 +1279,7 @@ export default function TodayGlass() {
                     totalBudget={currentTrip.totalBudget || 0}
                     budget={currentTrip.budget}
                     onRecordExpense={() => setShowExpenseModal(true)}
-                    onAdjustBudget={() => setShowBudgetAdjustModal(true)}
+                    onmodBudget={() => setShowBudgetAdjustModal(true)}
                   />
                 </div>
               </div>
@@ -1342,7 +1342,7 @@ export default function TodayGlass() {
                   placeholder="物品名称"
                   value={newItemName}
                   onChange={(e) => setNewItemName(e.target.value)}
-                  onPressEnter={handleAddPackingItem}
+                  onPressEnter={handleaddItem}
                   className="flex-1"
                 />
                 <select
@@ -1358,7 +1358,7 @@ export default function TodayGlass() {
                   <option value="其他">其他</option>
                 </select>
                 <button
-                  onClick={handleAddPackingItem}
+                  onClick={handleaddItem}
                   className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
                 >
                   添加
@@ -1438,7 +1438,7 @@ export default function TodayGlass() {
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDeletePackingItem(item.id)}
+                            onClick={() => handledelItem(item.id)}
                             className="text-red-500 hover:text-red-600"
                           >
                             <X className="w-4 h-4" />

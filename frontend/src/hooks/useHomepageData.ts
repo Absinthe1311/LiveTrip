@@ -1,10 +1,10 @@
 // Homepage数据管理Hook - 统一管理首页所有数据获取
 import { useState, useEffect } from 'react';
 import {
-  getUserTrips,
-  getPackingList,
-  getPackingProgress,
-  getIoTData,
+  listTrips,
+  packList,
+  packProgress,
+  spotIot,
   apiClient,
 } from '../api/client';
 import { cacheManager, CACHE_KEYS, CACHE_TTL } from '../utils/cacheManager';
@@ -132,13 +132,13 @@ export const useHomepageData = () => {
       const response = await cacheManager.getOrSet(
         CACHE_KEYS.USER_TRIPS,
         async () => {
-          const res = await getUserTrips();
+          const res = await listTrips();
           return res;
         },
         CACHE_TTL.MEDIUM // 5分钟缓存
       );
 
-      console.log('getUserTrips response:', response);
+      console.log('listTrips response:', response);
 
       // 后端返回格式: { success: true, data: Trip[] }
       if (response.success && Array.isArray(response.data)) {
@@ -241,7 +241,7 @@ export const useHomepageData = () => {
   const fetchPackingList = async (tripId: string) => {
     try {
       console.log('🔄 开始获取行李清单, tripId:', tripId);
-      const response = await getPackingList(tripId);
+      const response = await packList(tripId);
       console.log('📦 行李清单API响应:', response);
 
       if (response.success && response.data) {
@@ -266,7 +266,7 @@ export const useHomepageData = () => {
   // 获取打包进度
   const fetchPackingProgress = async (tripId: string) => {
     try {
-      const response = await getPackingProgress(tripId);
+      const response = await packProgress(tripId);
       if (response.data.success) {
         setPackingProgress(response.data.progress);
       }
@@ -296,7 +296,7 @@ export const useHomepageData = () => {
             const spot = spotsResponse.data.data[0];
 
             // 2. 获取IoT数据（包含天气）
-            const iotResponse = await getIoTData();
+            const iotResponse = await spotIot();
             if (iotResponse.success && iotResponse.data.spots) {
               // 查找该景点的IoT数据
               const spotIoT = iotResponse.data.spots.find(
@@ -349,9 +349,9 @@ export const useHomepageData = () => {
   const fetchBudgetData = async (currentTripId?: string) => {
     try {
       console.log('💰 开始获取预算数据...');
-      const response = await getUserTrips();
+      const response = await listTrips();
 
-      // getUserTrips返回的是response.data，结构为 { success: true, data: Trip[] }
+      // listTrips返回的是response.data，结构为 { success: true, data: Trip[] }
       if (response.success && Array.isArray(response.data)) {
         const trips = response.data;
         console.log('📊 获取到的行程列表:', trips.length, '个');
@@ -624,7 +624,7 @@ export const useHomepageData = () => {
 
     // 2. 搜索用户行程
     try {
-      const response = await getUserTrips();
+      const response = await listTrips();
       if (response.success) {
         const matchedTrips = response.data.filter(
           (trip: any) => trip.title.includes(keyword) || trip.destination.includes(keyword)

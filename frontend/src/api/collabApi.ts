@@ -16,7 +16,7 @@ import type {
  * @param limit 限制数量（默认50）
  * @returns 景点列表
  */
-export const getCitySpots = async (city: string, limit: number = 50) => {
+export const citySpots = async (city: string, limit: number = 50) => {
   const response = await apiClient.get(`/spots/city/${city}`, {
     params: { limit },
   });
@@ -60,7 +60,7 @@ export const getCollabRoomInfo = async (roomId: string) => {
  * @param roomId 房间ID
  * @returns 景点统计列表
  */
-export const getSpotStats = async (roomId: string) => {
+export const spotStats = async (roomId: string) => {
   const response = await apiClient.get(`/collab/rooms/${roomId}/stats`);
   return response.data as { success: boolean; data: SpotStat[] };
 };
@@ -85,7 +85,7 @@ export const lockCollabRoom = async (roomId: string) => {
  * @param polylineData 路线数据
  * @returns 草案信息
  */
-export const upsertDraft = async (
+export const saveDraft = async (
   roomId: string,
   dayNumber: number,
   spotSequence: string[],
@@ -105,7 +105,7 @@ export const upsertDraft = async (
  * @param draftId 草案ID
  * @returns 更新后的草案信息
  */
-export const submitDraft = async (draftId: string) => {
+export const sendDraft = async (draftId: string) => {
   const response = await apiClient.post(`/collab/drafts/${draftId}/submit`);
   return response.data;
 };
@@ -115,7 +115,7 @@ export const submitDraft = async (draftId: string) => {
  * @param roomId 房间ID
  * @returns 草案列表
  */
-export const getUserDrafts = async (roomId: string) => {
+export const myDrfts = async (roomId: string) => {
   const response = await apiClient.get(`/collab/rooms/${roomId}/drafts`);
   return response.data as { success: boolean; data: DraftRoute[] };
 };
@@ -125,7 +125,7 @@ export const getUserDrafts = async (roomId: string) => {
  * @param roomId 房间ID
  * @returns 所有成员的草案
  */
-export const getAllDrafts = async (roomId: string) => {
+export const allDrafts = async (roomId: string) => {
   const response = await apiClient.get(`/collab/rooms/${roomId}/drafts/all`);
   return response.data;
 };
@@ -161,7 +161,7 @@ export const getCollabMessages = async (roomId: string) => {
  * @param finalRoute 最终路线数据
  * @returns 保存结果
  */
-export const saveFinalTrip = async (roomId: string, finalRoute: any[]) => {
+export const commitTrip = async (roomId: string, finalRoute: any[]) => {
   const response = await apiClient.post('/collab/finalize', { roomId, finalRoute });
   return response.data;
 };

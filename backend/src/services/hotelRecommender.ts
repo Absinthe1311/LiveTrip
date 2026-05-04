@@ -34,7 +34,7 @@ class HotelRecommender {
    * @param budget 用户预算
    * @returns 推荐的酒店列表（3-5个）
    */
-  async getHotelRecommendations(
+  async hotelRecs(
     spots: Array<{ name: string; location: string }>,
     budget: number
   ): Promise<Hotel[]> {

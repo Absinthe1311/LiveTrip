@@ -1,7 +1,7 @@
 // Agent 路由
 import { Router } from 'express';
-import { chatWithAgent } from '../controllers/agentController';
-import { chatWithAgentSSE } from '../controllers/agentSSEController';
+import { askAgent } from '../controllers/agentController';
+import { askAgentSSE } from '../controllers/agentSSEController';
 import { agentService } from '../services/agentService';
 
 const router = Router();
@@ -11,14 +11,14 @@ const router = Router();
  * @desc    与 Agent 对话（支持 Function Calling）
  * @access  Public
  */
-router.post('/chat', chatWithAgent);
+router.post('/chat', askAgent);
 
 /**
  * @route   POST /api/agent/chat/stream
  * @desc    与 Agent 对话（SSE 流式响应，实时推送步骤）
  * @access  Public
  */
-router.post('/chat/stream', chatWithAgentSSE);
+router.post('/chat/stream', askAgentSSE);
 
 /**
  * @route   POST /api/agent/confirm-trip

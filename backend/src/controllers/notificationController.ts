@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
  * 获取用户通知列表
  * GET /api/notifications
  */
-export const getNotifications = async (req: Request, res: Response) => {
+export const fetNotifs = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.userId;
 
@@ -48,7 +48,7 @@ export const getNotifications = async (req: Request, res: Response) => {
  * 标记通知为已读
  * PUT /api/notifications/:id/read
  */
-export const markNotificationAsRead = async (req: Request, res: Response) => {
+export const readAllNotifs = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.userId;
     const id = req.params.id as string;
@@ -109,7 +109,7 @@ export const markAllNotificationsAsRead = async (req: Request, res: Response) =>
  * 手动触发环境感知
  * POST /api/sensor/run
  */
-export const triggerSensor = async (req: Request, res: Response) => {
+export const fireSensor = async (req: Request, res: Response) => {
   try {
     const { spotIds } = req.body;
 
@@ -132,7 +132,7 @@ export const triggerSensor = async (req: Request, res: Response) => {
  * 删除单个通知
  * DELETE /api/notifications/:id
  */
-export const deleteNotification = async (req: Request, res: Response) => {
+export const delNotif = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.userId;
     const id = req.params.id as string;
@@ -165,7 +165,7 @@ export const deleteNotification = async (req: Request, res: Response) => {
  * 清空所有通知
  * DELETE /api/notifications/clear-all
  */
-export const clearAllNotifications = async (req: Request, res: Response) => {
+export const flushNotifs = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.userId;
 

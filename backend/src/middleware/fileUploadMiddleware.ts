@@ -126,7 +126,7 @@ export function uploadSingleImage(req: Request, res: Response, next: NextFunctio
 /**
  * 包装上传中间件（多张图片），包含错误处理和验证
  */
-export function uploadImage(req: Request, res: Response, next: NextFunction): void {
+export function imgUpload(req: Request, res: Response, next: NextFunction): void {
   handleMultipleImageUpload(req, res, (err) => {
     if (err) {
       handleUploadError(err, req, res, () => {});

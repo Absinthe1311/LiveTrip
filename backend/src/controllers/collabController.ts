@@ -137,7 +137,7 @@ export const getRoomInfo = async (req: Request, res: Response) => {
  * 获取景点统计
  * GET /api/collab/rooms/:roomId/stats
  */
-export const getSpotStats = async (req: Request, res: Response) => {
+export const spotStats = async (req: Request, res: Response) => {
   try {
     const roomId = req.params.roomId as string;
     const userId = (req as any).user?.userId;
@@ -158,7 +158,7 @@ export const getSpotStats = async (req: Request, res: Response) => {
       });
     }
 
-    const stats = await collabService.getSpotStats(roomId);
+    const stats = await collabService.spotStats(roomId);
 
     res.json({
       success: true,
@@ -177,7 +177,7 @@ export const getSpotStats = async (req: Request, res: Response) => {
  * 锁定房间
  * POST /api/collab/rooms/:roomId/lock
  */
-export const lockRoom = async (req: Request, res: Response) => {
+export const closeRoom = async (req: Request, res: Response) => {
   try {
     const roomId = req.params.roomId as string;
     const userId = (req as any).user?.userId;
@@ -198,7 +198,7 @@ export const lockRoom = async (req: Request, res: Response) => {
       });
     }
 
-    const room = await collabService.lockRoom(roomId);
+    const room = await collabService.closeRoom(roomId);
 
     // 广播房间锁定事件
     broadcastToRoom(roomId, 'room:lock', {
@@ -222,7 +222,7 @@ export const lockRoom = async (req: Request, res: Response) => {
  * 创建或更新草案
  * POST /api/collab/drafts
  */
-export const upsertDraft = async (req: Request, res: Response) => {
+export const saveDraft = async (req: Request, res: Response) => {
   try {
     const { roomId, dayNumber, spotSequence, polylineData } = req.body;
     const userId = (req as any).user?.userId;
@@ -241,7 +241,7 @@ export const upsertDraft = async (req: Request, res: Response) => {
       });
     }
 
-    const draft = await collabService.upsertDraft(
+    const draft = await collabService.saveDraft(
       roomId,
       userId,
       dayNumber,
@@ -275,7 +275,7 @@ export const upsertDraft = async (req: Request, res: Response) => {
  * 提交草案
  * POST /api/collab/drafts/:draftId/submit
  */
-export const submitDraft = async (req: Request, res: Response) => {
+export const sendDraft = async (req: Request, res: Response) => {
   try {
     const draftId = req.params.draftId as string;
     const userId = (req as any).user?.userId;
@@ -287,7 +287,7 @@ export const submitDraft = async (req: Request, res: Response) => {
       });
     }
 
-    const draft = await collabService.submitDraft(draftId, userId);
+    const draft = await collabService.sendDraft(draftId, userId);
 
     // 广播草案提交事件
     broadcastToRoom(draft.roomId, 'draft:submitted', {
@@ -313,7 +313,7 @@ export const submitDraft = async (req: Request, res: Response) => {
  * 获取用户的草案列表
  * GET /api/collab/rooms/:roomId/drafts
  */
-export const getUserDrafts = async (req: Request, res: Response) => {
+export const myDrfts = async (req: Request, res: Response) => {
   try {
     const roomId = req.params.roomId as string;
     const userId = (req as any).user?.userId;
@@ -325,7 +325,7 @@ export const getUserDrafts = async (req: Request, res: Response) => {
       });
     }
 
-    const drafts = await collabService.getUserDrafts(roomId, userId);
+    const drafts = await collabService.myDrfts(roomId, userId);
 
     res.json({
       success: true,
@@ -344,7 +344,7 @@ export const getUserDrafts = async (req: Request, res: Response) => {
  * 获取所有成员的草案
  * GET /api/collab/rooms/:roomId/drafts/all
  */
-export const getAllDrafts = async (req: Request, res: Response) => {
+export const allDrafts = async (req: Request, res: Response) => {
   try {
     const roomId = req.params.roomId as string;
     const userId = (req as any).user?.userId;
@@ -377,7 +377,7 @@ export const getAllDrafts = async (req: Request, res: Response) => {
     // 获取所有成员的草案
     const allDrafts = await Promise.all(
       room.members.map(async (member) => {
-        const drafts = await collabService.getUserDrafts(roomId, member.userId);
+        const drafts = await collabService.myDrfts(roomId, member.userId);
         return {
           userId: member.userId,
           username: member.user.username,
@@ -403,7 +403,7 @@ export const getAllDrafts = async (req: Request, res: Response) => {
  * 发送消息
  * POST /api/collab/messages
  */
-export const sendMessage = async (req: Request, res: Response) => {
+export const msgSend = async (req: Request, res: Response) => {
   try {
     const { roomId, content } = req.body;
     const userId = (req as any).user?.userId;
@@ -422,7 +422,7 @@ export const sendMessage = async (req: Request, res: Response) => {
       });
     }
 
-    const message = await collabService.sendMessage(roomId, userId, content);
+    const message = await collabService.msgSend(roomId, userId, content);
 
     // 广播新消息事件
     broadcastToRoom(roomId, 'message:new', message);
@@ -444,7 +444,7 @@ export const sendMessage = async (req: Request, res: Response) => {
  * 获取房间消息列表
  * GET /api/collab/messages/:roomId
  */
-export const getMessages = async (req: Request, res: Response) => {
+export const msgs = async (req: Request, res: Response) => {
   try {
     const roomId = req.params.roomId as string;
     const userId = (req as any).user?.userId;
@@ -465,7 +465,7 @@ export const getMessages = async (req: Request, res: Response) => {
       });
     }
 
-    const messages = await collabService.getMessages(roomId);
+    const messages = await collabService.msgs(roomId);
 
     res.json({
       success: true,
@@ -484,7 +484,7 @@ export const getMessages = async (req: Request, res: Response) => {
  * 保存最终协同行程
  * POST /api/collab/finalize
  */
-export const saveFinalTrip = async (req: Request, res: Response) => {
+export const commitTrip = async (req: Request, res: Response) => {
   try {
     const { roomId, finalRoute } = req.body;
     const userId = (req as any).user?.userId;

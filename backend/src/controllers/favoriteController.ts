@@ -13,7 +13,7 @@ import {
  * 获取收藏列表
  * GET /api/favorites
  */
-export const getFavorites = async (req: Request, res: Response) => {
+export const myFavs = async (req: Request, res: Response) => {
   try {
     const userId = (req.headers['x-user-id'] as string) || 'default-user';
     const includeIoT = req.query.includeIoT === 'true';
@@ -45,7 +45,7 @@ export const getFavorites = async (req: Request, res: Response) => {
  * 添加收藏
  * POST /api/favorites
  */
-export const createFavorite = async (req: Request, res: Response) => {
+export const addFav = async (req: Request, res: Response) => {
   try {
     const { spotId, notes } = req.body;
     const userId = (req.headers['x-user-id'] as string) || 'default-user';
@@ -94,7 +94,7 @@ export const createFavorite = async (req: Request, res: Response) => {
  * 取消收藏
  * DELETE /api/favorites/:spotId
  */
-export const deleteFavorite = async (req: Request, res: Response) => {
+export const delFav = async (req: Request, res: Response) => {
   try {
     const { spotId } = req.params;
     const userId = (req.headers['x-user-id'] as string) || 'default-user';
@@ -120,7 +120,7 @@ export const deleteFavorite = async (req: Request, res: Response) => {
  * 检查是否已收藏
  * GET /api/favorites/check/:spotId
  */
-export const checkFavorite = async (req: Request, res: Response) => {
+export const chkFav = async (req: Request, res: Response) => {
   try {
     const { spotId } = req.params;
     const userId = (req.headers['x-user-id'] as string) || 'default-user';
@@ -149,7 +149,7 @@ export const checkFavorite = async (req: Request, res: Response) => {
  * 获取收藏数量
  * GET /api/favorites/count
  */
-export const getFavoritesCount = async (req: Request, res: Response) => {
+export const myFavsCount = async (req: Request, res: Response) => {
   try {
     const userId = (req.headers['x-user-id'] as string) || 'default-user';
 

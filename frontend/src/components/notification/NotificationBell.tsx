@@ -1,7 +1,7 @@
 // 通知铃铛组件 - 在首页显示消息图标
 import { useState, useEffect } from 'react';
 import { Bell, X, Check, CheckCheck, Trash2 } from 'lucide-react';
-import { getNotifications, markAsRead, markAllAsRead, Notification } from '@/api/notification';
+import { fetNotifs, markAsRead, markAllAsRead, Notification } from '@/api/notification';
 import { useSocket } from '@/hooks/useSocket';
 import { toast } from 'sonner';
 import apiClient from '@/api/client';
@@ -17,7 +17,7 @@ export function NotificationBell() {
   const loadNotifications = async () => {
     try {
       setLoading(true);
-      const result = await getNotifications({ limit: 10 });
+      const result = await fetNotifs({ limit: 10 });
       setNotifications(result.notifications);
       setUnreadCount(result.unreadCount);
     } catch (error) {
@@ -95,7 +95,7 @@ export function NotificationBell() {
   };
 
   // 删除单个通知
-  const handleDeleteNotification = async (notificationId: string, e: React.MouseEvent) => {
+  const handledelNotif = async (notificationId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // 阻止事件冒泡，避免触发标记已读
     try {
       await apiClient.delete(`/notifications/${notificationId}`);
@@ -108,7 +108,7 @@ export function NotificationBell() {
   };
 
   // 清空所有通知
-  const handleClearAllNotifications = async () => {
+  const handleflushNotifs = async () => {
     try {
       await apiClient.delete('/notifications/clear-all');
       await loadNotifications();
@@ -174,7 +174,7 @@ export function NotificationBell() {
                 )}
                 {notifications.length > 0 && (
                   <button
-                    onClick={handleClearAllNotifications}
+                    onClick={handleflushNotifs}
                     className="text-sm text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1"
                     title="清空所有通知"
                   >
@@ -226,7 +226,7 @@ export function NotificationBell() {
 
                       {/* 删除按钮 */}
                       <button
-                        onClick={(e) => handleDeleteNotification(notification.id, e)}
+                        onClick={(e) => handledelNotif(notification.id, e)}
                         className="p-1.5 rounded hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100"
                         title="删除通知"
                       >

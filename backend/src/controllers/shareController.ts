@@ -103,7 +103,7 @@ export const getSharedTrip = async (req: Request, res: Response) => {
  * 复刻公开行程
  * POST /api/trips/shared/:token/clone
  */
-export const cloneSharedTrip = async (req: Request, res: Response) => {
+export const copyTrip = async (req: Request, res: Response) => {
   try {
     console.log('📝 收到复刻行程请求');
 

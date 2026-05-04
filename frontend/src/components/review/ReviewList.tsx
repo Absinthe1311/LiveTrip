@@ -71,7 +71,7 @@ export default function ReviewList({ spotId, spotName, userId = 'default-user' }
     loadReviews(page);
   };
 
-  const handleToggleLike = async (reviewId: string) => {
+  const handleblogLike = async (reviewId: string) => {
     try {
       await toggleReviewLike(reviewId, userId);
       loadReviews(page);
@@ -193,7 +193,7 @@ export default function ReviewList({ spotId, spotName, userId = 'default-user' }
                             type="text"
                             icon={review.liked ? <LikeFilled /> : <LikeOutlined />}
                             size="small"
-                            onClick={() => handleToggleLike(review.id)}
+                            onClick={() => handleblogLike(review.id)}
                             style={{ color: review.liked ? '#ff4d4f' : 'inherit' }}
                           >
                             {review.likeCount || 0}

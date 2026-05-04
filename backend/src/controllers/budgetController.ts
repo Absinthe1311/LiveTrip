@@ -8,7 +8,7 @@ import { budgetTrackingService, BudgetCategory } from '../services/budgetTrackin
  * GET /api/trips/:tripId/budget
  * 获取行程的实时预算状态
  */
-export const getBudgetStatus = async (req: Request, res: Response) => {
+export const budgetStats = async (req: Request, res: Response) => {
   try {
     const tripId = req.params.tripId as string;
 
@@ -38,7 +38,7 @@ export const getBudgetStatus = async (req: Request, res: Response) => {
  * PUT /api/trips/:tripId/budget
  * 调整总预算
  */
-export const adjustBudget = async (req: Request, res: Response) => {
+export const modBudget = async (req: Request, res: Response) => {
   try {
     const tripId = req.params.tripId as string;
     const { newBudget, reason } = req.body;
@@ -76,7 +76,7 @@ export const adjustBudget = async (req: Request, res: Response) => {
  * PUT /api/trips/:tripId/budget/item
  * 更新项目价格
  */
-export const updateItemPrice = async (req: Request, res: Response) => {
+export const updPrice = async (req: Request, res: Response) => {
   try {
     const tripId = req.params.tripId as string;
     const { category, itemName, previousPrice, newPrice } = req.body;
@@ -88,7 +88,7 @@ export const updateItemPrice = async (req: Request, res: Response) => {
       });
     }
 
-    const result = await budgetTrackingService.updateItemPrice(
+    const result = await budgetTrackingService.updPrice(
       tripId,
       category as BudgetCategory,
       itemName,
@@ -120,12 +120,12 @@ export const updateItemPrice = async (req: Request, res: Response) => {
  * GET /api/trips/:tripId/budget/history
  * 获取预算变更历史
  */
-export const getBudgetHistory = async (req: Request, res: Response) => {
+export const budgetLog = async (req: Request, res: Response) => {
   try {
     const tripId = req.params.tripId as string;
     const { limit = 20 } = req.query;
 
-    const records = await budgetTrackingService.getBudgetHistory(tripId, Number(limit));
+    const records = await budgetTrackingService.budgetLog(tripId, Number(limit));
 
     res.json({
       success: true,

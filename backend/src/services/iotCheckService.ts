@@ -42,7 +42,7 @@ class IotCheckService {
       for (const attraction of day.attractions) {
         totalAttractions++;
         // 获取 IoT 数据
-        const iotData = await spotService.getSpotIoTData(attraction.spotId || attraction.id);
+        const iotData = await spotService.spotIoT(attraction.spotId || attraction.id);
 
         if (!iotData) {
           // 没有 IoT 数据，保留景点但添加警告

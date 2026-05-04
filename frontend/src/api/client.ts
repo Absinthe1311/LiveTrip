@@ -219,7 +219,7 @@ export interface AdjustResponse {
 /**
  * 创建行程规划
  */
-export const createPlan = async (request: PlanRequest): Promise<PlanResponse> => {
+export const makePlan = async (request: PlanRequest): Promise<PlanResponse> => {
   const response = await apiClient.post<PlanResponse>('/plan', request);
   return response.data;
 };
@@ -227,7 +227,7 @@ export const createPlan = async (request: PlanRequest): Promise<PlanResponse> =>
 /**
  * 获取 IoT 数据
  */
-export const getIoTData = async (): Promise<IoTDataResponse> => {
+export const spotIot = async (): Promise<IoTDataResponse> => {
   const response = await apiClient.get<IoTDataResponse>('/iot/data');
   return response.data;
 };
@@ -277,7 +277,7 @@ export const updateAlternativeRelations = async (
 /**
  * 调整行程
  */
-export const adjustItinerary = async (request: AdjustRequest): Promise<AdjustResponse> => {
+export const editTrip = async (request: AdjustRequest): Promise<AdjustResponse> => {
   const response = await apiClient.post<AdjustResponse>('/adjust', request);
   return response.data;
 };
@@ -287,7 +287,7 @@ export const adjustItinerary = async (request: AdjustRequest): Promise<AdjustRes
 /**
  * 获取用户的所有行程
  */
-export const getUserTrips = async () => {
+export const listTrips = async () => {
   const response = await apiClient.get('/trips');
   return response.data;
 };
@@ -303,7 +303,7 @@ export const getTripById = async (id: string) => {
 /**
  * 删除行程
  */
-export const deleteTrip = async (id: string) => {
+export const delTrip = async (id: string) => {
   const response = await apiClient.delete(`/trips/${id}`);
   return response.data;
 };
@@ -321,7 +321,7 @@ export const saveTrip = async (tripData: any) => {
  * @param tripId 行程ID
  * @param hotel 酒店信息
  */
-export const updateTripHotel = async (tripId: string, hotel: any) => {
+export const updHotel = async (tripId: string, hotel: any) => {
   const response = await apiClient.put(`/trips/${tripId}/hotel`, hotel);
   return response.data;
 };
@@ -332,7 +332,7 @@ export const updateTripHotel = async (tripId: string, hotel: any) => {
  * @param dayNumber 天数
  * @param restaurant 餐厅信息
  */
-export const updateDayRestaurant = async (tripId: string, dayNumber: number, restaurant: any) => {
+export const setDayDining = async (tripId: string, dayNumber: number, restaurant: any) => {
   const response = await apiClient.put(`/trips/${tripId}/days/${dayNumber}/restaurant`, restaurant);
   return response.data;
 };
@@ -341,7 +341,7 @@ export const updateDayRestaurant = async (tripId: string, dayNumber: number, res
  * 计算实时预算
  * @param options 预算计算选项
  */
-export const calculateRealTimeBudget = async (options: {
+export const calBudget = async (options: {
   totalBudget: number;
   days: number;
   hotel?: any;
@@ -357,7 +357,7 @@ export const calculateRealTimeBudget = async (options: {
 /**
  * 获取行程的实时预算状态
  */
-export const getBudgetStatus = async (tripId: string) => {
+export const budgetStats = async (tripId: string) => {
   const response = await apiClient.get(`/trips/${tripId}/budget`);
   return response.data;
 };
@@ -365,7 +365,7 @@ export const getBudgetStatus = async (tripId: string) => {
 /**
  * 调整总预算
  */
-export const adjustBudget = async (tripId: string, newBudget: number, reason: string) => {
+export const modBudget = async (tripId: string, newBudget: number, reason: string) => {
   const response = await apiClient.put(`/trips/${tripId}/budget`, { newBudget, reason });
   return response.data;
 };
@@ -373,7 +373,7 @@ export const adjustBudget = async (tripId: string, newBudget: number, reason: st
 /**
  * 更新项目价格
  */
-export const updateItemPrice = async (
+export const updPrice = async (
   tripId: string,
   category: string,
   itemName: string,
@@ -392,7 +392,7 @@ export const updateItemPrice = async (
 /**
  * 获取预算变更历史
  */
-export const getBudgetHistory = async (tripId: string, limit: number = 20) => {
+export const budgetLog = async (tripId: string, limit: number = 20) => {
   const response = await apiClient.get(`/trips/${tripId}/budget/history`, {
     params: { limit },
   });
@@ -404,7 +404,7 @@ export const getBudgetHistory = async (tripId: string, limit: number = 20) => {
 /**
  * 搜索地点（带缓存）
  */
-export const searchLocation = async (keywords: string) => {
+export const findLoc = async (keywords: string) => {
   const response = await apiClient.get('/location/search', {
     params: { keywords },
   });
@@ -426,7 +426,7 @@ export const getPopularLocations = async (limit: number = 10) => {
 /**
  * 获取收藏列表
  */
-export const getFavorites = async (includeIoT: boolean = true) => {
+export const myFavs = async (includeIoT: boolean = true) => {
   const response = await apiClient.get('/favorites', {
     params: { includeIoT },
   });
@@ -455,7 +455,7 @@ export const removeFavorite = async (spotId: string) => {
 /**
  * 检查是否已收藏
  */
-export const checkFavorite = async (spotId: string) => {
+export const chkFav = async (spotId: string) => {
   const response = await apiClient.get(`/favorites/check/${spotId}`);
   return response.data;
 };
@@ -533,7 +533,7 @@ export const getSharedTrip = async (token: string) => {
  * @param token 分享token
  * @returns 新行程ID
  */
-export const cloneSharedTrip = async (token: string) => {
+export const copyTrip = async (token: string) => {
   const response = await apiClient.post(`/trips/shared/${token}/clone`);
   return response.data;
 };
@@ -555,7 +555,7 @@ export const completeTrip = async (tripId: string) => {
  * @param spotIds 景点ID列表
  * @returns 图片映射 { spotId: imageUrl }
  */
-export const batchGetSpotImagesByIds = async (spotIds: string[]) => {
+export const batchgetSpotImgsByIds = async (spotIds: string[]) => {
   const response = await apiClient.post('/images/batch-by-ids', { spotIds });
   return response.data;
 };
@@ -647,7 +647,7 @@ export const getSpotReviewsStats = async (spotIds: string[]) => {
  * @param data 博客数据
  * @returns 博客文章
  */
-export const createBlog = async (data: {
+export const addBlog = async (data: {
   userId: string;
   title: string;
   content: string;
@@ -666,7 +666,7 @@ export const createBlog = async (data: {
  * @param params 查询参数
  * @returns 博客列表
  */
-export const getBlogPosts = async (params?: {
+export const fetchPosts = async (params?: {
   userId?: string;
   city?: string;
   tags?: string[];
@@ -684,7 +684,7 @@ export const getBlogPosts = async (params?: {
  * @param id 博客ID
  * @returns 博客详情
  */
-export const getBlogPostById = async (id: string) => {
+export const loadBlogId = async (id: string) => {
   const response = await apiClient.get(`/blogs/${id}`);
   return response.data;
 };
@@ -696,7 +696,7 @@ export const getBlogPostById = async (id: string) => {
  * @param data 更新数据
  * @returns 更新后的博客
  */
-export const updateBlog = async (
+export const updBlog = async (
   id: string,
   userId: string,
   data: {
@@ -719,7 +719,7 @@ export const updateBlog = async (
  * @param userId 用户ID
  * @returns 删除结果
  */
-export const deleteBlog = async (id: string, userId: string) => {
+export const delBlog = async (id: string, userId: string) => {
   const response = await apiClient.delete(`/blogs/${id}`, { data: { userId } });
   return response.data;
 };
@@ -730,7 +730,7 @@ export const deleteBlog = async (id: string, userId: string) => {
  * @param userId 用户ID
  * @returns 点赞结果
  */
-export const toggleLike = async (postId: string, userId: string) => {
+export const blogLike = async (postId: string, userId: string) => {
   const response = await apiClient.post(`/blogs/${postId}/like`, { userId });
   return response.data;
 };
@@ -753,7 +753,7 @@ export const addBlogComment = async (postId: string, userId: string, content: st
  * @param userId 用户ID
  * @returns 删除结果
  */
-export const deleteBlogComment = async (commentId: string, userId: string) => {
+export const delBlogComment = async (commentId: string, userId: string) => {
   const response = await apiClient.delete(`/blogs/comments/${commentId}`, { data: { userId } });
   return response.data;
 };
@@ -774,7 +774,7 @@ export const toggleBlogCommentLike = async (commentId: string, userId: string) =
  * @param limit 数量限制
  * @returns 热门标签列表
  */
-export const getPopularTags = async (limit?: number) => {
+export const hotTags = async (limit?: number) => {
   const params: any = {};
   if (limit) params.limit = limit;
   const response = await apiClient.get('/blogs/tags/popular', { params });
@@ -835,7 +835,7 @@ export interface HotSpot {
  * 获取热门城市列表
  * @returns 热门城市列表
  */
-export const getHotCities = async () => {
+export const hotCities = async () => {
   const response = await apiClient.get('/destinations/cities');
   return response.data;
 };
@@ -846,7 +846,7 @@ export const getHotCities = async () => {
  * @param limit 限制数量，默认9个
  * @returns 热门景点列表
  */
-export const getCitySpots = async (city: string, limit: number = 9) => {
+export const citySpots = async (city: string, limit: number = 9) => {
   const response = await apiClient.get(`/destinations/cities/${encodeURIComponent(city)}/spots`, {
     params: { limit },
   });
@@ -860,7 +860,7 @@ export const getCitySpots = async (city: string, limit: number = 9) => {
  * @param pageSize 每页数量
  * @returns 热门景点列表（分页）
  */
-export const getCityAllSpots = async (city: string, page: number = 1, pageSize: number = 12) => {
+export const cityAll = async (city: string, page: number = 1, pageSize: number = 12) => {
   const response = await apiClient.get(`/destinations/cities/${encodeURIComponent(city)}/all`, {
     params: { page, pageSize },
   });
@@ -898,7 +898,7 @@ export interface PackingProgress {
  * @param tripId 行程ID
  * @returns 打包清单
  */
-export const getPackingList = async (tripId: string) => {
+export const packList = async (tripId: string) => {
   const response = await apiClient.get(`/trips/${tripId}/packing`);
   return response.data;
 };
@@ -908,7 +908,7 @@ export const getPackingList = async (tripId: string) => {
  * @param tripId 行程ID
  * @returns 初始化后的打包清单
  */
-export const initializePackingList = async (tripId: string) => {
+export const initPack = async (tripId: string) => {
   const response = await apiClient.post(`/trips/${tripId}/packing/initialize`);
   return response.data;
 };
@@ -920,7 +920,7 @@ export const initializePackingList = async (tripId: string) => {
  * @param category 分类
  * @returns 添加的物品
  */
-export const addPackingItem = async (tripId: string, itemName: string, category: string) => {
+export const addItem = async (tripId: string, itemName: string, category: string) => {
   const response = await apiClient.post(`/trips/${tripId}/packing`, {
     itemName,
     category,
@@ -945,7 +945,7 @@ export const savePackingList = async (tripId: string, items: any[]) => {
  * @param updates 更新内容
  * @returns 更新后的物品
  */
-export const updatePackingItem = async (
+export const updItem = async (
   itemId: string,
   updates: {
     isPacked?: boolean;
@@ -961,7 +961,7 @@ export const updatePackingItem = async (
  * @param itemId 物品ID
  * @returns 删除结果
  */
-export const deletePackingItem = async (itemId: string) => {
+export const delItem = async (itemId: string) => {
   const response = await apiClient.delete(`/packing/${itemId}`);
   return response.data;
 };
@@ -980,7 +980,7 @@ export const getPackingCategories = async () => {
  * @param tripId 行程ID
  * @returns 打包进度
  */
-export const getPackingProgress = async (tripId: string) => {
+export const packProgress = async (tripId: string) => {
   const response = await apiClient.get(`/trips/${tripId}/packing/progress`);
   return response.data;
 };
