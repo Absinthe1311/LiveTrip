@@ -34,17 +34,17 @@ const upload = multer({
 /**
  * 处理单张图片上传
  */
-export const handleSingleImageUpload = upload.single('file');
+export const oneImg = upload.single('file');
 
 /**
  * 处理多张图片上传
  */
-export const handleMultipleImageUpload = upload.array('files', 5);
+export const batchImg = upload.array('files', 5);
 
 /**
  * 错误处理中间件
  */
-export function handleUploadError(
+export function uploadErr(
   err: Error,
   req: Request,
   res: Response,
@@ -98,7 +98,7 @@ export function handleUploadError(
 /**
  * 验证文件是否上传
  */
-export function validateFileUpload(req: Request, res: Response, next: NextFunction): void {
+export function chkUpload(req: Request, res: Response, next: NextFunction): void {
   if (!req.file && !req.files) {
     res.status(400).json({
       success: false,
@@ -113,25 +113,25 @@ export function validateFileUpload(req: Request, res: Response, next: NextFuncti
 /**
  * 包装上传中间件（单张图片），包含错误处理和验证
  */
-export function uploadSingleImage(req: Request, res: Response, next: NextFunction): void {
-  handleSingleImageUpload(req, res, (err) => {
+export function onePicUp(req: Request, res: Response, next: NextFunction): void {
+  oneImg(req, res, (err) => {
     if (err) {
-      handleUploadError(err, req, res, () => {});
+      uploadErr(err, req, res, () => {});
       return;
     }
-    validateFileUpload(req, res, next);
+    chkUpload(req, res, next);
   });
 }
 
 /**
  * 包装上传中间件（多张图片），包含错误处理和验证
  */
-export function imgUpload(req: Request, res: Response, next: NextFunction): void {
-  handleMultipleImageUpload(req, res, (err) => {
+export function batchPicUp(req: Request, res: Response, next: NextFunction): void {
+  batchImg(req, res, (err) => {
     if (err) {
-      handleUploadError(err, req, res, () => {});
+      uploadErr(err, req, res, () => {});
       return;
     }
-    validateFileUpload(req, res, next);
+    chkUpload(req, res, next);
   });
 }

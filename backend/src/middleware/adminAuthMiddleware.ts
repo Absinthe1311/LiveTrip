@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
  * 管理员权限验证中间件
  * 验证用户是否已登录且角色为admin
  */
-export const requireAdmin = async (
+export const chkAdmin = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -66,7 +66,7 @@ export const requireAdmin = async (
  * 可选的管理员权限验证中间件
  * 如果用户已登录，验证是否为管理员；否则继续执行
  */
-export const optionalAdmin = async (
+export const adminOpt = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -104,7 +104,7 @@ export const optionalAdmin = async (
  * 检查用户是否为特定角色的中间件
  * @param allowedRoles 允许的角色列表
  */
-export const requireRole = (allowedRoles: string[]) => {
+export const needRole = (allowedRoles: string[]) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       // 检查是否有用户信息
@@ -161,7 +161,7 @@ export const requireRole = (allowedRoles: string[]) => {
  * 检查资源所有权或管理员权限的中间件
  * @param getResourceOwner 获取资源所有者ID的函数
  */
-export const requireOwnershipOrAdmin = (
+export const canEdit = (
   getResourceOwner: (req: Request) => Promise<string | null>
 ) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {

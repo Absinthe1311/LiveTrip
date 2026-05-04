@@ -6,7 +6,7 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/userController';
 import { authToken } from '../controllers/authController';
-import { handleSingleImageUpload } from '../middleware/fileUploadMiddleware';
+import { oneImg } from '../middleware/fileUploadMiddleware';
 
 const router = Router();
 
@@ -26,6 +26,6 @@ router.put('/profile', authToken, UserController.saveProfile);
  * 上传头像
  * POST /api/users/avatar
  */
-router.post('/avatar', authToken, handleSingleImageUpload, UserController.uploadAvatar);
+router.post('/avatar', authToken, oneImg, UserController.uploadAvatar);
 
 export default router;

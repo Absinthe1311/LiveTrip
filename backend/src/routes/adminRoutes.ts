@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { AdminController } from '../controllers/adminController';
-import { requireAdmin } from '../middleware/adminAuthMiddleware';
+import { chkAdmin } from '../middleware/adminAuthMiddleware';
 import { authToken } from '../controllers/authController';
-import { imgUpload } from '../middleware/fileUploadMiddleware';
+import { batchPicUp } from '../middleware/fileUploadMiddleware';
 
 const router = Router();
 
@@ -10,38 +10,38 @@ const router = Router();
 router.use(authToken);
 
 // 仪表板统计
-router.get('/dashboard/stats', requireAdmin, AdminController.fetchDash);
+router.get('/dashboard/stats', chkAdmin, AdminController.fetchDash);
 
 // 景点配图状态
-router.get('/spots/image-status', requireAdmin, AdminController.chkImgState);
+router.get('/spots/image-status', chkAdmin, AdminController.chkImgState);
 
 // 景点列表（新增）
-router.get('/spots', requireAdmin, AdminController.getSpots);
+router.get('/spots', chkAdmin, AdminController.getSpots);
 
 // 景点图片列表（新增）
-router.get('/spots/:spotId/images', requireAdmin, AdminController.getSpotImgs);
+router.get('/spots/:spotId/images', chkAdmin, AdminController.getSpotImgs);
 
 // 上传景点图片
 router.post(
   '/spots/:spotId/upload-images',
-  requireAdmin,
-  imgUpload,
+  chkAdmin,
+  batchPicUp,
   AdminController.uploadImgs
 );
 
 // 用户行程景点
-router.get('/spots/from-user-trips', requireAdmin, AdminController.fetchUserSpots);
+router.get('/spots/from-user-trips', chkAdmin, AdminController.fetchUserSpots);
 
 // 设置主图
-router.put('/spots/:spotId/set-primary/:imageId', requireAdmin, AdminController.setPImg);
+router.put('/spots/:spotId/set-primary/:imageId', chkAdmin, AdminController.setPImg);
 
 // 审核图片（新增）
-router.put('/images/:imageId/review', requireAdmin, AdminController.reviewImg);
+router.put('/images/:imageId/review', chkAdmin, AdminController.reviewImg);
 
 // 删除图片（新增）
-router.delete('/images/:imageId', requireAdmin, AdminController.delImg);
+router.delete('/images/:imageId', chkAdmin, AdminController.delImg);
 
 // 待审核图片列表（新增）
-router.get('/images/pending', requireAdmin, AdminController.fetchPendingImgs);
+router.get('/images/pending', chkAdmin, AdminController.fetchPendingImgs);
 
 export default router;
