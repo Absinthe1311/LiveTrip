@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：组件重构
+ */
+
 // 预算管理组件 - 用于Today和MyTrips页面
 import React, { useState, useEffect } from 'react';
 import { Wallet, Plus, Settings } from 'lucide-react';

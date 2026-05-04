@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
+
 // 备选景点推荐服务 - 基于数据库和IoT数据推荐备选景点
 import { spotService, Spot, SpotIoTData } from './spotService';
 

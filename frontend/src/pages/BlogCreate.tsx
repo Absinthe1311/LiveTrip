@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：页面重构
+ */
+
 // Blog创建页面 - 毛玻璃风格
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';

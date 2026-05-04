@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：组件重构
+ */
+
 // 双月日历组件
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';

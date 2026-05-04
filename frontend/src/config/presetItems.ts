@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：配置重构
+ */
+
 // 预设物品清单配置
 
 export interface PresetItem {

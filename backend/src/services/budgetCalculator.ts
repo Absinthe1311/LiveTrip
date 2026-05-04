@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
+
 // 预算计算服务 - 根据实际选择计算真实预算
 import { Hotel } from './hotelRecommender';
 import { Restaurant } from './restaurantRecommender';

@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：控制器重构
+ */
+
 // 协同规划控制器 - 处理协同规划相关的HTTP请求
 import { Request, Response } from 'express';
 import { collabService } from '../services/collabService';

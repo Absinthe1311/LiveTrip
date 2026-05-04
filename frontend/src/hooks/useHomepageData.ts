@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：Hook重构
+ */
+
 // Homepage数据管理Hook - 统一管理首页所有数据获取
 import { useState, useEffect } from 'react';
 import {

@@ -1,3 +1,8 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：组件重构
+ */
 ﻿// 优化的地图组件 - 支持动态更新和多种显示模式，带标记、名称和点击卡片
 import React, { useEffect, useRef, useState } from 'react';
 import { Hotel, Restaurant } from '../../api/recommendationApi';

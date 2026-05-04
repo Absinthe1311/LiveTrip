@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
+
 // Blog服务 - 处理博客文章的创建、查询、更新、删除和社交功能
 import { getPrismaClient } from '../lib/prisma';
 

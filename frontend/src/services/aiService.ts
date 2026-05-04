@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
+
 // AI 服务 - 统一的 AI 对话服务
 import { getUserId } from '../utils/auth';
 import { API_BASE_URL } from '../config/api';

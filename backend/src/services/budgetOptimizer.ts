@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
+
 // 预算优化服务 - 动态计算和优化预算分配
 import { DailyItinerary, RecommendedAttraction, GroupType } from '../types';
 

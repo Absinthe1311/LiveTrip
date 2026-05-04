@@ -1,3 +1,8 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：页面重构
+ */
 ﻿// AI 功能页面 - 美化版本
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';

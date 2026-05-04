@@ -1,3 +1,8 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：组件重构
+ */
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Slot } from 'radix-ui';

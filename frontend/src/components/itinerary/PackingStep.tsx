@@ -1,3 +1,8 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：组件重构
+ */
 ﻿// 行李打包步骤组件
 import React, { useState, useEffect } from 'react';
 import { message, Modal, Input, Select } from 'antd';

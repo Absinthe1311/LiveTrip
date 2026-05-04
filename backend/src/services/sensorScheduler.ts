@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
+
 // 定时任务调度器 - 定时执行环境感知任务（增强版）
 import cron from 'node-cron';
 import { PrismaClient } from '@prisma/client';

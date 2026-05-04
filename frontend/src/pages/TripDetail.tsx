@@ -1,3 +1,8 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：页面重构
+ */
 ﻿// 行程详情页面 - 优化版UI设计（参考ItineraryOptimized风格）
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';

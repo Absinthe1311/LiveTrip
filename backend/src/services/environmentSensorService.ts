@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
+
 // 环境感知服务 - 监控IoT数据变化，判断是否需要提醒用户
 import { PrismaClient } from '@prisma/client';
 

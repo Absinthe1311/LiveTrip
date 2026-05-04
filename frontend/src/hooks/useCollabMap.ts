@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：Hook重构
+ */
+
 // 协同规划地图Hook - 封装高德地图操作
 import { useEffect, useRef, useState, useCallback } from 'react';
 import AMapLoader from '@amap/amap-jsapi-loader';

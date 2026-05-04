@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
+
 // IoT通知增强服务 - 多维度通知触发机制
 import { PrismaClient } from '@prisma/client';
 import { NotificationChannel } from './notificationService';

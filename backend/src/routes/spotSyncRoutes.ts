@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：路由重构
+ */
+
 // 景点同步路由 - 定义景点同步的API端点
 import { Router } from 'express';
 import { syncSpot, syncSpotsBatch } from '../controllers/spotSyncController';

@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
+
 // IoT 实时检查服务 - 根据IoT数据实时检查和替换问题景点
 import { RecommendedAttraction, CategoryTag } from '../types';
 import { spotService } from './spotService';

@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：控制器重构
+ */
+
 // 地点缓存控制器 - 处理地点缓存的API请求
 import { Request, Response } from 'express';
 import {

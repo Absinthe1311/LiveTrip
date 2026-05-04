@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：路由重构
+ */
+
 // API路由聚合 - 统一管理所有API路由
 import { Router } from 'express';
 import planRoutes from './planRoutes';

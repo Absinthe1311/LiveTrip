@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
+
 // 多样性约束服务 - 防止行程同质化
 import { SpotScore, CategoryTag } from '../types';
 

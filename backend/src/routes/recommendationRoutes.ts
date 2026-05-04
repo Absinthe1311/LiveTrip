@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：路由重构
+ */
+
 // 推荐相关路由 - 酒店和餐厅推荐API
 import { Router } from 'express';
 import {

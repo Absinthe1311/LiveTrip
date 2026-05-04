@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
+
 // 优化的人流模拟服务 - 基于时段、日期和热度系数
 import { PrismaClient } from '@prisma/client';
 

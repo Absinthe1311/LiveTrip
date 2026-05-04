@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
+
 // 餐厅推荐服务 - 基于每天行程景点位置推荐午餐餐厅
 import { amapService, AmapAttraction } from './amapService';
 import { amapRateLimiter } from '../utils/apiRateLimiter';

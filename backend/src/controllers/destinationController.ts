@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：控制器重构
+ */
+
 // 热门目的地控制器 - 优化版本
 import { Request, Response } from 'express';
 import { getPrismaClient } from '../lib/prisma';

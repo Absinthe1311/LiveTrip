@@ -1,3 +1,8 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：组件重构
+ */
 ﻿// AI 咨询组件 - 毛玻璃风格版本（优化版）
 import { useState, useRef, useEffect } from 'react';
 import { Sparkles, Send, Bot, User, MapPin, Calendar, FileText, Heart } from 'lucide-react';

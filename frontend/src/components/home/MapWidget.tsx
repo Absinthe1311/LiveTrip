@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：组件重构
+ */
+
 // 地图控件 - 展示中国地图和用户足迹
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import AMapLoader from '@amap/amap-jsapi-loader';

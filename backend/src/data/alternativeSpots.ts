@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：数据层重构
+ */
+
 // 备选景点数据 - 用于行程调整时的替换推荐
 import { RecommendedAttraction } from '../types';
 

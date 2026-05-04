@@ -1,3 +1,8 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：组件重构
+ */
 ﻿import { useState, useEffect } from 'react';
 import { Modal, Form, Input, Rate, Button, Upload, message, Spin, Empty } from 'antd';
 import { UploadOutlined, StarOutlined } from '@ant-design/icons';

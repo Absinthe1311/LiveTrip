@@ -1,3 +1,8 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：路由重构
+ */
 import { Router } from 'express';
 import { AdminController } from '../controllers/adminController';
 import { requireAdmin } from '../middleware/adminAuthMiddleware';

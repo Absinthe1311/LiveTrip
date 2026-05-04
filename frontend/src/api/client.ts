@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：代码重构
+ */
+
 // API 客户端 - 封装所有后端 API 调用
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';

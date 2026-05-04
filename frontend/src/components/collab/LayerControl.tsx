@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：组件重构
+ */
+
 // 图层控制!组件 - 控制地图上显示哪些用户的草案图层
 import { useState } from 'react';
 import { Eye, EyeOff, Users, ChevronDown, ChevronUp } from 'lucide-react';

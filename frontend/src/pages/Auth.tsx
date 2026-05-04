@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：页面重构
+ */
+
 // 登录注册页面 - 基于 LoginPage 设计
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';

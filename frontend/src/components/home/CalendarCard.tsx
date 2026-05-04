@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：组件重构
+ */
+
 // Calendar 月历组件 - 玻璃拟态风格
 import React, { useState, useMemo } from 'react';
 import GlassCard from './GlassCard';

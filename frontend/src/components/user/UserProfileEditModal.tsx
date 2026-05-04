@@ -1,3 +1,8 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：组件重构
+ */
 ﻿// 用户信息编辑弹窗
 import React, { useState, useEffect } from 'react';
 import { X, Camera, User, Mail, FileText } from 'lucide-react';

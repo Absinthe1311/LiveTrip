@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：组件重构
+ */
+
 // 管理员侧边栏组件
 import { useNavigate } from 'react-router-dom';
 import { Image as ImageIcon, CheckSquare, Home, LogOut, ChevronRight } from 'lucide-react';

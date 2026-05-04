@@ -1,3 +1,8 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：页面重构
+ */
 ﻿// 创建行程页面 - 毛玻璃风格版本（优化版）
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';

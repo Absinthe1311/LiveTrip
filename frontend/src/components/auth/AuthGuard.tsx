@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：组件重构
+ */
+
 // 路由守卫 - 保护需要登录的路由
 import { Navigate } from 'react-router-dom';
 import { ReactNode } from 'react';

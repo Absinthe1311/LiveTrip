@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
+
 // 约束感知行程规划服务 - 支持必选景点和地理合理性校验
 import { getPrismaClient } from '../lib/prisma';
 import { spotService } from './spotService';

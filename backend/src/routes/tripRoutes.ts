@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：路由重构
+ */
+
 // 行程管理路由 - 定义行程的增删改查API端点
 import { Router } from 'express';
 import {

@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：工具函数重构
+ */
+
 // 景点去重工具函数
 import { AmapAttraction } from '../services/amapService';
 

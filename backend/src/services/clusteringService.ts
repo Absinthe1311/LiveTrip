@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
+
 // K-means 聚类服务 - 按地理位置将景点分组
 import { SpotScore, SpotCluster } from '../types';
 

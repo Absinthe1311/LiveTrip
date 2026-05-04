@@ -1,3 +1,8 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：组件重构
+ */
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { Spin } from 'antd';

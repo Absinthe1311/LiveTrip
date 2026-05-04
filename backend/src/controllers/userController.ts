@@ -1,3 +1,9 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：控制器重构
+ */
+
 // 用户信息控制器 - 处理用户信息的CRUD操作
 import { Request, Response } from 'express';
 

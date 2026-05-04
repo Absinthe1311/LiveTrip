@@ -1,3 +1,8 @@
+/**
+ * AI辅助生成
+ * 时间：2026-05-04
+ * 环节：服务层重构
+ */
 import { getAlternativeSpots } from '../api/client';
 import { getAlternativeSpotsByName } from '../data/alternativeSpots';
 import type { AttractionItem } from '../api/client';
