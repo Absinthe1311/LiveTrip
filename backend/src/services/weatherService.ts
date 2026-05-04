@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：服务层重构
- */
-
 // 真实天气数据服务 - 使用 OpenWeatherMap API + 微气候调整
 import axios from 'axios';
 import { PrismaClient } from '@prisma/client';

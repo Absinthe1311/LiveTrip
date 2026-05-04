@@ -1,9 +1,4 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-﻿// 紧凑版备选景点卡片 - 与ImprovedSpotCard样式一致但尺寸更小
+// 紧凑版备选景点卡片 - 与ImprovedSpotCard样式一致但尺寸更小
 import React from 'react';
 import { Star, MapPin, Wallet, Image as ImageIcon } from 'lucide-react';
 

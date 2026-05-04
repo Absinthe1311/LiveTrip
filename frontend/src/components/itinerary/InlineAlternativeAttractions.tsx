@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // 内联备选景点组件 - 展开在景点卡片下方，使用紧凑版卡片样式
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';

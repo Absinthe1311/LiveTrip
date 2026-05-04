@@ -1,9 +1,4 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-﻿// 景点卡片组件 - 带展开描述功能
+// 景点卡片组件 - 带展开描述功能
 import { useState, useEffect } from 'react';
 import { Heart, Star, ChevronRight, ChevronLeft, Image as ImageIcon } from 'lucide-react';
 import GlassCard from '../home/GlassCard';

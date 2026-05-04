@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：服务层重构
- */
-
 // 传统推荐服务 - 使用多因素评分引擎（用于普通表单创建行程）
 import { scoringEngine } from './scoringEngine';
 import { clusteringService } from './clusteringService';

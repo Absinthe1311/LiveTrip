@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // 退出按钮组件 - 左下角显示（参考 Dribbble 设计稿）
 import React from 'react';
 import { LogOut } from 'lucide-react';

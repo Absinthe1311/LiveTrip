@@ -1,9 +1,4 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：页面重构
- */
-﻿// 协同规划入口页面 - 毛玻璃风格版本
+// 协同规划入口页面 - 毛玻璃风格版本
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, UserPlus } from 'lucide-react';

@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：服务层重构
- */
-
 // 景点数据查询服务 - 为 AI 提供景点和 IoT 数据
 import { getPrismaClient } from '../lib/prisma';
 import { spotService } from './spotService';

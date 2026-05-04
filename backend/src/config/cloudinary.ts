@@ -1,10 +1,4 @@
 /**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：配置重构
- */
-
-/**
  * Cloudinary图片云存储服务的配置初始化文件。负责从环境变量中读取配置信息、初始化Cloudinary SDK实例验证配置完整性。
  */
 import { v2 as cloudinary } from 'cloudinary';

@@ -1,9 +1,4 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-﻿// 空状态组件 - 用于博客列表、详情等场景
+// 空状态组件 - 用于博客列表、详情等场景
 import { useNavigate } from 'react-router-dom';
 import { FileText, Plus, Search, FolderOpen, PenLine } from 'lucide-react';
 import { GlassCard } from '../home';

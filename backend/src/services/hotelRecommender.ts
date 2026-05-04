@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：服务层重构
- */
-
 // 酒店推荐服务 - 基于行程景点位置和用户预算推荐酒店
 import { amapService, AmapAttraction } from './amapService';
 import { amapRateLimiter } from '../utils/apiRateLimiter';

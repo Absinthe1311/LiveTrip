@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：数据层重构
- */
-
 // 目的地及景点数据
 import type { DestinationDetail } from '../types/destination';
 

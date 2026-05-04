@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：服务层重构
- */
-
 // 高德地图 API 服务封装
 import axios, { AxiosInstance } from 'axios';
 import { amapPOICacheService } from './amapPOICacheService';

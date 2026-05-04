@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：服务层重构
- */
-
 // 行程调整服务 - 根据物联网数据和调整原因动态调整行程
 import { RecommendedAttraction, DailyItinerary, FullItinerary } from '../types';
 import {

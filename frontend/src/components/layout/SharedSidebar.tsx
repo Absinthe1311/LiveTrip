@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // 统一的侧边栏组件 - 确保所有页面显示完整的导航
 import { useNavigate } from 'react-router-dom';
 import {

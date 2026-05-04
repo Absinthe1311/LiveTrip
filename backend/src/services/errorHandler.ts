@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：服务层重构
- */
-
 // 异常处理和回退机制服务
 import { RecommendedAttraction, DailyItinerary, FullItinerary } from '../types';
 

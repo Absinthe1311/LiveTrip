@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：代码重构
- */
-
 // 管理员 API 客户端 - 复用现有 axios 实例
 import { apiClient } from './client';
 import type {

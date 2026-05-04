@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：服务层重构
- */
-
 // 多因素评分引擎 - 替代智谱AI，实现智能景点推荐
 import { CategoryTag, GroupType, SpotScore, CreatePlanRequest } from '../types';
 import { getPrismaClient } from '../lib/prisma';

@@ -1,8 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
 import { Card, Rate, Button, Tag } from 'antd';
 import { HeartOutlined, HeartFilled } from '@ant-design/icons';
 import { Attraction } from '../../types/destination';

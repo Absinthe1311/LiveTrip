@@ -1,9 +1,4 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：页面重构
- */
-﻿// 我的收藏页面 - 毛玻璃风格版本
+// 我的收藏页面 - 毛玻璃风格版本
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Trash2 } from 'lucide-react';

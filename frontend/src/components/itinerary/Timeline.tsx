@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // 改进的动态时间轴组件 - 时间段横向显示，与景点卡片对齐
 import React, { useEffect, useRef, useState } from 'react';
 

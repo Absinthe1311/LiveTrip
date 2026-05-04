@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // 改进的预算分布组件 - 参考homepage预算表格设计
 import React from 'react';
 import { Wallet, TrendingUp, TrendingDown } from 'lucide-react';

@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // 景点统计面板 - 显示各景点的出现次数
 import { SpotStat } from '../../store/collabStore';
 import { BarChart3, TrendingUp } from 'lucide-react';

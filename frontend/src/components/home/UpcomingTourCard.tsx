@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // Upcoming Tour 组件 - 玻璃拟态风格
 import React from 'react';
 import GlassCard from './GlassCard';

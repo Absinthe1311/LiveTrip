@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // 可全屏地图组件 - 支持原地展开和收起（同时上下和左右拉伸）
 import React, { useState } from 'react';
 import { Maximize2, Minimize2 } from 'lucide-react';

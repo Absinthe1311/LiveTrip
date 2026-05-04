@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // 搜索栏组件 - 搜索热门目的地、行程和Blog
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';

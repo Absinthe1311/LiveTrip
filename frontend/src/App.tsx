@@ -1,9 +1,4 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：代码重构
- */
-﻿// 应用主组件 - 配置路由
+// 应用主组件 - 配置路由
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { App as AntdApp } from 'antd';
 import Home from './pages/Home';

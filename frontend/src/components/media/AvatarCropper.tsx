@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // 头像裁剪组件 - 使用正方形裁剪框
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Cropper, { Area } from 'react-easy-crop';

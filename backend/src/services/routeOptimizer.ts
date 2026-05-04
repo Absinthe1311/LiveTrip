@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：服务层重构
- */
-
 // 路径优化服务 - 优化每天的景点游览顺序
 import { RecommendedAttraction, CategoryTag } from '../types';
 

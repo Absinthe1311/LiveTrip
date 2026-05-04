@@ -1,8 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：状态管理重构
- */
 import { create } from 'zustand';
 import type { FullItinerary } from '../api/client';
 

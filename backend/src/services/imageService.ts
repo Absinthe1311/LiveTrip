@@ -1,8 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：服务层重构
- */
 import { getPrismaClient } from '../lib/prisma';
 import { cloudinaryService } from './cloudinaryService';
 import { generateFileHash } from '../utils/hashGenerator';

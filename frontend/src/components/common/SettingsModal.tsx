@@ -1,9 +1,4 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-﻿// 设置弹窗组件
+// 设置弹窗组件
 import React, { useState, useRef } from 'react';
 import { X, Image as ImageIcon, Upload, LogOut, Sun, Moon } from 'lucide-react';
 import ImageCropper from '../media/ImageCropper';

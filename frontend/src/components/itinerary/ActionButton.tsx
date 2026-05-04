@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // 改进的操作按钮组件 - 固定在右下角，动态文案，包含上一步和下一步
 import React from 'react';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';

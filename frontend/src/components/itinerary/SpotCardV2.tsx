@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // 改进的景点卡片组件 - 更大尺寸，更高对比度，Read more展开
 import React, { useState, useEffect, useRef } from 'react';
 import {

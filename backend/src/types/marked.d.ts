@@ -1,8 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：代码重构
- */
 declare module 'marked' {
   interface MarkedOptions {
     breaks?: boolean;

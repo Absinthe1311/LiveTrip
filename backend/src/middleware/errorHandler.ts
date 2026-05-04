@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：中间件重构
- */
-
 // 错误处理中间件 - 统一处理错误
 import { Request, Response, NextFunction } from 'express';
 

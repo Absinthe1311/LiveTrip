@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：控制器重构
- */
-
 // 测试通知控制器 - 用于测试IoT通知功能
 import { Request, Response } from 'express';
 import { notificationService, NotificationChannel } from '../services/notificationService';

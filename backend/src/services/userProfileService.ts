@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：服务层重构
- */
-
 // 用户画像服务 - 从数据库中提取用户信息，为AI提供上下文
 import { getPrismaClient } from '../lib/prisma';
 

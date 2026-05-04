@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：代码重构
- */
-
 // 通知API服务
 import apiClient from './client';
 

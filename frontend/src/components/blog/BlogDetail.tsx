@@ -1,9 +1,4 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, Avatar, Button, Tag, Image, Empty, Spin, Space, Divider, List, message } from 'antd';
 import {
   UserOutlined,

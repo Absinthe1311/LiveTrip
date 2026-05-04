@@ -1,9 +1,4 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：页面重构
- */
-﻿// 个人信息编辑页面
+// 个人信息编辑页面
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, User, Mail, Camera, Save, Loader, LogOut } from 'lucide-react';

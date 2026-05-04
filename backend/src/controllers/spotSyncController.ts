@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：控制器重构
- */
-
 // 景点同步控制器 - 处理从前端同步景点数据到数据库
 import { Request, Response } from 'express';
 import { getPrismaClient } from '../lib/prisma';

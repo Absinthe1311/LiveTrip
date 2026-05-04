@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // 模糊文字动画组件
 import { motion } from 'framer-motion';
 

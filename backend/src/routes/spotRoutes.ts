@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：路由重构
- */
-
 // 景点相关路由
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';

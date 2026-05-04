@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // Packing List 组件 - 单独显示行李清单
 import React from 'react';
 import GlassCard from './GlassCard';

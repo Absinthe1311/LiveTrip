@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：服务层重构
- */
-
 // 地点缓存服务 - 缓存用户搜索过的地点，减少高德地图API调用
 import { getPrismaClient } from '../lib/prisma';
 import axios from 'axios';

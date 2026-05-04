@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：组件重构
- */
-
 // 路线编辑器组件 - 可拖拽排序的路线点列表
 import { GripVertical, MapPin, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import {

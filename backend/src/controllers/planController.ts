@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：控制器重构
- */
-
 // 行程规划控制器 - 处理行程规划相关请求
 import { Request, Response } from 'express';
 import { CreatePlanRequest } from '../types';

@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：服务层重构
- */
-
 // Socket.io客户端服务 - 处理协同规划的实时通信
 import { io, Socket } from 'socket.io-client';
 import { useCollabStore } from '../store/collabStore';

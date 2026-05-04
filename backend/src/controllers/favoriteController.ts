@@ -1,9 +1,3 @@
-/**
- * AI辅助生成
- * 时间：2026-05-04
- * 环节：控制器重构
- */
-
 // 收藏控制器 - 处理收藏相关的API请求
 import { Request, Response } from 'express';
 import {
