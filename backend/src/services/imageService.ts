@@ -1,10 +1,10 @@
 import { getPrismaClient } from '../lib/prisma';
 import { cloudinaryService } from './cloudinaryService';
-import { generateFileHash } from '../utils/hashGenerator';
+import { hashFile } from '../utils/hashGenerator';
 import {
-  checkDuplicateImage,
-  generateUniqueFileName,
-  getImageExtension,
+  isDupImg,
+  uniqName,
+  imgExt,
 } from '../utils/imageValidator';
 
 const prisma = getPrismaClient();
@@ -57,7 +57,7 @@ export class ImageService {
       }
 
       // 计算文件hash
-      const fileHash = generateFileHash(file.buffer);
+      const fileHash = hashFile(file.buffer);
 
       // 检查是否重复上传
       const existingImage = await prisma.spotImage.findFirst({
@@ -72,8 +72,8 @@ export class ImageService {
       }
 
       // 生成唯一文件名
-      const extension = getImageExtension(file.mimetype);
-      const fileName = generateUniqueFileName(file.originalname, userId);
+      const extension = imgExt(file.mimetype);
+      const fileName = uniqName(file.originalname, userId);
 
       // 上传到 Cloudinary
       const cloudinaryResult = await cloudinaryService.pushImg(file.buffer, 'spot-images');

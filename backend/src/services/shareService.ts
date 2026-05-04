@@ -8,7 +8,7 @@
  */
 
 import { getPrismaClient } from '../lib/prisma';
-import { generateShareToken } from '../utils/tokenGenerator';
+import { genToken } from '../utils/tokenGenerator';
 
 const prisma = getPrismaClient();
 
@@ -46,7 +46,7 @@ export async function shareLink(tripId: string, userId: string) {
   }
 
   // 4. 生成新的shareToken
-  let shareToken = generateShareToken();
+  let shareToken = genToken();
   let attempts = 0;
   const maxAttempts = 3;
 
@@ -60,7 +60,7 @@ export async function shareLink(tripId: string, userId: string) {
       break;
     }
 
-    shareToken = generateShareToken();
+    shareToken = genToken();
     attempts++;
   }
 

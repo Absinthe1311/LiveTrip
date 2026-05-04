@@ -7,7 +7,7 @@
  *   - 相对日期：今天、明天、后天、下周X、下个月X号等
  * @returns Date 对象
  */
-export function parseDate(dateStr: string): Date {
+export function strToDate(dateStr: string): Date {
   if (!dateStr) {
     throw new Error('日期字符串不能为空');
   }
@@ -47,22 +47,22 @@ export function parseDate(dateStr: string): Date {
   // 本周X
   const thisWeekMatch = lowerStr.match(/本周([一二三四五六日天])/);
   if (thisWeekMatch) {
-    const targetDay = getDayOfWeek(thisWeekMatch[1]);
-    return getDayOfWeekDate(today, targetDay, 'this');
+    const targetDay = weekdayNum(thisWeekMatch[1]);
+    return weekdayDate(today, targetDay, 'this');
   }
 
   // 下周X
   const nextWeekMatch = lowerStr.match(/下周([一二三四五六日天])/);
   if (nextWeekMatch) {
-    const targetDay = getDayOfWeek(nextWeekMatch[1]);
-    return getDayOfWeekDate(today, targetDay, 'next');
+    const targetDay = weekdayNum(nextWeekMatch[1]);
+    return weekdayDate(today, targetDay, 'next');
   }
 
   // 下下周X
   const nextNextWeekMatch = lowerStr.match(/下下周([一二三四五六日天])/);
   if (nextNextWeekMatch) {
-    const targetDay = getDayOfWeek(nextNextWeekMatch[1]);
-    return getDayOfWeekDate(today, targetDay, 'nextNext');
+    const targetDay = weekdayNum(nextNextWeekMatch[1]);
+    return weekdayDate(today, targetDay, 'nextNext');
   }
 
   // X天后
@@ -121,7 +121,7 @@ function addDays(date: Date, days: number): Date {
 /**
  * 将中文星期转换为数字（0=周日，1=周一，...，6=周六）
  */
-function getDayOfWeek(dayStr: string): number {
+function weekdayNum(dayStr: string): number {
   const map: Record<string, number> = {
     一: 1,
     二: 2,
@@ -141,7 +141,7 @@ function getDayOfWeek(dayStr: string): number {
  * @param targetDay 目标星期几（0=周日，1=周一，...，6=周六）
  * @param weekType 'this' | 'next' | 'nextNext'
  */
-function getDayOfWeekDate(
+function weekdayDate(
   baseDate: Date,
   targetDay: number,
   weekType: 'this' | 'next' | 'nextNext'
@@ -164,7 +164,7 @@ function getDayOfWeekDate(
 /**
  * 格式化日期为 YYYY-MM-DD
  */
-export function formatDate(date: Date): string {
+export function fmtDate(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');

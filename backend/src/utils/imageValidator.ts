@@ -1,4 +1,4 @@
-import { generateFileHash } from './hashGenerator';
+import { hashFile } from './hashGenerator';
 
 /**
  * 支持的图片MIME类型
@@ -20,7 +20,7 @@ export const MAX_IMAGE_COUNT = 5;
  * @param mimeType 文件的MIME类型
  * @returns 是否为支持的格式
  */
-export function validateImageFormat(mimeType: string): boolean {
+export function chkImgType(mimeType: string): boolean {
   return ALLOWED_IMAGE_TYPES.includes(mimeType);
 }
 
@@ -29,7 +29,7 @@ export function validateImageFormat(mimeType: string): boolean {
  * @param size 文件大小（字节）
  * @returns 是否在大小限制内
  */
-export function validateImageSize(size: number): boolean {
+export function chkImgSize(size: number): boolean {
   return size <= MAX_IMAGE_SIZE;
 }
 
@@ -47,12 +47,12 @@ export function validateImageCount(count: number): boolean {
  * @param file 文件对象
  * @returns 验证结果，包含是否有效和错误信息
  */
-export function validateImageFile(file: { mimetype: string; size: number; buffer?: Buffer }): {
+export function imgOK(file: { mimetype: string; size: number; buffer?: Buffer }): {
   valid: boolean;
   error?: string;
 } {
   // 验证格式
-  if (!validateImageFormat(file.mimetype)) {
+  if (!chkImgType(file.mimetype)) {
     return {
       valid: false,
       error: `只支持JPG、PNG、WEBP格式，当前格式: ${file.mimetype}`,
@@ -60,7 +60,7 @@ export function validateImageFile(file: { mimetype: string; size: number; buffer
   }
 
   // 验证大小
-  if (!validateImageSize(file.size)) {
+  if (!chkImgSize(file.size)) {
     return {
       valid: false,
       error: `图片大小不能超过10MB，当前大小: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
@@ -75,7 +75,7 @@ export function validateImageFile(file: { mimetype: string; size: number; buffer
  * @param files 文件数组
  * @returns 验证结果，包含是否有效和错误信息
  */
-export function validateMultipleImageFiles(
+export function imgsOK(
   files: Array<{
     mimetype: string;
     size: number;
@@ -91,7 +91,7 @@ export function validateMultipleImageFiles(
 
   // 验证每个文件
   files.forEach((file, index) => {
-    const result = validateImageFile(file);
+    const result = imgOK(file);
     if (!result.valid) {
       errors.push(`第${index + 1}张图片: ${result.error}`);
     }
@@ -109,7 +109,7 @@ export function validateMultipleImageFiles(
  * @param mimeType 文件MIME类型
  * @returns base64格式的图片URL
  */
-export function generateImagePreview(buffer: Buffer, mimeType: string): string {
+export function prevImg(buffer: Buffer, mimeType: string): string {
   const base64 = buffer.toString('base64');
   return `data:${mimeType};base64,${base64}`;
 }
@@ -120,7 +120,7 @@ export function generateImagePreview(buffer: Buffer, mimeType: string): string {
  * @param userId 用户ID
  * @returns 唯一的文件名
  */
-export function generateUniqueFileName(originalName: string, userId: string): string {
+export function uniqName(originalName: string, userId: string): string {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 8);
   const extension = originalName.split('.').pop();
@@ -133,11 +133,11 @@ export function generateUniqueFileName(originalName: string, userId: string): st
  * @param existingHashes 现有的hash值集合
  * @returns 包含hash值和是否重复
  */
-export function checkDuplicateImage(
+export function isDupImg(
   buffer: Buffer,
   existingHashes: Set<string>
 ): { hash: string; isDuplicate: boolean } {
-  const hash = generateFileHash(buffer);
+  const hash = hashFile(buffer);
   return {
     hash,
     isDuplicate: existingHashes.has(hash),
@@ -151,7 +151,7 @@ export function checkDuplicateImage(
  * @param userVisitedSpots 用户游览过的景点ID列表
  * @returns 验证结果
  */
-export function validateUserUploadPermission(
+export function canUpload(
   user: { id: string; role: string },
   spotId: string,
   userVisitedSpots: string[]
@@ -177,7 +177,7 @@ export function validateUserUploadPermission(
  * @param mimeType 文件MIME类型
  * @returns 文件扩展名
  */
-export function getImageExtension(mimeType: string): string {
+export function imgExt(mimeType: string): string {
   const extensionMap: Record<string, string> = {
     'image/jpeg': 'jpg',
     'image/png': 'png',

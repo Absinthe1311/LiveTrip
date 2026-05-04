@@ -6,7 +6,7 @@ import {
   SpotDataService as SpotDataServiceClass,
 } from './spotDataService';
 import { userProfileService, UserProfile } from './userProfileService';
-import { httpsRequestWithRetry } from '../utils/retry';
+import { retryReq } from '../utils/retry';
 
 export interface AiTripRecommendation {
   dailyPlans: {
@@ -201,7 +201,7 @@ ${spotsInfo}
       temperature: 0.7,
     });
 
-    return await httpsRequestWithRetry(options, data, 2);
+    return await retryReq(options, data, 2);
   }
 
   /**

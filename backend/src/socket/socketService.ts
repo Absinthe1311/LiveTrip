@@ -19,7 +19,7 @@ const socketRoomMap = new Map<string, string>();
  * 初始化Socket.io服务器
  * @param server HTTP服务器实例
  */
-export const initSocketIO = (server: HttpServer) => {
+export const setupSocket = (server: HttpServer) => {
   io = new SocketIOServer(server, {
     cors: {
       origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
@@ -235,7 +235,7 @@ export const initSocketIO = (server: HttpServer) => {
 /**
  * 获取Socket.io服务器实例
  */
-export const getIO = () => {
+export const getSock = () => {
   if (!io) {
     throw new Error('Socket.io未初始化');
   }
@@ -245,7 +245,7 @@ export const getIO = () => {
 /**
  * 向指定房间广播事件
  */
-export const broadcastToRoom = (roomId: string, event: string, data: any) => {
+export const bcastRoom = (roomId: string, event: string, data: any) => {
   if (io) {
     io.to(roomId).emit(event, data);
   }

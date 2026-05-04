@@ -2,7 +2,7 @@
 import { getPrismaClient } from '../lib/prisma';
 
 import { AmapAttraction, amapService } from './amapService';
-import { deduplicateSpots } from '../utils/spotDeduplication';
+import { uniq } from '../utils/spotDeduplication';
 
 const prisma = getPrismaClient();
 const amapServiceInstance = amapService();
@@ -74,7 +74,7 @@ class SpotService {
       console.log(`✅ 从高德API获取到 ${amapAttractions.length} 个景点`);
 
       // 3. 去重处理
-      const uniqueAttractions = deduplicateSpots(amapAttractions);
+      const uniqueAttractions = uniq(amapAttractions);
       console.log(`✅ 去重后剩余 ${uniqueAttractions.length} 个景点`);
 
       // 4. 转换并存储到数据库

@@ -9,7 +9,7 @@ import * as crypto from 'crypto';
  * 生成分享token
  * @returns 8-12位的随机字符串,包含大小写字母和数字
  */
-export function generateShareToken(): string {
+export function genToken(): string {
   // 可用字符集: 大小写字母 + 数字
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -34,7 +34,7 @@ export function generateShareToken(): string {
  * @param token 要验证的token
  * @returns 是否符合格式要求
  */
-export function isValidToken(token: string): boolean {
+export function chkToken(token: string): boolean {
   // 检查长度
   if (token.length < 8 || token.length > 12) {
     return false;

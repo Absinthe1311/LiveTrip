@@ -11,7 +11,7 @@ import { createServer } from 'http';
 import apiRoutes from './routes';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { initCloudinary } from './config/cloudinary';
-import { initSocketIO } from './socket/socketService';
+import { setupSocket } from './socket/socketService';
 import { sensorScheduler } from './services/sensorScheduler';
 
 // 加载环境变量
@@ -27,7 +27,7 @@ const PORT = process.env.PORT || 3001;
 const httpServer = createServer(app);
 
 // 初始化Socket.io
-initSocketIO(httpServer);
+setupSocket(httpServer);
 
 // 启动环境感知定时任务
 sensorScheduler.start();

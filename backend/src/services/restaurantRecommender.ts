@@ -90,7 +90,7 @@ class RestaurantRecommender {
         } else {
           // 数据库没有，调用高德API
           console.log(`📡 [高德API] 第${dayData.day}天搜索餐厅 - 中心点: ${centerSpot.location}`);
-          restaurants = await amapRateLimiter.execute(async () => {
+          restaurants = await amapRateLimiter.exec(async () => {
             const amapServiceInstance = amapService();
             return await amapServiceInstance.searchAround(
               centerSpot.location,

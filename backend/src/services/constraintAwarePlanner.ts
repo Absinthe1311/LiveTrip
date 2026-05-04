@@ -3,7 +3,7 @@ import { getPrismaClient } from '../lib/prisma';
 import { spotService } from './spotService';
 import { traditionalRecommender } from './traditionalRecommender';
 import { MustVisitSpot } from './mustVisitSpotExtractor';
-import { parseDate, formatDate } from '../utils/dateParser';
+import { strToDate, fmtDate } from '../utils/dateParser';
 
 const prisma = getPrismaClient();
 const recommender = traditionalRecommender();
@@ -56,8 +56,8 @@ class ConstraintAwarePlanner {
       }
 
       // 解析日期
-      const startDate = parseDate(request.startDate);
-      const endDate = parseDate(request.endDate);
+      const startDate = strToDate(request.startDate);
+      const endDate = strToDate(request.endDate);
 
       if (startDate >= endDate) {
         throw new Error('开始日期必须早于结束日期');
@@ -152,8 +152,8 @@ class ConstraintAwarePlanner {
         tripId: trip.id,
         title: trip.title,
         destination: trip.destination,
-        startDate: formatDate(trip.startDate),
-        endDate: formatDate(trip.endDate),
+        startDate: fmtDate(trip.startDate),
+        endDate: fmtDate(trip.endDate),
         days: daysDiff,
         budget: trip.totalBudget,
         status: trip.status,
@@ -223,8 +223,8 @@ class ConstraintAwarePlanner {
             type: 'attraction',
             category: spot.category || '',
             description: spot.description || '',
-            startTime: new Date(`${formatDate(dayRecord.date)} ${i % 2 === 0 ? '09:00' : '14:00'}`),
-            endTime: new Date(`${formatDate(dayRecord.date)} ${i % 2 === 0 ? '12:00' : '17:00'}`),
+            startTime: new Date(`${fmtDate(dayRecord.date)} ${i % 2 === 0 ? '09:00' : '14:00'}`),
+            endTime: new Date(`${fmtDate(dayRecord.date)} ${i % 2 === 0 ? '12:00' : '17:00'}`),
             address: spot.address || '',
             latitude: latitude || null,
             longitude: longitude || null,
@@ -291,8 +291,8 @@ class ConstraintAwarePlanner {
       const recommendRequest = {
         origin: '',
         destination: request.destination,
-        startDate: formatDate(startDate),
-        endDate: formatDate(new Date(startDate.getTime() + (daysDiff - 1) * 24 * 60 * 60 * 1000)),
+        startDate: fmtDate(startDate),
+        endDate: fmtDate(new Date(startDate.getTime() + (daysDiff - 1) * 24 * 60 * 60 * 1000)),
         budget: request.budget || 5000,
         groupSize: request.groupSize || 1,
         groupType: request.groupType || 'solo',

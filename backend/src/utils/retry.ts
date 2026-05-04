@@ -7,7 +7,7 @@
  * @param baseDelay 基础延迟时间（毫秒，默认 1000ms）
  * @returns 函数执行结果
  */
-export async function retryWithBackoff<T>(
+export async function retryBack<T>(
   fn: () => Promise<T>,
   maxRetries: number = 2,
   baseDelay: number = 1000
@@ -46,12 +46,12 @@ export async function retryWithBackoff<T>(
  * @param maxRetries 最大重试次数
  * @returns 响应数据
  */
-export async function httpsRequestWithRetry(
+export async function retryReq(
   options: any,
   data: string,
   maxRetries: number = 2
 ): Promise<any> {
-  return retryWithBackoff(async () => {
+  return retryBack(async () => {
     return new Promise((resolve, reject) => {
       const https = require('https');
       const req = https.request(options, (res: any) => {

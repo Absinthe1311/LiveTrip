@@ -68,7 +68,7 @@ class HotelRecommender {
       } else {
         // 步骤4: 数据库没有，调用高德API
         console.log(`📡 [高德API] 搜索酒店 - 中心点: ${centerPoint}`);
-        hotels = await amapRateLimiter.execute(async () => {
+        hotels = await amapRateLimiter.exec(async () => {
           const amapServiceInstance = amapService();
           return await amapServiceInstance.searchAround(centerPoint, '酒店', '100101', 5000, 30);
         });

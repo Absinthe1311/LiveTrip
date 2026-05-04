@@ -5,7 +5,7 @@ import https from 'https';
 
 import { getPrismaClient } from '../lib/prisma';
 import { chatHistoryService } from './chatHistoryService';
-import { httpsRequestWithRetry } from '../utils/retry';
+import { retryReq } from '../utils/retry';
 
 const prisma = getPrismaClient();
 
@@ -72,7 +72,7 @@ class AdvisorService {
     };
 
     // 使用重试机制调用 API
-    return await httpsRequestWithRetry(options, data, 2);
+    return await retryReq(options, data, 2);
   }
 
   /**

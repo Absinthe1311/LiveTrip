@@ -5,10 +5,10 @@
 import https from 'https';
 import { chatHistoryService } from './chatHistoryService';
 import { getPrismaClient } from '../lib/prisma';
-import { parseDate, formatDate } from '../utils/dateParser';
+import { strToDate, fmtDate } from '../utils/dateParser';
 import { spotService } from './spotService';
 import { traditionalRecommender } from './traditionalRecommender';
-import { httpsRequestWithRetry } from '../utils/retry';
+import { retryReq } from '../utils/retry';
 import { mustVisitSpotExtractor } from './mustVisitSpotExtractor';
 import { constraintAwarePlanner } from './constraintAwarePlanner';
 import { userProfileService } from './userProfileService';
@@ -194,7 +194,7 @@ class AgentService {
     };
 
     // 使用重试机制调用 API
-    return await httpsRequestWithRetry(options, jsonData, 2);
+    return await retryReq(options, jsonData, 2);
   }
   /**
    * 定义可用的工具（精简版：从 6 个减少到 3 个）
@@ -786,8 +786,8 @@ ${profilePrompt}
       console.log('   🎨 生成行程预览数据...');
 
       // 解析日期
-      const startDate = params.startDate ? parseDate(params.startDate) : new Date();
-      let endDate = params.endDate ? parseDate(params.endDate) : new Date();
+      const startDate = params.startDate ? strToDate(params.startDate) : new Date();
+      let endDate = params.endDate ? strToDate(params.endDate) : new Date();
 
       if (!params.startDate && params.days) {
         endDate = new Date(startDate.getTime() + (params.days - 1) * 24 * 60 * 60 * 1000);
@@ -807,8 +807,8 @@ ${profilePrompt}
       // 生成预览数据
       const preview: any = {
         destination: params.destination,
-        startDate: formatDate(startDate),
-        endDate: formatDate(endDate),
+        startDate: fmtDate(startDate),
+        endDate: fmtDate(endDate),
         days,
         budget: params.budget || 0,
         travelers: params.travelers || 1,
@@ -833,7 +833,7 @@ ${profilePrompt}
 
         preview.dailyPlans.push({
           day: i + 1,
-          date: formatDate(dayDate),
+          date: fmtDate(dayDate),
           spots: daySpots.map((spot) => ({
             name: spot.name,
             category: spot.category,
@@ -944,8 +944,8 @@ ${profilePrompt}
 
     // 验证日期格式和逻辑
     try {
-      const startDate = parseDate(params.startDate);
-      const endDate = parseDate(params.endDate);
+      const startDate = strToDate(params.startDate);
+      const endDate = strToDate(params.endDate);
 
       if (startDate >= endDate) {
         errors.push('结束日期必须晚于开始日期');
@@ -1005,8 +1005,8 @@ ${profilePrompt}
       let endDate: Date;
 
       try {
-        startDate = parseDate(params.startDate);
-        endDate = parseDate(params.endDate);
+        startDate = strToDate(params.startDate);
+        endDate = strToDate(params.endDate);
       } catch (error: any) {
         return {
           success: false,
@@ -1125,7 +1125,7 @@ ${profilePrompt}
         for (const dayPlan of recommendation.dailyPlans) {
           let dayDate: Date;
           try {
-            dayDate = parseDate(dayPlan.date);
+            dayDate = strToDate(dayPlan.date);
           } catch {
             const fallbackDate = new Date(startDate);
             fallbackDate.setDate(fallbackDate.getDate() + (dayPlan.day - 1));
@@ -1323,8 +1323,8 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
         id: trip.id,
         title: trip.title,
         destination: trip.destination,
-        startDate: formatDate(trip.startDate),
-        endDate: formatDate(trip.endDate),
+        startDate: fmtDate(trip.startDate),
+        endDate: fmtDate(trip.endDate),
         days: trip.days.length,
         status: trip.status,
         budget: trip.totalBudget,
@@ -1440,8 +1440,8 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
       const tripInfo = {
         title: trip.title,
         destination: trip.destination,
-        startDate: formatDate(trip.startDate),
-        endDate: formatDate(trip.endDate),
+        startDate: fmtDate(trip.startDate),
+        endDate: fmtDate(trip.endDate),
         days: trip.days.length,
         budget: trip.totalBudget,
         actualBudget: trip.actualBudget,
@@ -2446,7 +2446,7 @@ ${blogContent.substring(0, 200)}...
       } else if (completedParams.startDate && !completedParams.endDate) {
         // 只有开始日期，推断结束日期
         const days = this.guessDays(userMessage);
-        const startDate = parseDate(completedParams.startDate);
+        const startDate = strToDate(completedParams.startDate);
         const endDate = new Date(startDate);
         endDate.setDate(endDate.getDate() + days - 1);
         completedParams.endDate = endDate.toISOString().split('T')[0];

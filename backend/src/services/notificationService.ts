@@ -2,7 +2,7 @@
 import { PrismaClient } from '@prisma/client';
 
 import { SensorResult, SensorLevel } from './environmentSensorService';
-import { sendToUser, getIO } from '../socket/socketService';
+import { sendToUser, getSock } from '../socket/socketService';
 
 const prisma = new PrismaClient();
 

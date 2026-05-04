@@ -7,7 +7,7 @@ import { AmapAttraction } from '../services/amapService';
  * @param str2 字符串2
  * @returns 相似度 0-1
  */
-export function calculateStringSimilarity(str1: string, str2: string): number {
+export function calcSim(str1: string, str2: string): number {
   if (!str1 || !str2) return 0;
 
   const s1 = str1.toLowerCase().trim();
@@ -53,7 +53,7 @@ export function calculateStringSimilarity(str1: string, str2: string): number {
  * @param loc2 经纬度字符串 "116.397428,39.90923"
  * @returns 距离（米）
  */
-export function calculateDistance(loc1: string, loc2: string): number {
+export function calcDist(loc1: string, loc2: string): number {
   if (!loc1 || !loc2) return Infinity;
 
   const [lng1, lat1] = loc1.split(',').map(Number);
@@ -90,7 +90,7 @@ function toRad(deg: number): number {
  * @param name2 景点名称2
  * @returns 是否为父子关系
  */
-export function isParentChildRelation(name1: string, name2: string): boolean {
+export function isParent(name1: string, name2: string): boolean {
   // 检查是否包含分隔符
   const separators = ['-', '—', '–', '·', '·', '（', '(', ' '];
 
@@ -122,7 +122,7 @@ export function isParentChildRelation(name1: string, name2: string): boolean {
  * @param options 配置选项
  * @returns 是否重复
  */
-export function isDuplicateSpot(
+export function isDup(
   spot1: AmapAttraction,
   spot2: AmapAttraction,
   options: {
@@ -144,8 +144,8 @@ export function isDuplicateSpot(
   }
 
   // 2. 名称相似度高且距离近
-  const similarity = calculateStringSimilarity(spot1.name, spot2.name);
-  const distance = calculateDistance(spot1.location, spot2.location);
+  const similarity = calcSim(spot1.name, spot2.name);
+  const distance = calcDist(spot1.location, spot2.location);
 
   if (similarity > nameSimilarityThreshold && distance < distanceThreshold) {
     return true;
@@ -153,7 +153,7 @@ export function isDuplicateSpot(
 
   // 3. 检查是否为父子景点关系（如"故宫博物院"和"故宫博物院-午门"）
   // 直接删除子景点，保留父景点
-  if (isParentChildRelation(spot1.name, spot2.name)) {
+  if (isParent(spot1.name, spot2.name)) {
     return true;
   }
 
@@ -166,7 +166,7 @@ export function isDuplicateSpot(
  * @param options 配置选项
  * @returns 去重后的景点列表
  */
-export function deduplicateSpots(
+export function uniq(
   attractions: AmapAttraction[],
   options: {
     nameSimilarityThreshold?: number;
@@ -186,7 +186,7 @@ export function deduplicateSpots(
     for (let j = i + 1; j < attractions.length; j++) {
       if (duplicates.has(j)) continue;
 
-      if (isDuplicateSpot(current, attractions[j], options)) {
+      if (isDup(current, attractions[j], options)) {
         duplicates.add(j);
         console.log(`🔄 去重: "${attractions[j].name}" 与 "${current.name}" 重复，已移除`);
       }

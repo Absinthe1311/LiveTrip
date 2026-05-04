@@ -16,7 +16,7 @@ class ApiRateLimiter {
    * @param task 要执行的异步任务
    * @returns 任务执行结果
    */
-  async execute<T>(task: () => Promise<T>): Promise<T> {
+  async exec<T>(task: () => Promise<T>): Promise<T> {
     return new Promise((resolve, reject) => {
       this.queue.push(async () => {
         try {
@@ -26,14 +26,14 @@ class ApiRateLimiter {
           reject(error);
         }
       });
-      this.processQueue();
+      this.flushQ();
     });
   }
 
   /**
    * 处理队列中的任务
    */
-  private async processQueue(): Promise<void> {
+  private async flushQ(): Promise<void> {
     // 如果没有任务、正在运行的任务已达上限、或者距离上次请求时间太短，则不处理
     if (
       this.queue.length === 0 ||
@@ -55,7 +55,7 @@ class ApiRateLimiter {
     } finally {
       this.runningCount--;
       // 任务完成后，继续处理队列
-      setTimeout(() => this.processQueue(), this.minInterval);
+      setTimeout(() => this.flushQ(), this.minInterval);
     }
   }
 }

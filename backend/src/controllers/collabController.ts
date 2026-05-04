@@ -1,7 +1,7 @@
 // 协同规划控制器 - 处理协同规划相关的HTTP请求
 import { Request, Response } from 'express';
 import { collabService } from '../services/collabService';
-import { broadcastToRoom } from '../socket/socketService';
+import { bcastRoom } from '../socket/socketService';
 
 /**
  * 创建协同房间
@@ -201,7 +201,7 @@ export const closeRoom = async (req: Request, res: Response) => {
     const room = await collabService.lock(roomId);
 
     // 广播房间锁定事件
-    broadcastToRoom(roomId, 'room:lock', {
+    bcastRoom(roomId, 'room:lock', {
       timestamp: new Date(),
     });
 
@@ -290,7 +290,7 @@ export const sendDraft = async (req: Request, res: Response) => {
     const draft = await collabService.pushDraft(draftId, userId);
 
     // 广播草案提交事件
-    broadcastToRoom(draft.roomId, 'draft:submitted', {
+    bcastRoom(draft.roomId, 'draft:submitted', {
       userId,
       dayNumber: draft.dayNumber,
       timestamp: new Date(),
@@ -425,7 +425,7 @@ export const msgSend = async (req: Request, res: Response) => {
     const message = await collabService.sendMsg(roomId, userId, content);
 
     // 广播新消息事件
-    broadcastToRoom(roomId, 'message:new', message);
+    bcastRoom(roomId, 'message:new', message);
 
     res.json({
       success: true,
@@ -747,12 +747,12 @@ export const commitTrip = async (req: Request, res: Response) => {
     console.log('✅ 事务提交成功:', result);
 
     // 广播房间锁定事件
-    broadcastToRoom(roomId, 'room:lock', {
+    bcastRoom(roomId, 'room:lock', {
       timestamp: new Date(),
     });
 
     // 广播行程保存成功事件，通知所有成员跳转
-    broadcastToRoom(roomId, 'trip:saved', {
+    bcastRoom(roomId, 'trip:saved', {
       hostTripId: result.hostTripId,
       memberTripIds: result.memberTripIds,
       timestamp: new Date(),

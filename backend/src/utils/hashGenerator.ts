@@ -5,7 +5,7 @@ import crypto from 'crypto';
  * @param buffer 文件buffer
  * @returns SHA256 hash值的十六进制字符串
  */
-export function generateFileHash(buffer: Buffer): string {
+export function hashFile(buffer: Buffer): string {
   return crypto.createHash('sha256').update(buffer).digest('hex');
 }
 
@@ -14,7 +14,7 @@ export function generateFileHash(buffer: Buffer): string {
  * @param str 输入字符串
  * @returns SHA256 hash值的十六进制字符串
  */
-export function generateStringHash(str: string): string {
+export function hashStr(str: string): string {
   return crypto.createHash('sha256').update(str).digest('hex');
 }
 
@@ -24,6 +24,6 @@ export function generateStringHash(str: string): string {
  * @param hash2 第二个hash值
  * @returns 是否相同
  */
-export function compareHash(hash1: string, hash2: string): boolean {
+export function matchHash(hash1: string, hash2: string): boolean {
   return hash1 === hash2;
 }
