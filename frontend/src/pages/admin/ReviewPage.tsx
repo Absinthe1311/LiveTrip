@@ -24,7 +24,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
-import { fetchPendingImgs, reviewImg } from '../../api/adminApi';
+import { fetchPending, reviewImg } from '../../api/adminApi';
 import type { PendingImageItem } from '../../types/admin';
 
 export default function ReviewPage() {
@@ -52,7 +52,7 @@ export default function ReviewPage() {
   const loadImages = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetchPendingImgs(page, pageSize);
+      const response = await fetchPending(page, pageSize);
       if (response.success && response.data) {
         setImages(response.data.items || []);
         setTotal(response.data.total || 0);

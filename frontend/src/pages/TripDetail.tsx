@@ -27,7 +27,7 @@ import {
   getTripById,
   completeTrip,
   spotIot,
-  updateAlternativeRelations,
+  updAltRel,
   batchgetSpotImgsByIds,
 } from '../api/client';
 import { FullItinerary, AttractionItem } from '../api/client';

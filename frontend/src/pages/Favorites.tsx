@@ -5,7 +5,7 @@ import { Heart, Trash2 } from 'lucide-react';
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
 import { SpotCard } from '../components/spot/SpotCard';
-import { myFavs, removeFavorite } from '../api/client';
+import { myFavs, delFav } from '../api/client';
 import { message } from 'antd';
 
 interface FavoriteItem {
@@ -88,7 +88,7 @@ export default function FavoritesGlass() {
   const handleRemove = async (spotId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await removeFavorite(spotId);
+      await delFav(spotId);
       message.success('已取消收藏');
       setFavorites(favorites.filter((item) => item.spotId !== spotId));
     } catch (error) {

@@ -10,7 +10,7 @@ import type {
 /**
  * 获取管理员景点列表
  */
-export async function getAdminSpots(
+export async function adminSpots(
   page: number,
   pageSize: number
 ): Promise<{ success: boolean; data: AdminSpotListResponse; message?: string }> {
@@ -48,7 +48,7 @@ export async function reviewImg(
 /**
  * 删除图片
  */
-export async function deleteAdminImage(
+export async function delImg(
   imageId: string
 ): Promise<{ success: boolean; message: string }> {
   const response = await apiClient.delete(`/admin/images/${imageId}`);
@@ -58,7 +58,7 @@ export async function deleteAdminImage(
 /**
  * 获取待审核图片列表
  */
-export async function fetchPendingImgs(
+export async function fetchPending(
   page: number,
   pageSize: number
 ): Promise<{ success: boolean; data: PendingImagesResponse; message?: string }> {

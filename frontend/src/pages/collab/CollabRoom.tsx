@@ -21,15 +21,15 @@ import {
 import GlobalSidebar from '../../components/layout/GlobalSidebar';
 import { useCollabStore } from '../../store/collabStore';
 import {
-  getCollabRoomInfo,
+  newRoomInfo,
   myDrfts,
-  getCollabMessages,
+  fetchColMsgs,
   spotStats,
   lockCollabRoom,
   sendCollabMessage,
   saveDraft,
   sendDraft,
-  citySpots,
+  citySpots as fetchCitySpots,
   allDrafts,
   commitTrip,
   getLatestCollabTrip,
@@ -355,7 +355,7 @@ export default function CollabRoom() {
 
     try {
       // 加载房间信息
-      const roomResponse = await getCollabRoomInfo(roomId!);
+      const roomResponse = await newRoomInfo(roomId!);
       if (roomResponse.success) {
         setCurrentRoom(roomResponse.data);
         setMembers(roomResponse.data.members || []);
@@ -365,7 +365,7 @@ export default function CollabRoom() {
           const dest = roomResponse.data.trip.destination;
           setDestination(dest);
 
-          const spotsResponse = await citySpots(dest, 50);
+          const spotsResponse = await fetchCitySpots(dest, 50);
           if (spotsResponse.success && spotsResponse.data) {
             const spots: Spot[] = spotsResponse.data.map((s: any) => ({
               id: s.id,
@@ -401,7 +401,7 @@ export default function CollabRoom() {
       }
 
       // 加载消息
-      const messagesResponse = await getCollabMessages(roomId!);
+      const messagesResponse = await fetchColMsgs(roomId!);
       if (messagesResponse.success) {
         setMessages(messagesResponse.data);
       }
@@ -415,7 +415,7 @@ export default function CollabRoom() {
 
         // 加入后立即获取最新的成员列表
         try {
-          const roomResponse = await getCollabRoomInfo(roomId!);
+          const roomResponse = await newRoomInfo(roomId!);
           if (roomResponse.success) {
             setMembers(roomResponse.data.members || []);
           }
@@ -513,11 +513,11 @@ export default function CollabRoom() {
     }
 
     // 自动保存草案
-    saveDraft();
+    handleSaveDraft();
   }
 
   // 保存草案
-  const saveDraft = useCallback(() => {
+  const handleSaveDraft = useCallback(() => {
     if (!roomId || !currentRoom || currentRoom.phase === 'LOCKED') return;
 
     const spotSequence = routeSpots.map((s) => s.id);
@@ -535,7 +535,7 @@ export default function CollabRoom() {
   // 处理路线改变
   const handleRouteSpotsChange = (newSpots: RouteSpot[]) => {
     setRouteSpots(newSpots);
-    saveDraft();
+    handleSaveDraft();
   };
 
   // 提交草案
@@ -544,7 +544,7 @@ export default function CollabRoom() {
 
     try {
       // 先保存
-      saveDraft();
+      handleSaveDraft();
 
       // 获取当前草案ID
       const draftsResponse = await myDrfts(roomId);

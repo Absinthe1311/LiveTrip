@@ -28,7 +28,7 @@ import {
   loadBlogId,
   delBlog,
   blogLike,
-  incrementBlogViewCount,
+  incViews,
   addBlogComment,
   delBlogComment,
 } from '../api/client';
@@ -98,7 +98,7 @@ export default function BlogDetailGlass() {
         // 增加浏览量（只执行一次）
         if (!hasIncrementedView.current) {
           hasIncrementedView.current = true;
-          await incrementBlogViewCount(blogId);
+          await incViews(blogId);
         }
       }
     } catch (error) {

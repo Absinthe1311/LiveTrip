@@ -8,7 +8,7 @@ import {
   LikeOutlined,
   LikeFilled,
 } from '@ant-design/icons';
-import { getSpotReviews, deleteReview, toggleReviewLike } from '../../api/client';
+import { loadReviews as fetchReviews, delReview, likeReview } from '../../api/client';
 import ReviewForm from '../review/ReviewForm';
 
 interface ReviewListProps {
@@ -32,7 +32,7 @@ export default function ReviewList({ spotId, spotName, userId = 'default-user' }
   const loadReviews = async (pageNum: number = page) => {
     try {
       setLoading(true);
-      const response = await getSpotReviews(spotId, pageNum, pageSize);
+      const response = await fetchReviews(spotId, pageNum, pageSize);
 
       if (response.success) {
         setReviews(response.data.reviews);
@@ -57,7 +57,7 @@ export default function ReviewList({ spotId, spotName, userId = 'default-user' }
 
   const handleDeleteReview = async (reviewId: string) => {
     try {
-      await deleteReview(reviewId, userId);
+      await delReview(reviewId, userId);
       setDeleteConfirmVisible(false);
       setDeletingReviewId(null);
       loadReviews(page);
@@ -73,7 +73,7 @@ export default function ReviewList({ spotId, spotName, userId = 'default-user' }
 
   const handleblogLike = async (reviewId: string) => {
     try {
-      await toggleReviewLike(reviewId, userId);
+      await likeReview(reviewId, userId);
       loadReviews(page);
     } catch (error: any) {
       console.error('点赞失败:', error);

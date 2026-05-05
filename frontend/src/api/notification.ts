@@ -48,6 +48,6 @@ export const markAsRead = async (notificationId: string): Promise<void> => {
 /**
  * 标记所有通知为已读
  */
-export const markAllAsRead = async (): Promise<void> => {
+export const readAll = async (): Promise<void> => {
   await apiClient.put('/notifications/read-all');
 };

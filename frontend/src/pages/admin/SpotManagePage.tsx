@@ -26,9 +26,9 @@ import {
 } from 'lucide-react';
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
 import {
-  getAdminSpots,
+  adminSpots,
   getSpotImgs,
-  deleteAdminImage,
+  delImg,
   uploadAdminImage,
 } from '../../api/adminApi';
 import type { AdminSpotListItem, SpotImageItem } from '../../types/admin';
@@ -59,7 +59,7 @@ export default function SpotManagePage() {
   const loadSpots = async () => {
     setLoading(true);
     try {
-      const response = await getAdminSpots(1, 100);
+      const response = await adminSpots(1, 100);
       if (response.success && response.data) {
         setSpots(response.data.items || []);
       }
@@ -101,7 +101,7 @@ export default function SpotManagePage() {
 
   const handledelImg = async (imageId: string) => {
     try {
-      const response = await deleteAdminImage(imageId);
+      const response = await delImg(imageId);
       if (response.success) {
         setImages((prev) => prev.filter((img) => img.id !== imageId));
       }

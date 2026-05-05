@@ -1,7 +1,7 @@
 // 通知铃铛组件 - 在首页显示消息图标
 import { useState, useEffect } from 'react';
 import { Bell, X, Check, CheckCheck, Trash2 } from 'lucide-react';
-import { fetNotifs, markAsRead, markAllAsRead, Notification } from '@/api/notification';
+import { fetNotifs, markAsRead, readAll, Notification } from '@/api/notification';
 import { useSocket } from '@/hooks/useSocket';
 import { toast } from 'sonner';
 import apiClient from '@/api/client';
@@ -87,7 +87,7 @@ export function NotificationBell() {
   // 标记所有通知为已读
   const handleMarkAllAsRead = async () => {
     try {
-      await markAllAsRead();
+      await readAll();
       await loadNotifications();
     } catch (error) {
       console.error('标记所有已读失败:', error);

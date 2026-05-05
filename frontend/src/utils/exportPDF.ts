@@ -3,7 +3,7 @@
 
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import * as marked from 'marked';
+import { marked } from 'marked';
 
 // 配置marked选项
 

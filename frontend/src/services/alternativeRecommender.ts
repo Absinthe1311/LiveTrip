@@ -1,4 +1,4 @@
-import { getAlternativeSpots } from '../api/client';
+import { getIot } from '../api/client';
 import { getAlternativeSpotsByName } from '../data/alternativeSpots';
 import type { AttractionItem } from '../api/client';
 
@@ -47,7 +47,7 @@ export class AlternativeRecommender {
 
     try {
       // 调用后端API获取备选景点
-      const response = await getAlternativeSpots(originalAttraction.name, city, excludeSpotNames);
+      const response = await getIot(originalAttraction.name, city, excludeSpotNames);
 
       if (response.success && response.data) {
         console.log(`✅ 从API获取到 ${response.data.length} 个备选景点`);

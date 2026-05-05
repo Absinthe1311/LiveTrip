@@ -20,7 +20,7 @@ import {
 import { message } from 'antd';
 import GlassLayout from '../../components/layout/GlassLayout';
 import { GlassCard } from '../../components/home';
-import { createCollabRoom } from '../../api/collabApi';
+import { newColRoom } from '../../api/collabApi';
 import { API_BASE_URL } from '../../config/api';
 import { DoubleCalendar } from '../../components/input/DoubleCalendar';
 import ImageCropper from '../../components/media/ImageCropper';
@@ -293,7 +293,7 @@ export default function CollabSetup() {
       }
 
       // 用新创建的行程ID创建协同房间
-      const roomResponse = await createCollabRoom(tripId);
+      const roomResponse = await newColRoom(tripId);
 
       if (roomResponse.success) {
         message.success('协同房间创建成功');

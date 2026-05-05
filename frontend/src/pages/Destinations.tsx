@@ -7,7 +7,7 @@ import { GlassCard } from '../components/home';
 import { SpotCard } from '../components/spot/SpotCard';
 import {
   hotCities,
-  citySpots,
+  citySpotsWithLimit,
   cityAll,
   myFavs,
   HotCity,
@@ -52,7 +52,7 @@ const generateDescription = (name: string, category?: string, city?: string) => 
 export default function DestinationsGlass() {
   const navigate = useNavigate();
   const [cities, setCities] = useState<HotCity[]>([]);
-  const [citySpots, setCitySpots] = useState<Record<string, HotSpot[]>>({});
+  const [spotsByCity, setSpotsByCity] = useState<Record<string, HotSpot[]>>({});
   const [loading, setLoading] = useState(true);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [cityAllSpots, setCityAllSpots] = useState<HotSpot[]>([]);
@@ -89,7 +89,7 @@ export default function DestinationsGlass() {
 
       // 2. 并行加载每个城市的9个景点
       const spotsPromises = citiesData.map(async (city) => {
-        const spotsResponse = await citySpots(city.name, 9);
+        const spotsResponse = await citySpotsWithLimit(city.name, 9);
         if (spotsResponse.success && spotsResponse.data) {
           return { city: city.name, spots: spotsResponse.data as HotSpot[] };
         }
@@ -102,7 +102,7 @@ export default function DestinationsGlass() {
         spotsMap[result.city] = result.spots;
       });
 
-      setCitySpots(spotsMap);
+      setSpotsByCity(spotsMap);
       console.log(`✅ 加载了 ${citiesData.length} 个城市的热门景点`);
     } catch (error) {
       console.error('加载热门目的地失败:', error);
@@ -286,7 +286,7 @@ export default function DestinationsGlass() {
         ) : (
           <div className="space-y-8">
             {cities.map((city) => {
-              const spots = citySpots[city.name] || [];
+              const spots = spotsByCity[city.name] || [];
 
               return (
                 <div key={city.name} className="space-y-4">

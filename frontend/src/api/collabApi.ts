@@ -30,7 +30,7 @@ export const citySpots = async (city: string, limit: number = 50) => {
  * @param tripId 行程ID
  * @returns 房间信息和邀请链接
  */
-export const createCollabRoom = async (tripId: string) => {
+export const newColRoom = async (tripId: string) => {
   const response = await apiClient.post('/collab/rooms', { tripId });
   return response.data;
 };
@@ -50,7 +50,7 @@ export const joinCollabRoom = async (token: string) => {
  * @param roomId 房间ID
  * @returns 房间信息、成员列表、当前phase
  */
-export const getCollabRoomInfo = async (roomId: string) => {
+export const newRoomInfo = async (roomId: string) => {
   const response = await apiClient.get(`/collab/rooms/${roomId}`);
   return response.data as { success: boolean; data: CollabRoom & { members: TripMember[] } };
 };
@@ -148,7 +148,7 @@ export const sendCollabMessage = async (roomId: string, content: string) => {
  * @param roomId 房间ID
  * @returns 消息列表
  */
-export const getCollabMessages = async (roomId: string) => {
+export const fetchColMsgs = async (roomId: string) => {
   const response = await apiClient.get(`/collab/messages/${roomId}`);
   return response.data as { success: boolean; data: CollabMessage[] };
 };

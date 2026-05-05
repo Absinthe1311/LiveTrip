@@ -24,7 +24,7 @@ import DestinationAttractionCard from '../components/spot/DestinationAttractionC
 import ReviewList from '../components/review/ReviewList';
 import type { DestinationDetail, Attraction } from '../types/destination';
 import { destinationsData } from '../data/destinationsData';
-import { myFavs, addFavorite, removeFavorite, chkFav, syncSpot } from '../api/client';
+import { myFavs, saveFav, delFav, chkFav, syncSpot } from '../api/client';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -134,11 +134,11 @@ export default function DestinationDetail() {
 
       if (isFavorited) {
         // 取消收藏
-        await removeFavorite(spotId);
+        await delFav(spotId);
         message.success('已取消收藏');
       } else {
         // 添加收藏
-        await addFavorite(spotId, attraction.description);
+        await saveFav(spotId, attraction.description);
         message.success('收藏成功');
       }
 

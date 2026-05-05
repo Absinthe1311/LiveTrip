@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Heart, Star, ChevronRight, ChevronLeft, Image as ImageIcon } from 'lucide-react';
 import GlassCard from '../home/GlassCard';
-import { addFavorite, removeFavorite, chkFav } from '../../api/client';
+import { saveFav, delFav, chkFav } from '../../api/client';
 import { message } from 'antd';
 
 interface SpotCardProps {
@@ -65,12 +65,12 @@ export function SpotCard({
     try {
       if (isLiked) {
         // 取消收藏
-        await removeFavorite(spot.id);
+        await delFav(spot.id);
         setIsLiked(false);
         message.success('已取消收藏');
       } else {
         // 添加收藏
-        await addFavorite(spot.id, spot.description);
+        await saveFav(spot.id, spot.description);
         setIsLiked(true);
         message.success('收藏成功');
       }

@@ -16,7 +16,7 @@ import {
   addBlogComment,
   delBlogComment,
   toggleBlogCommentLike,
-  incrementBlogViewCount,
+  incViews,
 } from '../../api/client';
 import {
   calculateWordCount,
@@ -56,7 +56,7 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
 
     // 只在初次加载时增加浏览量
     if (!hasIncrementedView.current) {
-      incrementBlogViewCount(postId);
+      incViews(postId);
       hasIncrementedView.current = true;
     }
   }, [postId]);

@@ -238,7 +238,7 @@ export const spotIot = async (): Promise<IoTDataResponse> => {
  * @param city 城市名称
  * @param excludeSpotIds 需要排除的景点ID列表（如行程中的景点）
  */
-export const getAlternativeSpots = async (
+export const getIot = async (
   spotId: string,
   city: string,
   excludeSpotIds: string[] = []
@@ -258,7 +258,7 @@ export const getAlternativeSpots = async (
  * @param newSpotId 新景点ID
  * @param city 城市名称
  */
-export const updateAlternativeRelations = async (
+export const updAltRel = async (
   oldSpotId: string,
   newSpotId: string,
   city: string
@@ -414,7 +414,7 @@ export const findLoc = async (keywords: string) => {
 /**
  * 获取热门搜索地点
  */
-export const getPopularLocations = async (limit: number = 10) => {
+export const popLocs = async (limit: number = 10) => {
   const response = await apiClient.get('/location/popular', {
     params: { limit },
   });
@@ -436,7 +436,7 @@ export const myFavs = async (includeIoT: boolean = true) => {
 /**
  * 添加收藏
  */
-export const addFavorite = async (spotId: string, notes?: string) => {
+export const saveFav = async (spotId: string, notes?: string) => {
   const response = await apiClient.post('/favorites', {
     spotId,
     notes,
@@ -447,7 +447,7 @@ export const addFavorite = async (spotId: string, notes?: string) => {
 /**
  * 取消收藏
  */
-export const removeFavorite = async (spotId: string) => {
+export const delFav = async (spotId: string) => {
   const response = await apiClient.delete(`/favorites/${spotId}`);
   return response.data;
 };
@@ -463,7 +463,7 @@ export const chkFav = async (spotId: string) => {
 /**
  * 获取收藏数量
  */
-export const getFavoriteCount = async () => {
+export const favCount = async () => {
   const response = await apiClient.get('/favorites/count');
   return response.data;
 };
@@ -493,7 +493,7 @@ export const syncSpot = async (spotData: {
 /**
  * 获取城市的热门景点列表
  */
-export const getCityAttractions = async (city: string) => {
+export const citySpots = async (city: string) => {
   const response = await apiClient.get(`/destinations/${city}`);
   return response.data;
 };
@@ -501,7 +501,7 @@ export const getCityAttractions = async (city: string) => {
 /**
  * 获取所有支持的城市列表
  */
-export const getSupportedCities = async () => {
+export const listCities = async () => {
   const response = await apiClient.get('/destinations');
   return response.data;
 };
@@ -585,7 +585,7 @@ export const createReview = async (data: {
  * @param pageSize 每页数量
  * @returns 评价列表
  */
-export const getSpotReviews = async (spotId: string, page?: number, pageSize?: number) => {
+export const loadReviews = async (spotId: string, page?: number, pageSize?: number) => {
   const params: any = {};
   if (page) params.page = page;
   if (pageSize) params.pageSize = pageSize;
@@ -600,7 +600,7 @@ export const getSpotReviews = async (spotId: string, page?: number, pageSize?: n
  * @param pageSize 每页数量
  * @returns 评价列表
  */
-export const getUserReviews = async (userId: string, page?: number, pageSize?: number) => {
+export const userComents = async (userId: string, page?: number, pageSize?: number) => {
   const params: any = {};
   if (page) params.page = page;
   if (pageSize) params.pageSize = pageSize;
@@ -614,7 +614,7 @@ export const getUserReviews = async (userId: string, page?: number, pageSize?: n
  * @param userId 用户ID
  * @returns 删除结果
  */
-export const deleteReview = async (reviewId: string, userId: string) => {
+export const delReview = async (reviewId: string, userId: string) => {
   const response = await apiClient.delete(`/reviews/${reviewId}`, { data: { userId } });
   return response.data;
 };
@@ -625,7 +625,7 @@ export const deleteReview = async (reviewId: string, userId: string) => {
  * @param userId 用户ID
  * @returns 点赞结果
  */
-export const toggleReviewLike = async (reviewId: string, userId: string) => {
+export const likeReview = async (reviewId: string, userId: string) => {
   const response = await apiClient.post(`/reviews/${reviewId}/like`, { userId });
   return response.data;
 };
@@ -635,7 +635,7 @@ export const toggleReviewLike = async (reviewId: string, userId: string) => {
  * @param spotIds 景点ID列表
  * @returns 评价统计
  */
-export const getSpotReviewsStats = async (spotIds: string[]) => {
+export const reviewStats = async (spotIds: string[]) => {
   const response = await apiClient.post('/reviews/stats', { spotIds });
   return response.data;
 };
@@ -786,7 +786,7 @@ export const hotTags = async (limit?: number) => {
  * @param id 博客ID
  * @returns 操作结果
  */
-export const incrementBlogViewCount = async (id: string) => {
+export const incViews = async (id: string) => {
   const response = await apiClient.post(`/blogs/${id}/view`);
   return response.data;
 };
@@ -795,7 +795,7 @@ export const incrementBlogViewCount = async (id: string) => {
  * 获取热门目的地
  * @returns 热门目的地列表
  */
-export const getHotDestinations = async () => {
+export const hotDests = async () => {
   const response = await apiClient.get('/hot-spots');
   return response.data;
 };
@@ -846,7 +846,7 @@ export const hotCities = async () => {
  * @param limit 限制数量，默认9个
  * @returns 热门景点列表
  */
-export const citySpots = async (city: string, limit: number = 9) => {
+export const citySpotsWithLimit = async (city: string, limit: number = 9) => {
   const response = await apiClient.get(`/destinations/cities/${encodeURIComponent(city)}/spots`, {
     params: { limit },
   });
