@@ -19,9 +19,9 @@ import {
   incViews,
 } from '../../api/client';
 import {
-  calculateWordCount,
-  calculateReadingTime,
-  formatReadingTime,
+  calcWords,
+  estRead,
+  fmtRead,
 } from '../../utils/blogContentUtils';
 
 interface BlogDetailProps {
@@ -236,9 +236,9 @@ export default function BlogDetail({ postId, userId = 'default-user', onBack }: 
           <div style={{ marginLeft: 'auto', color: '#999', fontSize: 14 }}>
             <Space size={16}>
               <span>浏览 {blog.viewCount}</span>
-              <span>字数 {calculateWordCount(blog.content)}</span>
+              <span>字数 {calcWords(blog.content)}</span>
               <span>
-                阅读 {formatReadingTime(calculateReadingTime(calculateWordCount(blog.content)))}
+                阅读 {fmtRead(estRead(calcWords(blog.content)))}
               </span>
             </Space>
           </div>

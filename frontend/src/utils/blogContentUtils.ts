@@ -7,7 +7,7 @@
  * @param htmlContent HTML内容
  * @returns 第一张图片URL，如果没有则返回null
  */
-export function extractFirstImage(htmlContent: string): string | null {
+export function firstImg(htmlContent: string): string | null {
   if (!htmlContent) return null;
 
   // 使用正则表达式匹配img标签
@@ -26,7 +26,7 @@ export function extractFirstImage(htmlContent: string): string | null {
  * @param htmlContent HTML内容
  * @returns 字数
  */
-export function calculateWordCount(htmlContent: string): number {
+export function calcWords(htmlContent: string): number {
   if (!htmlContent) return 0;
 
   // 移除HTML标签
@@ -75,7 +75,7 @@ export function calculateWordCount(htmlContent: string): number {
  * @param wordCount 字数
  * @returns 阅读时间（分钟）
  */
-export function calculateReadingTime(wordCount: number): number {
+export function estRead(wordCount: number): number {
   if (wordCount <= 0) return 0;
   return Math.ceil(wordCount / 300);
 }
@@ -85,7 +85,7 @@ export function calculateReadingTime(wordCount: number): number {
  * @param minutes 分钟数
  * @returns 格式化的时间字符串
  */
-export function formatReadingTime(minutes: number): string {
+export function fmtRead(minutes: number): string {
   if (minutes <= 0) return '1分钟';
   if (minutes < 60) return `${minutes}分钟`;
   const hours = Math.floor(minutes / 60);
@@ -100,7 +100,7 @@ export function formatReadingTime(minutes: number): string {
  * @param maxLength 最大长度
  * @returns 摘要文本
  */
-export function generateExcerpt(htmlContent: string, maxLength: number = 150): string {
+export function excerpt(htmlContent: string, maxLength: number = 150): string {
   if (!htmlContent) return '';
 
   // 移除HTML标签

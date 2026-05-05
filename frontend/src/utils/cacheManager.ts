@@ -67,7 +67,7 @@ class CacheManager {
    * 删除缓存
    * @param key 缓存键
    */
-  delete(key: string): void {
+  del(key: string): void {
     this.cache.delete(key);
   }
 

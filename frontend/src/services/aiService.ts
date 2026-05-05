@@ -1,5 +1,5 @@
 // AI 服务 - 统一的 AI 对话服务
-import { getUserId } from '../utils/auth';
+import { getUid } from '../utils/auth';
 import { API_BASE_URL } from '../config/api';
 
 export type ChatMode = 'advisor' | 'agent';
@@ -52,7 +52,7 @@ class AIService {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-    const userId = getUserId();
+    const userId = getUid();
     if (userId) {
       headers['x-user-id'] = userId;
     }
@@ -77,7 +77,7 @@ class AIService {
    * 发送消息（智能助手模式，SSE 流式步骤推送）
    */
   async sseChat(question: string, onStep: (step: string) => void): Promise<AIResponse> {
-    const userId = getUserId();
+    const userId = getUid();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -154,7 +154,7 @@ class AIService {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-    const userId = getUserId();
+    const userId = getUid();
     if (userId) {
       headers['x-user-id'] = userId;
     }
@@ -179,7 +179,7 @@ class AIService {
    */
   async userSessions(mode?: ChatMode): Promise<ChatSession[]> {
     const headers: Record<string, string> = {};
-    const userId = getUserId();
+    const userId = getUid();
     if (userId) {
       headers['x-user-id'] = userId;
     }
@@ -221,7 +221,7 @@ class AIService {
    */
   async delSession(sessionId: string): Promise<void> {
     const headers: Record<string, string> = {};
-    const userId = getUserId();
+    const userId = getUid();
     if (userId) {
       headers['x-user-id'] = userId;
     }

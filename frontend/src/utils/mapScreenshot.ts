@@ -57,7 +57,7 @@ const RESTAURANT_COLOR = '#13c2c2'; // 餐厅 - 青色
  * @param height 图片高度
  * @returns Promise<string> 返回图片的Data URL
  */
-export async function generateDayMapScreenshot(
+export async function capDay(
   dayData: DayData,
   hotel?: {
     name?: string;
@@ -361,7 +361,7 @@ export async function generateDayMapScreenshot(
  * @param height 图片高度
  * @returns Promise<string> 返回图片的Data URL
  */
-export async function generateMapScreenshot(
+export async function mapShot(
   tripData: TripData,
   width: number = 800,
   height: number = 600
@@ -742,7 +742,7 @@ function adjustColor(color: string, amount: number): string {
  * @param days 每日行程数据
  * @returns 地点坐标数组
  */
-export function extractLocationsFromDays(days: any[]): string[] {
+export function getCoords(days: any[]): string[] {
   const locations: string[] = [];
 
   days.forEach((day) => {

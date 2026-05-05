@@ -15,7 +15,7 @@ import * as marked from 'marked';
  * @param date 发布日期
  * @param city 城市
  */
-export async function exportBlogToPDF(
+export async function toPDF(
   title: string,
   content: string,
   author?: string,

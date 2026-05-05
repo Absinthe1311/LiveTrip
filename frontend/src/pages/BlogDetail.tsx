@@ -33,7 +33,7 @@ import {
   delBlogComment,
 } from '../api/client';
 import { message, Popconfirm } from 'antd';
-import { exportBlogToPDF } from '../utils/exportPDF';
+import { toPDF } from '../utils/exportPDF';
 
 interface BlogDetail {
   id: string;
@@ -200,7 +200,7 @@ export default function BlogDetailGlass() {
         day: 'numeric',
       });
 
-      await exportBlogToPDF(blog.title, blog.content, authorName, dateStr, blog.city);
+      await toPDF(blog.title, blog.content, authorName, dateStr, blog.city);
 
       message.success({ content: 'PDF导出成功！', key: 'pdf' });
     } catch (error) {
