@@ -82,7 +82,7 @@ interface SearchResult {
   image?: string;
 }
 
-export const useHomepageData = () => {
+export const useHome = () => {
   // 状态管理
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -126,7 +126,7 @@ export const useHomepageData = () => {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
 
   // 获取用户行程列表
-  const fetchUserTrips = async () => {
+  const loadTrips = async () => {
     try {
       // 使用缓存获取行程数据
       const response = await cacheManager.getOrSet(
@@ -238,7 +238,7 @@ export const useHomepageData = () => {
   };
 
   // 获取行李清单
-  const fetchPackingList = async (tripId: string) => {
+  const items = async (tripId: string) => {
     try {
       console.log('🔄 开始获取行李清单, tripId:', tripId);
       const response = await packList(tripId);
@@ -264,7 +264,7 @@ export const useHomepageData = () => {
   };
 
   // 获取打包进度
-  const fetchPackingProgress = async (tripId: string) => {
+  const packStats = async (tripId: string) => {
     try {
       const response = await packProgress(tripId);
       if (response.data.success) {
@@ -276,7 +276,7 @@ export const useHomepageData = () => {
   };
 
   // 获取天气数据 - 从IoT数据中获取指定城市的天气
-  const fetchWeatherData = async (city: string) => {
+  const weather = async (city: string) => {
     try {
       // 使用缓存获取天气数据
       const cacheKey = CACHE_KEYS.WEATHER_DATA(city);
@@ -346,7 +346,7 @@ export const useHomepageData = () => {
   };
 
   // 获取预算数据 - 获取最近的非协同行程的预算
-  const fetchBudgetData = async (currentTripId?: string) => {
+  const getBudget = async (currentTripId?: string) => {
     try {
       console.log('💰 开始获取预算数据...');
       const response = await listTrips();
@@ -426,15 +426,15 @@ export const useHomepageData = () => {
   };
 
   // 初始化数据的函数（提取到外部，供多处调用）
-  const init = async () => {
+  const start = async () => {
     setLoading(true);
     try {
       console.log('🔄 开始初始化Homepage数据...');
 
       // 1. 并行获取基础数据
       const [tripsResult] = await Promise.all([
-        fetchUserTrips(),
-        fetchHotDestinations(), // 获取热门目的地
+        loadTrips(),
+        hotDests(), // 获取热门目的地
       ]);
 
       console.log('📊 行程数据获取结果:', tripsResult);
@@ -454,11 +454,11 @@ export const useHomepageData = () => {
         // 使用第一个目的地城市的天气
         if (destinations.length > 0) {
           setSelectedCity(destinations[0]);
-          await fetchWeatherData(destinations[0]);
+          await weather(destinations[0]);
         }
       } else {
         // 没有行程，使用默认城市北京
-        await fetchWeatherData('北京');
+        await weather('北京');
       }
 
       if (!tripsResult || !tripsResult.currentTrip) {
@@ -471,10 +471,10 @@ export const useHomepageData = () => {
 
       // 3. 并行获取当前行程的相关数据和足迹城市
       await Promise.all([
-        fetchPackingList(currentTrip.id),
-        fetchPackingProgress(currentTrip.id),
-        fetchBudgetData(), // 不传递tripId，自动获取最近的非协同行程预算
-        calculateFootprintCities(trips).then((cities) => setFootprintCities(cities)),
+        items(currentTrip.id),
+        packStats(currentTrip.id),
+        getBudget(), // 不传递tripId，自动获取最近的非协同行程预算
+        cityTracks(trips).then((cities) => setFootprintCities(cities)),
       ]);
 
       console.log('✅ Homepage数据初始化完成');
@@ -488,7 +488,7 @@ export const useHomepageData = () => {
 
   // 初始化数据（组件挂载时执行）
   useEffect(() => {
-    init();
+    start();
   }, []); // 只在组件挂载时执行一次
 
   // 监听行程变化，自动刷新数据
@@ -499,7 +499,7 @@ export const useHomepageData = () => {
         console.log('🔔 检测到行程变化，刷新数据...');
         // 清除缓存并重新获取数据
         cacheManager.clear();
-        init();
+        start();
       }
     };
 
@@ -519,7 +519,7 @@ export const useHomepageData = () => {
   };
 
   // 计算足迹城市 - 新增
-  const calculateFootprintCities = async (trips: any[]): Promise<FootprintCity[]> => {
+  const cityTracks = async (trips: any[]): Promise<FootprintCity[]> => {
     const cityMap = new Map<string, FootprintCity>();
 
     for (const trip of trips) {
@@ -566,7 +566,7 @@ export const useHomepageData = () => {
   };
 
   // 获取热门目的地 - 新增
-  const fetchHotDestinations = async () => {
+  const hotDests = async () => {
     try {
       // 使用缓存获取热门目的地
       const response = await cacheManager.getOrSet(
@@ -593,7 +593,7 @@ export const useHomepageData = () => {
   };
 
   // 搜索功能 - 新增
-  const search = async (keyword: string) => {
+  const find = async (keyword: string) => {
     if (!keyword.trim()) {
       // 显示热门推荐
       setSearchResults(
@@ -666,69 +666,16 @@ export const useHomepageData = () => {
   };
 
   // 切换城市（用于天气控件）- 新增
-  const changeCity = async (city: string) => {
+  const switchCity = async (city: string) => {
     setSelectedCity(city);
-    await fetchWeatherData(city);
+    await weather(city);
   };
 
   // 手动刷新缓存 - 清除所有缓存并重新获取数据
   const refreshCache = async () => {
     console.log('🔄 手动刷新缓存...');
     cacheManager.clear();
-    // 重新初始化数据
-    const init = async () => {
-      setLoading(true);
-      try {
-        // 1. 并行获取基础数据
-        const [tripsResult] = await Promise.all([
-          fetchUserTrips(),
-          fetchHotDestinations(), // 获取热门目的地
-        ]);
-
-        // 2. 获取天气数据
-        if (tripsResult?.trips && tripsResult.trips.length > 0) {
-          // 提取所有目的地城市
-          const citiesSet = new Set<string>();
-          tripsResult.trips.forEach((trip: any) => {
-            if (trip.destination) {
-              citiesSet.add(trip.destination);
-            }
-          });
-          const destinations = Array.from(citiesSet);
-          setDestinationCities(destinations);
-
-          // 使用第一个目的地城市的天气
-          if (destinations.length > 0) {
-            setSelectedCity(destinations[0]);
-            await fetchWeatherData(destinations[0]);
-          }
-        } else {
-          // 没有行程，使用默认城市北京
-          await fetchWeatherData('北京');
-        }
-
-        if (!tripsResult || !tripsResult.currentTrip) {
-          setLoading(false);
-          return;
-        }
-
-        const { currentTrip, trips } = tripsResult;
-
-        // 3. 并行获取当前行程的相关数据和足迹城市
-        await Promise.all([
-          fetchPackingList(currentTrip.id),
-          fetchPackingProgress(currentTrip.id),
-          fetchBudgetData(), // 不传递tripId，自动获取最近的非协同行程预算
-          calculateFootprintCities(trips).then((cities) => setFootprintCities(cities)),
-        ]);
-      } catch (err) {
-        setError('加载数据失败');
-        console.error('初始化数据失败:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    await init();
+    await start();
   };
 
   return {
@@ -742,7 +689,7 @@ export const useHomepageData = () => {
     weatherData,
     selectedCity,
     destinationCities,
-    changeCity,
+    switchCity,
     // 预算
     budgetData,
     // 行程统计
@@ -759,7 +706,7 @@ export const useHomepageData = () => {
     hotDestinations,
     // 搜索结果（新增）
     searchResults,
-    search,
+    find,
     // 缓存管理
     refreshCache,
   };

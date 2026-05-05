@@ -1,0 +1,29 @@
+# 函数名替换映射表（hooks）
+
+| 原函数名                     | 新函数名           |
+| ---------------------------- | ------------------ |
+| `useSocket`                | `useSocket`      |
+| `useCollabMap`             | `useCollabMap`   |
+| `addSpotMarker`            | `markSpot`       |
+| `updateSpotMarkerStyle`    | `updStyle`       |
+| `removeSpotMarker`         | `rmvMarker`      |
+| `clearAllMarkers`          | `flushPins`      |
+| `drawRoute`                | `drawRoute`      |
+| `setMapCenter`             | `focMapCenter`   |
+| `setMapZoom`               | `setZoom`        |
+| `setCityWithBoundary`      | `fitCity`        |
+| `showSpotStats`            | `openStats`      |
+| `hideSpotStats`            | `closeStats`     |
+| `highlightSpots`           | `highlightSpots` |
+| `useHomepageData`          | `useHome`        |
+| `fetchUserTrips`           | `loadTrips`      |
+| `fetchPackingList`         | `items`          |
+| `fetchPackingProgress`     | `packStats`      |
+| `fetchWeatherData`         | `weather`        |
+| `fetchBudgetData`          | `getBudget`      |
+| `init`                     | `start`          |
+| `togglePacked`             | `togglePacked`   |
+| `calculateFootprintCities` | `cityTracks`     |
+| `fetchHotDestinations`     | `hotDests`       |
+| `search`                   | `find`           |
+| `changeCity`               | `switchCity`     |

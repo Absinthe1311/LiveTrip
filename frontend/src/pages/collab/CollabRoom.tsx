@@ -123,14 +123,14 @@ export default function CollabRoom() {
 
   // 地图Hook
   const {
-    addSpotMarker,
-    clearAllMarkers,
+    markSpot,
+    flushPins,
     drawRoute,
     clearRoute,
-    showSpotStats: displaySpotStats,
-    hideSpotStats,
-    setCityWithBoundary,
-    updateSpotMarkerStyle,
+    openStats: displaySpotStats,
+    closeStats,
+    fitCity,
+    updStyle,
     isLoaded: isMapLoaded,
   } = useCollabMap({
     containerId: 'collab-map',
@@ -252,23 +252,23 @@ export default function CollabRoom() {
   // 当城市景点加载后，显示在地图上
   useEffect(() => {
     if (isMapLoaded && citySpots.length > 0) {
-      clearAllMarkers();
+      flushPins();
       citySpots.forEach((spot) => {
-        addSpotMarker(spot);
+        markSpot(spot);
       });
     }
-  }, [isMapLoaded, citySpots, clearAllMarkers, addSpotMarker]);
+  }, [isMapLoaded, citySpots, flushPins, markSpot]);
 
   // 当地图加载完成且有目的地时，定位到城市
   useEffect(() => {
     if (isMapLoaded && destination) {
       // 延迟一点确保地图完全初始化
       const timer = setTimeout(() => {
-        setCityWithBoundary(destination);
+        fitCity(destination);
       }, 200);
       return () => clearTimeout(timer);
     }
-  }, [isMapLoaded, destination, setCityWithBoundary]);
+  }, [isMapLoaded, destination, fitCity]);
 
   // 当路线改变时，重新绘制
   useEffect(() => {
@@ -331,9 +331,9 @@ export default function CollabRoom() {
 
     // 将所有待选景点标记为绿色
     candidateSpotIds.forEach((spotId) => {
-      updateSpotMarkerStyle(spotId, 'candidate');
+      updStyle(spotId, 'candidate');
     });
-  }, [allMemberDrafts, updateSpotMarkerStyle]);
+  }, [allMemberDrafts, updStyle]);
 
   // 高亮最终路线景点（红色）
   const highlightSelectedSpots = useCallback(
@@ -343,10 +343,10 @@ export default function CollabRoom() {
 
       // 然后将最终选择的景点标记为红色
       selectedSpotIds.forEach((spotId) => {
-        updateSpotMarkerStyle(spotId, 'selected');
+        updStyle(spotId, 'selected');
       });
     },
-    [highlightCandidateSpots, updateSpotMarkerStyle]
+    [highlightCandidateSpots, updStyle]
   );
 
   const loadRoomData = async () => {
@@ -583,7 +583,7 @@ export default function CollabRoom() {
   };
 
   const handleHideSpotStats = () => {
-    hideSpotStats();
+    closeStats();
     setShowStats(false);
   };
 

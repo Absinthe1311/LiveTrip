@@ -3,7 +3,7 @@
 
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { marked } from 'marked';
+import * as marked from 'marked';
 
 // 配置marked选项
 
@@ -84,7 +84,7 @@ export async function exportBlogToPDF(
     `;
 
     // 将Markdown转换为HTML
-    const contentHtml = marked.parse(content) as string;
+    const contentHtml = marked.marked(content) as string;
     htmlContent += `<div class="markdown-content">${contentHtml}</div>`;
 
     // 添加页脚

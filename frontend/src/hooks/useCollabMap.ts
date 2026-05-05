@@ -34,17 +34,17 @@ interface UseCollabMapOptions {
 
 interface UseCollabMapReturn {
   map: any;
-  addSpotMarker: (spot: Spot, color?: string) => void;
-  updateSpotMarkerStyle: (spotId: string, style: 'normal' | 'candidate' | 'selected') => void;
-  removeSpotMarker: (spotId: string) => void;
-  clearAllMarkers: () => void;
+  markSpot: (spot: Spot, color?: string) => void;
+  updStyle: (spotId: string, style: 'normal' | 'candidate' | 'selected') => void;
+  rmvMarker: (spotId: string) => void;
+  flushPins: () => void;
   drawRoute: (points: RoutePoint[], color?: string) => void;
   clearRoute: () => void;
-  setMapCenter: (lng: number, lat: number) => void;
-  setMapZoom: (zoom: number) => void;
-  setCityWithBoundary: (cityName: string) => void;
-  showSpotStats: (stats: Map<string, number>) => void;
-  hideSpotStats: () => void;
+  focMapCenter: (lng: number, lat: number) => void;
+  setZoom: (zoom: number) => void;
+  fitCity: (cityName: string) => void;
+  openStats: (stats: Map<string, number>) => void;
+  closeStats: () => void;
   highlightSpots: (spotIds: string[], hotSpotIds: string[]) => void;
   isLoaded: boolean;
 }
@@ -143,7 +143,7 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
   }, [containerId, amapKey, amapSecret, onMapClick, enabled]);
 
   // 添加景点标记
-  const addSpotMarker = useCallback(
+  const markSpot = useCallback(
     (spot: Spot, color: string = '#3B82F6') => {
       if (!mapRef.current || !window.AMap) return;
 
@@ -225,7 +225,7 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
   );
 
   // 移除景点标记
-  const removeSpotMarker = useCallback((spotId: string) => {
+  const rmvMarker = useCallback((spotId: string) => {
     const marker = markersRef.current.get(spotId);
     if (marker) {
       marker.setMap(null);
@@ -234,7 +234,7 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
   }, []);
 
   // 更新景点标记样式
-  const updateSpotMarkerStyle = useCallback(
+  const updStyle = useCallback(
     (spotId: string, style: 'normal' | 'candidate' | 'selected') => {
       const marker = markersRef.current.get(spotId);
       if (!marker) return;
@@ -290,7 +290,7 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
   );
 
   // 清除所有标记
-  const clearAllMarkers = useCallback(() => {
+  const flushPins = useCallback(() => {
     markersRef.current.forEach((marker) => {
       marker.setMap(null);
     });
@@ -332,21 +332,21 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
   }, []);
 
   // 设置地图中心
-  const setMapCenter = useCallback((lng: number, lat: number) => {
+  const focMapCenter = useCallback((lng: number, lat: number) => {
     if (mapRef.current) {
       mapRef.current.setCenter([lng, lat]);
     }
   }, []);
 
   // 设置地图缩放
-  const setMapZoom = useCallback((zoom: number) => {
+  const setZoom = useCallback((zoom: number) => {
     if (mapRef.current) {
       mapRef.current.setZoom(zoom);
     }
   }, []);
 
   // 定位到城市并显示边界
-  const setCityWithBoundary = useCallback((cityName: string) => {
+  const fitCity = useCallback((cityName: string) => {
     if (!mapRef.current || !window.AMap) return;
 
     const map = mapRef.current;
@@ -406,7 +406,7 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
   }, []);
 
   // 显示景点统计
-  const showSpotStats = useCallback((stats: Map<string, number>) => {
+  const openStats = useCallback((stats: Map<string, number>) => {
     if (!mapRef.current || !window.AMap) return;
 
     // 为每个标记添加统计徽章
@@ -469,7 +469,7 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
   }, []);
 
   // 隐藏景点统计
-  const hideSpotStats = useCallback(() => {
+  const closeStats = useCallback(() => {
     markersRef.current.forEach((marker) => {
       const spot = marker.getExtData() as Spot;
 
@@ -535,17 +535,17 @@ export function useCollabMap(options: UseCollabMapOptions): UseCollabMapReturn {
 
   return {
     map: mapRef.current,
-    addSpotMarker,
-    updateSpotMarkerStyle,
-    removeSpotMarker,
-    clearAllMarkers,
+    markSpot,
+    updStyle,
+    rmvMarker,
+    flushPins,
     drawRoute,
     clearRoute,
-    setMapCenter,
-    setMapZoom,
-    setCityWithBoundary,
-    showSpotStats,
-    hideSpotStats,
+    focMapCenter,
+    setZoom,
+    fitCity,
+    openStats,
+    closeStats,
     highlightSpots,
     isLoaded,
   };

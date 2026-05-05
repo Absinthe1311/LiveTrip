@@ -40,7 +40,7 @@ import UserProfileEditModal from '../components/user/UserProfileEditModal';
 import SettingsModal from '../components/common/SettingsModal';
 import GlobalSidebar from '../components/layout/GlobalSidebar';
 import { NotificationBell } from '../components/notification/NotificationBell';
-import { useHomepageData } from '../hooks/useHomepageData';
+import { useHome } from '../hooks/useHomepageData';
 
 // ==================== 未登录态视图 ====================
 function GuestView() {
@@ -63,7 +63,7 @@ function WorkspaceView() {
     weatherData,
     selectedCity,
     destinationCities,
-    changeCity,
+    switchCity: changeCity,
     budgetData,
     tripStats,
     upcomingTrips,
@@ -72,9 +72,9 @@ function WorkspaceView() {
     footprintCities,
     hotDestinations,
     searchResults,
-    search,
+    find: search,
     refreshCache,
-  } = useHomepageData();
+  } = useHome();
 
   // 调试信息
   useEffect(() => {
