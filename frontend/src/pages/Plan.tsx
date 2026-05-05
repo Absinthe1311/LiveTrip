@@ -49,7 +49,7 @@ import {
 import GlassLayout from '../components/layout/GlassLayout';
 import { GlassCard } from '../components/home';
 import { makePlan } from '../api/client';
-import { useAppStore } from '../store';
+import { useStore } from '../store';
 import AIAdvisorGlass from '../components/ai/AIAdvisor';
 import { popularDestinations } from '../data/popularDestinations';
 import { API_BASE_URL } from '../config/api';
@@ -71,7 +71,7 @@ export default function PlanGlass() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aiDrawerOpen, setAIDrawerOpen] = useState(false);
-  const setCurrentItinerary = useAppStore((state) => state.setCurrentItinerary);
+  const setPlan = useStore((state) => state.setPlan);
 
   // 用户输入的状态
   const [formData, setFormData] = useState<Record<string, any>>({
@@ -273,7 +273,7 @@ export default function PlanGlass() {
         };
 
         // 将行程数据设置到store，但不保存到数据库
-        setCurrentItinerary(itineraryData);
+        setPlan(itineraryData);
         navigate('/itinerary');
       } else {
         setError('行程规划失败，请稍后重试');

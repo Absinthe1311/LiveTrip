@@ -79,23 +79,23 @@ export interface CursorPosition {
 interface CollabState {
   // 当前房间
   currentRoom: CollabRoom | null;
-  setCurrentRoom: (room: CollabRoom | null) => void;
+  setRoom: (room: CollabRoom | null) => void;
 
   // 成员列表
   members: TripMember[];
-  setMembers: (members: TripMember[]) => void;
-  addMember: (member: TripMember) => void;
-  removeMember: (userId: string) => void;
+  setMems: (members: TripMember[]) => void;
+  addMem: (member: TripMember) => void;
+  delMem: (userId: string) => void;
 
   // 我的草案
   myDrafts: Map<number, DraftRoute>; // key: dayNumber
-  setMyDrafts: (drafts: DraftRoute[]) => void;
-  updateDraft: (draft: DraftRoute) => void;
+  setDrafts: (drafts: DraftRoute[]) => void;
+  updDraft: (draft: DraftRoute) => void;
 
   // 其他人的实时光标
   otherCursors: Map<string, CursorPosition>; // key: userId
-  updateCursor: (userId: string, position: CursorPosition) => void;
-  removeCursor: (userId: string) => void;
+  shiftCursor: (userId: string, position: CursorPosition) => void;
+  delCursor: (userId: string) => void;
 
   // 可见图层
   visibleLayers: Set<string>; // userId集合
@@ -104,8 +104,8 @@ interface CollabState {
 
   // 消息列表
   messages: CollabMessage[];
-  setMessages: (messages: CollabMessage[]) => void;
-  addMessage: (message: CollabMessage) => void;
+  setMsgs: (messages: CollabMessage[]) => void;
+  msgIn: (message: CollabMessage) => void;
 
   // 景点统计（仅Host）
   spotStats: SpotStat[];
@@ -118,8 +118,8 @@ interface CollabState {
   // 在线用户ID集合
   onlineUsers: Set<string>;
   setOnlineUsers: (users: Set<string>) => void;
-  addOnlineUser: (userId: string) => void;
-  removeOnlineUser: (userId: string) => void;
+  addOnline: (userId: string) => void;
+  popUser: (userId: string) => void;
 
   // 重置状态
   reset: () => void;
@@ -127,33 +127,33 @@ interface CollabState {
 
 // ==================== Store实现 ====================
 
-export const useCollabStore = create<CollabState>((set) => ({
+export const useCollab = create<CollabState>((set) => ({
   // 当前房间
   currentRoom: null,
-  setCurrentRoom: (room) => set({ currentRoom: room }),
+  setRoom: (room) => set({ currentRoom: room }),
 
   // 成员列表
   members: [],
-  setMembers: (members) => set({ members }),
-  addMember: (member) =>
+  setMems: (members) => set({ members }),
+  addMem: (member) =>
     set((state) => ({
       members: [...state.members, member],
     })),
-  removeMember: (userId) =>
+  delMem: (userId) =>
     set((state) => ({
       members: state.members.filter((m) => m.userId !== userId),
     })),
 
   // 我的草案
   myDrafts: new Map(),
-  setMyDrafts: (drafts) => {
+  setDrafts: (drafts) => {
     const map = new Map<number, DraftRoute>();
     drafts.forEach((draft) => {
       map.set(draft.dayNumber, draft);
     });
     set({ myDrafts: map });
   },
-  updateDraft: (draft) =>
+  updDraft: (draft) =>
     set((state) => {
       const newMap = new Map(state.myDrafts);
       newMap.set(draft.dayNumber, draft);
@@ -162,13 +162,13 @@ export const useCollabStore = create<CollabState>((set) => ({
 
   // 其他人的实时光标
   otherCursors: new Map(),
-  updateCursor: (userId, position) =>
+  shiftCursor: (userId, position) =>
     set((state) => {
       const newMap = new Map(state.otherCursors);
       newMap.set(userId, position);
       return { otherCursors: newMap };
     }),
-  removeCursor: (userId) =>
+  delCursor: (userId) =>
     set((state) => {
       const newMap = new Map(state.otherCursors);
       newMap.delete(userId);
@@ -191,8 +191,8 @@ export const useCollabStore = create<CollabState>((set) => ({
 
   // 消息列表
   messages: [],
-  setMessages: (messages) => set({ messages }),
-  addMessage: (message) =>
+  setMsgs: (messages) => set({ messages }),
+  msgIn: (message) =>
     set((state) => ({
       messages: [...state.messages, message],
     })),
@@ -208,13 +208,13 @@ export const useCollabStore = create<CollabState>((set) => ({
   // 在线用户
   onlineUsers: new Set(),
   setOnlineUsers: (users) => set({ onlineUsers: users }),
-  addOnlineUser: (userId) =>
+  addOnline: (userId) =>
     set((state) => {
       const newSet = new Set(state.onlineUsers);
       newSet.add(userId);
       return { onlineUsers: newSet };
     }),
-  removeOnlineUser: (userId) =>
+  popUser: (userId) =>
     set((state) => {
       const newSet = new Set(state.onlineUsers);
       newSet.delete(userId);

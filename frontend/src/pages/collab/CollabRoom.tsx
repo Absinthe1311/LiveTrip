@@ -19,7 +19,7 @@ import {
   Share2,
 } from 'lucide-react';
 import GlobalSidebar from '../../components/layout/GlobalSidebar';
-import { useCollabStore } from '../../store/collabStore';
+import { useCollab } from '../../store/collabStore';
 import {
   newRoomInfo,
   myDrfts,
@@ -76,15 +76,15 @@ export default function CollabRoom() {
     currentDay,
     onlineUsers,
     visibleLayers,
-    setCurrentRoom,
-    setMembers,
-    setMessages,
-    setMyDrafts,
+    setRoom,
+    setMems,
+    setMsgs,
+    setDrafts,
     setCurrentDay,
     setSpotStats,
     setVisibleLayers,
     reset,
-  } = useCollabStore();
+  } = useCollab();
 
   // 计算行程总天数
   const totalDays = currentRoom?.trip
@@ -357,8 +357,8 @@ export default function CollabRoom() {
       // 加载房间信息
       const roomResponse = await newRoomInfo(roomId!);
       if (roomResponse.success) {
-        setCurrentRoom(roomResponse.data);
-        setMembers(roomResponse.data.members || []);
+        setRoom(roomResponse.data);
+        setMems(roomResponse.data.members || []);
 
         // 加载城市景点
         if (roomResponse.data.trip?.destination) {
@@ -381,7 +381,7 @@ export default function CollabRoom() {
       // 加载我的草案
       const draftsResponse = await myDrfts(roomId!);
       if (draftsResponse.success) {
-        setMyDrafts(draftsResponse.data);
+        setDrafts(draftsResponse.data);
 
         // 恢复当前天的草案
         const currentDraft = draftsResponse.data.find((d) => d.dayNumber === currentDay);
@@ -403,7 +403,7 @@ export default function CollabRoom() {
       // 加载消息
       const messagesResponse = await fetchColMsgs(roomId!);
       if (messagesResponse.success) {
-        setMessages(messagesResponse.data);
+        setMsgs(messagesResponse.data);
       }
 
       // 连接Socket.io
@@ -417,7 +417,7 @@ export default function CollabRoom() {
         try {
           const roomResponse = await newRoomInfo(roomId!);
           if (roomResponse.success) {
-            setMembers(roomResponse.data.members || []);
+            setMems(roomResponse.data.members || []);
           }
         } catch (error) {
           console.error('获取成员列表失败:', error);
@@ -442,7 +442,7 @@ export default function CollabRoom() {
       try {
         const draftsResponse = await myDrfts(roomId);
         if (draftsResponse.success) {
-          setMyDrafts(draftsResponse.data);
+          setDrafts(draftsResponse.data);
 
           // 加载当前天的草案
           const currentDraft = draftsResponse.data.find((d) => d.dayNumber === currentDay);
@@ -593,7 +593,7 @@ export default function CollabRoom() {
     try {
       const response = await lockCollabRoom(roomId);
       if (response.success) {
-        setCurrentRoom({
+        setRoom({
           ...currentRoom!,
           phase: 'LOCKED',
         });

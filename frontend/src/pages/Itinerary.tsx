@@ -20,7 +20,7 @@ import { PackingListWidget } from '../components/itinerary/PackingListWidget';
 import ActionButton from '../components/itinerary/ActionButton';
 import DayMapComponent from '../components/itinerary/DayMap';
 import PackingStep, { PackingItemData } from '../components/itinerary/PackingStep';
-import { useAppStore } from '../store';
+import { useStore } from '../store';
 import {
   FullItinerary,
   AttractionItem,
@@ -58,8 +58,8 @@ declare global {
 export default function Itinerary() {
   const navigate = useNavigate();
   const location = useLocation();
-  const currentItinerary = useAppStore((state) => state.currentItinerary);
-  const setCurrentItinerary = useAppStore((state) => state.setCurrentItinerary);
+  const currentItinerary = useStore((state) => state.currentItinerary);
+  const setPlan = useStore((state) => state.setPlan);
 
   // 状态管理
   const [itineraryData, setItineraryData] = useState<FullItinerary | null>(null);
@@ -582,7 +582,7 @@ export default function Itinerary() {
           tripId: newTripId,
           isSavedTrip: true,
         };
-        setCurrentItinerary(updatedItinerary);
+        setPlan(updatedItinerary);
 
         // 跳转到我的行程页面
         setTimeout(() => {
@@ -977,7 +977,7 @@ export default function Itinerary() {
                     }
 
                     setItineraryData(newItinerary);
-                    setCurrentItinerary(newItinerary);
+                    setPlan(newItinerary);
                     message.success(`已替换为 ${newItem.name}`);
 
                     handleCloseAlternatives(originalItem);

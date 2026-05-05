@@ -12,28 +12,28 @@ interface UserProfile {
 
 interface AppState {
   currentItinerary: FullItinerary | null;
-  setCurrentItinerary: (itinerary: FullItinerary | null) => void;
+  setPlan: (itinerary: FullItinerary | null) => void;
 
   user: UserProfile | null;
-  setUser: (user: UserProfile | null) => void;
+  setProfile: (user: UserProfile | null) => void;
 
   isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
+  setLoad: (loading: boolean) => void;
 
-  completeTrip: () => void;
+  endTrip: () => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useStore = create<AppState>((set) => ({
   currentItinerary: null,
-  setCurrentItinerary: (itinerary) => set({ currentItinerary: itinerary }),
+  setPlan: (itinerary) => set({ currentItinerary: itinerary }),
 
   user: null,
-  setUser: (user) => set({ user }),
+  setProfile: (user) => set({ user }),
 
   isLoading: false,
-  setIsLoading: (loading) => set({ isLoading: loading }),
+  setLoad: (loading) => set({ isLoading: loading }),
 
-  completeTrip: () =>
+  endTrip: () =>
     set((state) => {
       if (state.currentItinerary) {
         return {

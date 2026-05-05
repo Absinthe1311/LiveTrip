@@ -1,6 +1,6 @@
 // Socket.io客户端服务 - 处理协同规划的实时通信
 import { io, Socket } from 'socket.io-client';
-import { useCollabStore } from '../store/collabStore';
+import { useCollab } from '../store/collabStore';
 import { SOCKET_URL, API_BASE_URL } from '../config/api';
 
 // Socket实例
@@ -41,8 +41,8 @@ export const openSock = (token: string) => {
    */
   socket.on('member:join', async (data: { userId: string; username: string; timestamp: Date }) => {
     console.log('👤 成员加入:', data);
-    const store = useCollabStore.getState();
-    store.addOnlineUser(data.userId);
+    const store = useCollab.getState();
+    store.addOnline(data.userId);
 
     // 重新获取房间信息（包含成员列表）
     if (store.currentRoom) {
@@ -54,7 +54,7 @@ export const openSock = (token: string) => {
         });
         if (response.ok) {
           const roomData = await response.json();
-          store.setMembers(roomData.data.members || []);
+          store.setMems(roomData.data.members || []);
         }
       } catch (error) {
         console.error('获取成员列表失败:', error);
@@ -67,9 +67,9 @@ export const openSock = (token: string) => {
    */
   socket.on('member:leave', async (data: { userId: string; username: string; timestamp: Date }) => {
     console.log('👋 成员离开:', data);
-    const store = useCollabStore.getState();
-    store.removeOnlineUser(data.userId);
-    store.removeCursor(data.userId);
+    const store = useCollab.getState();
+    store.popUser(data.userId);
+    store.delCursor(data.userId);
 
     // 重新获取房间信息（包含成员列表）
     if (store.currentRoom) {
@@ -81,7 +81,7 @@ export const openSock = (token: string) => {
         });
         if (response.ok) {
           const roomData = await response.json();
-          store.setMembers(roomData.data.members || []);
+          store.setMems(roomData.data.members || []);
         }
       } catch (error) {
         console.error('获取成员列表失败:', error);
@@ -97,8 +97,8 @@ export const openSock = (token: string) => {
   socket.on(
     'cursor:update',
     (data: { userId: string; lat: number; lng: number; timestamp: Date }) => {
-      const store = useCollabStore.getState();
-      store.updateCursor(data.userId, {
+      const store = useCollab.getState();
+      store.shiftCursor(data.userId, {
         userId: data.userId,
         lat: data.lat,
         lng: data.lng,
@@ -133,7 +133,7 @@ export const openSock = (token: string) => {
     'draft:submitted',
     async (data: { userId: string; dayNumber: number; timestamp: Date }) => {
       console.log('✅ 草案已提交:', data);
-      const store = useCollabStore.getState();
+      const store = useCollab.getState();
 
       // 重新获取所有成员的草案，以便实时更新路线图
       if (store.currentRoom) {
@@ -170,9 +170,9 @@ export const openSock = (token: string) => {
    */
   socket.on('room:lock', (_data: { timestamp: Date }) => {
     console.log('🔒 房间已锁定');
-    const store = useCollabStore.getState();
+    const store = useCollab.getState();
     if (store.currentRoom) {
-      store.setCurrentRoom({
+      store.setRoom({
         ...store.currentRoom,
         phase: 'LOCKED',
       });
@@ -201,8 +201,8 @@ export const openSock = (token: string) => {
    * 新消息
    */
   socket.on('message:new', (message: any) => {
-    const store = useCollabStore.getState();
-    store.addMessage(message);
+    const store = useCollab.getState();
+    store.msgIn(message);
   });
 
   /**
