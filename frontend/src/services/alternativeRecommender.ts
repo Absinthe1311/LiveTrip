@@ -25,7 +25,7 @@ export class AlternativeRecommender {
    * @param excludeSpotNames 需要排除的景点名称列表（如行程中的景点）
    * @returns 排序后的备选景点列表
    */
-  public async getRecommendations(
+  public async getAlts(
     originalAttraction: AttractionItem,
     iotData: IoTData[],
     city?: string,
@@ -36,13 +36,13 @@ export class AlternativeRecommender {
 
     // 如果没有提供城市信息，尝试从行程中提取
     if (!city) {
-      city = this.extractCityFromItinerary(originalAttraction) || undefined;
+      city = this.getCity(originalAttraction) || undefined;
       console.log('   提取的城市:', city || '未提取到');
     }
 
     if (!city) {
       console.warn('⚠️  无法提取城市信息，使用默认值');
-      return this.getFallbackRecommendations(originalAttraction, iotData);
+      return this.backupRecs(originalAttraction, iotData);
     }
 
     try {
@@ -55,19 +55,19 @@ export class AlternativeRecommender {
         return response.data;
       } else {
         console.warn('⚠️  API返回失败，使用fallback方案');
-        return this.getFallbackRecommendations(originalAttraction, iotData);
+        return this.backupRecs(originalAttraction, iotData);
       }
     } catch (error: any) {
       console.error('❌ 获取备选景点失败:', error);
       console.log('🔄 使用fallback方案');
-      return this.getFallbackRecommendations(originalAttraction, iotData);
+      return this.backupRecs(originalAttraction, iotData);
     }
   }
 
   /**
    * Fallback方案：当API调用失败时使用
    */
-  private getFallbackRecommendations(
+  private backupRecs(
     originalAttraction: AttractionItem,
     iotData: IoTData[]
   ): Promise<Array<any>> {
@@ -118,8 +118,8 @@ export class AlternativeRecommender {
 
     // 按IoT数据质量排序（优先推荐天气好、人流适中、正常开放的景点）
     const sortedAlternatives = filteredAlternatives.sort((a, b) => {
-      const scoreA = this.calculateIoTScore(a.iotData);
-      const scoreB = this.calculateIoTScore(b.iotData);
+      const scoreA = this.sensorScore(a.iotData);
+      const scoreB = this.sensorScore(b.iotData);
       return scoreB - scoreA; // 降序
     });
 
@@ -132,7 +132,7 @@ export class AlternativeRecommender {
    * @param attraction 景点
    * @returns 城市名称
    */
-  private extractCityFromItinerary(attraction: AttractionItem): string | null {
+  private getCity(attraction: AttractionItem): string | null {
     // 这里需要从全局行程数据中获取城市信息
     // 由于当前架构限制，暂时返回 null
     // TODO: 需要修改架构，将城市信息传递到备选景点推荐服务
@@ -158,7 +158,7 @@ export class AlternativeRecommender {
    * @param iotData IoT数据
    * @returns 评分（0-100）
    */
-  private calculateIoTScore(iotData?: any): number {
+  private sensorScore(iotData?: any): number {
     if (!iotData) return 50; // 没有数据，给中等分数
 
     let score = 100;
@@ -184,7 +184,7 @@ export class AlternativeRecommender {
    * @param iotData IoT数据
    * @returns 是否适合游玩
    */
-  public isSuitableForVisit(iotData?: any): boolean {
+  public canGo(iotData?: any): boolean {
     if (!iotData) return true;
 
     // 暴雨、极度拥挤、已关闭 - 不适合游玩
@@ -200,7 +200,7 @@ export class AlternativeRecommender {
    * @param iotData IoT数据
    * @returns 健康度等级
    */
-  public getHealthLevel(iotData?: any): 'severe' | 'warning' | 'good' | 'info' {
+  public getHealth(iotData?: any): 'severe' | 'warning' | 'good' | 'info' {
     if (!iotData) return 'info';
 
     // 严重警告
@@ -226,7 +226,7 @@ export class AlternativeRecommender {
    * @param level 健康度等级
    * @returns 颜色
    */
-  public getHealthColor(level: string): string {
+  public getColor(level: string): string {
     switch (level) {
       case 'severe':
         return 'red';
@@ -244,7 +244,7 @@ export class AlternativeRecommender {
    * @param level 健康度等级
    * @returns 图标
    */
-  public getHealthIcon(level: string): string {
+  public statusIcon(level: string): string {
     switch (level) {
       case 'severe':
         return '⚠️';
@@ -263,7 +263,7 @@ export class AlternativeRecommender {
    * @param iotData IoT数据
    * @returns 提示文案
    */
-  public getHealthMessage(level: string, iotData?: any): string {
+  public statusText(level: string, iotData?: any): string {
     if (!iotData) return '暂无数据';
 
     switch (level) {

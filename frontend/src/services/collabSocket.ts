@@ -10,7 +10,7 @@ let socket: Socket | null = null;
  * 连接到Socket.io服务器
  * @param token JWT token
  */
-export const connectSocket = (token: string) => {
+export const openSock = (token: string) => {
   if (socket?.connected) {
     console.log('Socket已连接');
     return;
@@ -216,7 +216,7 @@ export const connectSocket = (token: string) => {
 /**
  * 断开Socket连接
  */
-export const disconnectSocket = () => {
+export const closeIO = () => {
   if (socket) {
     socket.disconnect();
     socket = null;
@@ -228,7 +228,7 @@ export const disconnectSocket = () => {
  * @param roomId 房间ID
  * @param userId 用户ID
  */
-export const joinRoom = (roomId: string, userId: string) => {
+export const enterRoom = (roomId: string, userId: string) => {
   if (socket) {
     socket.emit('join_room', { roomId, userId });
   }
@@ -252,7 +252,7 @@ export const leaveRoom = (roomId: string, userId: string) => {
  * @param lat 纬度
  * @param lng 经度
  */
-export const moveCursor = (roomId: string, userId: string, lat: number, lng: number) => {
+export const nudgeCursor = (roomId: string, userId: string, lat: number, lng: number) => {
   if (socket) {
     socket.emit('cursor:move', { roomId, userId, lat, lng });
   }
@@ -266,7 +266,7 @@ export const moveCursor = (roomId: string, userId: string, lat: number, lng: num
  * @param spotSequence 景点序列
  * @param polylineData 路线数据
  */
-export const updateDraft = (
+export const patchDraft = (
   roomId: string,
   userId: string,
   dayNumber: number,

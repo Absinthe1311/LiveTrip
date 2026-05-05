@@ -65,7 +65,7 @@ export default function AIAdvisorGlass({
     setLoading(true);
 
     try {
-      const data = await aiService.sendAdvisorMessage(inputValue, {
+      const data = await aiService.askAdv(inputValue, {
         destination,
         startDate,
         endDate,

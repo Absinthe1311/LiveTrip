@@ -48,7 +48,7 @@ class AIService {
   /**
    * 发送消息（问答助手模式）
    */
-  async sendAdvisorMessage(question: string, context?: any): Promise<AIResponse> {
+  async askAdv(question: string, context?: any): Promise<AIResponse> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -76,7 +76,7 @@ class AIService {
   /**
    * 发送消息（智能助手模式，SSE 流式步骤推送）
    */
-  async sendAgentMessageSSE(question: string, onStep: (step: string) => void): Promise<AIResponse> {
+  async sseChat(question: string, onStep: (step: string) => void): Promise<AIResponse> {
     const userId = getUserId();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',

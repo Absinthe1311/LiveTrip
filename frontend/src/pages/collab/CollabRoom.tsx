@@ -35,11 +35,11 @@ import {
   getLatestCollabTrip,
 } from '../../api/collabApi';
 import {
-  connectSocket,
-  disconnectSocket,
-  joinRoom,
+  openSock,
+  closeIO,
+  enterRoom,
   leaveRoom,
-  updateDraft,
+  patchDraft,
 } from '../../services/collabSocket';
 import { useCollabMap, Spot, RoutePoint } from '../../hooks/useCollabMap';
 import LayerControl from '../../components/collab/LayerControl';
@@ -159,7 +159,7 @@ export default function CollabRoom() {
       if (currentRoom && currentUser.id) {
         leaveRoom(currentRoom.id, currentUser.id);
       }
-      disconnectSocket();
+      closeIO();
       reset();
     };
   }, [roomId]);
@@ -407,11 +407,11 @@ export default function CollabRoom() {
       }
 
       // 连接Socket.io
-      connectSocket(token);
+      openSock(token);
 
       // 加入房间
       setTimeout(async () => {
-        joinRoom(roomId!, currentUser.id);
+        enterRoom(roomId!, currentUser.id);
 
         // 加入后立即获取最新的成员列表
         try {
@@ -529,7 +529,7 @@ export default function CollabRoom() {
     saveDraft(roomId, currentDay, spotSequence, polylineData);
 
     // 通过WebSocket通知其他人
-    updateDraft(roomId, currentUser.id, currentDay, spotSequence, polylineData);
+    patchDraft(roomId, currentUser.id, currentDay, spotSequence, polylineData);
   }, [roomId, currentRoom, currentDay, routeSpots, currentUser.id]);
 
   // 处理路线改变

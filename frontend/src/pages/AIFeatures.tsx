@@ -193,11 +193,11 @@ export default function AIFeaturesGlass() {
     try {
       let data;
       if (mode === 'agent') {
-        data = await aiService.sendAgentMessageSSE(currentInput, (step) => {
+        data = await aiService.sseChat(currentInput, (step) => {
           setCurrentStep(step);
         });
       } else {
-        data = await aiService.sendAdvisorMessage(currentInput, {});
+        data = await aiService.askAdv(currentInput, {});
       }
 
       if (data.success) {
