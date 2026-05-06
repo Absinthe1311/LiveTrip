@@ -95,7 +95,6 @@ app.use(errorHandler);
 
 // 启动服务器（使用HTTP服务器而非Express app）
 httpServer.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
 });
 
 export default app;

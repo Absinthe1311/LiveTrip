@@ -22,13 +22,11 @@ export async function retryBack<T>(
 
       // 如果是最后一次尝试，抛出错误
       if (attempt === maxRetries) {
-        console.error(`❌ 重试失败，已达到最大重试次数 (${maxRetries})`);
         throw lastError;
       }
 
       // 计算延迟时间（指数退避）
       const delay = baseDelay * Math.pow(2, attempt);
-      console.warn(`⚠️  第 ${attempt + 1} 次尝试失败，${delay}ms 后重试...`, error);
 
       // 等待延迟时间
       await new Promise((resolve) => setTimeout(resolve, delay));

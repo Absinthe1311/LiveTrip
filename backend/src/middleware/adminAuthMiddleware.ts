@@ -54,7 +54,6 @@ export const chkAdmin = async (
 
     next();
   } catch (error) {
-    console.error('管理员权限验证失败:', error);
     res.status(500).json({
       success: false,
       error: '权限验证失败',
@@ -95,7 +94,6 @@ export const adminOpt = async (
 
     next();
   } catch (error) {
-    console.error('可选管理员权限验证失败:', error);
     next();
   }
 };
@@ -148,7 +146,6 @@ export const needRole = (allowedRoles: string[]) => {
 
       next();
     } catch (error) {
-      console.error('角色权限验证失败:', error);
       res.status(500).json({
         success: false,
         error: '权限验证失败',
@@ -215,7 +212,6 @@ export const canEdit = (
         error: '您没有权限执行此操作',
       });
     } catch (error) {
-      console.error('所有权验证失败:', error);
       res.status(500).json({
         success: false,
         error: '权限验证失败',

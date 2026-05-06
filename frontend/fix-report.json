@@ -1,0 +1,907 @@
+{
+  "scanned": 117,
+  "fixed": 103,
+  "errors": [],
+  "fixedFiles": [
+    {
+      "file": "api\\adminApi.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 4
+    },
+    {
+      "file": "api\\client.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 27
+    },
+    {
+      "file": "api\\client.ts",
+      "pattern": "standalone ); line",
+      "count": 3
+    },
+    {
+      "file": "api\\collabApi.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 7
+    },
+    {
+      "file": "api\\recommendationApi.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 2
+    },
+    {
+      "file": "api\\recommendationApi.ts",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "App.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\admin\\AdminGuard.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\admin\\AdminSidebar.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\ai\\AIAdvisor.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 1
+    },
+    {
+      "file": "components\\ai\\AIAdvisor.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 3
+    },
+    {
+      "file": "components\\ai\\AIAdvisor.tsx",
+      "pattern": "standalone ); line",
+      "count": 3
+    },
+    {
+      "file": "components\\blog\\BlogDetail.tsx",
+      "pattern": "standalone ); line",
+      "count": 3
+    },
+    {
+      "file": "components\\blog\\BlogEditor.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 5
+    },
+    {
+      "file": "components\\blog\\BlogEditor.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 5
+    },
+    {
+      "file": "components\\blog\\BlogEditor.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\blog\\BlogList.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 2
+    },
+    {
+      "file": "components\\blog\\BlogList.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 1
+    },
+    {
+      "file": "components\\blog\\BlogList.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\blog\\BlogSkeleton.tsx",
+      "pattern": "standalone ); line",
+      "count": 3
+    },
+    {
+      "file": "components\\budget\\BudgetDetailModal.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 2
+    },
+    {
+      "file": "components\\budget\\BudgetDetailModal.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\budget\\BudgetWidget.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\budget\\ExpenseRecordModal.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 1
+    },
+    {
+      "file": "components\\budget\\ExpenseRecordModal.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\budget\\SimpleBudgetAdjustModal.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 1
+    },
+    {
+      "file": "components\\budget\\SimpleBudgetAdjustModal.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\collab\\DayRoutePlanner.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 9
+    },
+    {
+      "file": "components\\collab\\DayRoutePlanner.tsx",
+      "pattern": "standalone ); line",
+      "count": 4
+    },
+    {
+      "file": "components\\collab\\LayerControl.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\collab\\RouteEditor.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 3
+    },
+    {
+      "file": "components\\collab\\RouteEditor.tsx",
+      "pattern": "standalone ); line",
+      "count": 4
+    },
+    {
+      "file": "components\\collab\\SpotStatsPanel.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\common\\BlurText.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\common\\EmptyState.tsx",
+      "pattern": "standalone ); line",
+      "count": 3
+    },
+    {
+      "file": "components\\common\\LandingHeroSection.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 2
+    },
+    {
+      "file": "components\\common\\LandingHeroSection.tsx",
+      "pattern": "standalone ); line",
+      "count": 3
+    },
+    {
+      "file": "components\\common\\SettingsModal.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 1
+    },
+    {
+      "file": "components\\common\\SettingsModal.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 2
+    },
+    {
+      "file": "components\\common\\SettingsModal.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\common\\ShareButton.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 2
+    },
+    {
+      "file": "components\\common\\ShareButton.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\home\\BudgetCard.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\home\\CalendarCard.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 1
+    },
+    {
+      "file": "components\\home\\CalendarCard.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\home\\GlassCard.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\home\\LogoutButton.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\home\\MapWidget.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 13
+    },
+    {
+      "file": "components\\home\\MapWidget.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\home\\PackingList.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\home\\SearchBar.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\home\\UpcomingTourCard.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\home\\WeatherCard.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\input\\DoubleCalendar.tsx",
+      "pattern": "standalone ); line",
+      "count": 3
+    },
+    {
+      "file": "components\\itinerary\\ActionButton.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\itinerary\\BudgetBar.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\itinerary\\CompactAlternativeSpotCard.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\itinerary\\DayMap.tsx",
+      "pattern": ": xxx);",
+      "count": 1
+    },
+    {
+      "file": "components\\itinerary\\DayMap.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 26
+    },
+    {
+      "file": "components\\itinerary\\DayMap.tsx",
+      "pattern": "standalone ); line",
+      "count": 4
+    },
+    {
+      "file": "components\\itinerary\\FullscreenMap.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\itinerary\\InlineAlternativeAttractions.tsx",
+      "pattern": ".length);",
+      "count": 1
+    },
+    {
+      "file": "components\\itinerary\\InlineAlternativeAttractions.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 2
+    },
+    {
+      "file": "components\\itinerary\\InlineAlternativeAttractions.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\itinerary\\LinearStepNavigation.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\itinerary\\PackingListWidget.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 1
+    },
+    {
+      "file": "components\\itinerary\\PackingListWidget.tsx",
+      "pattern": "standalone ); line",
+      "count": 7
+    },
+    {
+      "file": "components\\itinerary\\PackingStep.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 1
+    },
+    {
+      "file": "components\\itinerary\\PackingStep.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 2
+    },
+    {
+      "file": "components\\itinerary\\PackingStep.tsx",
+      "pattern": "standalone ); line",
+      "count": 6
+    },
+    {
+      "file": "components\\itinerary\\SpotCardV2.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 1
+    },
+    {
+      "file": "components\\itinerary\\SpotCardV2.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\itinerary\\Timeline.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\itinerary\\TimelineWithCards.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 2
+    },
+    {
+      "file": "components\\itinerary\\TimelineWithCards.tsx",
+      "pattern": "standalone ); line",
+      "count": 5
+    },
+    {
+      "file": "components\\layout\\GlassLayout.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 1
+    },
+    {
+      "file": "components\\layout\\GlassLayout.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 2
+    },
+    {
+      "file": "components\\layout\\GlassLayout.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\layout\\GlobalSidebar.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\layout\\SharedSidebar.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\map\\MapCopyright.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\media\\AvatarCropper.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 3
+    },
+    {
+      "file": "components\\media\\AvatarCropper.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\media\\ImageCropper.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 5
+    },
+    {
+      "file": "components\\media\\ImageCropper.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\notification\\NotificationBell.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 5
+    },
+    {
+      "file": "components\\notification\\NotificationBell.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\review\\ReviewForm.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 1
+    },
+    {
+      "file": "components\\review\\ReviewForm.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 1
+    },
+    {
+      "file": "components\\review\\ReviewForm.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\review\\ReviewList.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 1
+    },
+    {
+      "file": "components\\review\\ReviewList.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\spot\\DestinationAttractionCard.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\spot\\SpotCard.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 1
+    },
+    {
+      "file": "components\\spot\\SpotCard.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\spot\\SpotImageUploadModal.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 1
+    },
+    {
+      "file": "components\\spot\\SpotImageUploadModal.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 2
+    },
+    {
+      "file": "components\\spot\\SpotImageUploadModal.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\trip\\PackingListDrawer.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 2
+    },
+    {
+      "file": "components\\trip\\PackingListDrawer.tsx",
+      "pattern": "standalone ); line",
+      "count": 3
+    },
+    {
+      "file": "components\\ui\\avatar.tsx",
+      "pattern": "standalone ); line",
+      "count": 6
+    },
+    {
+      "file": "components\\ui\\badge.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\ui\\button.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "components\\ui\\card.tsx",
+      "pattern": "standalone ); line",
+      "count": 7
+    },
+    {
+      "file": "components\\ui\\checkbox.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\ui\\input.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\ui\\tabs.tsx",
+      "pattern": "standalone ); line",
+      "count": 5
+    },
+    {
+      "file": "components\\ui\\textarea.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "components\\user\\UserProfileEditModal.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 10
+    },
+    {
+      "file": "components\\user\\UserProfileEditModal.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 3
+    },
+    {
+      "file": "components\\user\\UserProfileEditModal.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "config\\presetItems.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 3
+    },
+    {
+      "file": "data\\alternativeSpots.ts",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "hooks\\useCollabMap.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 21
+    },
+    {
+      "file": "hooks\\useCollabMap.ts",
+      "pattern": "standalone ); line",
+      "count": 3
+    },
+    {
+      "file": "hooks\\useHomepageData.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 11
+    },
+    {
+      "file": "hooks\\useHomepageData.ts",
+      "pattern": "standalone ); line",
+      "count": 14
+    },
+    {
+      "file": "hooks\\useSocket.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 4
+    },
+    {
+      "file": "main.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "pages\\admin\\ReviewPage.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 2
+    },
+    {
+      "file": "pages\\admin\\ReviewPage.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "pages\\admin\\SpotManagePage.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "pages\\AIFeatures.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 2
+    },
+    {
+      "file": "pages\\AIFeatures.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 5
+    },
+    {
+      "file": "pages\\AIFeatures.tsx",
+      "pattern": "standalone ); line",
+      "count": 5
+    },
+    {
+      "file": "pages\\Auth.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 2
+    },
+    {
+      "file": "pages\\Auth.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 3
+    },
+    {
+      "file": "pages\\Auth.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "pages\\BlogDetail.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 2
+    },
+    {
+      "file": "pages\\BlogDetail.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 7
+    },
+    {
+      "file": "pages\\BlogDetail.tsx",
+      "pattern": "standalone ); line",
+      "count": 3
+    },
+    {
+      "file": "pages\\Blogs.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 2
+    },
+    {
+      "file": "pages\\Blogs.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 2
+    },
+    {
+      "file": "pages\\Blogs.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "pages\\collab\\CollabRoom.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 4
+    },
+    {
+      "file": "pages\\collab\\CollabRoom.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 15
+    },
+    {
+      "file": "pages\\collab\\CollabRoom.tsx",
+      "pattern": "standalone ); line",
+      "count": 5
+    },
+    {
+      "file": "pages\\collab\\CollabSetup.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 5
+    },
+    {
+      "file": "pages\\collab\\CollabSetup.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 5
+    },
+    {
+      "file": "pages\\collab\\CollabSetup.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "pages\\collab\\JoinCollabRoom.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 4
+    },
+    {
+      "file": "pages\\collab\\JoinCollabRoom.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "pages\\CollabEntry.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 2
+    },
+    {
+      "file": "pages\\CollabEntry.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "pages\\DestinationDetail.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 3
+    },
+    {
+      "file": "pages\\DestinationDetail.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 3
+    },
+    {
+      "file": "pages\\DestinationDetail.tsx",
+      "pattern": "standalone ); line",
+      "count": 6
+    },
+    {
+      "file": "pages\\Destinations.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 3
+    },
+    {
+      "file": "pages\\Destinations.tsx",
+      "pattern": "standalone ); line",
+      "count": 4
+    },
+    {
+      "file": "pages\\Favorites.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "pages\\Home.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 1
+    },
+    {
+      "file": "pages\\Home.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "pages\\Itinerary.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 3
+    },
+    {
+      "file": "pages\\Itinerary.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 26
+    },
+    {
+      "file": "pages\\Itinerary.tsx",
+      "pattern": "standalone ); line",
+      "count": 5
+    },
+    {
+      "file": "pages\\MyTrips.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 2
+    },
+    {
+      "file": "pages\\MyTrips.tsx",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "pages\\Plan.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 2
+    },
+    {
+      "file": "pages\\Plan.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 17
+    },
+    {
+      "file": "pages\\Plan.tsx",
+      "pattern": "standalone ); line",
+      "count": 17
+    },
+    {
+      "file": "pages\\Profile.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 5
+    },
+    {
+      "file": "pages\\Profile.tsx",
+      "pattern": "standalone ); line",
+      "count": 2
+    },
+    {
+      "file": "pages\\SharedTrip.tsx",
+      "pattern": "|| \"xxx\");",
+      "count": 2
+    },
+    {
+      "file": "pages\\SharedTrip.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 3
+    },
+    {
+      "file": "pages\\SharedTrip.tsx",
+      "pattern": "standalone ); line",
+      "count": 4
+    },
+    {
+      "file": "pages\\Today.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 20
+    },
+    {
+      "file": "pages\\Today.tsx",
+      "pattern": "standalone ); line",
+      "count": 6
+    },
+    {
+      "file": "pages\\TripDetail.tsx",
+      "pattern": "}); at line end (if standalone)",
+      "count": 12
+    },
+    {
+      "file": "pages\\TripDetail.tsx",
+      "pattern": "standalone ); line",
+      "count": 5
+    },
+    {
+      "file": "services\\aiService.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 6
+    },
+    {
+      "file": "services\\aiService.ts",
+      "pattern": "standalone ); line",
+      "count": 1
+    },
+    {
+      "file": "services\\alternativeRecommender.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 4
+    },
+    {
+      "file": "services\\collabSocket.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 20
+    },
+    {
+      "file": "services\\collabSocket.ts",
+      "pattern": "standalone ); line",
+      "count": 7
+    },
+    {
+      "file": "store\\collabStore.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 2
+    },
+    {
+      "file": "utils\\cacheManager.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 1
+    },
+    {
+      "file": "utils\\exportPDF.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 1
+    },
+    {
+      "file": "utils\\mapScreenshot.ts",
+      "pattern": ".length);",
+      "count": 1
+    },
+    {
+      "file": "utils\\mapScreenshot.ts",
+      "pattern": "}); at line end (if standalone)",
+      "count": 34
+    },
+    {
+      "file": "utils\\mapScreenshot.ts",
+      "pattern": "standalone ); line",
+      "count": 2
+    }
+  ]
+}

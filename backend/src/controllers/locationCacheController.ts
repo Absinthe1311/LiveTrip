@@ -28,7 +28,6 @@ export const findLoc = async (req: Request, res: Response) => {
 
     res.json(result);
   } catch (error: any) {
-    console.error('❌ 搜索地点失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '搜索失败',
@@ -48,7 +47,6 @@ export const getPopularfindLocs = async (req: Request, res: Response) => {
 
     res.json(result);
   } catch (error: any) {
-    console.error('❌ 获取热门地点失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取热门地点失败',
@@ -66,7 +64,6 @@ export const clearLocs = async (req: Request, res: Response) => {
 
     res.json(result);
   } catch (error: any) {
-    console.error('❌ 清空缓存失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '清空缓存失败',

@@ -33,7 +33,6 @@ export const createRoom = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.error('❌ 创建协同房间失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '创建协同房间失败',
@@ -50,10 +49,8 @@ export const joinRoom = async (req: Request, res: Response) => {
     const { token } = req.body;
     const userId = (req as any).user?.userId;
 
-    console.log('📝 加入房间请求:', { token, userId });
 
     if (!userId) {
-      console.error('❌ 未授权: userId 不存在');
       return res.status(401).json({
         success: false,
         error: '未授权，请先登录',
@@ -61,7 +58,6 @@ export const joinRoom = async (req: Request, res: Response) => {
     }
 
     if (!token) {
-      console.error('❌ 缺少邀请token');
       return res.status(400).json({
         success: false,
         error: '缺少邀请token',
@@ -71,21 +67,18 @@ export const joinRoom = async (req: Request, res: Response) => {
     const room = await collabService.enterRoom(token, userId);
 
     if (!room) {
-      console.error('❌ 加入房间失败: 返回的房间数据为空');
       return res.status(500).json({
         success: false,
         error: '加入房间失败',
       });
     }
 
-    console.log('✅ 成功加入房间:', room.id);
 
     res.json({
       success: true,
       data: room,
     });
   } catch (error: any) {
-    console.error('❌ 加入协同房间失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '加入协同房间失败',
@@ -125,7 +118,6 @@ export const getRoomInfo = async (req: Request, res: Response) => {
       data: room,
     });
   } catch (error: any) {
-    console.error('❌ 获取房间信息失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取房间信息失败',
@@ -165,7 +157,6 @@ export const spotStats = async (req: Request, res: Response) => {
       data: stats,
     });
   } catch (error: any) {
-    console.error('❌ 获取景点统计失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取景点统计失败',
@@ -210,7 +201,6 @@ export const closeRoom = async (req: Request, res: Response) => {
       data: room,
     });
   } catch (error: any) {
-    console.error('❌ 锁定房间失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '锁定房间失败',
@@ -254,7 +244,6 @@ export const saveDraft = async (req: Request, res: Response) => {
       data: draft,
     });
   } catch (error: any) {
-    console.error('❌ 创建/更新草案失败:', error);
 
     // 如果是房间锁定错误，返回403
     if (error.message === '房间已锁定，无法修改草案') {
@@ -301,7 +290,6 @@ export const sendDraft = async (req: Request, res: Response) => {
       data: draft,
     });
   } catch (error: any) {
-    console.error('❌ 提交草案失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '提交草案失败',
@@ -332,7 +320,6 @@ export const myDrfts = async (req: Request, res: Response) => {
       data: drafts,
     });
   } catch (error: any) {
-    console.error('❌ 获取草案列表失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取草案列表失败',
@@ -391,7 +378,6 @@ export const allDrafts = async (req: Request, res: Response) => {
       data: allDrafts,
     });
   } catch (error: any) {
-    console.error('❌ 获取所有草案失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取所有草案失败',
@@ -432,7 +418,6 @@ export const msgSend = async (req: Request, res: Response) => {
       data: message,
     });
   } catch (error: any) {
-    console.error('❌ 发送消息失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '发送消息失败',
@@ -472,7 +457,6 @@ export const msgs = async (req: Request, res: Response) => {
       data: messages,
     });
   } catch (error: any) {
-    console.error('❌ 获取消息列表失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取消息列表失败',
@@ -489,7 +473,6 @@ export const commitTrip = async (req: Request, res: Response) => {
     const { roomId, finalRoute } = req.body;
     const userId = (req as any).user?.userId;
 
-    console.log('📝 保存最终行程请求:', { roomId, finalRoute, userId });
 
     if (!userId) {
       return res.status(401).json({
@@ -523,11 +506,6 @@ export const commitTrip = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`👥 房间成员数量: ${room.members.length}`);
-    console.log(
-      `👥 成员列表:`,
-      room.members.map((m) => ({ id: m.userId, username: m.user.username, role: m.role }))
-    );
 
     // 更新Trip的行程数据
     const { getPrismaClient } = require('../lib/prisma');
@@ -550,11 +528,9 @@ export const commitTrip = async (req: Request, res: Response) => {
       },
     ];
 
-    console.log('📅 行程数据:', JSON.stringify(itineraryData, null, 2));
 
     // 使用事务确保原子性
     const result = await prisma.$transaction(async (tx: any) => {
-      console.log('🔄 开始事务处理...');
 
       // 更新房主的Trip
       const updatedTrip = await tx.trip.update({
@@ -566,7 +542,6 @@ export const commitTrip = async (req: Request, res: Response) => {
         },
       });
 
-      console.log('✅ 房主Trip已更新:', updatedTrip.id);
 
       // 更新或创建房主的Day和ItineraryItem
       for (const dayData of itineraryData) {
@@ -588,9 +563,7 @@ export const commitTrip = async (req: Request, res: Response) => {
               date: dayDate,
             },
           });
-          console.log('✅ 房主Day已创建:', day.id);
         } else {
-          console.log('✅ 房主Day已存在:', day.id);
         }
 
         // 删除旧的ItineraryItem
@@ -631,21 +604,17 @@ export const commitTrip = async (req: Request, res: Response) => {
           });
         }
 
-        console.log(`✅ 房主Day ${dayData.day} 的 ${dayData.attractions.length} 个景点已保存`);
       }
 
       // 为所有成员创建行程副本
-      console.log('👥 开始为所有成员创建行程副本...');
       const memberTripIds: string[] = [];
 
       for (const member of room.members) {
         // 跳过房主（房主的行程已经更新）
         if (member.userId === room.hostId) {
-          console.log(`⏭️ 跳过房主 ${member.user.username} (userId: ${member.userId})`);
           continue;
         }
 
-        console.log(`➕ 为成员 ${member.user.username} (userId: ${member.userId}) 创建行程副本...`);
 
         try {
           // 为成员创建新的Trip（复制房主行程的所有重要字段）
@@ -672,7 +641,6 @@ export const commitTrip = async (req: Request, res: Response) => {
           });
 
           memberTripIds.push(memberTrip.id);
-          console.log(`✅ 成员 ${member.user.username} 的Trip已创建: ${memberTrip.id}`);
 
           // 为成员创建Day和ItineraryItem
           for (const dayData of itineraryData) {
@@ -720,14 +688,11 @@ export const commitTrip = async (req: Request, res: Response) => {
             }
           }
 
-          console.log(`✅ 成员 ${member.user.username} 的行程数据已完整保存`);
         } catch (memberError: any) {
-          console.error(`❌ 为成员 ${member.user.username} 创建行程失败:`, memberError);
           throw new Error(`为成员 ${member.user.username} 创建行程失败: ${memberError.message}`);
         }
       }
 
-      console.log(`✅ 所有成员的行程副本已创建，共 ${memberTripIds.length} 个`);
 
       // 锁定房间
       await tx.collabRoom.update({
@@ -735,7 +700,6 @@ export const commitTrip = async (req: Request, res: Response) => {
         data: { phase: 'LOCKED' },
       });
 
-      console.log('🔒 房间已锁定');
 
       return {
         hostTripId: room.tripId,
@@ -744,7 +708,6 @@ export const commitTrip = async (req: Request, res: Response) => {
       };
     });
 
-    console.log('✅ 事务提交成功:', result);
 
     // 广播房间锁定事件
     bcastRoom(roomId, 'room:lock', {
@@ -767,8 +730,6 @@ export const commitTrip = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('❌ 保存最终行程失败:', error);
-    console.error('❌ 错误堆栈:', error.stack);
     res.status(500).json({
       success: false,
       error: error.message || '保存最终行程失败',

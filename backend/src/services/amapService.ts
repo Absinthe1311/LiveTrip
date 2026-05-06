@@ -56,9 +56,7 @@ class AmapService {
     });
 
     if (!apiKey) {
-      console.warn('⚠️  AMAP_API_KEY 未配置，高德地图 API 调用将失败');
     } else {
-      console.log('✅ AMAP_API_KEY 已配置');
     }
   }
 
@@ -77,9 +75,6 @@ class AmapService {
     pageSize: number = 20
   ): Promise<AmapAttraction[]> {
     try {
-      console.log(
-        `📡 [高德API] 关键字搜索 - 城市: ${city}, 关键词: ${keywords}, 类型: ${types}, 用途: 获取景点数据`
-      );
 
       const params: Record<string, any> = {
         keywords: keywords || '景点',
@@ -98,22 +93,17 @@ class AmapService {
         params.city = city;
       }
 
-      console.log(`🔍 高德API请求参数:`, JSON.stringify(params, null, 2));
 
       const response = await this.client.get<AmapPOIResponse>('/place/text', {
         params,
       });
 
-      console.log(
-        `📊 高德API响应状态: ${response.data.status}, 信息: ${response.data.info}, 数量: ${response.data.count}`
-      );
 
       if (response.data.status !== '1') {
         throw new Error(`高德 API 错误: ${response.data.info} (${response.data.infocode})`);
       }
 
       const pois = response.data.pois || [];
-      console.log(`✅ [高德API] 关键字搜索成功 - 返回 ${pois.length} 个结果`);
 
       // 转换为统一格式
       const attractions: AmapAttraction[] = pois.map((poi) => ({
@@ -130,7 +120,6 @@ class AmapService {
 
       return attractions;
     } catch (error) {
-      console.error('❌ [高德API] 关键字搜索失败:', error);
       throw error;
     }
   }
@@ -180,28 +169,22 @@ class AmapService {
   async allSpots(city: string): Promise<AmapAttraction[]> {
     try {
       // 首先尝试从缓存获取
-      console.log(`📦 尝试从缓存获取 ${city} 的景点数据...`);
       const cachedAttractions = await amapPOICacheService.fromCache(city);
 
       if (cachedAttractions && cachedAttractions.length > 0) {
-        console.log(`✅ 从缓存获取成功，共 ${cachedAttractions.length} 个景点`);
         return cachedAttractions;
       }
 
-      console.log(`📭 缓存中没有数据，调用高德地图 API...`);
 
       // 并发获取多种类型的景点
       const [scenicSpots, touristAttractions, restaurants] = await Promise.all([
         this.loadScenic(city).catch((e) => {
-          console.warn('获取风景名胜失败:', e.message);
           return [];
         }),
         this.loadAttractions(city).catch((e) => {
-          console.warn('获取旅游景点失败:', e.message);
           return [];
         }),
         this.loadDining(city).catch((e) => {
-          console.warn('获取餐厅失败:', e.message);
           return [];
         }),
       ]);
@@ -210,7 +193,6 @@ class AmapService {
       const allAttractions = [...scenicSpots, ...touristAttractions, ...restaurants];
       const uniqueAttractions = this.uniqSpots(allAttractions);
 
-      console.log(`✅ 综合搜索完成，共 ${uniqueAttractions.length} 个不重复的景点`);
 
       // 保存到缓存
       if (uniqueAttractions.length > 0) {
@@ -219,7 +201,6 @@ class AmapService {
 
       return uniqueAttractions;
     } catch (error) {
-      console.error('❌ 综合搜索失败:', error);
       throw error;
     }
   }
@@ -241,9 +222,6 @@ class AmapService {
     pageSize: number = 20
   ): Promise<AmapAttraction[]> {
     try {
-      console.log(
-        `📡 [高德API] 周边搜索 - 关键词: ${keywords}, 中心点: ${location}, 半径: ${radius}m, 用途: ${keywords === '酒店' ? '酒店推荐' : keywords === '餐厅' ? '餐厅推荐' : '周边搜索'}`
-      );
 
       const params: Record<string, any> = {
         location: location,
@@ -268,7 +246,6 @@ class AmapService {
       }
 
       const pois = response.data.pois || [];
-      console.log(`✅ [高德API] 周边搜索成功 - 返回 ${pois.length} 个结果`);
 
       // 转换为统一格式
       const attractions: AmapAttraction[] = pois.map((poi) => ({
@@ -285,7 +262,6 @@ class AmapService {
 
       return attractions;
     } catch (error) {
-      console.error('❌ [高德API] 周边搜索失败:', error);
       throw error;
     }
   }

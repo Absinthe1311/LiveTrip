@@ -67,7 +67,6 @@ export class RestaurantCacheService {
         rating: restaurant.rating || undefined,
       }));
     } catch (error) {
-      console.error('❌ 从数据库获取餐厅失败:', error);
       return null;
     }
   }
@@ -110,7 +109,6 @@ export class RestaurantCacheService {
         })
       );
     } catch (error) {
-      console.error('❌ 保存餐厅到数据库失败:', error);
     }
   }
 

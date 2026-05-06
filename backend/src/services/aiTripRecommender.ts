@@ -33,7 +33,6 @@ export class AiTripRecommender {
   ) {
     this.apiKey = process.env.ZHIPUAI_API_KEY || '';
     if (!this.apiKey) {
-      console.warn('⚠️  ZHIPUAI_API_KEY 未设置，AI 推荐功能可能无法正常工作');
     }
   }
 
@@ -48,21 +47,13 @@ export class AiTripRecommender {
     mustVisitSpots?: string[];
     userId?: string;
   }): Promise<AiTripRecommendation> {
-    console.log('\n🤖 开始使用 AI 推荐行程...');
-    console.log(`   目的地: ${params.destination}`);
-    console.log(`   天数: ${params.days}`);
-    console.log(`   预算: ${params.budget || '未指定'}元`);
-    console.log(`   偏好: ${params.preferences?.join(', ') || '无'}`);
-    console.log(`   必选景点: ${params.mustVisitSpots?.join(', ') || '无'}`);
 
     try {
       // 1. 获取景点数据（包含 IoT 数据）
-      console.log('\n步骤1: 获取景点数据...');
       const spots = await this.spotDataSvc.cityIoT(
         params.destination,
         30 // 原值: 100 (30个景点足够AI规划行程，减少约60%输入Token)
       );
-      console.log(`✅ 获取到 ${spots.length} 个景点`);
 
       if (spots.length === 0) {
         throw new Error(`未找到 ${params.destination} 的景点数据。可能原因：
@@ -77,29 +68,21 @@ export class AiTripRecommender {
       }
 
       // 2. 获取用户画像
-      console.log('\n步骤2: 获取用户画像...');
       const userProfile = params.userId
         ? await this.userProfileSvc.loadProfile(params.userId)
         : null;
-      console.log(`✅ ${userProfile ? '获取到用户画像' : '无用户历史数据'}`);
 
       // 3. 构建 AI 提示词
-      console.log('\n步骤3: 构建 AI 提示词...');
       const prompt = this.buildRecommendationPrompt(params, spots, userProfile);
 
       // 4. 调用智谱 AI
-      console.log('\n步骤4: 调用智谱 AI...');
       const response = await this.aiCall(prompt);
-      console.log('✅ AI 响应成功');
 
       // 5. 解析 AI 返回的结果
-      console.log('\n步骤5: 解析 AI 返回结果...');
       const result = this.parseAI(response);
-      console.log('✅ 行程推荐完成');
 
       return result;
     } catch (error: any) {
-      console.error('❌ AI 推荐行程失败:', error.message);
       throw new Error(`AI 推荐行程失败: ${error.message}`);
     }
   }
@@ -210,7 +193,6 @@ ${spotsInfo}
   private parseAI(response: any): AiTripRecommendation {
     const content = response.choices[0]?.message?.content || '';
 
-    console.log('AI 返回内容:', content);
 
     // 尝试提取 JSON
     let jsonMatch = content.match(/```json\n([\s\S]*?)\n```/);
@@ -242,8 +224,6 @@ ${spotsInfo}
 
       return result as AiTripRecommendation;
     } catch (error: any) {
-      console.error('解析 AI 返回结果失败:', error);
-      console.error('原始内容:', content);
       throw new Error(`解析 AI 返回结果失败: ${error.message}`);
     }
   }

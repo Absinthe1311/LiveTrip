@@ -36,7 +36,6 @@ class RouteOptimizer {
       return attractions;
     }
 
-    console.log(`🗺️  优化 ${attractions.length} 个景点的游览顺序...`);
 
     // 解析经纬度
     const attractionsWithCoords: AttractionWithCoords[] = attractions.map((attr) => ({
@@ -54,7 +53,6 @@ class RouteOptimizer {
     // 步骤2：使用 2-opt 算法优化路线
     const optimized = this.twoOpt(initialRouteWithCoords);
 
-    console.log('✅ 路径优化完成（2-opt）');
     return optimized;
   }
 
@@ -116,13 +114,11 @@ class RouteOptimizer {
             bestRoute = newRoute;
             bestDistance = newDistance;
             improved = true;
-            console.log(`   改进：${bestDistance.toFixed(2)}km (交换边 ${i}-${j})`);
           }
         }
       }
     }
 
-    console.log(`   2-opt 迭代次数: ${iteration}，最终距离: ${bestDistance.toFixed(2)}km`);
     return bestRoute.map((attr) => this.stripCoord(attr));
   }
 
@@ -152,7 +148,6 @@ class RouteOptimizer {
   private parseLoc(location: string): { lng: number; lat: number } {
     const parts = location.split(',');
     if (parts.length !== 2) {
-      console.warn(`⚠️  无效的经纬度格式: ${location}`);
       return { lng: 0, lat: 0 };
     }
 
@@ -160,7 +155,6 @@ class RouteOptimizer {
     const lat = parseFloat(parts[1].trim());
 
     if (isNaN(lng) || isNaN(lat)) {
-      console.warn(`⚠️  无法解析经纬度: ${location}`);
       return { lng: 0, lat: 0 };
     }
 

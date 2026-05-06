@@ -108,7 +108,6 @@ export class ImageService {
         },
       });
 
-      console.log(`✅ 图片上传成功: ${image.id}, 来源: ${source}`);
 
       return {
         id: image.id,
@@ -119,7 +118,6 @@ export class ImageService {
         priority: image.priority,
       };
     } catch (error) {
-      console.error('❌ 图片上传失败:', error);
       throw error instanceof Error ? error : new Error('图片上传失败');
     }
   }
@@ -153,7 +151,6 @@ export class ImageService {
         const result = await this.uploadPic(spotId, file, userId, isPrimary, source);
         results.push(result);
       } catch (error) {
-        console.error(`第${i + 1}张图片上传失败:`, error);
         // 继续上传其他图片
       }
     }
@@ -249,7 +246,6 @@ export class ImageService {
         limit,
       };
     } catch (error) {
-      console.error('❌ 获取景点图片失败:', error);
       throw error instanceof Error ? error : new Error('获取景点图片失败');
     }
   }
@@ -284,7 +280,6 @@ export class ImageService {
           await cloudinaryService.delImg(cloudinaryId);
         }
       } catch (cloudinaryError) {
-        console.error('Cloudinary 删除失败:', cloudinaryError);
         // 继续删除数据库记录
       }
 
@@ -293,9 +288,7 @@ export class ImageService {
         where: { id: imageId },
       });
 
-      console.log(`✅ 图片删除成功: ${imageId}`);
     } catch (error) {
-      console.error('❌ 图片删除失败:', error);
       throw error instanceof Error ? error : new Error('图片删除失败');
     }
   }
@@ -319,7 +312,6 @@ export class ImageService {
         data: updates,
       });
     } catch (error) {
-      console.error('❌ 更新图片统计失败:', error);
       throw error instanceof Error ? error : new Error('更新图片统计失败');
     }
   }
@@ -380,9 +372,7 @@ export class ImageService {
         },
       });
 
-      console.log(`✅ 设置主图成功: ${imageId}`);
     } catch (error) {
-      console.error('❌ 设置主图失败:', error);
       throw error instanceof Error ? error : new Error('设置主图失败');
     }
   }
@@ -426,7 +416,6 @@ export class ImageService {
 
       return image;
     } catch (error) {
-      console.error('❌ 获取图片详情失败:', error);
       throw error instanceof Error ? error : new Error('获取图片详情失败');
     }
   }
@@ -464,10 +453,8 @@ export class ImageService {
         }
       });
 
-      console.log(`✅ 批量获取 ${spots.length} 个景点的图片成功`);
       return imageMap;
     } catch (error) {
-      console.error('批量获取景点图片失败:', error);
       // 返回空图片映射，避免阻塞前端
       spotIds.forEach((id) => {
         imageMap[id] = '';

@@ -63,7 +63,6 @@ export const delSession = async (req: Request, res: Response) => {
 
     res.json({ success: true, message: '会话已删除' });
   } catch (err: any) {
-    console.error('[删除会话] 失败:', err.message);
     res.status(500).json({ success: false, error: err.message || '删除会话失败' });
   }
 };
@@ -86,7 +85,6 @@ export const chatAdvisor = async (req: Request, res: Response) => {
 
     res.json({ success: true, data: response });
   } catch (err: any) {
-    console.error('AI顾问服务异常:', err.message);
     res.status(500).json({ success: false, error: err.message || 'AI顾问服务暂时不可用' });
   }
 };

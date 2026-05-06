@@ -32,7 +32,6 @@ class UserProfileService {
    * @returns 用户画像信息
    */
   async loadProfile(userId?: string): Promise<UserProfile> {
-    console.log(`👤 开始构建用户画像...`);
 
     try {
       // 如果没有 userId，使用默认用户
@@ -115,7 +114,6 @@ class UserProfileService {
 
       return profile;
     } catch (error: any) {
-      console.error('❌ 构建用户画像失败:', error);
       return this.getEmptyProfile();
     }
   }
@@ -127,7 +125,6 @@ class UserProfileService {
    */
   async getDestinationContext(city: string): Promise<string> {
     try {
-      console.log(`🏙️  获取目的地上下文: ${city}`);
 
       // 查询该城市的热门景点
       const topSpots = await prisma.spot.findMany({
@@ -153,11 +150,9 @@ class UserProfileService {
         )
         .join('\n')}`;
 
-      console.log(`✅ 目的地上下文获取完成，${topSpots.length} 个热门景点`);
 
       return context;
     } catch (error: any) {
-      console.error('❌ 获取目的地上下文失败:', error);
       return '';
     }
   }

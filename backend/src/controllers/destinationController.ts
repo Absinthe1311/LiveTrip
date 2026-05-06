@@ -21,7 +21,6 @@ const HOT_CITIES = [
  */
 export const hotCities = async (req: Request, res: Response) => {
   try {
-    console.log('🏙️ 获取热门城市列表');
 
     const citiesData = [];
 
@@ -72,14 +71,12 @@ export const hotCities = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`✅ 返回 ${citiesData.length} 个热门城市`);
 
     res.json({
       success: true,
       data: citiesData,
     });
   } catch (error: any) {
-    console.error('❌ 获取热门城市失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取热门城市失败',
@@ -96,7 +93,6 @@ export const citySpots = async (req: Request, res: Response) => {
     const city = req.params.city as string;
     const limit = parseInt(req.query.limit as string) || 9;
 
-    console.log(`📍 获取城市 ${city} 的热门景点，限制 ${limit} 个`);
 
     // 查询热门景点
     const spots = await prisma.spot.findMany({
@@ -131,14 +127,12 @@ export const citySpots = async (req: Request, res: Response) => {
       address: spot.address,
     }));
 
-    console.log(`✅ 找到 ${result.length} 个热门景点`);
 
     res.json({
       success: true,
       data: result,
     });
   } catch (error: any) {
-    console.error('❌ 获取城市景点失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取城市景点失败',
@@ -156,7 +150,6 @@ export const cityAll = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1;
     const pageSize = parseInt(req.query.pageSize as string) || 12;
 
-    console.log(`📍 获取城市 ${city} 的所有景点，页码 ${page}，每页 ${pageSize} 个`);
 
     // 查询总数（所有有图片的景点）
     const total = await prisma.spot.count({
@@ -200,7 +193,6 @@ export const cityAll = async (req: Request, res: Response) => {
       address: spot.address,
     }));
 
-    console.log(`✅ 找到 ${result.length} 个景点，总共 ${total} 个`);
 
     res.json({
       success: true,
@@ -213,7 +205,6 @@ export const cityAll = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('❌ 获取城市所有景点失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取城市所有景点失败',

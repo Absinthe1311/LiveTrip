@@ -26,9 +26,6 @@ export class ImageController {
    */
   static async blogImgUpload(req: Request, res: Response): Promise<void> {
     try {
-      console.log('📤 上传博客图片请求');
-      console.log('📦 req.file:', req.file ? '文件存在' : '文件不存在');
-      console.log('👤 req.user:', req.user);
 
       const user = (req as any).user;
 
@@ -66,7 +63,6 @@ export class ImageController {
         message: '博客图片上传成功',
       });
     } catch (error: any) {
-      console.error('上传博客图片失败:', error);
       res.status(500).json({
         success: false,
         message: '上传博客图片失败',
@@ -81,10 +77,6 @@ export class ImageController {
    */
   static async imgUpload(req: Request, res: Response): Promise<void> {
     try {
-      console.log('📤 上传图片请求');
-      console.log('📦 req.body:', req.body);
-      console.log('📦 req.file:', req.file ? '文件存在' : '文件不存在');
-      console.log('👤 req.user:', req.user);
 
       const { spotId } = req.body;
       const user = (req as any).user;
@@ -167,7 +159,6 @@ export class ImageController {
         message: '图片上传成功',
       });
     } catch (error: any) {
-      console.error('上传图片失败:', error);
       res.status(500).json({
         success: false,
         message: '上传图片失败',
@@ -200,7 +191,6 @@ export class ImageController {
         },
       });
     } catch (error: any) {
-      console.error('批量获取景点图片失败:', error);
       res.status(500).json({
         success: false,
         message: '批量获取景点图片失败',
@@ -240,7 +230,6 @@ export class ImageController {
         },
       });
     } catch (error: any) {
-      console.error('获取景点图片失败:', error);
       res.status(500).json({
         success: false,
         message: '获取景点图片失败',

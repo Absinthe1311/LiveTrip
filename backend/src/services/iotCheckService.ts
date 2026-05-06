@@ -16,7 +16,6 @@ class IotCheckService {
     excludedSpots: Array<{ attraction: RecommendedAttraction; reason: string }>;
     warnings: Array<{ attraction: RecommendedAttraction; reason: string }>;
   }> {
-    console.log('\n🔍 开始 IoT 实时检查...');
 
     // 确定使用的阈值
     let crowdLevelThreshold = 90;
@@ -85,7 +84,6 @@ class IotCheckService {
             attraction,
             reason: excludeReason,
           });
-          console.log(`   ❌ 排除景点: ${attraction.name} (${excludeReason})`);
         } else {
           // 检查是否需要警告
           if (crowdLevel > 60) {
@@ -93,7 +91,6 @@ class IotCheckService {
               attraction,
               reason: `拥挤度较高 (${crowdLevel}%)`,
             });
-            console.log(`   ⚠️  警告: ${attraction.name} (拥挤度较高: ${crowdLevel}%)`);
           } else if (rainProbability > 50) {
             const isOutdoor = this.isOutdoor(attraction);
             if (isOutdoor) {
@@ -101,7 +98,6 @@ class IotCheckService {
                 attraction,
                 reason: `降雨概率较高 (${rainProbability}%)`,
               });
-              console.log(`   ⚠️  警告: ${attraction.name} (降雨概率较高: ${rainProbability}%)`);
             }
           }
 
@@ -115,13 +111,9 @@ class IotCheckService {
       });
     }
 
-    console.log(`✅ IoT 检查完成`);
-    console.log(`   排除景点: ${excludedSpots.length} 个`);
-    console.log(`   警告景点: ${warnings.length} 个`);
 
     // 如果所有景点都被排除了，保留原始行程
     if (totalAttractions > 0 && excludedSpots.length === totalAttractions) {
-      console.log('\n⚠️  所有景点都被排除了，保留原始行程');
       return {
         checkedItinerary: itinerary,
         excludedSpots: [],
@@ -137,7 +129,6 @@ class IotCheckService {
 
     // 如果排除的景点超过50%，也保留部分景点
     if (totalAttractions > 0 && excludedSpots.length > totalAttractions * 0.5) {
-      console.log(`\n⚠️  排除景点过多 (${excludedSpots.length}/${totalAttractions})，保留部分景点`);
 
       // 保留被排除景点的50%
       const keepCount = Math.floor(excludedSpots.length / 2);
@@ -208,7 +199,6 @@ class IotCheckService {
     excludedSpots: Array<{ attraction: RecommendedAttraction; reason: string }>,
     alternativePools: Record<string, any[]>
   ): Promise<any[]> {
-    console.log('\n🔄 开始替换被排除的景点...');
 
     const finalItinerary = [];
 
@@ -247,10 +237,8 @@ class IotCheckService {
           };
 
           finalAttractions.push(replacement);
-          console.log(`   ✓ 替换: ${attraction.name} → ${bestAlternative.spot.name}`);
         } else {
           // 没有备选景点，保留原景点但标记为警告
-          console.log(`   ⚠️  无法替换: ${attraction.name} (无备选景点)`);
           finalAttractions.push(attraction);
         }
       }
@@ -261,7 +249,6 @@ class IotCheckService {
       });
     }
 
-    console.log('✅ 景点替换完成');
     return finalItinerary;
   }
 
@@ -270,7 +257,6 @@ class IotCheckService {
    * 如果上午降雨概率高，优先安排室内景点
    */
   async weatherAdjust(itinerary: any[], weatherData: any): Promise<any[]> {
-    console.log('\n🌤️ 开始根据天气调整景点顺序...');
 
     const adjustedItinerary = [];
 
@@ -293,7 +279,6 @@ class IotCheckService {
       const morningRainProbability = weatherData.morning?.rainProbability || 0;
 
       if (morningRainProbability > 60) {
-        console.log(`   上午降雨概率高 (${morningRainProbability}%)，调整景点顺序`);
 
         // 将室内景点移到上午，户外景点移到下午
         const indoorSpots = [...morningAttractions, ...afternoonAttractions].filter(
@@ -321,7 +306,6 @@ class IotCheckService {
       }
     }
 
-    console.log('✅ 天气调整完成');
     return adjustedItinerary;
   }
 

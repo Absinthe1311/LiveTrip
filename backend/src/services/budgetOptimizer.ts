@@ -84,27 +84,18 @@ class BudgetOptimizer {
     const { itinerary, totalBudget, days, groupSize, groupType, destination, startDate, endDate } =
       params;
 
-    console.log('\n💰 开始动态计算预算分配...');
-    console.log(`   总预算: ${totalBudget}元`);
-    console.log(`   天数: ${days}天`);
-    console.log(`   人数: ${groupSize}人`);
-    console.log(`   目的地: ${destination}`);
 
     // 1. 确定城市等级
     const cityTier = this.cityLevel(destination);
-    console.log(`   城市等级: ${cityTier}`);
 
     // 2. 确定季节
     const season = this.getSeason(startDate, endDate);
-    console.log(`   旅游季节: ${season}`);
 
     // 3. 确定预算档次
     const budgetTier = this.getBudgetTier(totalBudget, days, groupSize);
-    console.log(`   预算档次: ${budgetTier}`);
 
     // 4. 计算门票费用（实际费用）
     const tickets = this.calcTickets(itinerary);
-    console.log(`   门票费用: ${tickets}元`);
 
     // 5. 计算住宿费用（动态）
     const accommodation = this.calculateAccommodation(
@@ -115,11 +106,9 @@ class BudgetOptimizer {
       season,
       groupType
     );
-    console.log(`   住宿费用: ${accommodation}元`);
 
     // 6. 计算餐饮费用（动态）
     const dining = this.calculateDining(days, groupSize, cityTier, budgetTier, season, groupType);
-    console.log(`   餐饮费用: ${dining}元`);
 
     // 7. 计算交通费用（动态）
     const transportation = this.calculateTransportation(
@@ -127,7 +116,6 @@ class BudgetOptimizer {
       cityTier,
       totalBudget - tickets - accommodation - dining
     );
-    console.log(`   交通费用: ${transportation}元`);
 
     // 8. 计算总费用
     const total_cost = tickets + accommodation + dining + transportation;
@@ -142,8 +130,6 @@ class BudgetOptimizer {
       budget_utilization
     );
 
-    console.log(`\n   总费用: ${total_cost}元`);
-    console.log(`   预算利用率: ${budget_utilization.toFixed(1)}%\n`);
 
     return {
       total_cost,
@@ -327,7 +313,6 @@ class BudgetOptimizer {
 
     // 如果剩余预算不足，调整交通费用
     if (remainingBudget < baseTransportation) {
-      console.log(`   ⚠️  交通预算不足，建议减少景点数量`);
       return remainingBudget;
     }
 
@@ -346,11 +331,11 @@ class BudgetOptimizer {
 
     // 检查预算利用率
     if (utilization > 100) {
-      recommendations.push(`⚠️  预算超支 ${utilization.toFixed(1)}%，建议增加预算或减少景点数量`);
+      recommendations.push(`  预算超支 ${utilization.toFixed(1)}%，建议增加预算或减少景点数量`);
     } else if (utilization > 90) {
-      recommendations.push(`⚠️  预算紧张 (${utilization.toFixed(1)}%)，建议预留一些应急资金`);
+      recommendations.push(`  预算紧张 (${utilization.toFixed(1)}%)，建议预留一些应急资金`);
     } else if (utilization < 50) {
-      recommendations.push(`💡 预算充足 (${utilization.toFixed(1)}%)，可以考虑升级住宿或增加景点`);
+      recommendations.push(` 预算充足 (${utilization.toFixed(1)}%)，可以考虑升级住宿或增加景点`);
     }
 
     // 检查各项费用占比
@@ -363,19 +348,19 @@ class BudgetOptimizer {
 
     if (ticketRatio > 30) {
       recommendations.push(
-        `💡 门票费用占比 ${ticketRatio.toFixed(1)}%，可以考虑购买套票或选择免费景点`
+        ` 门票费用占比 ${ticketRatio.toFixed(1)}%，可以考虑购买套票或选择免费景点`
       );
     }
 
     if (accommodationRatio > 50) {
       recommendations.push(
-        `💡 住宿费用占比 ${accommodationRatio.toFixed(1)}%，可以考虑选择经济型住宿`
+        ` 住宿费用占比 ${accommodationRatio.toFixed(1)}%，可以考虑选择经济型住宿`
       );
     }
 
     if (diningRatio > 35) {
       recommendations.push(
-        `💡 餐饮费用占比 ${diningRatio.toFixed(1)}%，可以考虑当地特色小吃节省开支`
+        ` 餐饮费用占比 ${diningRatio.toFixed(1)}%，可以考虑当地特色小吃节省开支`
       );
     }
 

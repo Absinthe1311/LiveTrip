@@ -75,7 +75,6 @@ export class CloudinaryService {
         cloudinaryId: result.public_id,
       };
     } catch (error) {
-      console.error('Cloudinary 上传失败:', error);
       throw new Error(`图片上传失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
@@ -87,9 +86,7 @@ export class CloudinaryService {
   async delImg(cloudinaryId: string): Promise<void> {
     try {
       await cloudinary.uploader.destroy(cloudinaryId);
-      console.log(`✅ Cloudinary 图片删除成功: ${cloudinaryId}`);
     } catch (error) {
-      console.error('Cloudinary 删除失败:', error);
       throw new Error(`图片删除失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
@@ -113,7 +110,6 @@ export class CloudinaryService {
 
       return result;
     } catch (error) {
-      console.error('生成优化 URL 失败:', error);
       throw new Error(`生成优化 URL 失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
@@ -135,7 +131,6 @@ export class CloudinaryService {
         const result = await this.pushImg(file.buffer, folder);
         results.push(result);
       } catch (error) {
-        console.error(`上传文件 ${file.originalname} 失败:`, error);
         // 继续上传其他文件
       }
     }
@@ -167,7 +162,6 @@ export class CloudinaryService {
       const result = await cloudinary.api.resource(cloudinaryId);
       return result;
     } catch (error) {
-      console.error('获取图片信息失败:', error);
       throw new Error(`获取图片信息失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }

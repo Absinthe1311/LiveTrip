@@ -58,7 +58,6 @@ export class UserController {
         data: user,
       });
     } catch (error: any) {
-      console.error('获取用户信息失败:', error);
       res.status(500).json({
         success: false,
         message: '获取用户信息失败',
@@ -99,7 +98,6 @@ export class UserController {
         message: '用户信息更新成功',
       });
     } catch (error: any) {
-      console.error('更新用户信息失败:', error);
       res.status(500).json({
         success: false,
         message: '更新用户信息失败',
@@ -152,7 +150,6 @@ export class UserController {
         message: '头像上传成功',
       });
     } catch (error: any) {
-      console.error('上传头像失败:', error);
       res.status(500).json({
         success: false,
         message: '上传头像失败',
@@ -193,11 +190,7 @@ export class UserController {
         },
       });
 
-      console.log(
-        `✅ 用户 ${userId} 统计数据已更新: ${trips.length} 行程, ${cities.size} 城市, ${completedTrips} 已完成`
-      );
     } catch (error: any) {
-      console.error('更新用户统计数据失败:', error);
     }
   }
 }

@@ -16,7 +16,6 @@ router.get('/city/:city', async (req, res) => {
     const { city } = req.params;
     const limit = parseInt(req.query.limit as string) || 20;
 
-    console.log(`🔍 接收到获取 ${city} 景点的请求，限制数量: ${limit}`);
 
     const spots = await spotService.citySpots(city, limit);
 
@@ -26,7 +25,6 @@ router.get('/city/:city', async (req, res) => {
       count: spots.length,
     });
   } catch (error: any) {
-    console.error('❌ 获取城市景点失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取城市景点失败',
@@ -57,15 +55,12 @@ router.get('/alternatives/:spotId', async (req, res) => {
         : excludeSpotIds
       : [];
 
-    console.log(`🔍 接收获取备选景点请求: ${spotId}, 城市: ${city}`);
-    console.log(`   排除的景点(名称): ${excludeIds.length} 个`);
 
     // 判断spotId是景点名称还是景点ID
     let actualSpotId = spotId;
 
     // 如果spotId看起来像景点名称（不是cuid格式），则通过名称查找景点ID
     if (!spotId.startsWith('cml')) {
-      console.log(`🔍 spotId是景点名称，正在查找对应的景点ID...`);
       const spot = await prisma.spot.findFirst({
         where: {
           name: spotId,
@@ -75,9 +70,7 @@ router.get('/alternatives/:spotId', async (req, res) => {
 
       if (spot) {
         actualSpotId = spot.id;
-        console.log(`✅ 找到景点ID: ${actualSpotId}`);
       } else {
-        console.warn(`⚠️  未找到景点: ${spotId}`);
         return res.status(404).json({
           success: false,
           error: `未找到景点: ${spotId}`,
@@ -88,7 +81,6 @@ router.get('/alternatives/:spotId', async (req, res) => {
     // 将excludeSpotIds中的景点名称转换为景点ID
     let actualExcludeIds: string[] = [];
     if (excludeIds.length > 0) {
-      console.log(`🔍 正在将排除的景点名称转换为ID...`);
       const excludeSpots = await prisma.spot.findMany({
         where: {
           name: {
@@ -103,7 +95,6 @@ router.get('/alternatives/:spotId', async (req, res) => {
       });
 
       actualExcludeIds = excludeSpots.map((s) => s.id);
-      console.log(`✅ 转换后的排除景点ID: ${actualExcludeIds.length} 个`);
     }
 
     const alternatives = await alternativeRecommender.getRecommendations(
@@ -118,7 +109,6 @@ router.get('/alternatives/:spotId', async (req, res) => {
       count: alternatives.length,
     });
   } catch (error: any) {
-    console.error('❌ 获取备选景点失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取备选景点失败',
@@ -134,7 +124,6 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log(`🔍 接收获取景点详情请求: ${id}`);
 
     const spot = await spotService.getSpotById(id);
 
@@ -150,7 +139,6 @@ router.get('/:id', async (req, res) => {
       data: spot,
     });
   } catch (error: any) {
-    console.error('❌ 获取景点详情失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取景点详情失败',
@@ -166,7 +154,6 @@ router.get('/:id/iot', async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log(`🔍 接收获取景点IoT数据请求: ${id}`);
 
     const iotData = await spotService.spotIoT(id);
 
@@ -182,7 +169,6 @@ router.get('/:id/iot', async (req, res) => {
       data: iotData,
     });
   } catch (error: any) {
-    console.error('❌ 获取景点IoT数据失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取景点IoT数据失败',
@@ -198,7 +184,6 @@ router.post('/:id/iot/generate', async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log(`🔄 接收生成景点IoT数据请求: ${id}`);
 
     const iotData = await spotService.genIot(id);
 
@@ -214,7 +199,6 @@ router.post('/:id/iot/generate', async (req, res) => {
       data: iotData,
     });
   } catch (error: any) {
-    console.error('❌ 生成景点IoT数据失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '生成景点IoT数据失败',
@@ -237,7 +221,6 @@ router.post('/iot/batch', async (req, res) => {
       });
     }
 
-    console.log(`🔍 接收批量获取IoT数据请求: ${spotIds.length} 个景点`);
 
     const iotDataMap = await spotService.batchIot(spotIds);
 
@@ -259,7 +242,6 @@ router.post('/iot/batch', async (req, res) => {
       count: iotDataList.length,
     });
   } catch (error: any) {
-    console.error('❌ 批量获取IoT数据失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '批量获取IoT数据失败',
@@ -282,7 +264,6 @@ router.post('/alternatives/update', async (req, res) => {
       });
     }
 
-    console.log(`🔄 接收更新备选关系请求: ${oldSpotId} -> ${newSpotId}`);
 
     await spotService.updateAlternativeRelations(oldSpotId, newSpotId, city);
 
@@ -291,7 +272,6 @@ router.post('/alternatives/update', async (req, res) => {
       message: '备选关系更新成功',
     });
   } catch (error: any) {
-    console.error('❌ 更新备选关系失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '更新备选关系失败',
@@ -314,7 +294,6 @@ router.post('/search', async (req, res) => {
       });
     }
 
-    console.log(`🔍 接收搜索景点请求: ${name}, 城市: ${city}`);
 
     const spot = await prisma.spot.findFirst({
       where: {
@@ -335,7 +314,6 @@ router.post('/search', async (req, res) => {
       data: spot,
     });
   } catch (error: any) {
-    console.error('❌ 搜索景点失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '搜索景点失败',

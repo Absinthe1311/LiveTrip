@@ -29,15 +29,9 @@ class MustVisitSpotExtractor {
    * @returns 提取结果
    */
   async extractMustVisitSpots(userInput: string, city?: string): Promise<ExtractionResult> {
-    console.log(`🔍 开始从用户输入中提取必选景点...`);
-    console.log(`   用户输入: ${userInput}`);
-    console.log(`   目标城市: ${city || '未指定'}`);
 
     // 步骤1：从用户输入中识别可能的景点名称
     const potentialSpotNames = this.findSpots(userInput);
-    console.log(
-      `   识别到 ${potentialSpotNames.length} 个潜在景点: ${potentialSpotNames.join(', ')}`
-    );
 
     if (potentialSpotNames.length === 0) {
       return {
@@ -58,19 +52,14 @@ class MustVisitSpotExtractor {
         // 选择最匹配的景点（评分最高）
         const bestMatch = matches.sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
         matchedSpots.push(bestMatch);
-        console.log(`   ✅ 匹配成功: "${spotName}" → "${bestMatch.name}"`);
       } else {
         unmatchedNames.push(spotName);
-        console.log(`   ❌ 未匹配: "${spotName}"`);
       }
     }
 
     // 步骤3：计算置信度
     const confidence = matchedSpots.length / potentialSpotNames.length;
 
-    console.log(
-      `✅ 提取完成: 匹配 ${matchedSpots.length}/${potentialSpotNames.length} 个景点，置信度: ${(confidence * 100).toFixed(1)}%`
-    );
 
     return {
       mustVisitSpots: matchedSpots,
@@ -165,45 +154,37 @@ class MustVisitSpotExtractor {
   }
 
   /**
-   * ✅ 问题2: 多层级模糊匹配景点
+   *  问题2: 多层级模糊匹配景点
    */
   private async matchSpotInDatabase(spotName: string, city?: string): Promise<MustVisitSpot[]> {
     try {
-      console.log(`\n🔍 [景点匹配] 开始匹配: "${spotName}"`);
 
       // 第一层: 精确匹配
       let spots = await this.matchExact(spotName, city);
       if (spots.length > 0) {
-        console.log(`   ✅ 第一层(精确匹配)找到: ${spots.map((s) => s.name).join(', ')}`);
         return spots;
       }
 
       // 第二层: 包含匹配
       spots = await this.matchContains(spotName, city);
       if (spots.length > 0) {
-        console.log(`   ✅ 第二层(包含匹配)找到: ${spots.map((s) => s.name).join(', ')}`);
         return spots;
       }
 
       // 第三层: 关键词匹配(去除后缀)
       spots = await this.matchKeyword(spotName, city);
       if (spots.length > 0) {
-        console.log(`   ✅ 第三层(关键词匹配)找到: ${spots.map((s) => s.name).join(', ')}`);
         return spots;
       }
 
       // 第四层: 高德API搜索
-      console.log(`   📡 数据库中未找到,尝试高德API...`);
       const amapSpots = await this.searchFromAmap(spotName, city);
       if (amapSpots.length > 0) {
-        console.log(`   ✅ 第四层(高德API)找到: ${amapSpots.map((s) => s.name).join(', ')}`);
         return amapSpots;
       }
 
-      console.log(`   ❌ 所有层级均未找到匹配`);
       return [];
     } catch (error) {
-      console.error(`❌ 景点匹配失败: ${error}`);
       return [];
     }
   }
@@ -302,7 +283,6 @@ class MustVisitSpotExtractor {
         break;
       } catch (amapError: any) {
         retryCount++;
-        console.error(`❌ 高德API失败 (重试 ${retryCount}/${maxRetries}):`, amapError.message);
 
         if (retryCount < maxRetries) {
           await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -349,14 +329,12 @@ class MustVisitSpotExtractor {
       },
     });
 
-    console.log(`✅ 景点已保存: ${savedSpot.name} (ID: ${savedSpot.id})`);
 
     // 生成IoT数据
     try {
       const { spotService } = await import('./spotService');
       await spotService.citySpots(searchCity, 1);
     } catch (iotError) {
-      console.warn(`⚠️  生成IoT数据失败:`, iotError);
     }
 
     return [

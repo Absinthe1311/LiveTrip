@@ -41,7 +41,6 @@ export class SpotDataService {
    * 如果数据库中没有景点，会自动从高德 API 获取
    */
   async cityIoT(city: string, limit: number = 50): Promise<SpotWithIoT[]> {
-    console.log(`🔍 查询 ${city} 的景点列表，限制 ${limit} 个...`);
 
     // 1. 先从数据库查询
     const spots = await prisma.spot.findMany({
@@ -58,18 +57,15 @@ export class SpotDataService {
       ],
     });
 
-    console.log(`✅ 从数据库查询到 ${spots.length} 个景点`);
 
     // 2. 如果数据库中没有景点，从高德 API 获取
     if (spots.length === 0) {
-      console.log(`📡 数据库中没有 ${city} 的景点，尝试从高德 API 获取...`);
 
       try {
         // 调用 spotService 从高德 API 获取景点
         const newSpots = await spotService.citySpots(city, limit);
 
         if (newSpots.length > 0) {
-          console.log(`✅ 从高德 API 获取到 ${newSpots.length} 个景点`);
 
           // 重新查询数据库，包含 IoT 数据
           const spotsWithIoT = await prisma.spot.findMany({
@@ -83,15 +79,12 @@ export class SpotDataService {
             orderBy: [{ isHot: 'desc' }, { rating: 'desc' }],
           });
 
-          console.log(`✅ 最终获取到 ${spotsWithIoT.length} 个景点（包含 IoT 数据）`);
 
           return spotsWithIoT as SpotWithIoT[];
         } else {
-          console.warn(`⚠️  高德 API 也没有返回 ${city} 的景点数据`);
           return [];
         }
       } catch (error: any) {
-        console.error(`❌ 从高德 API 获取 ${city} 景点失败:`, error);
         return [];
       }
     }
@@ -119,7 +112,6 @@ export class SpotDataService {
    * 如果数据库中没有，尝试从高德 API 获取
    */
   async getSoptByName(name: string, city?: string): Promise<SpotWithIoT | null> {
-    console.log(`🔍 查询景点: ${name}${city ? ` (${city})` : ''}`);
 
     // 1. 先从数据库查询
     const where: any = {
@@ -138,12 +130,10 @@ export class SpotDataService {
     });
 
     if (spot) {
-      console.log(`✅ 从数据库找到景点: ${spot.name}`);
       return spot as SpotWithIoT;
     }
 
     // 2. 如果数据库中没有，尝试从高德 API 获取
-    console.log(`📡 数据库中没有找到景点 "${name}"，尝试从高德 API 获取...`);
 
     try {
       // 使用高德 API 搜索特定景点
@@ -152,13 +142,11 @@ export class SpotDataService {
       const amapAttractions = await amapService.getAttractions(searchCity, name, undefined, 5);
 
       if (amapAttractions.length > 0) {
-        console.log(`✅ 从高德 API 找到 ${amapAttractions.length} 个匹配的景点`);
 
         // 调用 spotService 保存到数据库（这会自动处理保存和 IoT 数据生成）
         const savedSpots = await spotService.citySpots(searchCity, 1);
 
         if (savedSpots.length > 0) {
-          console.log(`✅ 景点已保存到数据库: ${savedSpots[0].name}`);
 
           // 重新查询包含 IoT 数据
           const newSpot = await prisma.spot.findFirst({
@@ -176,10 +164,8 @@ export class SpotDataService {
           }
         }
       } else {
-        console.warn(`⚠️  高德 API 也没有找到景点 "${name}"`);
       }
     } catch (error: any) {
-      console.error(`❌ 从高德 API 获取景点 "${name}" 失败:`, error);
     }
 
     return null;

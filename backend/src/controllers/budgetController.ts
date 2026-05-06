@@ -1,4 +1,3 @@
-// AI辅助生成：GLM-5, 2026-04-24 21:31
 // 描述：预算控制器，提供预算调整、预算历史查询、实时预算状态等API接口
 
 import { Request, Response } from 'express';
@@ -26,7 +25,6 @@ export const budgetStats = async (req: Request, res: Response) => {
       data: budgetInfo,
     });
   } catch (error) {
-    console.error('获取预算状态失败:', error);
     res.status(500).json({
       success: false,
       message: '获取预算状态失败',
@@ -64,7 +62,6 @@ export const modBudget = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    console.error('调整预算失败:', error);
     res.status(500).json({
       success: false,
       message: '调整预算失败',
@@ -108,7 +105,6 @@ export const updPrice = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    console.error('更新项目价格失败:', error);
     res.status(500).json({
       success: false,
       message: '更新项目价格失败',
@@ -132,7 +128,6 @@ export const budgetLog = async (req: Request, res: Response) => {
       data: records,
     });
   } catch (error) {
-    console.error('获取预算变更历史失败:', error);
     res.status(500).json({
       success: false,
       message: '获取预算变更历史失败',

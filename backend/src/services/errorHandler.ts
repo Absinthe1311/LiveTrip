@@ -64,12 +64,7 @@ class ErrorHandler {
       fallbackUsed: false,
     };
 
-    console.error(`\n❌ [${context}] 发生错误:`);
-    console.error(`   类型: ${errorType}`);
-    console.error(`   严重程度: ${severity}`);
-    console.error(`   消息: ${error.message}`);
     if (error.details) {
-      console.error(`   详情:`, error.details);
     }
 
     // 记录错误
@@ -77,17 +72,14 @@ class ErrorHandler {
 
     // 如果有回退策略，尝试执行
     if (fallback) {
-      console.log(`\n🔄 尝试回退策略: ${fallback.name}`);
       try {
         const result = await fallback.execute();
         errorInfo.resolved = true;
         errorInfo.fallbackUsed = true;
-        console.log(`✅ 回退策略执行成功`);
         return { success: true, result, errorInfo };
       } catch (fallbackError) {
         const fallbackErrorMessage =
           fallbackError instanceof Error ? fallbackError.message : '未知错误';
-        console.error(`❌ 回退策略执行失败:`, fallbackErrorMessage);
       }
     }
 
@@ -277,7 +269,6 @@ class ErrorHandler {
    * 生成简化版行程（回退方案）
    */
   backupTrip(originalItinerary: FullItinerary): FullItinerary {
-    console.log('\n🔄 生成简化版行程作为回退方案...');
 
     // 简化策略：每天只保留前2个景点
     const simplifiedItinerary = originalItinerary.itinerary.map((day) => ({
@@ -322,7 +313,7 @@ class ErrorHandler {
     const stats = this.errStats();
     const recentErrors = this.errors.slice(-5); // 最近5条错误
 
-    let report = '\n📊 错误统计报告\n';
+    let report = '\n 错误统计报告\n';
     report += '='.repeat(40) + '\n';
     report += `总错误数: ${stats.total}\n`;
     report += `已解决: ${stats.resolved}\n`;

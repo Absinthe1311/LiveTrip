@@ -73,14 +73,6 @@ class BudgetCalculator {
     const usageRate = total / totalBudget;
     const remaining = totalBudget - total;
 
-    console.log('💰 实际预算计算完成:');
-    console.log(`   住宿: ¥${accommodation}`);
-    console.log(`   餐饮: ¥${dining}`);
-    console.log(`   门票: ¥${tickets}`);
-    console.log(`   交通: ¥${transportation}`);
-    console.log(`   总计: ¥${total}`);
-    console.log(`   使用率: ${(usageRate * 100).toFixed(1)}%`);
-    console.log(`   状态: ${status}`);
 
     return {
       accommodation,
@@ -135,12 +127,6 @@ class BudgetCalculator {
     const other = 0;
     const total = accommodation + dining + transportation + tickets + other;
 
-    console.log('💰 预估预算计算完成:');
-    console.log(`   住宿: ¥${accommodation} (${(accommodationRatio * 100).toFixed(0)}%)`);
-    console.log(`   餐饮: ¥${dining} (${(diningRatio * 100).toFixed(0)}%)`);
-    console.log(`   交通: ¥${transportation} (${(transportationRatio * 100).toFixed(0)}%)`);
-    console.log(`   门票: ¥${tickets} (${(ticketsRatio * 100).toFixed(0)}%)`);
-    console.log(`   总计: ¥${total}`);
 
     return {
       accommodation,
@@ -206,9 +192,6 @@ class BudgetCalculator {
   ): number {
     let totalDiningCost = 0;
 
-    console.log('🍽️ 计算餐饮费用:');
-    console.log(`   人数: ${groupSize}`);
-    console.log(`   选择的餐厅数量: ${Object.keys(selectedRestaurants).length}`);
 
     for (const day in selectedRestaurants) {
       const restaurant = selectedRestaurants[day];
@@ -218,13 +201,9 @@ class BudgetCalculator {
         const dayCost = estimatedPrice * groupSize;
         totalDiningCost += dayCost;
 
-        console.log(`   第${day}天 - ${restaurant.name} (${restaurant.type}):`);
-        console.log(`     单人价格: ¥${estimatedPrice}`);
-        console.log(`     ${groupSize}人价格: ¥${dayCost}`);
       }
     }
 
-    console.log(`   餐饮总费用: ¥${Math.round(totalDiningCost)}`);
 
     return Math.round(totalDiningCost);
   }
@@ -337,12 +316,12 @@ class BudgetCalculator {
     const usagePercent = (budgetInfo.usageRate * 100).toFixed(0);
 
     if (level === 1) {
-      return `⚠️ 预算提醒：您的预算使用已达到 ${usagePercent}%，请谨慎选择后续项目。`;
+      return ` 预算提醒：您的预算使用已达到 ${usagePercent}%，请谨慎选择后续项目。`;
     } else if (level === 2) {
-      return `⚠️⚠️ 预算即将超支：您的预算使用已达 ${usagePercent}%，仅剩 ¥${budgetInfo.remaining.toFixed(0)}！`;
+      return ` 预算即将超支：您的预算使用已达 ${usagePercent}%，仅剩 ¥${budgetInfo.remaining.toFixed(0)}！`;
     } else if (level === 3) {
       const overBudget = Math.abs(budgetInfo.remaining);
-      return `❌ 预算已超支：您的实际开销（¥${budgetInfo.total}）已超出总预算（¥${budgetInfo.totalBudget}）¥${overBudget.toFixed(0)}！`;
+      return ` 预算已超支：您的实际开销（¥${budgetInfo.total}）已超出总预算（¥${budgetInfo.totalBudget}）¥${overBudget.toFixed(0)}！`;
     }
 
     return null;

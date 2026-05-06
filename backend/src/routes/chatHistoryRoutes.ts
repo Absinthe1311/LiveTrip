@@ -20,7 +20,6 @@ router.get('/sessions', async (req: Request, res: Response) => {
       data: sessions,
     });
   } catch (error: any) {
-    console.error('获取对话历史失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取对话历史失败',
@@ -50,7 +49,6 @@ router.get('/sessions/:sessionId', async (req: Request, res: Response) => {
       data: session,
     });
   } catch (error: any) {
-    console.error('获取会话详情失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取会话详情失败',
@@ -84,7 +82,6 @@ router.post('/sessions', async (req: Request, res: Response) => {
       data: session,
     });
   } catch (error: any) {
-    console.error('创建会话失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '创建会话失败',
@@ -107,7 +104,6 @@ router.delete('/sessions/:sessionId', async (req: Request, res: Response) => {
       message: '会话已删除',
     });
   } catch (error: any) {
-    console.error('删除会话失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '删除会话失败',

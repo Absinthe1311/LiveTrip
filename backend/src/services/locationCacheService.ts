@@ -22,7 +22,6 @@ export async function searchLoc(
   userId?: string
 ): Promise<CacheResult> {
   try {
-    console.log(`🔍 搜索地点: ${keywords}`);
 
     // 步骤1: 检查数据库缓存（精确匹配keywords）
     const cachedResults = await prisma.locationCache.findMany({
@@ -42,8 +41,6 @@ export async function searchLoc(
     await cleanOld();
 
     if (cachedResults.length > 0) {
-      console.log(`✅ 缓存命中，找到 ${cachedResults.length} 个结果`);
-      console.log(`   缓存关键词: "${keywords}"`);
 
       // 更新搜索次数
       for (const cache of cachedResults) {
@@ -57,7 +54,7 @@ export async function searchLoc(
       const results = cachedResults.map((cache) => ({
         value: cache.name,
         label: cache.name,
-        icon: '📍',
+        icon: '',
         province: cache.province || cache.city || cache.address || '',
         rating: 4.5,
         address: cache.address || '',
@@ -72,7 +69,6 @@ export async function searchLoc(
       };
     }
 
-    console.log('⚠️  缓存未命中，调用高德地图API');
 
     // 步骤2: 调用高德地图API
     const amapKey = process.env.AMAP_API_KEY;
@@ -97,7 +93,6 @@ export async function searchLoc(
     });
 
     if (response.data.status !== '1') {
-      console.error('❌ 高德地图API调用失败:', response.data.info);
       return {
         success: false,
         fromCache: false,
@@ -106,7 +101,6 @@ export async function searchLoc(
     }
 
     const pois = response.data.pois || [];
-    console.log(`✅ 高德地图API返回 ${pois.length} 个结果`);
 
     // 步骤3: 将结果存入缓存
     const results: any[] = [];
@@ -162,7 +156,7 @@ export async function searchLoc(
       results.push({
         value: poi.name,
         label: poi.name,
-        icon: '📍',
+        icon: '',
         province: poi.address || poi.cityname || poi.adname || '',
         rating: 4.5,
         address: poi.address || '',
@@ -177,7 +171,6 @@ export async function searchLoc(
       fromCache: false,
     };
   } catch (error: any) {
-    console.error('❌ 搜索地点失败:', error);
     return {
       success: false,
       fromCache: false,
@@ -200,10 +193,8 @@ async function cleanOld() {
     });
 
     if (result.count > 0) {
-      console.log(`🧹 清理了 ${result.count} 个过期的缓存`);
     }
   } catch (error) {
-    console.error('❌ 清理缓存失败:', error);
   }
 }
 
@@ -224,7 +215,6 @@ export async function hotLocs(limit: number = 10) {
       data: popularLocations,
     };
   } catch (error: any) {
-    console.error('❌ 获取热门地点失败:', error);
     return {
       success: false,
       error: error.message,
@@ -238,13 +228,11 @@ export async function hotLocs(limit: number = 10) {
 export async function flushCache() {
   try {
     const result = await prisma.locationCache.deleteMany({});
-    console.log(`🧹 清空了 ${result.count} 个缓存`);
     return {
       success: true,
       count: result.count,
     };
   } catch (error: any) {
-    console.error('❌ 清空缓存失败:', error);
     return {
       success: false,
       error: error.message,

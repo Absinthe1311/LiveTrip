@@ -12,7 +12,6 @@ export const hotSpots = async (req: Request, res: Response) => {
   try {
     const { city } = req.query;
 
-    console.log(`🔥 获取热门景点，城市: ${city || '全部'}`);
 
     const where: any = {
       isHot: true,
@@ -55,14 +54,12 @@ export const hotSpots = async (req: Request, res: Response) => {
       address: spot.address,
     }));
 
-    console.log(`✅ 找到 ${result.length} 个热门景点`);
 
     res.json({
       success: true,
       data: result,
     });
   } catch (error: any) {
-    console.error('❌ 获取热门景点失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取热门景点失败',
@@ -76,7 +73,6 @@ export const hotSpots = async (req: Request, res: Response) => {
  */
 export const hotCities = async (req: Request, res: Response) => {
   try {
-    console.log('🔥 获取热门城市列表');
 
     // 统计每个城市的热门景点数量
     const hotSpots = await prisma.spot.findMany({
@@ -100,14 +96,12 @@ export const hotCities = async (req: Request, res: Response) => {
       .sort((a, b) => b.count - a.count)
       .slice(0, 8); // 只返回前8个城市
 
-    console.log(`✅ 找到 ${cities.length} 个热门城市`);
 
     res.json({
       success: true,
       data: cities,
     });
   } catch (error: any) {
-    console.error('❌ 获取热门城市失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取热门城市失败',
@@ -121,7 +115,6 @@ export const hotCities = async (req: Request, res: Response) => {
  */
 export const hotCitiesWithSpots = async (req: Request, res: Response) => {
   try {
-    console.log('🔥 获取热门城市列表（包含景点）');
 
     // 获取所有热门景点
     const hotSpots = await prisma.spot.findMany({
@@ -173,14 +166,12 @@ export const hotCitiesWithSpots = async (req: Request, res: Response) => {
     // 只返回前8个城市
     const topCities = cityData.slice(0, 8);
 
-    console.log(`✅ 找到 ${topCities.length} 个热门城市`);
 
     res.json({
       success: true,
       data: topCities,
     });
   } catch (error: any) {
-    console.error('❌ 获取热门城市失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取热门城市失败',

@@ -86,7 +86,6 @@ class EnvironmentSensorService {
    * @returns 感知结果列表
    */
   async sense(spotIds: string[]): Promise<SensorResult[]> {
-    console.log(`\n🔍 开始环境感知，共 ${spotIds.length} 个景点...`);
 
     const results: SensorResult[] = [];
 
@@ -108,11 +107,9 @@ class EnvironmentSensorService {
         const closeResult = await this.senseClose(spotId);
         if (closeResult) results.push(closeResult);
       } catch (error) {
-        console.error(`景点 ${spotId} 感知失败:`, error);
       }
     }
 
-    console.log(`✅ 环境感知完成，发现 ${results.length} 个感知结果`);
     return results;
   }
 
@@ -142,13 +139,13 @@ class EnvironmentSensorService {
 
     if (rainProbability >= this.ruleConfig.rain.danger) {
       level = SensorLevel.DANGER;
-      message = `⚠️ ${spot.name}降雨概率极高(${rainProbability.toFixed(0)}%)，建议调整行程或携带雨具`;
+      message = ` ${spot.name}降雨概率极高(${rainProbability.toFixed(0)}%)，建议调整行程或携带雨具`;
     } else if (rainProbability >= this.ruleConfig.rain.warning) {
       level = SensorLevel.WARNING;
-      message = `🌧️ ${spot.name}可能下雨(${rainProbability.toFixed(0)}%)，建议准备雨具`;
+      message = ` ${spot.name}可能下雨(${rainProbability.toFixed(0)}%)，建议准备雨具`;
     } else if (rainProbability >= 30) {
       level = SensorLevel.INFO;
-      message = `🌦️ ${spot.name}有小雨可能(${rainProbability.toFixed(0)}%)`;
+      message = ` ${spot.name}有小雨可能(${rainProbability.toFixed(0)}%)`;
     }
 
     if (!level) return null;
@@ -188,10 +185,10 @@ class EnvironmentSensorService {
 
     if (crowdLevel >= this.ruleConfig.crowd.danger) {
       level = SensorLevel.DANGER;
-      message = `👥 ${spot.name}极度拥挤(${crowdLevel.toFixed(0)}%)，建议避开或选择其他时间`;
+      message = ` ${spot.name}极度拥挤(${crowdLevel.toFixed(0)}%)，建议避开或选择其他时间`;
     } else if (crowdLevel >= this.ruleConfig.crowd.warning) {
       level = SensorLevel.WARNING;
-      message = `👥 ${spot.name}人流较多(${crowdLevel.toFixed(0)}%)，可能需要排队`;
+      message = ` ${spot.name}人流较多(${crowdLevel.toFixed(0)}%)，可能需要排队`;
     }
 
     if (!level) return null;
@@ -228,18 +225,18 @@ class EnvironmentSensorService {
     // 高温判断
     if (temperature >= this.ruleConfig.temperature.highDanger) {
       level = SensorLevel.DANGER;
-      message = `🌡️ ${spot.name}温度极高(${temperature.toFixed(0)}°C)，注意防暑降温`;
+      message = ` ${spot.name}温度极高(${temperature.toFixed(0)}°C)，注意防暑降温`;
     } else if (temperature >= this.ruleConfig.temperature.highWarning) {
       level = SensorLevel.WARNING;
-      message = `🌡️ ${spot.name}温度较高(${temperature.toFixed(0)}°C)，建议做好防晒`;
+      message = ` ${spot.name}温度较高(${temperature.toFixed(0)}°C)，建议做好防晒`;
     }
     // 低温判断
     else if (temperature <= this.ruleConfig.temperature.lowDanger) {
       level = SensorLevel.DANGER;
-      message = `❄️ ${spot.name}温度极低(${temperature.toFixed(0)}°C)，注意保暖防寒`;
+      message = ` ${spot.name}温度极低(${temperature.toFixed(0)}°C)，注意保暖防寒`;
     } else if (temperature <= this.ruleConfig.temperature.lowWarning) {
       level = SensorLevel.WARNING;
-      message = `❄️ ${spot.name}温度较低(${temperature.toFixed(0)}°C)，建议多穿衣物`;
+      message = ` ${spot.name}温度较低(${temperature.toFixed(0)}°C)，建议多穿衣物`;
     }
 
     if (!level) return null;
@@ -276,7 +273,7 @@ class EnvironmentSensorService {
         spotId,
         spotName: spot.name,
         level: SensorLevel.DANGER,
-        message: `🚫 ${spot.name}已关闭，请调整行程`,
+        message: ` ${spot.name}已关闭，请调整行程`,
         data: { isOpen: false },
         timestamp: new Date(),
       };
@@ -324,7 +321,6 @@ class EnvironmentSensorService {
         },
       });
     } catch (error) {
-      console.error('记录感知日志失败:', error);
     }
   }
 

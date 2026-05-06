@@ -60,7 +60,6 @@ export class AdminController {
       prisma.spot.count({ where: { image: { status: 'approved' } } }),
       prisma.spot.count({ where: { id: { in: await this.getSpotIDUser() } } }),
     ]).catch((err) => {
-      console.error('仪表板统计查询失败:', err);
       res.status(500).json({ success: false, error: '查询失败' });
       return null;
     });
@@ -109,7 +108,6 @@ export class AdminController {
           'admin'
         )
         .catch((err) => {
-          console.error('图片上传失败:', err);
           return null;
         });
       if (result) results.push(result);
@@ -199,7 +197,6 @@ export class AdminController {
     const imageIdStr = typeof imageId === 'string' ? imageId : imageId[0];
 
     const ok = await imageService.setMain(imageIdStr, userId, 'admin').catch((err) => {
-      console.error('设置主图失败:', err);
       res.status(500).json({ success: false, message: '设置主图失败' });
       return null;
     });
@@ -275,7 +272,6 @@ export class AdminController {
       }),
       prisma.spot.count(),
     ]).catch((err) => {
-      console.error('获取景点列表失败:', err);
       res.status(500).json({ success: false, message: '获取景点列表失败' });
       return null;
     });
@@ -336,7 +332,6 @@ export class AdminController {
         },
       })
       .catch((err) => {
-        console.error('审核图片失败:', err);
         fail('审核图片失败');
         return null;
       });
@@ -403,7 +398,7 @@ export class AdminController {
     if (cloudinaryId) {
       await cloudinaryService
         .delImg(cloudinaryId)
-        .catch((err) => console.error('Cloudinary 删除失败:', err));
+        .catch(() => {});
     }
 
     const deleted = await prisma.spotImage
@@ -411,7 +406,6 @@ export class AdminController {
         where: { id: imageIdStr },
       })
       .catch((err) => {
-        console.error('删除图片失败:', err);
         res.status(500).json({ success: false, message: '删除图片失败' });
         return null;
       });
@@ -438,7 +432,6 @@ export class AdminController {
       }),
       prisma.spotImage.count({ where: { status: 'pending' } }),
     ]).catch((err) => {
-      console.error('获取待审核图片失败:', err);
       fail('获取待审核图片失败');
       return null;
     });

@@ -267,7 +267,6 @@ export async function getSpotWeatherWithMicroclimate(
     });
 
     if (!spot) {
-      console.warn(`景点 ${spotId} 不存在，使用默认微气候`);
       const defaultAdjustment = applyMicroclimateAdjustment(baseWeather, MicroclimateType.DEFAULT);
       return {
         ...defaultAdjustment,
@@ -282,13 +281,6 @@ export async function getSpotWeatherWithMicroclimate(
     // 应用微气候调整
     const adjustedWeather = applyMicroclimateAdjustment(baseWeather, microclimateType);
 
-    console.log(`🌤️  景点 "${spot.name}" 微气候调整:`);
-    console.log(`   类型: ${microclimateType}`);
-    console.log(`   温度: ${baseWeather.temperature}°C → ${adjustedWeather.temperature}°C`);
-    console.log(`   湿度: ${baseWeather.humidity}% → ${adjustedWeather.humidity}%`);
-    console.log(
-      `   降雨概率: ${baseWeather.rainProbability}% → ${adjustedWeather.rainProbability}%`
-    );
 
     return {
       ...adjustedWeather,
@@ -296,7 +288,6 @@ export async function getSpotWeatherWithMicroclimate(
       microclimateType,
     };
   } catch (error) {
-    console.error(`获取景点 ${spotId} 微气候调整失败:`, error);
     const defaultAdjustment = applyMicroclimateAdjustment(baseWeather, MicroclimateType.DEFAULT);
     return {
       ...defaultAdjustment,
@@ -349,7 +340,6 @@ export async function batchIdentifyMicroclimateTypes(spotIds: string[]): Promise
 
     return result;
   } catch (error) {
-    console.error('批量识别微气候类型失败:', error);
     return result;
   }
 }

@@ -47,16 +47,13 @@ class SpotService {
    */
   async citySpots(city: string, limit: number = 20): Promise<Spot[]> {
     try {
-      console.log(`🔍 获取 ${city} 的景点数据...`);
 
       // 1. 检查数据库缓存
       const cachedSpots = await this.getSpotsFromDatabase(city, limit);
       if (cachedSpots && cachedSpots.length > 0) {
-        console.log(`✅ 从数据库获取到 ${cachedSpots.length} 个景点`);
         return cachedSpots;
       }
 
-      console.log(`📡 数据库中没有 ${city} 的景点，调用高德API...`);
 
       // 2. 调用高德API
       const amapAttractions = await amapServiceInstance.getAttractions(
@@ -67,27 +64,21 @@ class SpotService {
       );
 
       if (amapAttractions.length === 0) {
-        console.warn(`⚠️  高德API没有返回 ${city} 的景点数据`);
         return [];
       }
 
-      console.log(`✅ 从高德API获取到 ${amapAttractions.length} 个景点`);
 
       // 3. 去重处理
       const uniqueAttractions = uniq(amapAttractions);
-      console.log(`✅ 去重后剩余 ${uniqueAttractions.length} 个景点`);
 
       // 4. 转换并存储到数据库
       const spots = await this.saveSpotsToDatabase(uniqueAttractions, city);
-      console.log(`💾 已存储 ${spots.length} 个景点到数据库`);
 
       // 5. 为每个景点生成IoT数据
       await this.genIotBatch(spots);
-      console.log(`💾 已生成并存储 ${spots.length} 个景点的IoT数据`);
 
       return spots;
     } catch (error: any) {
-      console.error(`❌ 获取 ${city} 景点失败:`, error);
       throw error;
     }
   }
@@ -104,7 +95,7 @@ class SpotService {
         city: city,
       },
       include: {
-        image: true, // ✅ 包含图片关系
+        image: true, //  包含图片关系
       },
       take: limit,
       orderBy: {
@@ -126,7 +117,7 @@ class SpotService {
       description: spot.description,
       isOutdoor: spot.isOutdoor,
       source: spot.source,
-      image: spot.image, // ✅ 包含图片关系
+      image: spot.image, //  包含图片关系
       createdAt: spot.createdAt,
       updatedAt: spot.updatedAt,
     }));
@@ -215,7 +206,6 @@ class SpotService {
           updatedAt: spot.updatedAt,
         });
       } catch (error) {
-        console.error(`❌ 保存景点失败: ${attraction.name}`, error);
       }
     }
 
@@ -252,7 +242,6 @@ class SpotService {
           });
         }
       } catch (error) {
-        console.error(`❌ 生成IoT数据失败: ${spot.name}`, error);
       }
     }
   }
@@ -455,8 +444,6 @@ class SpotService {
     excludeSpotIds: string[] = []
   ): Promise<Spot[]> {
     try {
-      console.log(`🔍 获取 ${city} 的备选景点，原景点ID: ${originalSpotId}`);
-      console.log(`   排除的景点: ${excludeSpotIds.length} 个`);
 
       // 1. 检查是否已有备选关系
       const existingAlternatives = await prisma.spotAlternative.findMany({
@@ -469,7 +456,6 @@ class SpotService {
       });
 
       if (existingAlternatives.length > 0) {
-        console.log(`✅ 找到 ${existingAlternatives.length} 个已存储的备选景点`);
 
         // 获取备选景点的详细信息（包含图片）
         const alternativeIds = existingAlternatives.map((a) => a.alternativeSpotId);
@@ -496,9 +482,6 @@ class SpotService {
           (spot) => !excludeSpotIds.includes(spot.id)
         );
 
-        console.log(
-          `   动态过滤后: ${filteredAlternatives.length} 个备选景点（排除了 ${alternatives.length - filteredAlternatives.length} 个行程中的景点）`
-        );
 
         // 组装返回数据
         return filteredAlternatives.map((spot) => ({
@@ -522,7 +505,6 @@ class SpotService {
       }
 
       // 2. 如果没有备选关系，生成新的备选关系
-      console.log('📝 没有找到备选关系，开始生成...');
       await this.generateAlternativeRelations(originalSpotId, city, excludeSpotIds);
 
       // 3. 重新查询备选关系
@@ -535,7 +517,6 @@ class SpotService {
         },
       });
 
-      console.log(`✅ 生成了 ${newAlternatives.length} 个备选景点`);
 
       // 4. 获取备选景点的详细信息（包含图片）
       const alternativeIds = newAlternatives.map((a) => a.alternativeSpotId);
@@ -573,7 +554,6 @@ class SpotService {
         image: spot.image ? spot.image.url : null, // 添加图片URL
       }));
     } catch (error: any) {
-      console.error(`❌ 获取备选景点失败:`, error);
       throw error;
     }
   }
@@ -594,7 +574,6 @@ class SpotService {
       const allSpots = await this.getSpotsFromDatabase(city, 100);
 
       if (allSpots.length === 0) {
-        console.warn(`⚠️  ${city} 没有景点数据`);
         return;
       }
 
@@ -604,7 +583,6 @@ class SpotService {
       );
 
       if (candidates.length === 0) {
-        console.warn('⚠️  没有可用的候选景点');
         return;
       }
 
@@ -686,11 +664,9 @@ class SpotService {
           const topSpots = scoredSpots.sort((a, b) => b.score - a.score).slice(0, numAlternatives);
 
           selectedAlternatives = topSpots;
-          console.log(`⚠️  使用兜底机制，推荐评分最高的景点`);
         }
       }
 
-      console.log(`✅ 为景点 ${originalSpotId} 选择了 ${selectedAlternatives.length} 个备选景点`);
 
       // 9. 存储备选关系
       for (let i = 0; i < selectedAlternatives.length; i++) {
@@ -705,7 +681,6 @@ class SpotService {
         });
       }
     } catch (error: any) {
-      console.error(`❌ 生成备选关系失败:`, error);
       throw error;
     }
   }
@@ -779,7 +754,6 @@ class SpotService {
       // 2. excludeSpotIds中的景点（行程中的景点）
       return usedIds.filter((id) => !excludeIds.includes(id) && !excludeSpotIds.includes(id));
     } catch (error: any) {
-      console.error('❌ 获取已使用的备选ID失败:', error);
       return [];
     }
   }
@@ -796,7 +770,6 @@ class SpotService {
     city: string
   ): Promise<void> {
     try {
-      console.log(`🔄 更新备选关系: ${oldSpotId} -> ${newSpotId}`);
 
       // 1. 检查是否已经存在这个备选关系
       const existingRelation = await prisma.spotAlternative.findFirst({
@@ -807,7 +780,6 @@ class SpotService {
       });
 
       if (existingRelation) {
-        console.log('ℹ️  备选关系已存在，无需更新');
         return;
       }
 
@@ -819,7 +791,6 @@ class SpotService {
       });
 
       if (oldAlternatives.length === 0) {
-        console.log('ℹ️  旧景点没有备选关系，创建新的备选关系');
 
         // 创建新的备选关系
         await prisma.spotAlternative.create({
@@ -831,7 +802,6 @@ class SpotService {
           },
         });
 
-        console.log(`✅ 备选关系创建完成`);
         return;
       }
 
@@ -895,9 +865,7 @@ class SpotService {
         });
       }
 
-      console.log(`✅ 备选关系更新完成`);
     } catch (error: any) {
-      console.error(`❌ 更新备选关系失败:`, error);
       throw error;
     }
   }
@@ -1072,7 +1040,6 @@ class SpotService {
       });
 
       if (existingIoTData) {
-        console.log(`✅ 景点 ${spotId} 已有IoT数据`);
         return {
           id: existingIoTData.id,
           spotId: existingIoTData.spotId,
@@ -1091,11 +1058,9 @@ class SpotService {
       });
 
       if (!spot) {
-        console.error(`❌ 景点 ${spotId} 不存在`);
         return null;
       }
 
-      console.log(`🔄 为景点 ${spot.name} 生成IoT数据...`);
 
       // 动态生成IoT数据
       const iotData = this.liveIoT(spot);
@@ -1111,7 +1076,6 @@ class SpotService {
         },
       });
 
-      console.log(`✅ 景点 ${spot.name} IoT数据生成成功`);
 
       return {
         id: createdIoTData.id,
@@ -1124,7 +1088,6 @@ class SpotService {
         updatedAt: createdIoTData.updatedAt,
       };
     } catch (error) {
-      console.error(`❌ 为景点 ${spotId} 生成IoT数据失败:`, error);
       return null;
     }
   }
@@ -1173,7 +1136,6 @@ class SpotService {
 
       return userImage?.url || null;
     } catch (error) {
-      console.error(`获取景点 ${spotId} 封面图失败:`, error);
       return null;
     }
   }
@@ -1222,7 +1184,6 @@ class SpotService {
 
       return result;
     } catch (error) {
-      console.error('批量获取景点封面图失败:', error);
       // 返回空结果
       for (const spotId of spotIds) {
         result.set(spotId, null);
@@ -1304,15 +1265,12 @@ class SpotService {
         });
 
         if (spot) {
-          console.log(`⚠️  简化名称匹配: "${name}" -> "${spot.name}"`);
           return spot.id;
         }
       }
 
-      console.log(`⚠️  未找到景点: ${name} (${city})`);
       return null;
     } catch (error) {
-      console.error('❌ 查找景点ID失败:', error);
       return null;
     }
   }

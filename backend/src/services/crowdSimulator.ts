@@ -102,7 +102,6 @@ async function heatCoef(spotId: string): Promise<number> {
       baseCoefficient + (favoriteCount / maxFavorites) * (maxCoefficient - baseCoefficient);
     return Math.min(maxCoefficient, Math.max(baseCoefficient, coefficient));
   } catch (error) {
-    console.error(`获取景点 ${spotId} 的热度系数失败:`, error);
     return 1.0; // 出错时返回默认值
   }
 }
@@ -185,7 +184,6 @@ export async function batchCrowd(spotIds: string[]): Promise<Map<string, CrowdDa
       const crowdData = await getSpotCrowdData(spotId);
       crowdMap.set(spotId, crowdData);
     } catch (error) {
-      console.error(`获取景点 ${spotId} 的人流数据失败:`, error);
     }
   });
 

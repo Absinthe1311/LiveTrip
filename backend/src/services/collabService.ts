@@ -85,7 +85,6 @@ export class CollabService {
    * @returns 房间信息
    */
   async enterRoom(token: string, userId: string) {
-    console.log('🔍 joinRoom 调用:', { token, userId });
 
     // 查找房间
     const room = await prisma.collabRoom.findUnique({
@@ -114,15 +113,12 @@ export class CollabService {
     });
 
     if (!room) {
-      console.error('❌ 邀请链接无效: token=', token);
       throw new Error('邀请链接无效');
     }
 
-    console.log('✅ 找到房间:', { roomId: room.id, tripId: room.tripId });
 
     // 检查是否过期
     if (new Date() > room.inviteExpiresAt) {
-      console.error('❌ 邀请链接已过期:', room.inviteExpiresAt);
       throw new Error('邀请链接已过期');
     }
 
@@ -137,13 +133,11 @@ export class CollabService {
     });
 
     if (existingMember) {
-      console.log('✅ 用户已是成员，直接返回房间信息');
       // 已是成员，直接返回房间信息
       return room;
     }
 
     // 添加为协作者
-    console.log('➕ 添加用户为协作者:', { roomId: room.id, userId });
     await prisma.tripMember.create({
       data: {
         roomId: room.id,
@@ -180,11 +174,9 @@ export class CollabService {
     });
 
     if (!updatedRoom) {
-      console.error('❌ 重新查询房间失败: roomId=', room.id);
       throw new Error('加入房间失败');
     }
 
-    console.log('✅ 成功加入房间');
     return updatedRoom;
   }
 

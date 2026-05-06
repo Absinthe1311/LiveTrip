@@ -1,5 +1,4 @@
 // 行程管理控制器 - 处理行程的增删改查
-// AI辅助生成：GLM-5, 2026-04-22
 // 内容说明：优化saveTrip响应数据结构，返回完整trip对象（包含coverImage字段）
 import { Request, Response } from 'express';
 
@@ -16,7 +15,6 @@ const prisma = getPrismaClient();
  */
 export const listTrips = async (req: Request, res: Response) => {
   try {
-    console.log('📝 收到获取行程列表请求');
 
     // 从认证中间件获取用户ID
     const userId = (req as any).user?.userId;
@@ -28,7 +26,6 @@ export const listTrips = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`👤 用户ID: ${userId}`);
 
     // 获取用户的所有行程
     const trips = await prisma.trip.findMany({
@@ -52,14 +49,12 @@ export const listTrips = async (req: Request, res: Response) => {
       },
     });
 
-    console.log(`✅ 找到 ${trips.length} 个行程`);
 
     res.json({
       success: true,
       data: trips,
     });
   } catch (error: any) {
-    console.error('❌ 获取行程列表失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取行程列表失败',
@@ -76,7 +71,6 @@ export const getTripById = async (req: Request, res: Response) => {
     const { id } = req.params;
     const tripId = Array.isArray(id) ? id[0] : id;
 
-    console.log(`📝 收到获取行程详情请求，ID: ${tripId}`);
 
     // 获取行程详情
     const trip = await prisma.trip.findUnique({
@@ -103,7 +97,6 @@ export const getTripById = async (req: Request, res: Response) => {
       });
     }
 
-    console.log('✅ 行程详情获取成功');
 
     // 生成备选景点池
     let alternativePools: Record<string, any[]> = {};
@@ -120,7 +113,7 @@ export const getTripById = async (req: Request, res: Response) => {
           id: { in: allSpotIds },
         },
         include: {
-          image: true, // ✅ 包含图片关系
+          image: true, //  包含图片关系
         },
       });
 
@@ -131,7 +124,7 @@ export const getTripById = async (req: Request, res: Response) => {
           id: { notIn: allSpotIds }, // 排除行程中的景点
         },
         include: {
-          image: true, // ✅ 包含图片关系
+          image: true, //  包含图片关系
         },
         take: 50,
       });
@@ -159,9 +152,6 @@ export const getTripById = async (req: Request, res: Response) => {
         }))
       );
 
-      console.log(`   行程景点数: ${itinerarySpots.length}`);
-      console.log(`   候选景点数: ${candidateSpots.length}`);
-      console.log(`   总景点数: ${allSpots.length}`);
 
       // 使用traditionalRecommender的altPool方法
       alternativePools = traditionalRecommender().altPool(
@@ -169,9 +159,7 @@ export const getTripById = async (req: Request, res: Response) => {
         selectedSpots
       );
 
-      console.log(`✅ 生成备选景点池: ${Object.keys(alternativePools).length} 个景点`);
     } catch (error) {
-      console.error('⚠️  生成备选景点池失败:', error);
       // 失败时返回空的备选池
     }
 
@@ -183,7 +171,6 @@ export const getTripById = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('❌ 获取行程详情失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取行程详情失败',
@@ -201,7 +188,6 @@ export const delTrip = async (req: Request, res: Response) => {
     const tripId = Array.isArray(id) ? id[0] : id;
     const userId = (req as any).user?.userId;
 
-    console.log(`📝 收到删除行程请求，ID: ${tripId}`);
 
     // 删除行程（级联删除相关的days和itineraryItems）
     await prisma.trip.delete({
@@ -210,7 +196,6 @@ export const delTrip = async (req: Request, res: Response) => {
       },
     });
 
-    console.log('✅ 行程删除成功');
 
     // 更新用户统计数据
     if (userId) {
@@ -223,7 +208,6 @@ export const delTrip = async (req: Request, res: Response) => {
       message: '行程删除成功',
     });
   } catch (error: any) {
-    console.error('❌ 删除行程失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '删除行程失败',
@@ -237,8 +221,6 @@ export const delTrip = async (req: Request, res: Response) => {
  */
 export const saveTrip = async (req: Request, res: Response) => {
   try {
-    console.log('📝 收到保存行程请求');
-    console.log('请求体:', JSON.stringify(req.body, null, 2));
 
     const tripData = req.body;
 
@@ -284,13 +266,6 @@ export const saveTrip = async (req: Request, res: Response) => {
     const days = itinerary.itinerary.length;
 
     // 调试信息
-    console.log('📝 接收到的数据:');
-    console.log('  summary:', summary);
-    console.log('  itinerary.itinerary.length:', itinerary.itinerary?.length);
-    console.log('  hotel:', hotel);
-    console.log('  hotelRecommendations:', hotelRecommendations);
-    console.log('  restaurantRecommendations:', restaurantRecommendations);
-    console.log('  restaurants:', tripData.restaurants);
 
     // 创建行程记录（包含酒店信息和推荐缓存）
     const trip = await prisma.trip.create({
@@ -321,7 +296,6 @@ export const saveTrip = async (req: Request, res: Response) => {
       },
     });
 
-    console.log(`✅ 行程记录已创建，ID: ${trip.id}`);
 
     // 创建预算记录
     await prisma.budget.create({
@@ -338,7 +312,6 @@ export const saveTrip = async (req: Request, res: Response) => {
       },
     });
 
-    console.log('✅ 预算记录已创建（初始值为0，表示尚未花费）');
 
     // 创建每天的行程记录
     for (const day of itinerary.itinerary) {
@@ -351,11 +324,6 @@ export const saveTrip = async (req: Request, res: Response) => {
         (r: any) => r.day === day.day
       )?.restaurants;
 
-      console.log(`📝 第${day.day}天数据:`, {
-        dayRestaurant,
-        dayRestaurantRecommendations,
-        restaurantRecommendations,
-      });
 
       // 确保 dayRestaurantRecommendations 是数组
       const safeRestaurantRecommendations = Array.isArray(dayRestaurantRecommendations)
@@ -383,7 +351,6 @@ export const saveTrip = async (req: Request, res: Response) => {
         },
       });
 
-      console.log(`✅ 第${day.day}天记录已创建，ID: ${dayRecord.id}`);
 
       // 创建每天的景点记录
       for (const item of day.attractions) {
@@ -420,12 +387,9 @@ export const saveTrip = async (req: Request, res: Response) => {
           );
 
           if (spotId) {
-            console.log(`✅ 找到景点ID: ${item.name} -> ${spotId}`);
           } else {
-            console.log(`⚠️  未找到景点ID: ${item.name}`);
           }
         } else {
-          console.log(`✅ 使用传递的景点ID: ${item.name} -> ${spotId}`);
         }
 
         await prisma.itineraryItem.create({
@@ -446,13 +410,10 @@ export const saveTrip = async (req: Request, res: Response) => {
         });
       }
 
-      console.log(`✅ 第${day.day}天的${day.attractions.length}个景点记录已创建`);
     }
 
-    console.log('✅ 行程数据已保存到数据库');
 
     // 计算实际预算
-    console.log('💰 开始计算实际预算...');
 
     // 收集所有景点的费用
     const allSpots = itinerary.itinerary.flatMap((day: any) =>
@@ -477,7 +438,6 @@ export const saveTrip = async (req: Request, res: Response) => {
       itinerarySpots: allSpots,
     });
 
-    console.log(`✅ 实际预算计算完成: ¥${budgetInfo.total}`);
 
     // 更新行程记录，添加实际预算和状态
     await prisma.trip.update({
@@ -499,7 +459,6 @@ export const saveTrip = async (req: Request, res: Response) => {
       },
     });
 
-    console.log('✅ 预算信息已更新');
 
     // 更新用户统计数据
     const { UserController } = await import('./userController');
@@ -524,7 +483,6 @@ export const saveTrip = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('❌ 保存行程失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '保存行程失败',
@@ -542,8 +500,6 @@ export const updHotel = async (req: Request, res: Response) => {
     const tripId = Array.isArray(id) ? id[0] : id;
     const hotel = req.body;
 
-    console.log(`🏨 收到更新酒店请求，行程ID: ${tripId}`);
-    console.log('酒店信息:', JSON.stringify(hotel, null, 2));
 
     // 检查行程是否存在
     const trip = await prisma.trip.findUnique({
@@ -571,7 +527,6 @@ export const updHotel = async (req: Request, res: Response) => {
       },
     });
 
-    console.log('✅ 酒店信息更新成功');
 
     res.json({
       success: true,
@@ -579,7 +534,6 @@ export const updHotel = async (req: Request, res: Response) => {
       data: updatedTrip,
     });
   } catch (error: any) {
-    console.error('❌ 更新酒店信息失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '更新酒店信息失败',
@@ -593,8 +547,6 @@ export const updHotel = async (req: Request, res: Response) => {
  */
 export const calBudget = async (req: Request, res: Response) => {
   try {
-    console.log('💰 收到实时预算计算请求');
-    console.log('请求体:', JSON.stringify(req.body, null, 2));
 
     const { totalBudget, days, groupSize, hotel, restaurants, spots } = req.body;
 
@@ -627,7 +579,6 @@ export const calBudget = async (req: Request, res: Response) => {
     const warningLevel = budgetCalculator.warnLevel(budgetInfo);
     const warningMessage = budgetCalculator.warnMsg(budgetInfo);
 
-    console.log('✅ 实时预算计算完成');
 
     res.json({
       success: true,
@@ -638,7 +589,6 @@ export const calBudget = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('❌ 计算实时预算失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '计算实时预算失败',
@@ -659,8 +609,6 @@ export const setDayDining = async (req: Request, res: Response) => {
     const tripIdStr = Array.isArray(tripId) ? tripId[0] : tripId;
     const dayNumberStr = Array.isArray(dayNumber) ? dayNumber[0] : dayNumber;
 
-    console.log(`🍽️ 收到更新餐厅请求，行程ID: ${tripIdStr}, 天数: ${dayNumberStr}`);
-    console.log('餐厅信息:', JSON.stringify(restaurant, null, 2));
 
     // 查找对应的Day记录
     const day = await prisma.day.findFirst({
@@ -691,7 +639,6 @@ export const setDayDining = async (req: Request, res: Response) => {
       },
     });
 
-    console.log('✅ 餐厅信息更新成功');
 
     res.json({
       success: true,
@@ -699,7 +646,6 @@ export const setDayDining = async (req: Request, res: Response) => {
       data: updatedDay,
     });
   } catch (error: any) {
-    console.error('❌ 更新餐厅信息失败:', error);
     res.status(500).json({
       success: false,
       message: error.message || '更新餐厅信息失败',
@@ -726,7 +672,6 @@ export const completeTrip = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`✅ 收到完成行程请求，行程ID: ${tripIdStr}, 用户ID: ${userId}`);
 
     // 查找行程
     const trip = await prisma.trip.findUnique({
@@ -740,11 +685,9 @@ export const completeTrip = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`📋 行程信息: trip.userId=${trip.userId}, 当前用户=${userId}`);
 
     // 验证行程属于当前用户
     if (trip.userId !== userId) {
-      console.log(`❌ 权限验证失败: 行程属于用户 ${trip.userId}，但当前用户是 ${userId}`);
       return res.status(403).json({
         success: false,
         message: '您没有权限完成此行程',
@@ -769,7 +712,6 @@ export const completeTrip = async (req: Request, res: Response) => {
       },
     });
 
-    console.log('✅ 行程已完成');
 
     res.json({
       success: true,
@@ -781,7 +723,6 @@ export const completeTrip = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('❌ 完成行程失败:', error);
     res.status(500).json({
       success: false,
       message: error.message || '完成行程失败',

@@ -72,7 +72,6 @@ export class HotelCacheService {
         rating: hotel.rating || undefined,
       }));
     } catch (error) {
-      console.error('❌ 从数据库获取酒店失败:', error);
       return null;
     }
   }
@@ -115,7 +114,6 @@ export class HotelCacheService {
         })
       );
     } catch (error) {
-      console.error('❌ 保存酒店到数据库失败:', error);
     }
   }
 

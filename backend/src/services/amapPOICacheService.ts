@@ -56,7 +56,6 @@ export class AmapPOICacheService {
         cost: poi.cost || undefined,
       }));
     } catch (error) {
-      console.error('❌ 从缓存获取数据失败:', error);
       return null;
     }
   }
@@ -108,7 +107,6 @@ export class AmapPOICacheService {
         })
       );
     } catch (error) {
-      console.error('❌ 保存到缓存失败:', error);
     }
   }
 
@@ -134,7 +132,6 @@ export class AmapPOICacheService {
 
       return { total, byCity };
     } catch (error) {
-      console.error('❌ 获取缓存统计失败:', error);
       return { total: 0, byCity: {} };
     }
   }

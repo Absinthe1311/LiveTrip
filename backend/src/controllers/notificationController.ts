@@ -36,7 +36,6 @@ export const fetNotifs = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.error('获取通知列表失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取通知列表失败',
@@ -67,7 +66,6 @@ export const readAllNotifs = async (req: Request, res: Response) => {
       message: '通知已标记为已读',
     });
   } catch (error: any) {
-    console.error('标记通知已读失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '标记通知已读失败',
@@ -97,7 +95,6 @@ export const markAllNotificationsAsRead = async (req: Request, res: Response) =>
       message: '所有通知已标记为已读',
     });
   } catch (error: any) {
-    console.error('标记所有通知已读失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '标记所有通知已读失败',
@@ -120,7 +117,6 @@ export const fireSensor = async (req: Request, res: Response) => {
       message: '环境感知已触发',
     });
   } catch (error: any) {
-    console.error('触发环境感知失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '触发环境感知失败',
@@ -153,7 +149,6 @@ export const delNotif = async (req: Request, res: Response) => {
       message: '通知已删除',
     });
   } catch (error: any) {
-    console.error('删除通知失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '删除通知失败',
@@ -185,7 +180,6 @@ export const flushNotifs = async (req: Request, res: Response) => {
       message: '所有通知已清空',
     });
   } catch (error: any) {
-    console.error('清空通知失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '清空通知失败',

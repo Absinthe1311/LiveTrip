@@ -30,7 +30,6 @@ export const syncSpot = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`🔄 同步景点到数据库: ${name}, ${city}`);
 
     // 检查景点是否已存在
     const existingSpot = await prisma.spot.findFirst({
@@ -41,7 +40,6 @@ export const syncSpot = async (req: Request, res: Response) => {
     });
 
     if (existingSpot) {
-      console.log(`✅ 景点已存在: ${existingSpot.id}`);
 
       // 检查IoT数据是否存在，不存在则生成
       const existingIoTData = await prisma.spotIoTData.findUnique({
@@ -49,14 +47,11 @@ export const syncSpot = async (req: Request, res: Response) => {
       });
 
       if (!existingIoTData) {
-        console.log(`🔄 为已存在的景点生成IoT数据: ${existingSpot.name}`);
         try {
           const iotData = await spotService.genIot(existingSpot.id);
           if (iotData) {
-            console.log(`✅ IoT数据生成成功: ${existingSpot.name}`);
           }
         } catch (error) {
-          console.error(`❌ IoT数据生成失败: ${existingSpot.name}`, error);
         }
       }
 
@@ -85,17 +80,13 @@ export const syncSpot = async (req: Request, res: Response) => {
       },
     });
 
-    console.log(`✅ 景点创建成功: ${spot.id}`);
 
     // 自动生成IoT数据
     try {
-      console.log(`🔄 为新景点生成IoT数据: ${spot.name}`);
       const iotData = await spotService.genIot(spot.id);
       if (iotData) {
-        console.log(`✅ IoT数据生成成功: ${spot.name}`);
       }
     } catch (error) {
-      console.error(`❌ IoT数据生成失败: ${spot.name}`, error);
     }
 
     return res.json({
@@ -104,7 +95,6 @@ export const syncSpot = async (req: Request, res: Response) => {
       message: '景点同步成功',
     });
   } catch (error: any) {
-    console.error('❌ 同步景点失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '同步景点失败',
@@ -127,7 +117,6 @@ export const syncSpotsBatch = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`🔄 批量同步 ${spots.length} 个景点`);
 
     const results = [];
 
@@ -187,7 +176,6 @@ export const syncSpotsBatch = async (req: Request, res: Response) => {
       count: results.length,
     });
   } catch (error: any) {
-    console.error('❌ 批量同步景点失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '批量同步景点失败',

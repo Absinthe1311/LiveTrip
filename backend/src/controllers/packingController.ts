@@ -27,7 +27,6 @@ export class PackingController {
       const result = await packingService.getPack(tripIdStr);
       res.status(200).json(result);
     } catch (error: any) {
-      console.error('获取打包清单失败:', error);
       res.status(500).json({
         success: false,
         message: '获取打包清单失败',
@@ -56,7 +55,6 @@ export class PackingController {
       const result = await packingService.setupPack(tripIdStr);
       res.status(200).json(result);
     } catch (error: any) {
-      console.error('初始化打包清单失败:', error);
       res.status(500).json({
         success: false,
         message: '初始化打包清单失败',
@@ -86,7 +84,6 @@ export class PackingController {
       const result = await packingService.packAdd(tripIdStr, itemName, category);
       res.status(201).json(result);
     } catch (error: any) {
-      console.error('添加打包物品失败:', error);
       res.status(500).json({
         success: false,
         message: '添加打包物品失败',
@@ -116,7 +113,6 @@ export class PackingController {
       const result = await packingService.savePackBatch(tripIdStr, items);
       res.status(200).json(result);
     } catch (error: any) {
-      console.error('批量保存打包清单失败:', error);
       res.status(500).json({
         success: false,
         message: '批量保存打包清单失败',
@@ -154,7 +150,6 @@ export class PackingController {
       const result = await packingService.updItem(itemIdStr, updates);
       res.status(200).json(result);
     } catch (error: any) {
-      console.error('更新打包物品失败:', error);
       res.status(500).json({
         success: false,
         message: '更新打包物品失败',
@@ -183,7 +178,6 @@ export class PackingController {
       const result = await packingService.delItem(itemIdStr);
       res.status(200).json(result);
     } catch (error: any) {
-      console.error('删除打包物品失败:', error);
       res.status(500).json({
         success: false,
         message: '删除打包物品失败',
@@ -204,7 +198,6 @@ export class PackingController {
         data: categories,
       });
     } catch (error: any) {
-      console.error('获取分类失败:', error);
       res.status(500).json({
         success: false,
         message: '获取分类失败',
@@ -246,7 +239,6 @@ export class PackingController {
         },
       });
     } catch (error: any) {
-      console.error('获取打包进度失败:', error);
       res.status(500).json({
         success: false,
         message: '获取打包进度失败',

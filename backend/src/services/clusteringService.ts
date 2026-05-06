@@ -11,7 +11,6 @@ class ClusteringService {
    * 使用 K-means 算法将景点聚类
    */
   async KMeans(spots: SpotScore[], k: number): Promise<SpotCluster[]> {
-    console.log(`\n🗺️  开始 K-means 聚类，K=${k}，景点数量=${spots.length}`);
 
     if (spots.length === 0) {
       return [];
@@ -19,7 +18,6 @@ class ClusteringService {
 
     if (spots.length <= k) {
       // 景点数量小于等于 K，每个景点一个聚类
-      console.log('⚠️  景点数量小于等于 K，每个景点单独成簇');
       return spots.map((spot, index) => ({
         clusterId: index,
         spots: [spot],
@@ -50,8 +48,6 @@ class ClusteringService {
       iteration++;
     }
 
-    console.log(`✅ 聚类完成，迭代次数: ${iteration}`);
-    console.log(`   各聚类景点数量: ${clusters.map((c) => c.spots.length).join(', ')}`);
 
     // 3. 后处理：平衡聚类
     const balancedClusters = this.evenOut(clusters);
@@ -150,14 +146,12 @@ class ClusteringService {
    * 平衡聚类（处理景点数量不均的情况）
    */
   private evenOut(clusters: SpotCluster[]): SpotCluster[] {
-    console.log('\n⚖️  开始平衡聚类...');
 
     const averageSpots = clusters.reduce((sum, c) => sum + c.spots.length, 0) / clusters.length;
 
     for (const cluster of clusters) {
       // 如果景点太少（< 平均值的 50%），从相邻聚类借调
       if (cluster.spots.length < averageSpots * 0.5) {
-        console.log(`   聚类 ${cluster.clusterId} 景点过少 (${cluster.spots.length})，尝试借调`);
 
         // 找到最近的聚类
         let nearestCluster: SpotCluster | null = null;
@@ -185,13 +179,11 @@ class ClusteringService {
           // 添加到目标聚类
           cluster.spots.push(...spotsToMove);
 
-          console.log(`   从聚类 ${nearestCluster.clusterId} 借调了 ${spotsToMove.length} 个景点`);
         }
       }
 
       // 如果景点太多（> 平均值的 150%），移除低分景点到相邻聚类
       if (cluster.spots.length > averageSpots * 1.5) {
-        console.log(`   聚类 ${cluster.clusterId} 景点过多 (${cluster.spots.length})，尝试移除`);
 
         // 找到最近的聚类
         let nearestCluster: SpotCluster | null = null;
@@ -217,13 +209,10 @@ class ClusteringService {
           // 添加到目标聚类
           nearestCluster.spots.push(...spotsToMove);
 
-          console.log(`   移除了 ${spotsToMove.length} 个景点到聚类 ${nearestCluster.clusterId}`);
         }
       }
     }
 
-    console.log(`✅ 聚类平衡完成`);
-    console.log(`   各聚类景点数量: ${clusters.map((c) => c.spots.length).join(', ')}`);
 
     return clusters;
   }
@@ -234,7 +223,6 @@ class ClusteringService {
   private parseLoc(location: string): Point {
     const parts = location.split(',');
     if (parts.length !== 2) {
-      console.warn(`⚠️  无效的经纬度格式: ${location}`);
       return { lng: 0, lat: 0 };
     }
 
@@ -242,7 +230,6 @@ class ClusteringService {
     const lat = parseFloat(parts[1].trim());
 
     if (isNaN(lng) || isNaN(lat)) {
-      console.warn(`⚠️  无法解析经纬度: ${location}`);
       return { lng: 0, lat: 0 };
     }
 

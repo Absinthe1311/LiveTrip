@@ -1,18 +1,17 @@
-// AI辅助生成：GLM-5, 2026-04-26 21:36
 // 描述：TempData接口新增tripId可选字段，用于行程确认流程中保存draft行程的引用。
 // 对话历史服务 - 管理对话会话和消息
 import { getPrismaClient } from '../lib/prisma';
 
 const prisma = getPrismaClient();
 
-// ✅ P0优化: 会话状态类型
+//  P0优化: 会话状态类型
 export enum SessionState {
   IDLE = 'idle', // 空闲状态
   WAITING_CONFIRMATION = 'waiting', // 等待确认
   COMPLETED = 'completed', // 已完成
 }
 
-// ✅ P0优化: 临时数据类型
+//  P0优化: 临时数据类型
 export enum TempDataType {
   TRIP_DRAFT = 'trip_draft', // 行程草稿
   BLOG_DRAFT = 'blog_draft', // 博客草稿
@@ -35,7 +34,7 @@ interface msgsParams {
   limit?: number;
 }
 
-// ✅ P0优化: 临时数据结构
+//  P0优化: 临时数据结构
 interface TempData {
   type: TempDataType;
   tripId?: string;
@@ -55,20 +54,18 @@ class ChatHistoryService {
         data: {
           userId: params.userId,
           mode: params.mode,
-          state: SessionState.IDLE, // ✅ P0优化: 初始状态为空闲
+          state: SessionState.IDLE, //  P0优化: 初始状态为空闲
         },
       });
 
-      console.log(`✅ 创建对话会话成功: ${session.id}`);
       return session;
     } catch (error) {
-      console.error('❌ 创建对话会话失败:', error);
       throw error;
     }
   }
 
   /**
-   * ✅ P0优化: 更新会话状态
+   *  P0优化: 更新会话状态
    */
   async updState(sessionId: string, state: SessionState) {
     try {
@@ -80,16 +77,14 @@ class ChatHistoryService {
         },
       });
 
-      console.log(`✅ 更新会话状态: ${sessionId} -> ${state}`);
       return session;
     } catch (error) {
-      console.error('❌ 更新会话状态失败:', error);
       throw error;
     }
   }
 
   /**
-   * ✅ P0优化: 更新会话临时数据
+   *  P0优化: 更新会话临时数据
    */
   async setTemp(sessionId: string, tempData: TempData) {
     try {
@@ -102,16 +97,14 @@ class ChatHistoryService {
         },
       });
 
-      console.log(`✅ 更新会话临时数据: ${sessionId}`);
       return session;
     } catch (error) {
-      console.error('❌ 更新会话临时数据失败:', error);
       throw error;
     }
   }
 
   /**
-   * ✅ P0优化: 清除会话临时数据
+   *  P0优化: 清除会话临时数据
    */
   async clearTemp(sessionId: string) {
     try {
@@ -124,16 +117,14 @@ class ChatHistoryService {
         },
       });
 
-      console.log(`✅ 清除会话临时数据: ${sessionId}`);
       return session;
     } catch (error) {
-      console.error('❌ 清除会话临时数据失败:', error);
       throw error;
     }
   }
 
   /**
-   * ✅ P0优化: 获取会话信息
+   *  P0优化: 获取会话信息
    */
   async getChat(sessionId: string) {
     try {
@@ -143,7 +134,6 @@ class ChatHistoryService {
 
       return session;
     } catch (error) {
-      console.error('❌ 获取会话信息失败:', error);
       throw error;
     }
   }
@@ -185,7 +175,6 @@ class ChatHistoryService {
 
       return session;
     } catch (error) {
-      console.error('❌ 获取或创建会话失败:', error);
       throw error;
     }
   }
@@ -227,7 +216,6 @@ class ChatHistoryService {
 
       return session;
     } catch (error) {
-      console.error('❌ 获取或创建会话失败:', error);
       throw error;
     }
   }
@@ -254,7 +242,6 @@ class ChatHistoryService {
 
       return message;
     } catch (error) {
-      console.error('❌ 创建消息失败:', error);
       throw error;
     }
   }
@@ -276,7 +263,6 @@ class ChatHistoryService {
 
       return messages;
     } catch (error) {
-      console.error('❌ 获取消息历史失败:', error);
       throw error;
     }
   }
@@ -308,7 +294,6 @@ class ChatHistoryService {
 
       return sessions;
     } catch (error) {
-      console.error('❌ 获取用户会话列表失败:', error);
       throw error;
     }
   }
@@ -322,9 +307,7 @@ class ChatHistoryService {
         where: { id: sessionId },
       });
 
-      console.log(`✅ 删除会话成功: ${sessionId}`);
     } catch (error) {
-      console.error('❌ 删除会话失败:', error);
       throw error;
     }
   }
@@ -347,7 +330,6 @@ class ChatHistoryService {
 
       return session;
     } catch (error) {
-      console.error('❌ 获取会话详情失败:', error);
       throw error;
     }
   }

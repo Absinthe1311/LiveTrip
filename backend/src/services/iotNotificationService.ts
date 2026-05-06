@@ -344,9 +344,9 @@ export function generateNotificationContent(change: IoTStatusChange): {
   data: any;
 } {
   const emoji = {
-    [NotificationLevel.INFO]: 'ℹ️',
-    [NotificationLevel.WARNING]: '⚠️',
-    [NotificationLevel.DANGER]: '🚨',
+    [NotificationLevel.INFO]: '',
+    [NotificationLevel.WARNING]: '',
+    [NotificationLevel.DANGER]: '',
   };
 
   const typeLabel = {
@@ -360,19 +360,19 @@ export function generateNotificationContent(change: IoTStatusChange): {
 
   const title = `${emoji[change.level]} ${change.spotName} - ${typeLabel[change.changeType]}`;
 
-  let content = `📊 ${change.reason}\n\n`;
-  content += `💡 建议：${change.suggestion}\n\n`;
+  let content = ` ${change.reason}\n\n`;
+  content += ` 建议：${change.suggestion}\n\n`;
 
   // 添加变化详情
   if (change.oldValue !== null && change.newValue !== null) {
     if (typeof change.oldValue === 'number' && typeof change.newValue === 'number') {
-      content += `📈 变化：${change.oldValue} → ${change.newValue}`;
+      content += ` 变化：${change.oldValue} → ${change.newValue}`;
       if (change.delta) {
         content += ` (${change.delta > 0 ? '+' : ''}${change.delta})`;
       }
       content += '\n';
     } else {
-      content += `📈 状态：${change.oldValue} → ${change.newValue}\n`;
+      content += ` 状态：${change.oldValue} → ${change.newValue}\n`;
     }
   }
 
@@ -453,9 +453,7 @@ export async function sendIoTNotifications(
         timestamp: new Date(),
       });
 
-      console.log(`✅ 已发送IoT通知: ${title}`);
     } catch (error) {
-      console.error(`❌ 发送IoT通知失败:`, error);
     }
   }
 }

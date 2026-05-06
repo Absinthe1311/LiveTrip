@@ -21,7 +21,6 @@ class SensorScheduler {
    * 启动定时感知任务
    */
   start(): void {
-    console.log('\n🚀 启动环境感知定时任务（增强版）...');
 
     // 每15分钟执行一次IoT数据更新
     cron.schedule('*/15 * * * *', async () => {
@@ -43,11 +42,6 @@ class SensorScheduler {
       await this.runFavoriteSpotsSensing();
     });
 
-    console.log('✅ 环境感知定时任务已启动');
-    console.log('   - IoT数据更新：每15分钟');
-    console.log('   - 用户行程感知：每15分钟');
-    console.log('   - 全局感知：每30分钟');
-    console.log('   - 收藏景点感知：每20分钟（新增）');
   }
 
   /**
@@ -56,12 +50,10 @@ class SensorScheduler {
    */
   private async updateIoTData(): Promise<void> {
     if (this.isRunning) {
-      console.log('⏳ 上一次任务仍在运行，跳过本次执行');
       return;
     }
 
     this.isRunning = true;
-    console.log('\n🔄 开始更新IoT数据...');
 
     try {
       // 获取所有景点
@@ -70,20 +62,16 @@ class SensorScheduler {
       });
 
       if (spots.length === 0) {
-        console.log('⚠️  没有景点数据，跳过更新');
         this.isRunning = false;
         return;
       }
 
       const spotIds = spots.map((s) => s.id);
-      console.log(`📍 共 ${spotIds.length} 个景点需要更新`);
 
       // 并行获取天气数据
-      console.log('🌤️  更新天气数据...');
       const weatherMap = await batchWeather(spotIds);
 
       // 并行获取人流数据
-      console.log('👥 更新人流数据...');
       const crowdMap = await batchCrowd(spotIds);
 
       // 更新数据库
@@ -104,9 +92,7 @@ class SensorScheduler {
         }
       }
 
-      console.log(`✅ IoT数据更新完成，成功更新 ${updateCount}/${spotIds.length} 个景点`);
     } catch (error) {
-      console.error('❌ IoT数据更新失败:', error);
     } finally {
       this.isRunning = false;
     }
@@ -118,7 +104,6 @@ class SensorScheduler {
    * 新增：状态变化检测、趋势预警、多维度通知
    */
   private async runUserTripSensing(): Promise<void> {
-    console.log('\n🔍 开始用户行程环境感知（增强版）...');
 
     try {
       // 获取即将开始的行程（未来24小时内）
@@ -143,11 +128,9 @@ class SensorScheduler {
       });
 
       if (upcomingTrips.length === 0) {
-        console.log('ℹ️  没有即将开始的行程');
         return;
       }
 
-      console.log(`📋 找到 ${upcomingTrips.length} 个即将开始的行程`);
 
       // 对每个行程进行感知
       for (const trip of upcomingTrips) {
@@ -158,7 +141,6 @@ class SensorScheduler {
 
         if (spotIds.length === 0) continue;
 
-        console.log(`\n  行程: ${trip.title} (${spotIds.length} 个景点)`);
 
         // 获取景点IoT数据
         const spots = await prisma.spot.findMany({
@@ -187,9 +169,7 @@ class SensorScheduler {
         await environmentSensorService.logMany(sensorResults);
       }
 
-      console.log('✅ 用户行程环境感知完成');
     } catch (error) {
-      console.error('❌ 用户行程环境感知失败:', error);
     }
   }
 
@@ -197,7 +177,6 @@ class SensorScheduler {
    * 全局感知（所有热门景点）
    */
   private async runGlobalSensing(): Promise<void> {
-    console.log('\n🌍 开始全局环境感知...');
 
     try {
       // 获取所有热门景点
@@ -207,12 +186,10 @@ class SensorScheduler {
       });
 
       if (hotSpots.length === 0) {
-        console.log('ℹ️  没有热门景点');
         return;
       }
 
       const spotIds = hotSpots.map((s) => s.id);
-      console.log(`📍 共 ${spotIds.length} 个热门景点`);
 
       // 执行感知
       const sensorResults = await environmentSensorService.sense(spotIds);
@@ -220,9 +197,7 @@ class SensorScheduler {
       // 记录感知日志
       await environmentSensorService.logMany(sensorResults);
 
-      console.log('✅ 全局环境感知完成');
     } catch (error) {
-      console.error('❌ 全局环境感知失败:', error);
     }
   }
 
@@ -231,7 +206,6 @@ class SensorScheduler {
    * 监控用户收藏景点的状态变化，及时通知
    */
   private async runFavoriteSpotsSensing(): Promise<void> {
-    console.log('\n❤️  开始用户收藏景点感知...');
 
     try {
       // 获取所有用户的收藏景点
@@ -246,11 +220,9 @@ class SensorScheduler {
       });
 
       if (favorites.length === 0) {
-        console.log('ℹ️  没有用户收藏景点');
         return;
       }
 
-      console.log(`📍 共 ${favorites.length} 个收藏景点记录`);
 
       // 按用户分组
       const userFavoritesMap = new Map<
@@ -292,9 +264,7 @@ class SensorScheduler {
         await batchDetectAndNotify(spotStatusList);
       }
 
-      console.log('✅ 用户收藏景点感知完成');
     } catch (error) {
-      console.error('❌ 用户收藏景点感知失败:', error);
     }
   }
 
@@ -302,12 +272,10 @@ class SensorScheduler {
    * 手动触发感知（用于测试）
    */
   async fireSense(spotIds?: string[]): Promise<void> {
-    console.log('\n🔧 手动触发环境感知...');
 
     if (spotIds && spotIds.length > 0) {
       const results = await environmentSensorService.sense(spotIds);
       await environmentSensorService.logMany(results);
-      console.log(`✅ 手动感知完成，发现 ${results.length} 个感知结果`);
     } else {
       await this.runGlobalSensing();
     }

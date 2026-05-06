@@ -188,14 +188,10 @@ export function uniq(
 
       if (isDup(current, attractions[j], options)) {
         duplicates.add(j);
-        console.log(`🔄 去重: "${attractions[j].name}" 与 "${current.name}" 重复，已移除`);
       }
     }
   }
 
-  console.log(
-    `✅ 去重完成: ${attractions.length} -> ${result.length} (移除 ${attractions.length - result.length} 个重复景点)`
-  );
 
   return result;
 }

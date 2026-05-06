@@ -63,7 +63,6 @@ export const hotelRecs = async (req: Request, res: Response) => {
         try {
           const cachedHotels = JSON.parse(trip.hotelRecommendationsCache);
           if (cachedHotels && cachedHotels.length > 0) {
-            console.log('✅ [数据库缓存] 酒店推荐 - tripId:', tripId);
             return res.json({
               success: true,
               data: cachedHotels,
@@ -72,17 +71,14 @@ export const hotelRecs = async (req: Request, res: Response) => {
             });
           }
         } catch (e) {
-          console.warn('⚠️  缓存解析失败,将重新获取');
         }
       }
     }
 
-    console.log('📡 [高德API] 酒店推荐 - 景点:', spots.length, '预算:', budget);
 
     // 调用酒店推荐服务
     const hotels = await hotelRecommender.loadHotels(spots, budget);
 
-    console.log(`✅ [高德API] 酒店推荐成功 - 返回 ${hotels.length} 个结果`);
 
     // 保存推荐数据到缓存（如果有tripId）
     if (tripId && hotels.length > 0) {
@@ -91,9 +87,7 @@ export const hotelRecs = async (req: Request, res: Response) => {
           where: { id: tripId },
           data: { hotelRecommendationsCache: JSON.stringify(hotels) },
         });
-        console.log(`💾 [数据库] 保存酒店推荐缓存 - tripId: ${tripId}`);
       } catch (e) {
-        console.warn('⚠️  保存酒店推荐缓存失败:', e);
       }
     }
 
@@ -104,7 +98,6 @@ export const hotelRecs = async (req: Request, res: Response) => {
       fromCache: false,
     });
   } catch (error: any) {
-    console.error('❌ 酒店推荐失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '酒店推荐失败，请稍后重试',
@@ -201,13 +194,11 @@ export const restaurantRecs = async (req: Request, res: Response) => {
                 hasValidCache = true;
               }
             } catch (e) {
-              console.warn(`⚠️  第${day.day}天缓存解析失败`);
             }
           }
         }
 
         if (hasValidCache && cachedRecommendations.length === days.length) {
-          console.log('✅ [数据库缓存] 餐厅推荐 - tripId:', tripId);
           return res.json({
             success: true,
             data: cachedRecommendations,
@@ -218,12 +209,10 @@ export const restaurantRecs = async (req: Request, res: Response) => {
       }
     }
 
-    console.log('📡 [高德API] 餐厅推荐 - 天数:', days.length);
 
     // 调用餐厅推荐服务
     const recommendations = await restaurantRecommender.ResRec(days);
 
-    console.log(`✅ [高德API] 餐厅推荐成功 - 返回 ${recommendations.length} 天的结果`);
 
     // 保存推荐数据到缓存（如果有tripId）
     if (tripId && recommendations.length > 0) {
@@ -236,9 +225,7 @@ export const restaurantRecs = async (req: Request, res: Response) => {
             });
           }
         }
-        console.log(`💾 [数据库] 保存餐厅推荐缓存 - tripId: ${tripId}`);
       } catch (e) {
-        console.warn('⚠️  保存餐厅推荐缓存失败:', e);
       }
     }
 
@@ -249,7 +236,6 @@ export const restaurantRecs = async (req: Request, res: Response) => {
       fromCache: false,
     });
   } catch (error: any) {
-    console.error('❌ 餐厅推荐失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '餐厅推荐失败，请稍后重试',
@@ -286,9 +272,6 @@ export const findRestaurant = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(
-      `📡 [高德API] 自定义餐厅搜索 - 名称: ${name}, 城市: ${city}, 中心位置: ${location || '无'}`
-    );
 
     const amapServiceInstance = amapService();
 
@@ -297,7 +280,6 @@ export const findRestaurant = async (req: Request, res: Response) => {
 
       // 如果提供了中心位置，使用周边搜索
       if (location) {
-        console.log(`🔍 使用周边搜索 - 中心: ${location}, 关键词: ${name}, 半径: 5000m`);
         finalRestaurants = await amapServiceInstance.searchAround(
           location,
           name,
@@ -305,11 +287,9 @@ export const findRestaurant = async (req: Request, res: Response) => {
           5000,
           20
         );
-        console.log(`✅ [高德API] 周边搜索 - 返回 ${finalRestaurants.length} 个结果`);
 
         // 如果周边搜索无结果，扩大搜索半径
         if (finalRestaurants.length === 0) {
-          console.log(`⚠️  5km范围内无结果，扩大到10km`);
           finalRestaurants = await amapServiceInstance.searchAround(
             location,
             name,
@@ -317,25 +297,19 @@ export const findRestaurant = async (req: Request, res: Response) => {
             10000,
             20
           );
-          console.log(`✅ [高德API] 扩大范围搜索 - 返回 ${finalRestaurants.length} 个结果`);
         }
       }
 
       // 如果没有提供位置或周边搜索无结果，使用城市搜索
       if (finalRestaurants.length === 0) {
-        console.log(`🔍 使用城市搜索 - 城市: ${city}, 关键词: ${name}, types: 050000`);
         finalRestaurants = await amapServiceInstance.getAttractions(city, name, '050000', 20);
-        console.log(`✅ [高德API] 城市搜索 - 返回 ${finalRestaurants.length} 个结果`);
 
         // 如果还没有结果，不限制types
         if (finalRestaurants.length === 0) {
-          console.log(`⚠️  城市搜索无结果，尝试不限制types`);
           finalRestaurants = await amapServiceInstance.getAttractions(city, name, '', 20);
-          console.log(`✅ [高德API] 不限制types搜索 - 返回 ${finalRestaurants.length} 个结果`);
         }
       }
 
-      console.log(`📊 最终返回 ${finalRestaurants.length} 个餐厅`);
 
       // 保存到数据库缓存
       if (finalRestaurants.length > 0) {
@@ -348,7 +322,6 @@ export const findRestaurant = async (req: Request, res: Response) => {
           rating: r.rating,
         }));
         await restaurantCacheService.storeRes(restaurantCaches, city);
-        console.log(`💾 [数据库] 保存 ${finalRestaurants.length} 个餐厅到缓存`);
       }
 
       res.json({
@@ -357,8 +330,6 @@ export const findRestaurant = async (req: Request, res: Response) => {
         count: finalRestaurants.length,
       });
     } catch (error: any) {
-      console.error('❌ 高德API调用失败:', error);
-      console.error('❌ 错误堆栈:', error.stack);
       res.status(500).json({
         success: false,
         error: error.message || '高德API调用失败',
@@ -367,7 +338,6 @@ export const findRestaurant = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.error('❌ 自定义餐厅搜索失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '自定义餐厅搜索失败，请稍后重试',
@@ -404,20 +374,16 @@ export const findHotel = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`📡 [高德API] 自定义酒店搜索 - 名称: ${name}, 城市: ${city}`);
 
     // 调用高德API搜索酒店
     const amapServiceInstance = amapService();
     const hotels = await amapServiceInstance.getAttractions(city, name, '100101', 20);
 
-    console.log(`✅ [高德API] 自定义酒店搜索成功 - 返回 ${hotels.length} 个结果`);
 
     // 如果没有结果，尝试不限制types再搜索一次
     let finalHotels = hotels;
     if (hotels.length === 0) {
-      console.log(`⚠️  第一次搜索无结果，尝试不限制types搜索`);
       finalHotels = await amapServiceInstance.getAttractions(city, name, '', 20);
-      console.log(`✅ [高德API] 第二次搜索 - 返回 ${finalHotels.length} 个结果`);
     }
 
     // 保存到数据库缓存
@@ -431,7 +397,6 @@ export const findHotel = async (req: Request, res: Response) => {
         rating: h.rating,
       }));
       await hotelCacheService.storeHotels(hotelCaches, city);
-      console.log(`💾 [数据库] 保存 ${finalHotels.length} 个酒店到缓存`);
     }
 
     res.json({
@@ -440,7 +405,6 @@ export const findHotel = async (req: Request, res: Response) => {
       count: finalHotels.length,
     });
   } catch (error: any) {
-    console.error('❌ 自定义酒店搜索失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '自定义酒店搜索失败，请稍后重试',

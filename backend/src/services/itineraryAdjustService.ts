@@ -43,9 +43,6 @@ class ItineraryAdjustService {
   public async editTrip(request: editTripRequest): Promise<editTripResponse> {
     const { itinerary, reason, targetAttractionId } = request;
 
-    console.log(`🔧 开始调整行程...`);
-    console.log(`   调整原因: ${reason}`);
-    console.log(`   目标景点ID: ${targetAttractionId}`);
 
     // 获取 IoT 数据（从新的控制器）
     // 注意：这里需要从实际的 IoT API 获取数据
@@ -69,10 +66,6 @@ class ItineraryAdjustService {
       throw new Error(`未找到景点 ${targetAttraction.name} 的 IoT 数据`);
     }
 
-    console.log(`   目标景点: ${targetAttraction.name}`);
-    console.log(`   当前人流: ${targetSpotData.crowdLevel}%`);
-    console.log(`   当前降雨概率: ${targetSpotData.rainProbability}%`);
-    console.log(`   当前开放状态: ${targetSpotData.isOpen}`);
 
     // 根据调整原因选择策略
     let adjustmentReason = '';
@@ -121,10 +114,6 @@ class ItineraryAdjustService {
       // 更新行程
       itinerary.itinerary[dayIndex].attractions[attractionIndex] = newAttraction;
 
-      console.log(`✅ 行程调整完成`);
-      console.log(`   原景点: ${targetAttraction.name}`);
-      console.log(`   新景点: ${newAttraction.name}`);
-      console.log(`   调整原因: ${adjustmentReason}`);
 
       return {
         success: true,
@@ -140,8 +129,6 @@ class ItineraryAdjustService {
         message: adjustmentReason,
       };
     } else {
-      console.log(`ℹ️  无需调整`);
-      console.log(`   原因: ${adjustmentReason}`);
 
       return {
         success: false,
@@ -159,12 +146,10 @@ class ItineraryAdjustService {
     itinerary: FullItinerary,
     attractionId: string
   ): Promise<{ dayIndex: number; attractionIndex: number } | null> {
-    console.log(`   查找景点 ID: ${attractionId}`);
 
     // 首先通过 attractionId 获取 IoT 数据中的景点名称
     // 注意：这里需要从实际的 IoT API 获取数据
     // 暂时返回 null，后续可以集成新的 IoT 服务
-    console.warn(`⚠️  IoT 数据服务已更新，需要集成新的 IoT 控制器`);
     return null;
   }
 
@@ -176,7 +161,6 @@ class ItineraryAdjustService {
     targetSpotData: SpotIoTData,
     allSpotsData: SpotIoTData[]
   ): RecommendedAttraction {
-    console.log(`   策略: 人流过高 → 推荐备选景点（地理位置近的、同类型的）`);
 
     // 获取备选景点
     const alternatives = altSpots(targetSpotData.id);
@@ -207,7 +191,6 @@ class ItineraryAdjustService {
     targetAttraction: RecommendedAttraction,
     targetSpotData: SpotIoTData
   ): RecommendedAttraction {
-    console.log(`   策略: 降雨概率高 → 把户外景点替换为室内景点`);
 
     // 获取备选景点
     const alternatives = altSpots(targetSpotData.id);
@@ -220,7 +203,6 @@ class ItineraryAdjustService {
     const indoorAlternatives = alternatives.filter((alt) => !alt.isOutdoor);
 
     if (indoorAlternatives.length === 0) {
-      console.log(`   警告: 没有找到室内备选景点，使用第一个备选景点`);
       return formatSpots(alternatives[0]);
     }
 
@@ -235,7 +217,6 @@ class ItineraryAdjustService {
     targetAttraction: RecommendedAttraction,
     targetSpotData: SpotIoTData
   ): RecommendedAttraction {
-    console.log(`   策略: 景点关闭 → 直接替换为备选景点`);
 
     // 获取备选景点
     const alternatives = altSpots(targetSpotData.id);
@@ -278,7 +259,6 @@ class ItineraryAdjustService {
       }
     }
 
-    console.log(`   最近的备选景点: ${closest.name}（距离 ${minDistance.toFixed(2)} 公里）`);
     return closest;
   }
 
@@ -288,7 +268,6 @@ class ItineraryAdjustService {
   private parseLoc(location: string): { lng: number; lat: number } {
     const parts = location.split(',');
     if (parts.length !== 2) {
-      console.warn(`⚠️  无效的经纬度格式: ${location}`);
       return { lng: 0, lat: 0 };
     }
 
@@ -296,7 +275,6 @@ class ItineraryAdjustService {
     const lat = parseFloat(parts[1].trim());
 
     if (isNaN(lng) || isNaN(lat)) {
-      console.warn(`⚠️  无法解析经纬度: ${location}`);
       return { lng: 0, lat: 0 };
     }
 

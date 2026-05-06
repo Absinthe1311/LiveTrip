@@ -31,7 +31,6 @@ export interface IoTDataResponse {
  */
 export const spotIot = async (req: Request, res: Response) => {
   try {
-    console.log('📡 获取 IoT 实时数据...');
 
     // 从数据库获取所有景点
     const spots = await prisma.spot.findMany({
@@ -42,7 +41,6 @@ export const spotIot = async (req: Request, res: Response) => {
     });
 
     if (spots.length === 0) {
-      console.warn('⚠️  数据库中没有景点数据');
       return res.json({
         success: true,
         data: {
@@ -52,16 +50,13 @@ export const spotIot = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`📍 找到 ${spots.length} 个景点`);
 
     const spotIds = spots.map((spot) => spot.id);
 
     // 并行获取所有景点的天气数据
-    console.log('🌤️  获取天气数据...');
     const weatherMap = await batchWeather(spotIds);
 
     // 并行获取所有景点的人流数据
-    console.log('👥 获取人流数据...');
     const crowdMap = await batchCrowd(spotIds);
 
     // 构建响应数据
@@ -78,7 +73,6 @@ export const spotIot = async (req: Request, res: Response) => {
           weatherIcon: weather.icon,
           weatherUpdatedAt: weather.updatedAt,
         }).catch((error) => {
-          console.error(`更新景点 ${spot.id} 的 IoT 数据失败:`, error);
         });
       }
 
@@ -100,8 +94,6 @@ export const spotIot = async (req: Request, res: Response) => {
       spots: spotsData,
     };
 
-    console.log(`✅ IoT 数据获取成功，时间戳: ${data.timestamp}`);
-    console.log(`   景点数量: ${data.spots.length}`);
 
     // 返回数据
     res.json({
@@ -109,7 +101,6 @@ export const spotIot = async (req: Request, res: Response) => {
       data,
     });
   } catch (error: any) {
-    console.error('❌ 获取 IoT 数据失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取 IoT 数据失败',
@@ -128,7 +119,6 @@ export const spotIoT = async (req: Request, res: Response) => {
     // 确保 id 是字符串类型
     const spotId = Array.isArray(id) ? id[0] : id;
 
-    console.log(`📡 获取景点 ${spotId} 的 IoT 数据...`);
 
     // 从数据库获取景点信息
     const spot = await prisma.spot.findUnique({
@@ -177,14 +167,12 @@ export const spotIoT = async (req: Request, res: Response) => {
       isOpen: crowd?.isOpen || true,
     };
 
-    console.log(`✅ 景点 ${spotId} 的 IoT 数据获取成功`);
 
     res.json({
       success: true,
       data,
     });
   } catch (error: any) {
-    console.error('❌ 获取景点 IoT 数据失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取景点 IoT 数据失败',

@@ -1,4 +1,3 @@
-// AI辅助生成：GLM-5, 2026-04-26 21:36
 // 描述：优化Agent行程创建的二次确认流程，将"先创建再删除"改为draft状态保留，
 // 确认时直接更新状态而非重建，避免AI调用耗时叠加导致超时。
 // Agent 服务 - 实现 Function Calling 功能
@@ -23,7 +22,7 @@ const prisma = getPrismaClient();
 // 获取传统推荐器实例
 const recommender = traditionalRecommender();
 
-// ✅ P0优化: 错误类型定义
+//  P0优化: 错误类型定义
 enum ErrorType {
   // 参数错误
   PARAM_MISSING = 'PARAM_MISSING',
@@ -44,7 +43,7 @@ enum ErrorType {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
 
-// ✅ P0优化: 错误消息映射
+//  P0优化: 错误消息映射
 const ERROR_MESSAGES: Record<string, { message: string; suggestion: string }> = {
   [ErrorType.PARAM_MISSING]: {
     message: '缺少必要的信息',
@@ -94,7 +93,6 @@ const ZHIPUAI_API_URL = 'open.bigmodel.cn';
 const ZHIPUAI_API_PATH = '/api/paas/v4/chat/completions';
 
 if (!ZHIPUAI_API_KEY) {
-  console.warn('⚠️ 智谱AI API Key 未配置');
 }
 
 /**
@@ -171,14 +169,7 @@ class AgentService {
 
     const jsonData = JSON.stringify(data);
 
-    // ✅ 调试: 输出请求详情
-    console.log('\n📤 [发送给智谱AI]');
-    console.log('   消息数量:', messages.length);
-    console.log('   最后一条用户消息:', messages[messages.length - 1]?.content);
-    console.log('   工具数量:', tools?.length || 0);
-    console.log('   tool_choice:', toolChoice);
-    console.log('   max_tokens:', maxTokens);
-    console.log('   timeout:', timeout);
+    //  调试: 输出请求详情
 
     const options = {
       hostname: ZHIPUAI_API_URL,
@@ -359,7 +350,7 @@ class AgentService {
           },
         },
       },
-      // ✅ P0优化: 新增确认工具
+      //  P0优化: 新增确认工具
       {
         type: 'function',
         function: {
@@ -386,7 +377,7 @@ class AgentService {
           },
         },
       },
-      // ✅ P0优化: 新增重新生成工具
+      //  P0优化: 新增重新生成工具
       {
         type: 'function',
         function: {
@@ -416,15 +407,14 @@ class AgentService {
 
   /**
    * 构建 Agent 系统提示词（带动态上下文）
-   * ✅ P1优化: 简化系统提示词,提高AI理解准确性
+   *  P1优化: 简化系统提示词,提高AI理解准确性
    */
   private async buildSystemPrompt(userId?: string): Promise<string> {
-    // ✅ 重新启用用户画像
+    //  重新启用用户画像
     const startTime = Date.now();
     const userProfile = await userProfileService.loadProfile(userId);
     const profilePrompt = userProfileService.formatProfileAsPrompt(userProfile);
     const elapsed = Date.now() - startTime;
-    console.log(`⏱️  用户画像注入耗时: ${elapsed}ms`);
 
     const today = new Date();
     const thisYear = today.getFullYear();
@@ -520,41 +510,34 @@ ${profilePrompt}
     const { name, arguments: args } = toolCall.function;
 
     try {
-      console.log(`\n🔧 [工具调用] 执行工具: ${name}`);
-      console.log(`   原始参数字符串:`, args);
-      console.log(`   参数类型:`, typeof args);
 
-      // ✅ 问题4: 增强参数验证
+      //  问题4: 增强参数验证
       let params: any = {};
 
       if (!args || args === 'undefined' || args === 'null' || args === '{}') {
-        console.log(`   ⚠️  参数为空，将使用智能推断`);
         params = {};
       } else {
         try {
           params = JSON.parse(args);
         } catch (parseError) {
-          console.error(`   ❌ 参数解析失败:`, parseError);
           params = {};
         }
       }
 
-      console.log(`   解析后参数:`, JSON.stringify(params, null, 2));
 
-      // ✅ P0优化: 参数补全
+      //  P0优化: 参数补全
       if (messages && messages.length > 0) {
         params = await this.completeToolParams(name, params, messages);
       }
 
-      console.log(`   最终参数:`, JSON.stringify(params, null, 2));
 
       switch (name) {
         case 'create_smart_trip':
-          // ✅ 新的统一工具：创建智能行程
+          //  新的统一工具：创建智能行程
           return await this.createSmartTrip(params, userId, sessionId, stepCallback);
 
         case 'create_trip':
-          // ✅ 保留旧工具兼容性
+          //  保留旧工具兼容性
           return await this.createTrip(params, userId);
 
         case 'list_user_trips':
@@ -564,11 +547,11 @@ ${profilePrompt}
           return await this.manageBlog(params, userId, stepCallback);
 
         case 'generate_blog':
-          // ✅ 保留旧工具兼容性
+          //  保留旧工具兼容性
           return await this.generateBlog(params, userId, stepCallback);
 
         case 'publish_blog':
-          // ✅ 保留旧工具兼容性
+          //  保留旧工具兼容性
           return await this.publishBlog(params, userId);
 
         case 'extract_must_visit_spots':
@@ -578,7 +561,7 @@ ${profilePrompt}
           return await this.createTripWithConstraints(params, userId);
 
         case 'confirm_action':
-          // ✅ 确认操作工具（保存行程或发布博客）
+          //  确认操作工具（保存行程或发布博客）
           return await this.handleConfirmAction(params, userId, sessionId);
 
         default:
@@ -588,7 +571,6 @@ ${profilePrompt}
           };
       }
     } catch (error: any) {
-      console.error(`❌ 工具执行失败 (${name}):`, error);
       return {
         success: false,
         error: error.message || '工具执行失败',
@@ -597,7 +579,7 @@ ${profilePrompt}
   }
 
   /**
-   * ✅ P0优化: 创建智能行程（统一工具）
+   *  P0优化: 创建智能行程（统一工具）
    * 合并了 create_trip + create_trip_with_constraints + extract_must_visit_spots
    * 支持二次确认：先返回预览，用户确认后再保存
    */
@@ -608,8 +590,6 @@ ${profilePrompt}
     stepCallback?: (step: string) => void
   ): Promise<ToolExecutionResult> {
     try {
-      console.log('\n🎯 [创建智能行程]');
-      console.log('   参数:', JSON.stringify(params, null, 2));
 
       // 1. 参数检查和追问
       const missingParams = this.chkParams(params);
@@ -624,7 +604,6 @@ ${profilePrompt}
       }
 
       // 2. 调用 createTrip 工具生成完整行程（包含 AI 推荐）
-      console.log('   📝 调用 createTrip 生成完整行程...');
       const tripResult = await this.createTrip(
         {
           destination: params.destination,
@@ -646,10 +625,9 @@ ${profilePrompt}
       // 3. 从 createTrip 结果中提取完整行程数据
       const tripData = tripResult.data;
       const tripId = tripData.id; // createTrip 返回的是 id，不是 tripId
-      console.log('   ✅ AI 推荐完成，行程ID:', tripId);
 
       // 4. 构建预览数据（从数据库查询完整行程）
-      stepCallback?.('📊 正在生成行程预览...');
+      stepCallback?.(' 正在生成行程预览...');
       const trip = await prisma.trip.findUnique({
         where: { id: tripId },
         include: {
@@ -710,7 +688,6 @@ ${profilePrompt}
           createdAt: new Date(),
           expiresAt,
         });
-        console.log('   ✅ 临时数据已保存到会话:', sessionId, 'tripId:', trip.id);
       }
 
       // 7. 行程以 draft 状态保留，确认时直接更新状态（不再删除后重建）
@@ -727,7 +704,6 @@ ${profilePrompt}
         },
       };
     } catch (error: any) {
-      console.error('❌ 创建智能行程失败:', error);
       return {
         success: false,
         error: error.message || '创建智能行程失败',
@@ -783,7 +759,6 @@ ${profilePrompt}
    */
   private async generateTripPreview(params: any, userId?: string): Promise<any> {
     try {
-      console.log('   🎨 生成行程预览数据...');
 
       // 解析日期
       const startDate = params.startDate ? strToDate(params.startDate) : new Date();
@@ -843,16 +818,14 @@ ${profilePrompt}
         });
       }
 
-      console.log('   ✅ 行程预览生成完成');
       return preview;
     } catch (error: any) {
-      console.error('   ❌ 生成预览失败:', error);
       throw error;
     }
   }
 
   /**
-   * ✅ P0优化: 管理博客（统一工具）
+   *  P0优化: 管理博客（统一工具）
    * 合并了 generate_blog + publish_blog
    */
   private async manageBlog(
@@ -861,8 +834,6 @@ ${profilePrompt}
     stepCallback?: (step: string) => void
   ): Promise<ToolExecutionResult> {
     try {
-      console.log('\n📝 [管理博客]');
-      console.log('   操作:', params.action);
 
       if (params.action === 'generate') {
         // 生成博客
@@ -889,7 +860,6 @@ ${profilePrompt}
         };
       }
     } catch (error: any) {
-      console.error('❌ 管理博客失败:', error);
       return {
         success: false,
         error: error.message || '管理博客失败',
@@ -898,7 +868,7 @@ ${profilePrompt}
   }
 
   /**
-   * ✅ 任务A: 参数验证函数 - 返回结构化验证结果
+   *  任务A: 参数验证函数 - 返回结构化验证结果
    */
   private chkTripParams(params: any): {
     valid: boolean;
@@ -986,9 +956,8 @@ ${profilePrompt}
     stepCallback?: (step: string) => void
   ): Promise<ToolExecutionResult> {
     try {
-      console.log('🗓️  创建行程（AI 推荐）:', params);
 
-      // ✅ 任务A: 使用结构化参数验证
+      //  任务A: 使用结构化参数验证
       const validation = this.chkTripParams(params);
 
       if (!validation.valid) {
@@ -1036,11 +1005,9 @@ ${profilePrompt}
               role: 'user',
             },
           });
-          console.log(`✅ 创建默认用户，ID: ${defaultUser.id}`);
         }
 
         tripUserId = defaultUser.id;
-        console.log(`✅ 使用默认用户ID: ${tripUserId}`);
       }
 
       // 创建行程
@@ -1058,15 +1025,9 @@ ${profilePrompt}
         },
       });
 
-      console.log(
-        `✅ 行程基础信息创建成功，ID: ${trip.id}, 状态: ${draftMode ? 'draft' : 'planning'}`
-      );
 
       // 调用 AI 推荐算法填充景点数据
-      console.log(
-        '🔍 正在调用 AI 推荐系统，为 ' + params.destination + ' 规划 ' + daysDiff + ' 天行程...'
-      );
-      stepCallback?.('🔍 正在获取景点数据和AI推荐...');
+      stepCallback?.(' 正在获取景点数据和AI推荐...');
 
       try {
         // 导入 AI 推荐服务
@@ -1083,20 +1044,17 @@ ${profilePrompt}
           userId: userId,
         });
 
-        console.log(`✅ AI 推荐完成，正在创建行程记录...`);
 
-        // ✅ P0修复: 验证AI返回的景点数量
+        //  P0修复: 验证AI返回的景点数量
         let totalSpotsCount = 0;
         for (const dayPlan of recommendation.dailyPlans) {
           totalSpotsCount +=
             dayPlan.spots && Array.isArray(dayPlan.spots) ? dayPlan.spots.length : 0;
         }
 
-        console.log(`   总景点数量: ${totalSpotsCount}`);
 
         if (totalSpotsCount === 0) {
           // AI返回的景点为空,删除已创建的Trip并返回错误
-          console.error('❌ AI返回的景点列表为空,无法创建有效行程');
 
           await prisma.day.deleteMany({
             where: { tripId: trip.id },
@@ -1130,9 +1088,6 @@ ${profilePrompt}
             const fallbackDate = new Date(startDate);
             fallbackDate.setDate(fallbackDate.getDate() + (dayPlan.day - 1));
             dayDate = fallbackDate;
-            console.warn(
-              `   ⚠️ AI返回日期格式无效: "${dayPlan.date}"，使用推算日期: ${dayDate.toISOString().split('T')[0]}`
-            );
           }
 
           const day = await prisma.day.create({
@@ -1154,7 +1109,6 @@ ${profilePrompt}
 
             // 如果精确匹配失败，尝试模糊匹配
             if (!spotRecord) {
-              console.log(`⚠️  精确匹配失败: "${spot.name}"，尝试模糊匹配...`);
               spotRecord = await prisma.spot.findFirst({
                 where: {
                   city: params.destination,
@@ -1166,9 +1120,7 @@ ${profilePrompt}
             }
 
             if (!spotRecord) {
-              console.warn(`⚠️  未找到景点: "${spot.name}"，将使用AI返回的信息创建行程项目`);
             } else {
-              console.log(`✅ 找到景点: "${spot.name}" -> "${spotRecord.name}"`);
             }
 
             // 计算时间
@@ -1200,7 +1152,6 @@ ${profilePrompt}
           }
         }
 
-        console.log(`✅ 景点信息填充完成，行程创建成功，ID: ${trip.id}`);
 
         return {
           success: true,
@@ -1213,35 +1164,30 @@ ${profilePrompt}
             days: daysDiff,
             summary: recommendation.summary,
             tips: recommendation.tips,
-            message: `✅ 行程创建成功！
+            message: ` 行程创建成功！
 
-📋 行程信息：
+ 行程信息：
 - 标题：${trip.title}
 - 目的地：${trip.destination}
 - 时间：${trip.startDate.toISOString().split('T')[0]} 至 ${trip.endDate.toISOString().split('T')[0]}（共 ${daysDiff} 天）
 - 预算：${trip.totalBudget} 元
 
-📝 行程总结：
+ 行程总结：
 ${recommendation.summary}
 
-💡 旅行建议：
+ 旅行建议：
 ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
           },
         };
       } catch (recommendError: any) {
-        console.error('❌ AI 推荐执行失败:', recommendError);
-        console.error('   错误详情:', recommendError.message);
-        console.error('   错误堆栈:', recommendError.stack);
 
         // AI 推荐失败，删除已创建的行程（避免留下空行程）
-        console.log('🗑️  删除失败的行程...');
         await prisma.day.deleteMany({
           where: { tripId: trip.id },
         });
         await prisma.trip.delete({
           where: { id: trip.id },
         });
-        console.log('✅ 已删除失败的行程');
 
         return {
           success: false,
@@ -1259,7 +1205,6 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
         };
       }
     } catch (error: any) {
-      console.error('❌ 创建行程失败:', error);
       return {
         success: false,
         error: error.message || '创建行程失败',
@@ -1272,7 +1217,6 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
    */
   private async listUserTrips(params: any, userId?: string): Promise<ToolExecutionResult> {
     try {
-      console.log('📋 列出行程:', params);
 
       // 如果没有 userId，使用默认用户
       let tripUserId = userId;
@@ -1332,7 +1276,6 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
         budgetStatus: trip.budgetStatus,
       }));
 
-      console.log(`✅ 找到 ${formattedTrips.length} 个行程`);
 
       // 构建详细的行程列表信息
       let detailedMessage = '';
@@ -1369,7 +1312,6 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
         },
       };
     } catch (error: any) {
-      console.error('❌ 列出行程失败:', error);
       return {
         success: false,
         error: error.message || '获取行程列表失败',
@@ -1386,8 +1328,7 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
     stepCallback?: (step: string) => void
   ): Promise<ToolExecutionResult> {
     try {
-      console.log('✍️ 生成博客:', params);
-      stepCallback?.('📝 正在生成博客内容...');
+      stepCallback?.(' 正在生成博客内容...');
 
       // 验证必填参数
       if (!params.tripId) {
@@ -1479,7 +1420,7 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
 
       try {
         const aiStartTime = Date.now();
-        stepCallback?.('🤖 正在调用AI生成博客正文...');
+        stepCallback?.(' 正在调用AI生成博客正文...');
         const result = await this.aiCall(
           [
             {
@@ -1503,7 +1444,6 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
           120000
         ); // 博客生成: max_tokens=4096, timeout=120s
         const aiElapsed = Date.now() - aiStartTime;
-        console.log(`⏱️  AI 生成博客耗时: ${aiElapsed}ms`);
 
         let blogContent = result.choices[0]?.message?.content || '';
 
@@ -1528,7 +1468,6 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
           },
         });
 
-        console.log(`✅ 博客生成成功，ID: ${blog.id}`);
 
         // 关联景点图片
         const imageAssociationResult = await this.associateSpotImagesToBlog(
@@ -1537,7 +1476,6 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
         );
 
         const blogElapsed = Date.now() - blogStartTime;
-        console.log(`⏱️  博客创建和图片关联耗时: ${blogElapsed}ms`);
 
         // 构建博客预览数据
         const blogPreviewData = {
@@ -1565,7 +1503,6 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
             createdAt: new Date(),
             expiresAt,
           });
-          console.log('   ✅ 博客临时数据已保存到会话:', lastSessionId);
         }
 
         return {
@@ -1580,28 +1517,26 @@ ${recommendation.tips.map((tip) => `- ${tip}`).join('\n')}`,
             content: blogContent,
             imageCount: imageAssociationResult.associatedImages,
             contentPreview: blogContent.substring(0, 200) + '...',
-            message: `✅ 博客生成成功！
+            message: ` 博客生成成功！
 
-📝 博客信息：
+ 博客信息：
 - 标题：${blog.title}
 - 状态：草稿
 - 关联图片：${imageAssociationResult.associatedImages} 张
 
-📄 内容预览：
+ 内容预览：
 ${blogContent.substring(0, 200)}...
 
 是否发布这篇博客？回复"确认"或"发布"即可发布。`,
           },
         };
       } catch (aiError: any) {
-        console.error('❌ AI 生成博客失败:', aiError);
         return {
           success: false,
           error: `AI 生成博客失败: ${aiError.message}`,
         };
       }
     } catch (error: any) {
-      console.error('❌ 生成博客失败:', error);
       return {
         success: false,
         error: error.message || '生成博客失败',
@@ -1614,7 +1549,6 @@ ${blogContent.substring(0, 200)}...
    */
   private async extractMustVisitSpots(params: any): Promise<ToolExecutionResult> {
     try {
-      console.log('🔍 提取必选景点:', params);
 
       // 验证必填参数
       if (!params.userInput || !params.destination) {
@@ -1630,7 +1564,6 @@ ${blogContent.substring(0, 200)}...
         params.destination
       );
 
-      console.log(`✅ 提取完成: ${extractionResult.mustVisitSpots.length} 个必选景点`);
 
       return {
         success: true,
@@ -1645,7 +1578,6 @@ ${blogContent.substring(0, 200)}...
         },
       };
     } catch (error: any) {
-      console.error('❌ 提取必选景点失败:', error);
       return {
         success: false,
         error: error.message || '提取必选景点失败',
@@ -1661,22 +1593,15 @@ ${blogContent.substring(0, 200)}...
     userId?: string
   ): Promise<ToolExecutionResult> {
     try {
-      console.log('\n🎯 [创建约束感知行程]');
-      console.log('   接收参数:', JSON.stringify(params, null, 2));
 
       // 验证必填参数
       if (!params.destination || !params.startDate || !params.endDate) {
-        console.error('   ❌ 参数验证失败');
-        console.error('   destination:', params.destination || '缺失');
-        console.error('   startDate:', params.startDate || '缺失');
-        console.error('   endDate:', params.endDate || '缺失');
         return {
           success: false,
           error: '缺少必填参数：destination、startDate、endDate',
         };
       }
 
-      console.log('   ✅ 参数验证通过');
 
       // 构建请求参数
       const request = {
@@ -1696,14 +1621,12 @@ ${blogContent.substring(0, 200)}...
       // 调用约束感知规划服务
       const result = await constraintAwarePlanner.createTripWithConstraints(request, userId);
 
-      console.log(`✅ 约束感知行程创建成功，ID: ${result.tripId}`);
 
       return {
         success: true,
         data: result,
       };
     } catch (error: any) {
-      console.error('❌ 创建约束感知行程失败:', error);
       return {
         success: false,
         error: error.message || '创建约束感知行程失败',
@@ -1716,7 +1639,6 @@ ${blogContent.substring(0, 200)}...
    */
   private async publishBlog(params: any, userId?: string): Promise<ToolExecutionResult> {
     try {
-      console.log('📢 发布博客:', params);
 
       // 验证必填参数
       if (!params.blogId) {
@@ -1726,7 +1648,6 @@ ${blogContent.substring(0, 200)}...
         };
       }
 
-      console.log(`🔍 正在查询博客信息...`);
 
       // 查询博客
       const blog = await prisma.blogPost.findUnique({
@@ -1769,7 +1690,6 @@ ${blogContent.substring(0, 200)}...
         };
       }
 
-      console.log(`📢 正在发布博客...`);
 
       // 发布博客
       const updatedBlog = await prisma.blogPost.update({
@@ -1781,7 +1701,6 @@ ${blogContent.substring(0, 200)}...
         },
       });
 
-      console.log(`✅ 博客发布成功，ID: ${updatedBlog.id}`);
 
       return {
         success: true,
@@ -1791,9 +1710,9 @@ ${blogContent.substring(0, 200)}...
           status: updatedBlog.status,
           publishedAt: updatedBlog.publishedAt?.toISOString().split('T')[0],
           url: `/blog/${updatedBlog.id}`,
-          message: `✅ 博客发布成功！
+          message: ` 博客发布成功！
 
-📢 发布信息：
+ 发布信息：
 - 博客标题：${updatedBlog.title}
 - 发布时间：${updatedBlog.publishedAt?.toISOString().split('T')[0]}
 - 访问链接：https://livetrip.com/blog/${updatedBlog.id}
@@ -1802,7 +1721,6 @@ ${blogContent.substring(0, 200)}...
         },
       };
     } catch (error: any) {
-      console.error('❌ 发布博客失败:', error);
       return {
         success: false,
         error: error.message || '发布博客失败',
@@ -1818,7 +1736,6 @@ ${blogContent.substring(0, 200)}...
     spots: Array<{ name: string; category?: string }>
   ): Promise<{ associatedImages: number }> {
     try {
-      console.log(`🖼️  开始关联景点图片到博客 ${blogId}...`);
 
       let associatedImages = 0;
       const processedSpotIds = new Set<string>();
@@ -1860,18 +1777,15 @@ ${blogContent.substring(0, 200)}...
             // 实际的图片关联可以在前端展示时实时查询
             associatedImages += images.length;
             processedSpotIds.add(spotRecord.id);
-            console.log(`   ✅ 景点 "${spot.name}" 关联了 ${images.length} 张图片`);
           }
         }
       }
 
-      console.log(`✅ 图片关联完成，共 ${associatedImages} 张图片`);
 
       return {
         associatedImages,
       };
     } catch (error: any) {
-      console.error('❌ 关联景点图片失败:', error);
       return {
         associatedImages: 0,
       };
@@ -1937,16 +1851,14 @@ ${blogContent.substring(0, 200)}...
     const { question, userId } = request;
 
     const emitStep = (step: string) => {
-      console.log(step);
       stepCallback?.(step);
     };
 
-    emitStep('🤖 正在分析您的需求...');
+    emitStep(' 正在分析您的需求...');
 
     try {
       // 获取或创建 Agent 会话
       const session = await chatHistoryService.agentSession(userId);
-      console.log(`   会话ID: ${session.id}`);
 
       // 保存用户消息
       await chatHistoryService.newMsg({
@@ -1955,7 +1867,7 @@ ${blogContent.substring(0, 200)}...
         content: question,
       });
 
-      // ✅ P2优化: 减少历史消息数量（从 10 条减少到 5 条）
+      //  P2优化: 减少历史消息数量（从 10 条减少到 5 条）
       const messageHistory = await chatHistoryService.fetchMsgs({
         sessionId: session.id,
         limit: 5,
@@ -1983,7 +1895,7 @@ ${blogContent.substring(0, 200)}...
         content: question,
       });
 
-      // ✅ 优先检查：用户是否在确认/取消操作（在调用AI之前检查，避免浪费AI调用）
+      //  优先检查：用户是否在确认/取消操作（在调用AI之前检查，避免浪费AI调用）
       const confirmKeywords = ['确认', '发布', '好的', '是的', '保存', '同意'];
       const cancelKeywords = ['取消', '不要', '算了', '放弃'];
       const isConfirm = confirmKeywords.some((k) => question.includes(k));
@@ -1999,7 +1911,6 @@ ${blogContent.substring(0, 200)}...
               : sessionData.tempData;
 
           if (isConfirm) {
-            console.log('\n✅ [检测到用户确认操作，直接执行]');
             const confirmResult = await this.executeDirectConfirmAction(
               question,
               userId,
@@ -2022,7 +1933,6 @@ ${blogContent.substring(0, 200)}...
               };
             }
           } else if (isCancel) {
-            console.log('\n❌ [检测到用户取消操作，直接执行]');
             const cancelResult = await this.dropDraft(session.id);
             const finalAnswer = cancelResult.success ? '已取消' : cancelResult.error || '取消失败';
 
@@ -2041,9 +1951,7 @@ ${blogContent.substring(0, 200)}...
       }
 
       // 调用智谱 AI，启用工具调用
-      emitStep('📡 正在调用AI助手...');
-      console.log('   用户问题:', question);
-      console.log('   消息数量:', messages.length);
+      emitStep(' 正在调用AI助手...');
 
       const result = await this.aiCall(
         messages,
@@ -2051,26 +1959,16 @@ ${blogContent.substring(0, 200)}...
         'auto' // 让 AI 自动决定是否调用工具
       );
 
-      console.log('\n✅ [智谱AI响应] 成功');
-      console.log('   choices数量:', result.choices?.length);
-      console.log('   finish_reason:', result.choices[0]?.finish_reason);
 
-      // ✅ 调试: 输出完整的AI响应
-      console.log('   完整响应:', JSON.stringify(result.choices[0], null, 2));
+      //  调试: 输出完整的AI响应
 
       const assistantMessage = result.choices[0]?.message;
       const answer = assistantMessage?.content || '';
 
-      console.log('   assistant message content length:', answer.length);
-      console.log('   tool_calls:', assistantMessage?.tool_calls?.length || 0);
 
-      // ✅ 问题4: 详细输出工具调用信息
+      //  问题4: 详细输出工具调用信息
       if (assistantMessage?.tool_calls && assistantMessage.tool_calls.length > 0) {
-        console.log('\n📋 [AI工具调用详情]:');
         assistantMessage.tool_calls.forEach((tc: any, index: number) => {
-          console.log(`   工具${index + 1}: ${tc.function?.name || tc.type}`);
-          console.log(`   ID: ${tc.id}`);
-          console.log(`   参数: ${tc.function?.arguments || 'undefined'}`);
         });
       }
 
@@ -2080,14 +1978,14 @@ ${blogContent.substring(0, 200)}...
       if (assistantMessage?.tool_calls && assistantMessage.tool_calls.length > 0) {
         const toolName = assistantMessage.tool_calls[0]?.function?.name || '';
         const stepMap: Record<string, string> = {
-          create_smart_trip: '🎯 正在为您规划行程...',
-          create_trip: '🗓️ 正在创建行程...',
-          list_user_trips: '📋 正在查找您的行程...',
-          manage_blog: '📝 正在生成内容...',
-          confirm_action: '✅ 正在确认操作...',
-          regenerate: '🔄 正在重新生成...',
+          create_smart_trip: ' 正在为您规划行程...',
+          create_trip: ' 正在创建行程...',
+          list_user_trips: ' 正在查找您的行程...',
+          manage_blog: ' 正在生成内容...',
+          confirm_action: ' 正在确认操作...',
+          regenerate: ' 正在重新生成...',
         };
-        emitStep(stepMap[toolName] || '🔧 正在执行操作...');
+        emitStep(stepMap[toolName] || ' 正在执行操作...');
 
         // 保存包含工具调用的 assistant 消息
         await chatHistoryService.newMsg({
@@ -2120,12 +2018,11 @@ ${blogContent.substring(0, 200)}...
           });
         }
 
-        // ✅ 优化: 检查是否是用户确认操作，直接执行而不调用AI
+        //  优化: 检查是否是用户确认操作，直接执行而不调用AI
         const lastUserMessage = messages.filter((m) => m.role === 'user').pop()?.content || '';
         const isConfirmAction = this.chkConfirm(lastUserMessage, toolCallResults);
 
         if (isConfirmAction) {
-          console.log('\n✅ [检测到用户确认操作，直接执行]');
 
           // 直接执行确认操作，不调用AI
           const confirmResult = await this.executeDirectConfirmAction(
@@ -2147,7 +2044,6 @@ ${blogContent.substring(0, 200)}...
           const needsContinue = this.shouldContinueAIProcessing(toolName, toolResult, messages);
 
           if (needsContinue) {
-            console.log('\n🔄 [需要AI继续处理多步骤任务]');
 
             // 再次调用AI，让它决定下一步操作
             const continueResult = await this.aiCall(messages, this.getTools(), 'auto');
@@ -2156,7 +2052,6 @@ ${blogContent.substring(0, 200)}...
 
             // 如果AI决定继续调用工具
             if (continueMessage?.tool_calls && continueMessage.tool_calls.length > 0) {
-              console.log('   AI决定继续调用工具');
 
               // 执行后续工具调用
               for (const continueToolCall of continueMessage.tool_calls) {
@@ -2196,7 +2091,6 @@ ${blogContent.substring(0, 200)}...
           content: finalAnswer,
         });
 
-        console.log('✅ Agent 处理完成（包含工具调用）');
 
         return {
           answer: finalAnswer,
@@ -2211,13 +2105,11 @@ ${blogContent.substring(0, 200)}...
         content: answer,
       });
 
-      console.log('✅ Agent 处理完成（无工具调用）');
 
       return {
         answer,
       };
     } catch (error: any) {
-      console.error('❌ Agent 处理失败:', error);
       throw new Error(error.message || 'Agent 服务暂时不可用');
     }
   }
@@ -2246,8 +2138,6 @@ ${blogContent.substring(0, 200)}...
     sessionId?: string
   ): Promise<ToolExecutionResult | null> {
     try {
-      console.log('\n🔧 [直接执行确认操作]');
-      console.log('   用户消息:', userMessage);
 
       // 获取会话临时数据
       if (!sessionId) {
@@ -2284,7 +2174,6 @@ ${blogContent.substring(0, 200)}...
 
       return null;
     } catch (error: any) {
-      console.error('❌ 直接执行确认操作失败:', error);
       return {
         success: false,
         error: error.message || '确认操作失败',
@@ -2303,10 +2192,6 @@ ${blogContent.substring(0, 200)}...
     // 获取最后一条用户消息
     const lastUserMessage = messages.filter((m) => m.role === 'user').pop()?.content || '';
 
-    console.log('\n🔍 [判断是否需要继续处理]');
-    console.log('   工具名称:', toolName);
-    console.log('   工具结果成功:', toolResult?.success);
-    console.log('   用户消息:', lastUserMessage);
 
     // 场景1: 用户想写游记/生成博客，但还没有提供tripId
     if (lastUserMessage.includes('游记') || lastUserMessage.includes('博客')) {
@@ -2316,13 +2201,11 @@ ${blogContent.substring(0, 200)}...
         toolResult?.success === false &&
         toolResult?.error?.includes('tripId')
       ) {
-        console.log('   ✅ 需要继续：博客生成缺少tripId');
         return true;
       }
 
       // 如果list_user_trips被调用，说明AI在查找行程，需要继续
       if (toolName === 'list_user_trips') {
-        console.log('   ✅ 需要继续：查找行程后需要生成博客');
         return true;
       }
     }
@@ -2334,12 +2217,10 @@ ${blogContent.substring(0, 200)}...
         toolResult?.success === false &&
         toolResult?.error?.includes('blogId')
       ) {
-        console.log('   ✅ 需要继续：博客发布缺少blogId');
         return true;
       }
     }
 
-    console.log('   ❌ 不需要继续处理');
     return false;
   }
 
@@ -2390,7 +2271,6 @@ ${blogContent.substring(0, 200)}...
         return parseFloat(coords[1].trim());
       }
     } catch (error) {
-      console.warn('解析纬度失败:', location);
     }
     return null;
   }
@@ -2405,22 +2285,17 @@ ${blogContent.substring(0, 200)}...
         return parseFloat(coords[0].trim());
       }
     } catch (error) {
-      console.warn('解析经度失败:', location);
     }
     return null;
   }
 
   /**
-   * ✅ P0优化: 智能参数补全 - 在工具执行前自动推断缺失参数
+   *  P0优化: 智能参数补全 - 在工具执行前自动推断缺失参数
    */
   private async completeToolParams(toolName: string, params: any, messages: any[]): Promise<any> {
     const userMessage = messages.find((m) => m.role === 'user')?.content || '';
     const completedParams = { ...params };
 
-    console.log('\n🔧 [参数补全] 开始...');
-    console.log('   工具名称:', toolName);
-    console.log('   原始参数:', JSON.stringify(params));
-    console.log('   用户消息:', userMessage);
 
     if (
       toolName === 'create_trip' ||
@@ -2430,7 +2305,6 @@ ${blogContent.substring(0, 200)}...
       // 1. 目的地推断
       if (!completedParams.destination) {
         completedParams.destination = this.guessDest(userMessage);
-        console.log('   ✅ 推断目的地:', completedParams.destination);
       }
 
       // 2. 日期推断
@@ -2442,7 +2316,6 @@ ${blogContent.substring(0, 200)}...
         if (!completedParams.endDate) {
           completedParams.endDate = dateInfo.endDate;
         }
-        console.log('   ✅ 推断日期:', completedParams.startDate, '至', completedParams.endDate);
       } else if (completedParams.startDate && !completedParams.endDate) {
         // 只有开始日期，推断结束日期
         const days = this.guessDays(userMessage);
@@ -2450,29 +2323,24 @@ ${blogContent.substring(0, 200)}...
         const endDate = new Date(startDate);
         endDate.setDate(endDate.getDate() + days - 1);
         completedParams.endDate = endDate.toISOString().split('T')[0];
-        console.log('   ✅ 推断结束日期:', completedParams.endDate);
       }
 
       // 3. 预算推断
       if (!completedParams.budget) {
         completedParams.budget = this.guessBudget(userMessage);
-        console.log('   ✅ 推断预算:', completedParams.budget);
       }
 
       // 4. 人数推断
       if (!completedParams.travelers && !completedParams.groupSize) {
         completedParams.travelers = this.guessTravelers(userMessage);
-        console.log('   ✅ 推断人数:', completedParams.travelers);
       }
 
       // 5. 偏好推断
       if (!completedParams.preferences) {
         completedParams.preferences = this.guessPrefs(userMessage);
-        console.log('   ✅ 推断偏好:', completedParams.preferences);
       }
     }
 
-    console.log('   ✅ 补全后参数:', JSON.stringify(completedParams));
     return completedParams;
   }
 
@@ -2689,10 +2557,9 @@ ${blogContent.substring(0, 200)}...
   }
 
   /**
-   * ✅ P0优化: 错误格式化 - 将技术错误转换为用户友好的提示
+   *  P0优化: 错误格式化 - 将技术错误转换为用户友好的提示
    */
   private fmtErr(error: any): string {
-    console.error('❌ 原始错误:', error);
 
     let errorType: ErrorType;
 
@@ -2732,13 +2599,9 @@ ${blogContent.substring(0, 200)}...
     const formattedError = ERROR_MESSAGES[errorType];
 
     // 记录详细错误日志
-    console.error(`   错误类型: ${errorType}`);
-    console.error(`   用户提示: ${formattedError.message}`);
-    console.error(`   恢复建议: ${formattedError.suggestion}`);
-    console.error(`   技术细节: ${error.message || error}`);
 
     // 返回用户友好的错误信息
-    return `${formattedError.message}\n\n💡 建议：${formattedError.suggestion}`;
+    return `${formattedError.message}\n\n 建议：${formattedError.suggestion}`;
   }
 
   /**
@@ -2750,9 +2613,6 @@ ${blogContent.substring(0, 200)}...
     sessionId?: string
   ): Promise<ToolExecutionResult> {
     try {
-      console.log('\n✅ [处理确认操作]');
-      console.log('   操作类型:', params.action);
-      console.log('   会话ID:', sessionId);
 
       if (!params.action) {
         return {
@@ -2787,7 +2647,6 @@ ${blogContent.substring(0, 200)}...
           };
       }
     } catch (error: any) {
-      console.error('❌ 处理确认操作失败:', error);
       return {
         success: false,
         error: error.message || '确认操作失败',
@@ -2812,7 +2671,6 @@ ${blogContent.substring(0, 200)}...
 
       return session?.id || null;
     } catch (error) {
-      console.error('获取最新会话ID失败:', error);
       return null;
     }
   }
@@ -2822,8 +2680,6 @@ ${blogContent.substring(0, 200)}...
    */
   async saveTrip(sessionId: string, userId?: string): Promise<ToolExecutionResult> {
     try {
-      console.log('\n✅ [确认保存行程]');
-      console.log('   会话ID:', sessionId);
 
       // 获取会话临时数据
       const session = await chatHistoryService.getChat(sessionId);
@@ -2851,7 +2707,6 @@ ${blogContent.substring(0, 200)}...
 
       if (tripId) {
         // 优先路径：draft 行程已存在，直接更新状态为 planning
-        console.log('   ✅ 找到 draft 行程，直接更新状态:', tripId);
         const trip = await prisma.trip.update({
           where: { id: tripId },
           data: { status: 'planning' },
@@ -2860,7 +2715,6 @@ ${blogContent.substring(0, 200)}...
         // 清除临时数据
         await chatHistoryService.clearTemp(sessionId);
 
-        console.log('   ✅ 行程确认成功（状态 draft→planning）:', trip.id);
 
         return {
           success: true,
@@ -2872,7 +2726,6 @@ ${blogContent.substring(0, 200)}...
       }
 
       // 降级路径：旧 tempData 无 tripId，从预览数据重建行程
-      console.log('   ⚠️ tempData 中无 tripId，从预览数据重建行程...');
 
       // 创建行程
       const trip = await prisma.trip.create({
@@ -2918,7 +2771,6 @@ ${blogContent.substring(0, 200)}...
       // 清除临时数据
       await chatHistoryService.clearTemp(sessionId);
 
-      console.log('   ✅ 行程保存成功:', trip.id);
 
       return {
         success: true,
@@ -2928,7 +2780,6 @@ ${blogContent.substring(0, 200)}...
         },
       };
     } catch (error: any) {
-      console.error('❌ 确认保存失败:', error);
       return {
         success: false,
         error: error.message || '保存失败',
@@ -2941,8 +2792,6 @@ ${blogContent.substring(0, 200)}...
    */
   async confirmPost(sessionId: string, userId?: string): Promise<ToolExecutionResult> {
     try {
-      console.log('\n✅ [确认发布博客]');
-      console.log('   会话ID:', sessionId);
 
       // 获取会话临时数据
       const session = await chatHistoryService.getChat(sessionId);
@@ -2968,7 +2817,6 @@ ${blogContent.substring(0, 200)}...
       const blogPreviewData = tempData.data;
       const blogId = tempData.blogId || blogPreviewData.blogId;
 
-      console.log('   📝 发布博客，ID:', blogId);
 
       // 查询博客
       const blog = await prisma.blogPost.findUnique({
@@ -3008,7 +2856,6 @@ ${blogContent.substring(0, 200)}...
       // 清除临时数据
       await chatHistoryService.clearTemp(sessionId);
 
-      console.log('   ✅ 博客发布成功:', updatedBlog.id);
 
       return {
         success: true,
@@ -3018,9 +2865,9 @@ ${blogContent.substring(0, 200)}...
           status: updatedBlog.status,
           publishedAt: updatedBlog.publishedAt?.toISOString().split('T')[0],
           url: `/blog/${updatedBlog.id}`,
-          message: `✅ 博客发布成功！
+          message: ` 博客发布成功！
 
-📢 发布信息：
+ 发布信息：
 - 博客标题：${updatedBlog.title}
 - 发布时间：${updatedBlog.publishedAt?.toISOString().split('T')[0]}
 - 访问链接：https://livetrip.com/blog/${updatedBlog.id}
@@ -3029,7 +2876,6 @@ ${blogContent.substring(0, 200)}...
         },
       };
     } catch (error: any) {
-      console.error('❌ 确认发布博客失败:', error);
       return {
         success: false,
         error: error.message || '发布失败',
@@ -3042,8 +2888,6 @@ ${blogContent.substring(0, 200)}...
    */
   async dropDraft(sessionId: string): Promise<ToolExecutionResult> {
     try {
-      console.log('\n❌ [取消草稿]');
-      console.log('   会话ID:', sessionId);
 
       // 获取会话临时数据，清理 draft 行程
       const session = await chatHistoryService.getChat(sessionId);
@@ -3063,20 +2907,16 @@ ${blogContent.substring(0, 200)}...
               }
               await prisma.day.deleteMany({ where: { tripId: trip.id } });
               await prisma.trip.delete({ where: { id: trip.id } });
-              console.log('   🗑️ 已删除 draft 行程:', tempData.tripId);
             }
           } catch (deleteError) {
-            console.warn('   ⚠️ 删除 draft 行程失败（非致命）:', deleteError);
           }
         } else if (tempData.blogId && tempData.type === 'blog_draft') {
           try {
             const blog = await prisma.blogPost.findUnique({ where: { id: tempData.blogId } });
             if (blog && blog.status === 'draft') {
               await prisma.blogPost.delete({ where: { id: tempData.blogId } });
-              console.log('   🗑️ 已删除 draft 博客:', tempData.blogId);
             }
           } catch (deleteError) {
-            console.warn('   ⚠️ 删除 draft 博客失败（非致命）:', deleteError);
           }
         }
       }
@@ -3084,7 +2924,6 @@ ${blogContent.substring(0, 200)}...
       // 清除临时数据
       await chatHistoryService.clearTemp(sessionId);
 
-      console.log('   ✅ 草稿已取消');
 
       return {
         success: true,
@@ -3093,7 +2932,6 @@ ${blogContent.substring(0, 200)}...
         },
       };
     } catch (error: any) {
-      console.error('❌ 取消失败:', error);
       return {
         success: false,
         error: error.message || '取消失败',
@@ -3106,7 +2944,6 @@ ${blogContent.substring(0, 200)}...
    */
   private async saveTripToDatabase(previewData: any, userId?: string): Promise<any> {
     try {
-      console.log('   💾 保存行程到数据库...');
 
       // 创建行程
       const trip = await prisma.trip.create({
@@ -3150,10 +2987,8 @@ ${blogContent.substring(0, 200)}...
         }
       }
 
-      console.log('   ✅ 行程保存完成');
       return trip;
     } catch (error: any) {
-      console.error('   ❌ 保存失败:', error);
       throw error;
     }
   }

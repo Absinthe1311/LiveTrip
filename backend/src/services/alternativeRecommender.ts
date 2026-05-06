@@ -38,8 +38,6 @@ class AlternativeRecommender {
     excludeSpotIds: string[] = []
   ): Promise<AlternativeSpot[]> {
     try {
-      console.log(`🔍 获取备选景点推荐: ${city}`);
-      console.log(`   排除的景点: ${excludeSpotIds.length} 个`);
 
       // 1. 获取备选景点
       const alternatives = await spotService.getAlternativeSpots(
@@ -49,11 +47,9 @@ class AlternativeRecommender {
       );
 
       if (alternatives.length === 0) {
-        console.warn('⚠️  没有找到备选景点');
         return [];
       }
 
-      console.log(`✅ 找到 ${alternatives.length} 个备选景点`);
 
       // 2. 获取IoT数据
       const spotIds = alternatives.map((s) => s.id);
@@ -91,11 +87,9 @@ class AlternativeRecommender {
         };
       });
 
-      console.log(`✅ 返回 ${result.length} 个备选景点（带IoT数据）`);
 
       return result;
     } catch (error: any) {
-      console.error('❌ 获取备选景点推荐失败:', error);
       throw error;
     }
   }

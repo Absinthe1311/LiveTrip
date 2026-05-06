@@ -19,7 +19,6 @@ const prisma = getPrismaClient();
  * @returns 分享链接信息
  */
 export async function shareLink(tripId: string, userId: string) {
-  console.log(`🔗 生成分享链接 - 行程ID: ${tripId}, 用户ID: ${userId}`);
 
   // 1. 查询行程是否存在
   const trip = await prisma.trip.findUnique({
@@ -37,7 +36,6 @@ export async function shareLink(tripId: string, userId: string) {
 
   // 3. 检查是否已有shareToken
   if (trip.shareToken && trip.isPublic) {
-    console.log(`✅ 行程已有分享token: ${trip.shareToken}`);
     return {
       shareToken: trip.shareToken,
       shareUrl: `${process.env.FRONTEND_URL || 'http://localhost:5174'}/shared/${trip.shareToken}`,
@@ -77,7 +75,6 @@ export async function shareLink(tripId: string, userId: string) {
     },
   });
 
-  console.log(`✅ 分享链接生成成功: ${shareToken}`);
 
   return {
     shareToken,
@@ -92,7 +89,6 @@ export async function shareLink(tripId: string, userId: string) {
  * @returns 行程只读数据
  */
 export async function publicTrip(token: string) {
-  console.log(`📖 获取公开行程 - Token: ${token}`);
 
   // 1. 根据token查询行程，添加超时保护
   const trip = (await Promise.race([
@@ -127,7 +123,6 @@ export async function publicTrip(token: string) {
     throw new Error('该行程未公开分享');
   }
 
-  console.log(`✅ 找到公开行程: ${trip.title}`);
 
   // 4. 过滤敏感字段,返回只读数据
   const publicTrip = {
@@ -187,7 +182,6 @@ export async function publicTrip(token: string) {
  * @returns 新行程ID
  */
 export async function forkTrip(token: string, userId: string) {
-  console.log(`📋 复刻行程 - Token: ${token}, 用户ID: ${userId}`);
 
   // 1. 获取原行程数据
   const originalTrip = await prisma.trip.findUnique({
@@ -212,7 +206,6 @@ export async function forkTrip(token: string, userId: string) {
     throw new Error('该行程未公开分享,无法复刻');
   }
 
-  console.log(`✅ 找到原行程: ${originalTrip.title}`);
 
   // 4. 使用事务创建新行程
   const newTrip = await prisma.$transaction(async (tx) => {
@@ -291,7 +284,6 @@ export async function forkTrip(token: string, userId: string) {
     return trip;
   });
 
-  console.log(`✅ 行程复刻成功 - 新行程ID: ${newTrip.id}`);
 
   return {
     tripId: newTrip.id,

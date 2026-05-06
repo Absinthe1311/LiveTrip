@@ -61,7 +61,6 @@ export async function listFavs(userId: string = 'default-user'): Promise<Favorit
 
     return favorites;
   } catch (error) {
-    console.error('❌ 获取收藏列表失败:', error);
     throw error;
   }
 }
@@ -92,7 +91,6 @@ export async function favsWithData(
 
     return favorites;
   } catch (error) {
-    console.error('❌ 获取收藏列表失败:', error);
     throw error;
   }
 }
@@ -124,8 +122,6 @@ export async function addFav(
       spot.location !== '0, 0,0' &&
       spot.location !== '';
     if (!isLocationValid) {
-      console.warn(`⚠️  景点坐标无效: ${spot.name}, location=${spot.location}`);
-      console.log('🔄 尝试从高德地图API获取正确的坐标...');
 
       try {
         // 尝试从高德地图API获取正确的坐标
@@ -137,7 +133,6 @@ export async function addFav(
         if (searchResults && searchResults.length > 0) {
           const validSpot = searchResults[0];
           if (validSpot.location && validSpot.location !== '0,0') {
-            console.log(`✅ 从高德地图API获取到有效坐标: ${validSpot.location}`);
 
             // 更新数据库中的坐标
             await prisma.spot.update({
@@ -148,15 +143,11 @@ export async function addFav(
               },
             });
 
-            console.log(`✅ 景点坐标已更新: ${spot.name}`);
           } else {
-            console.warn(`⚠️  高德地图API返回的坐标也无效`);
           }
         } else {
-          console.warn(`⚠️  高德地图API未找到该景点`);
         }
       } catch (error) {
-        console.error('❌ 从高德地图API获取坐标失败:', error);
       }
     }
 
@@ -188,7 +179,6 @@ export async function addFav(
 
     return favorite;
   } catch (error) {
-    console.error('❌ 添加收藏失败:', error);
     throw error;
   }
 }
@@ -210,7 +200,6 @@ export async function delFav(
       },
     });
   } catch (error) {
-    console.error('❌ 取消收藏失败:', error);
     throw error;
   }
 }
@@ -234,7 +223,6 @@ export async function isFaved(
 
     return !!favorite;
   } catch (error) {
-    console.error('❌ 检查收藏状态失败:', error);
     throw error;
   }
 }
@@ -252,7 +240,6 @@ export async function favCount(userId: string = 'default-user'): Promise<number>
 
     return count;
   } catch (error) {
-    console.error('❌ 获取收藏数量失败:', error);
     throw error;
   }
 }

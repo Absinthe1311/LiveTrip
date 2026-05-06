@@ -9,10 +9,6 @@ import {
   delNotif,
   flushNotifs,
 } from '../controllers/notificationController';
-import {
-  testNotif,
-  batchTestNotifs,
-} from '../controllers/testNotificationController';
 
 const router = Router();
 
@@ -36,9 +32,5 @@ router.delete('/:id', delNotif);
 
 // 手动触发环境感知
 router.post('/sensor/run', fireSensor);
-
-// 测试通知接口
-router.post('/test', testNotif);
-router.post('/test-batch', batchTestNotifs);
 
 export default router;

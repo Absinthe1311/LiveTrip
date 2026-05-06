@@ -70,9 +70,7 @@ class NotificationService {
         });
       }
 
-      console.log(`✅ 已向用户 ${userId} 发送通知: ${title}`);
     } catch (error) {
-      console.error('发送通知失败:', error);
     }
   }
 
@@ -125,7 +123,6 @@ class NotificationService {
       });
     }
 
-    console.log(`✅ 已向用户 ${userId} 发送批量通知: ${title}`);
   }
 
   /**
@@ -135,7 +132,6 @@ class NotificationService {
     try {
       sendToUser(userId, 'sensor:alert', data);
     } catch (error) {
-      console.error('WebSocket推送失败:', error);
     }
   }
 
@@ -162,7 +158,6 @@ class NotificationService {
         },
       });
     } catch (error) {
-      console.error('创建站内通知失败:', error);
     }
   }
 
@@ -172,10 +167,10 @@ class NotificationService {
   private notifTitle(result: SensorResult): string {
     const levelText =
       result.level === SensorLevel.DANGER
-        ? '⚠️ 紧急'
+        ? ' 紧急'
         : result.level === SensorLevel.WARNING
-          ? '⚡ 警告'
-          : 'ℹ️ 提示';
+          ? ' 警告'
+          : ' 提示';
 
     const typeText =
       {
@@ -244,7 +239,6 @@ class NotificationService {
         },
       });
     } catch (error) {
-      console.error('标记通知已读失败:', error);
     }
   }
 
@@ -261,7 +255,6 @@ class NotificationService {
         },
       });
     } catch (error) {
-      console.error('标记所有通知已读失败:', error);
     }
   }
 }

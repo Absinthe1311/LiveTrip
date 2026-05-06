@@ -52,7 +52,6 @@ export const imgUpload = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('❌ 图片上传失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '图片上传失败',
@@ -91,7 +90,6 @@ export const delImg = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.error('❌ 图片删除失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '图片删除失败',

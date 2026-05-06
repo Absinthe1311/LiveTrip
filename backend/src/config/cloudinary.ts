@@ -18,7 +18,6 @@ export function initCloudinary() {
     !process.env.CLOUDINARY_API_KEY ||
     !process.env.CLOUDINARY_API_SECRET
   ) {
-    console.log('Cloudinary 配置已加载');
   }
 }
 

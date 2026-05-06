@@ -77,7 +77,6 @@ class RestaurantRecommender {
         let restaurants: AmapAttraction[];
 
         if (cachedRestaurants && cachedRestaurants.length > 0) {
-          console.log(`✅ [数据库] 第${dayData.day}天找到 ${cachedRestaurants.length} 个餐厅`);
           restaurants = cachedRestaurants.map((r) => ({
             name: r.name,
             location: r.location,
@@ -89,7 +88,6 @@ class RestaurantRecommender {
           }));
         } else {
           // 数据库没有，调用高德API
-          console.log(`📡 [高德API] 第${dayData.day}天搜索餐厅 - 中心点: ${centerSpot.location}`);
           restaurants = await amapRateLimiter.exec(async () => {
             const amapServiceInstance = amapService();
             return await amapServiceInstance.searchAround(
@@ -112,7 +110,6 @@ class RestaurantRecommender {
             continue;
           }
 
-          console.log(`✅ [高德API] 第${dayData.day}天找到 ${restaurants.length} 个餐厅`);
 
           // 保存到数据库
           const restaurantCaches: RestaurantCache[] = restaurants.map((r) => ({
@@ -126,7 +123,6 @@ class RestaurantRecommender {
 
           const city = this.guessCity(dayData.spots);
           await restaurantCacheService.storeRes(restaurantCaches, city);
-          console.log(`💾 [数据库] 第${dayData.day}天保存 ${restaurants.length} 个餐厅`);
         }
 
         // 处理餐厅数据
@@ -145,13 +141,10 @@ class RestaurantRecommender {
         // 过滤不合适的餐厅（快餐、学校餐厅等）
         const filteredRestaurants = this.filterBad(processedRestaurants);
 
-        console.log(`🔍 过滤前: ${processedRestaurants.length} 个餐厅`);
-        console.log(`✅ 过滤后: ${filteredRestaurants.length} 个合适餐厅`);
 
         // 如果过滤后数量不足，放宽过滤条件，保留部分餐厅
         let finalRestaurants = filteredRestaurants;
         if (filteredRestaurants.length < 3) {
-          console.log(`⚠️  过滤后餐厅不足3个，放宽过滤条件`);
           // 重新过滤，仅排除明显不合适的（学校、医院等）
           const relaxedFiltered = processedRestaurants.filter((r) => {
             const nameAndType = `${r.name} ${r.type} ${r.address}`;
@@ -178,7 +171,6 @@ class RestaurantRecommender {
 
       return results;
     } catch (error) {
-      console.error('❌ 餐厅推荐失败:', error);
       throw error;
     }
   }
@@ -364,7 +356,6 @@ class RestaurantRecommender {
       // 检查是否包含排除关键词
       for (const keyword of excludedKeywords) {
         if (nameAndType.includes(keyword)) {
-          console.log(`🚫 过滤不合适餐厅: ${restaurant.name} (包含: ${keyword})`);
           return false;
         }
       }
@@ -385,7 +376,6 @@ class RestaurantRecommender {
       const distanceKm = amapServiceInstance.calcDist(location1, location2);
       return Math.round(distanceKm * 1000); // 转换为米
     } catch (error) {
-      console.error('❌ 计算距离失败:', error);
       return 0; // 返回默认值
     }
   }

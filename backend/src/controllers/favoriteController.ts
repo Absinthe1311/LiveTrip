@@ -18,7 +18,6 @@ export const myFavs = async (req: Request, res: Response) => {
     const userId = (req.headers['x-user-id'] as string) || 'default-user';
     const includeIoT = req.query.includeIoT === 'true';
 
-    console.log(`📦 获取收藏列表: 用户ID=${userId}, 包含IoT=${includeIoT}`);
 
     let favorites;
     if (includeIoT) {
@@ -33,7 +32,6 @@ export const myFavs = async (req: Request, res: Response) => {
       count: favorites.length,
     });
   } catch (error: any) {
-    console.error('❌ 获取收藏列表失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取收藏列表失败',
@@ -57,7 +55,6 @@ export const addFavCtrl = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`❤️ 添加收藏: 景点ID=${spotId}, 用户ID=${userId}`);
 
     const favorite = await addFav(spotId, userId, notes);
 
@@ -67,7 +64,6 @@ export const addFavCtrl = async (req: Request, res: Response) => {
       message: '收藏成功',
     });
   } catch (error: any) {
-    console.error('❌ 添加收藏失败:', error);
 
     if (error.message === '景点不存在') {
       return res.status(404).json({
@@ -99,7 +95,6 @@ export const delFavCtrl = async (req: Request, res: Response) => {
     const { spotId } = req.params;
     const userId = (req.headers['x-user-id'] as string) || 'default-user';
 
-    console.log(`💔 取消收藏: 景点ID=${spotId}, 用户ID=${userId}`);
 
     await delFav(spotId.toString(), userId);
 
@@ -108,7 +103,6 @@ export const delFavCtrl = async (req: Request, res: Response) => {
       message: '取消收藏成功',
     });
   } catch (error: any) {
-    console.error('❌ 取消收藏失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '取消收藏失败',
@@ -125,7 +119,6 @@ export const chkFav = async (req: Request, res: Response) => {
     const { spotId } = req.params;
     const userId = (req.headers['x-user-id'] as string) || 'default-user';
 
-    console.log(`🔍 检查收藏状态: 景点ID=${spotId}, 用户ID=${userId}`);
 
     const isFavorited = await isFaved(spotId.toString(), userId);
 
@@ -137,7 +130,6 @@ export const chkFav = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('❌ 检查收藏状态失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '检查收藏状态失败',
@@ -153,7 +145,6 @@ export const myFavsCount = async (req: Request, res: Response) => {
   try {
     const userId = (req.headers['x-user-id'] as string) || 'default-user';
 
-    console.log(`🔢 获取收藏数量: 用户ID=${userId}`);
 
     const count = await favCount(userId);
 
@@ -164,7 +155,6 @@ export const myFavsCount = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('❌ 获取收藏数量失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取收藏数量失败',

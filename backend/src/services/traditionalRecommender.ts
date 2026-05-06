@@ -13,24 +13,13 @@ class TraditionalRecommender {
    * 推荐行程（多因素评分引擎）
    */
   async suggestPlan(request: any): Promise<FullItinerary> {
-    console.log('\n🤖 开始使用传统推荐算法推荐行程...');
-    console.log(`   目的地: ${request.destination}`);
-    console.log(`   天数: ${request.days}`);
-    console.log(`   预算: ${request.budget}元`);
-    console.log(`   人数: ${request.groupSize || 1}人`);
-    console.log(`   群体类型: ${request.groupType || 'solo'}`);
-    console.log(`   偏好: ${request.preferences?.categories?.join(', ') || '无'}`);
-    console.log(`   候选景点数: ${request.attractions.length}`);
 
     try {
       // 步骤1：获取 IoT 数据
-      console.log('\n步骤1: 获取 IoT 数据...');
       const spotIds = request.attractions.map((a: any) => a.id || a.spotId);
       const iotDataMap = await this.spotIotMap(spotIds);
-      console.log(`✅ 获取到 ${iotDataMap.size} 个景点的 IoT 数据`);
 
       // 步骤2：为所有景点计算综合评分
-      console.log('\n步骤2: 计算景点综合评分...');
       const scoredSpots = await scoringEngine.rankSpots(
         request.attractions,
         request,
@@ -38,22 +27,18 @@ class TraditionalRecommender {
       );
 
       // 步骤3：K-means 地理聚类
-      console.log('\n步骤3: K-means 地理聚类...');
       const clusters = await clusteringService.KMeans(scoredSpots, request.days);
 
       // 步骤4：在每个聚类内选择景点，应用多样性约束
-      console.log('\n步骤4: 选择景点并应用多样性约束...');
       const itineraryItems = this.selectSpotsFromClusters(
         clusters,
         request.preferences?.pace || 'moderate'
       );
 
       // 步骤5：构建行程
-      console.log('\n步骤5: 构建行程...');
       const itinerary = this.buildItinerary(itineraryItems, request.startDate, request.days);
 
       // 步骤6：计算总费用和预算分配
-      console.log('\n步骤6: 动态计算费用和预算分配...');
       const budgetResult = await budgetOptimizer.calcBudget({
         itinerary,
         totalBudget: request.budget || 5000,
@@ -68,11 +53,9 @@ class TraditionalRecommender {
       const { total_cost, budget_breakdown, budget_utilization, recommendations } = budgetResult;
 
       // 步骤7：生成备选景点池
-      console.log('\n步骤7: 生成备选景点池...');
       const alternativePools = this.altPool(scoredSpots, itineraryItems);
 
       // 步骤8：IoT 实时检查和景点替换
-      console.log('\n步骤8: IoT 实时检查和景点替换...');
       const { checkedItinerary, excludedSpots, warnings } = await iotCheckService.checkItinerary(
         itinerary,
         request.groupType || 'solo',
@@ -83,7 +66,6 @@ class TraditionalRecommender {
       // 如果有被排除的景点，尝试用备选景点替换
       let finalItinerary = checkedItinerary;
       if (excludedSpots.length > 0 && alternativePools) {
-        console.log(`   发现 ${excludedSpots.length} 个问题景点，尝试替换...`);
         finalItinerary = await iotCheckService.replaceExcludedSpots(
           checkedItinerary,
           excludedSpots,
@@ -106,10 +88,6 @@ class TraditionalRecommender {
       const { total_cost: finalTotalCost, budget_breakdown: finalBudgetBreakdown } =
         finalBudgetResult;
 
-      console.log('\n✅ 行程推荐完成！');
-      console.log(`   总费用: ${finalTotalCost} 元`);
-      console.log(`   预算分配:`, finalBudgetBreakdown);
-      console.log(`   IoT 检查: 排除 ${excludedSpots.length} 个，警告 ${warnings.length} 个`);
 
       const result = {
         itinerary: finalItinerary,
@@ -125,20 +103,17 @@ class TraditionalRecommender {
       // 验证结果
       const validation = errorHandler.chkPlan(result);
       if (!validation.valid) {
-        console.error('⚠️  行程验证失败:', validation.errors);
       }
 
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '未知错误';
-      console.error('\n❌ 行程推荐过程中发生错误:', errorMessage);
 
       // 尝试回退策略
       const fallbackStrategy: FallbackStrategy = {
         name: '简化行程回退',
         description: '生成简化版行程作为回退方案',
         execute: async () => {
-          console.log('\n🔄 执行回退方案：生成简化行程...');
 
           // 生成最简单的行程
           const days = request.days || 3;
@@ -197,7 +172,6 @@ class TraditionalRecommender {
       const fallbackResult = await errorHandler.handleError(error, '行程推荐', fallbackStrategy);
 
       if (fallbackResult.success) {
-        console.log('✅ 回退方案执行成功');
         return fallbackResult.result;
       } else {
         // 回退方案也失败了，抛出错误
@@ -322,9 +296,6 @@ class TraditionalRecommender {
    * 5. 每个景点最多2个备选
    */
   public altPool(scoredSpots: any[], selectedSpots: any[]): Record<string, any[]> {
-    console.log('\n🔄 生成备选景点池（新方案）...');
-    console.log(`   总景点数: ${scoredSpots.length}`);
-    console.log(`   选中景点数: ${selectedSpots.length}`);
 
     const alternativePools: Record<string, any[]> = {};
     const MAX_ALTERNATIVES = 2; // 每个景点最多2个备选
@@ -338,7 +309,6 @@ class TraditionalRecommender {
     const selectedSpotIds = new Set(selectedSpots.map((s) => s.spotId));
     const unselectedSpots = scoredSpots.filter((spot) => !selectedSpotIds.has(spot.spotId));
 
-    console.log(`   未选中景点数: ${unselectedSpots.length}`);
 
     // 按评分降序排序未选中景点
     const sortedUnselectedSpots = unselectedSpots.sort((a, b) => b.totalScore - a.totalScore);
@@ -380,10 +350,8 @@ class TraditionalRecommender {
     }
 
     // 打印分配结果
-    console.log('\n📊 备选景点分配结果：');
     for (const selectedSpot of selectedSpots) {
       const alternatives = alternativePools[selectedSpot.spotId];
-      console.log(`   ${selectedSpot.spot.name}: ${alternatives.length} 个备选`);
     }
 
     // 验证：确保没有重复
@@ -393,14 +361,12 @@ class TraditionalRecommender {
       for (const alt of alternatives) {
         if (allAlternativeIds.has(alt.spotId)) {
           hasDuplicate = true;
-          console.error(`   ❌ 发现重复：${alt.name}`);
         }
         allAlternativeIds.add(alt.spotId);
       }
     }
 
     if (!hasDuplicate) {
-      console.log('   ✅ 验证通过：没有重复的备选景点');
     }
 
     return alternativePools;
@@ -416,12 +382,6 @@ class TraditionalRecommender {
 
     // 调试日志
     if (spot.image) {
-      console.log(`   📸 ${spot.name} 图片数据:`, {
-        hasImage: !!spot.image,
-        imageType: typeof spot.image,
-        hasUrl: !!spot.image?.url,
-        imageUrl: imageUrl ? imageUrl.substring(0, 60) + '...' : null,
-      });
     }
 
     return {
@@ -450,7 +410,6 @@ class TraditionalRecommender {
       const iotDataList = await spotService.batchIot(spotIds);
       return iotDataList;
     } catch (error) {
-      console.error('❌ 获取 IoT 数据失败:', error);
       return new Map();
     }
   }

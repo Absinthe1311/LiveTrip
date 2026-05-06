@@ -40,15 +40,8 @@ export const makePlan = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`📅 行程天数: ${days} 天`);
-    console.log(`📍 出发地: ${planData.origin || '未指定'}`);
-    console.log(`👥 群体类型: ${planData.groupType || 'solo'}`);
-    console.log(`👶 携带儿童: ${planData.hasChildren || false}`);
-    console.log(`👴 携带老人: ${planData.hasElderly || false}`);
-    console.log(`🎯 用户偏好: ${planData.preferences?.categories?.join(', ') || '无'}`);
 
     // 步骤 1: 调用 spotService 获取景点（同时存储到数据库）
-    console.log('\n步骤 1: 获取景点数据并存储到数据库...');
     const spots = await spotService.citySpots(planData.destination, 50);
 
     if (spots.length === 0) {
@@ -69,13 +62,11 @@ export const makePlan = async (req: Request, res: Response) => {
       rating: spot.rating || 3.5,
       cost: spot.ticketPrice ? `${spot.ticketPrice}元` : '免费',
       description: spot.description || spot.category || '热门景点', // 添加description字段
-      image: spot.image, // ✅ 添加图片字段
+      image: spot.image, //  添加图片字段
     }));
 
-    console.log(`✅ 获取并存储了 ${spots.length} 个景点到数据库`);
 
     // 步骤 2: 调用传统推荐算法推荐行程
-    console.log('\n步骤 2: 传统推荐算法推荐行程...');
     const itinerary = await traditionalRecommender().suggestPlan({
       attractions,
       destination: planData.destination,
@@ -95,7 +86,6 @@ export const makePlan = async (req: Request, res: Response) => {
     });
 
     // 步骤 3: 对每天的景点进行路径优化
-    console.log('\n步骤 3: 优化游览路径...');
     const optimizer = routeOptimizer();
     for (const day of itinerary.itinerary) {
       day.attractions = optimizer.optRoute(day.attractions);
@@ -109,11 +99,6 @@ export const makePlan = async (req: Request, res: Response) => {
       totalDistance += optimizer.totalDist(day.attractions);
     }
 
-    console.log('\n✅ 行程规划完成！');
-    console.log(`总费用: ${itinerary.total_cost} 元`);
-    console.log(`总距离: ${totalDistance} 公里`);
-    console.log(`📍 出发地: ${planData.origin}`);
-    console.log(`🎯 目的地: ${planData.destination}`);
 
     // 构建返回数据
     const responseData = {
@@ -129,7 +114,6 @@ export const makePlan = async (req: Request, res: Response) => {
       },
     };
 
-    console.log('📦 返回数据:', JSON.stringify(responseData.summary, null, 2));
 
     // 返回结果（不自动保存到数据库）
     res.json({
@@ -137,7 +121,6 @@ export const makePlan = async (req: Request, res: Response) => {
       data: responseData,
     });
   } catch (error: any) {
-    console.error('❌ 行程规划失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '行程规划失败，请稍后重试',
@@ -163,7 +146,6 @@ export const itinerary = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('❌ 获取行程失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '获取行程失败',
@@ -177,8 +159,6 @@ export const itinerary = async (req: Request, res: Response) => {
  */
 export const editTrip = async (req: Request, res: Response) => {
   try {
-    console.log('📝 收到行程调整请求');
-    console.log('请求体:', JSON.stringify(req.body, null, 2));
 
     // 解析请求参数
     const adjustRequest: editTripRequest = req.body;
@@ -202,10 +182,6 @@ export const editTrip = async (req: Request, res: Response) => {
     // 调用行程调整服务
     const result = await itineraryAdjustService.editTrip(adjustRequest);
 
-    console.log('✅ 行程调整完成');
-    console.log(`   调整成功: ${result.success}`);
-    console.log(`   调整原因: ${result.message}`);
-    console.log(`   调整数量: ${result.adjustments.length}`);
 
     // 返回结果
     res.json({
@@ -217,7 +193,6 @@ export const editTrip = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('❌ 调整行程失败:', error);
     res.status(500).json({
       success: false,
       error: error.message || '调整行程失败',

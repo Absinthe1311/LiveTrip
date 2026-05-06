@@ -45,9 +45,6 @@ class ConstraintAwarePlanner {
     request: ConstraintAwarePlanRequest,
     userId?: string
   ): Promise<ConstraintAwarePlanResult> {
-    console.log('\n🎯 开始创建约束感知行程...');
-    console.log(`   目的地: ${request.destination}`);
-    console.log(`   必选景点数: ${request.mustVisitSpots?.length || 0}`);
 
     try {
       // 验证必填参数
@@ -75,7 +72,6 @@ class ConstraintAwarePlanner {
       let tripUserId = userId;
       if (!tripUserId) {
         // 如果没有userId，尝试从header中获取
-        console.warn('⚠️  未提供userId，行程将无法被用户看到');
         // 如果没有userId，创建默认用户（仅用于测试）
         const defaultUser = await prisma.user.findFirst({
           where: { username: 'default_user' },
@@ -83,7 +79,6 @@ class ConstraintAwarePlanner {
 
         if (defaultUser) {
           tripUserId = defaultUser.id;
-          console.log(`⚠️  使用默认用户ID: ${tripUserId}（注意：此行程可能无法在用户界面显示）`);
         } else {
           // 创建默认用户
           const createdUser = await prisma.user.create({
@@ -95,10 +90,8 @@ class ConstraintAwarePlanner {
             },
           });
           tripUserId = createdUser.id;
-          console.log(`⚠️  创建默认用户，ID: ${tripUserId}（注意：此行程可能无法在用户界面显示）`);
         }
       } else {
-        console.log(`✅ 使用登录用户ID: ${tripUserId}`);
       }
 
       // 创建行程基础信息
@@ -116,7 +109,6 @@ class ConstraintAwarePlanner {
         },
       });
 
-      console.log(`✅ 行程基础信息创建成功，ID: ${trip.id}`);
 
       // 步骤1：处理必选景点（约束预处理）
       const mustVisitCount = await this.processMustVisitSpots(
@@ -126,13 +118,11 @@ class ConstraintAwarePlanner {
         request.mustVisitSpots || []
       );
 
-      console.log(`✅ 必选景点处理完成，共 ${mustVisitCount} 个`);
 
       // 步骤2：获取剩余需要填充的景点数量
       const totalSpotsNeeded = this.totalSpots(daysDiff, request.pace);
       const remainingSpots = totalSpotsNeeded - mustVisitCount;
 
-      console.log(`   总共需要 ${totalSpotsNeeded} 个景点，还需填充 ${remainingSpots} 个`);
 
       // 步骤3：调用推荐算法填充剩余景点
       if (remainingSpots > 0) {
@@ -146,7 +136,6 @@ class ConstraintAwarePlanner {
         );
       }
 
-      console.log(`✅ 行程创建完成，ID: ${trip.id}`);
 
       return {
         tripId: trip.id,
@@ -162,7 +151,6 @@ class ConstraintAwarePlanner {
         recommendedSpotsCount: remainingSpots,
       };
     } catch (error: any) {
-      console.error('❌ 创建约束感知行程失败:', error);
       throw error;
     }
   }
@@ -180,7 +168,6 @@ class ConstraintAwarePlanner {
       return 0;
     }
 
-    console.log('\n📍 开始处理必选景点...');
 
     // 创建每天的行程记录
     const dayRecords = [];
@@ -234,7 +221,6 @@ class ConstraintAwarePlanner {
         });
 
         processedCount++;
-        console.log(`   ✅ 安排必选景点: "${spot.name}" (第${dayIndex + 1}天)`);
       }
     }
 
@@ -266,18 +252,15 @@ class ConstraintAwarePlanner {
     remainingSpots: number,
     mustVisitSpots: MustVisitSpot[]
   ): Promise<void> {
-    console.log('\n🎯 开始填充剩余景点...');
 
     try {
       // 获取城市景点数据
       const attractions = await spotService.citySpots(request.destination, 50);
 
       if (attractions.length === 0) {
-        console.warn(`⚠️  未找到 ${request.destination} 的景点数据`);
         return;
       }
 
-      console.log(`✅ 获取到 ${attractions.length} 个候选景点`);
 
       // 过滤掉必选景点
       const mustVisitIds = mustVisitSpots.map((s) => s.id);
@@ -285,7 +268,6 @@ class ConstraintAwarePlanner {
         (attr: any) => !mustVisitIds.includes(attr.id)
       );
 
-      console.log(`✅ 过滤后剩余 ${filteredAttractions.length} 个候选景点`);
 
       // 构建推荐请求
       const recommendRequest = {
@@ -310,7 +292,6 @@ class ConstraintAwarePlanner {
       // 调用推荐算法
       const itinerary = await recommender.suggestPlan(recommendRequest);
 
-      console.log(`✅ 推荐算法执行完成，生成 ${itinerary.itinerary.length} 天行程`);
 
       // 将推荐结果填充到数据库（只填充前 remainingSpots 个）
       let filledCount = 0;
@@ -363,14 +344,11 @@ class ConstraintAwarePlanner {
             });
 
             filledCount++;
-            console.log(`   ✅ 添加推荐景点: "${attraction.name}" (第${dayItinerary.day}天)`);
           }
         }
       }
 
-      console.log(`✅ 剩余景点填充完成，共 ${filledCount} 个`);
     } catch (error: any) {
-      console.error('❌ 填充剩余景点失败:', error);
       // 填充失败不影响行程创建，只是景点数量会少一些
     }
   }

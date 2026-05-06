@@ -6,10 +6,8 @@ class DiversityService {
    * 应用多样性约束，从候选景点中选择景点
    */
   diversify(scoredSpots: SpotScore[], maxSpots: number): SpotScore[] {
-    console.log(`\n🎨 应用多样性约束，候选景点: ${scoredSpots.length}，最大选择: ${maxSpots}`);
 
     if (scoredSpots.length <= maxSpots) {
-      console.log('✅ 候选景点数量不超过最大值，全部保留');
       return scoredSpots;
     }
 
@@ -24,17 +22,13 @@ class DiversityService {
       // 检查是否可以添加该景点
       if (this.spotOK(spot, selectedSpots, maxSpots)) {
         selectedSpots.push(spot);
-        console.log(`   ✓ 添加景点: ${spot.spot.name} (评分: ${spot.totalScore.toFixed(2)})`);
       } else {
-        console.log(`   ✗ 跳过景点: ${spot.spot.name} (违反多样性约束)`);
       }
     }
 
-    console.log(`✅ 多样性约束应用完成，选择了 ${selectedSpots.length} 个景点`);
 
     // 如果选择的景点太少，放宽约束
     if (selectedSpots.length < 2) {
-      console.log('⚠️  选择的景点太少，放宽约束');
       return scoredSpots.slice(0, maxSpots);
     }
 

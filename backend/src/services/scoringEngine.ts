@@ -64,10 +64,6 @@ class ScoringEngine {
     request: makePlanRequest,
     iotDataMap: Map<string, any>
   ): Promise<SpotScore[]> {
-    console.log('\n📊 开始为景点计算综合评分...');
-    console.log(`   景点数量: ${spots.length}`);
-    console.log(`   用户偏好: ${request.preferences?.categories?.join(', ') || '无'}`);
-    console.log(`   群体类型: ${request.groupType || '未指定'}`);
 
     const scoredSpots: SpotScore[] = [];
 
@@ -79,7 +75,6 @@ class ScoringEngine {
     // 按总分降序排序
     scoredSpots.sort((a, b) => b.totalScore - a.totalScore);
 
-    console.log(`✅ 评分完成，最高分: ${scoredSpots[0]?.totalScore.toFixed(2) || 0}`);
 
     return scoredSpots;
   }

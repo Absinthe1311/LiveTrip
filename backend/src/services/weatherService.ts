@@ -103,7 +103,6 @@ async function getOpenWeatherData(
       icon: data.weather[0].icon,
     };
   } catch (error: any) {
-    console.error('获取 OpenWeatherMap 实时天气失败:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -141,7 +140,6 @@ async function getOpenWeatherForecast(lat: number, lon: number): Promise<number>
 
     return Math.round(avgRainProbability * 100) / 100; // 保留两位小数
   } catch (error: any) {
-    console.error('获取 OpenWeatherMap 预报数据失败:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -258,7 +256,6 @@ export async function batchWeather(spotIds: string[]): Promise<Map<string, Weath
       const weatherData = await weather(spotId);
       weatherMap.set(spotId, weatherData);
     } catch (error) {
-      console.error(`获取景点 ${spotId} 的天气数据失败:`, error);
     }
   });
 

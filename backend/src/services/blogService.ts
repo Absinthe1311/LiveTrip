@@ -88,10 +88,8 @@ class BlogService {
         },
       });
 
-      console.log(`✅ 创建博客文章成功: 标题=${data.title}`);
       return blog;
     } catch (error) {
-      console.error(`❌ 创建博客文章失败:`, error);
       throw error;
     }
   }
@@ -185,13 +183,11 @@ class BlogService {
         prisma.blogPost.count({ where }),
       ]);
 
-      console.log(`✅ 获取博客文章成功: 总数=${total}`);
       return {
         posts,
         total,
       };
     } catch (error) {
-      console.error(`❌ 获取博客文章失败:`, error);
       throw error;
     }
   }
@@ -234,10 +230,8 @@ class BlogService {
         },
       });
 
-      console.log(`✅ 获取博客文章详情成功: ID=${id}`);
       return blog;
     } catch (error) {
-      console.error(`❌ 获取博客文章详情失败:`, error);
       throw error;
     }
   }
@@ -252,9 +246,7 @@ class BlogService {
         data: { viewCount: { increment: 1 } },
       });
 
-      console.log(`✅ 增加浏览量成功: ID=${id}`);
     } catch (error) {
-      console.error(`❌ 增加浏览量失败:`, error);
       throw error;
     }
   }
@@ -315,10 +307,8 @@ class BlogService {
         },
       });
 
-      console.log(`✅ 更新博客文章成功: ID=${id}`);
       return blog;
     } catch (error) {
-      console.error(`❌ 更新博客文章失败:`, error);
       throw error;
     }
   }
@@ -340,10 +330,8 @@ class BlogService {
         where: { id },
       });
 
-      console.log(`✅ 删除博客文章成功: ID=${id}`);
       return true;
     } catch (error) {
-      console.error(`❌ 删除博客文章失败:`, error);
       throw error;
     }
   }
@@ -400,10 +388,8 @@ class BlogService {
         });
       }
 
-      console.log(`✅ ${liked ? '点赞' : '取消点赞'}成功: 文章ID=${postId}, 用户ID=${userId}`);
       return { liked, likeCount };
     } catch (error) {
-      console.error(`❌ 点赞操作失败:`, error);
       throw error;
     }
   }
@@ -445,10 +431,8 @@ class BlogService {
         data: { commentCount: { increment: 1 } },
       });
 
-      console.log(`✅ 添加评论成功: 文章ID=${postId}`);
       return comment;
     } catch (error) {
-      console.error(`❌ 添加评论失败:`, error);
       throw error;
     }
   }
@@ -476,10 +460,8 @@ class BlogService {
         data: { commentCount: { increment: -1 } },
       });
 
-      console.log(`✅ 删除评论成功: 评论ID=${commentId}`);
       return true;
     } catch (error) {
-      console.error(`❌ 删除评论失败:`, error);
       throw error;
     }
   }
@@ -536,10 +518,8 @@ class BlogService {
         });
       }
 
-      console.log(`✅ ${liked ? '点赞' : '取消点赞'}成功: 评论ID=${commentId}, 用户ID=${userId}`);
       return { liked, likeCount };
     } catch (error) {
-      console.error(`❌ 点赞操作失败:`, error);
       throw error;
     }
   }
@@ -573,7 +553,6 @@ class BlogService {
 
       return sortedTags;
     } catch (error) {
-      console.error(`❌ 获取热门标签失败:`, error);
       throw error;
     }
   }

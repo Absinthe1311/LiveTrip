@@ -68,7 +68,6 @@ export const regUser = async (req: Request, res: Response) => {
       expiresIn: JWT_EXPIRES_IN,
     } as SignOptions);
 
-    console.log('✅ 用户注册成功:', username);
     res.json({
       success: true,
       data: {
@@ -84,7 +83,6 @@ export const regUser = async (req: Request, res: Response) => {
       },
     });
   } catch (err: any) {
-    console.error('❌ 注册失败:', err);
     res.status(500).json({ success: false, error: err.message || '注册失败，请稍后重试' });
   }
 };
@@ -110,7 +108,6 @@ export const login = async (req: Request, res: Response) => {
       expiresIn: JWT_EXPIRES_IN,
     } as SignOptions);
 
-    console.log('✅ 用户登录成功:', username);
     res.json({
       success: true,
       data: {
@@ -126,7 +123,6 @@ export const login = async (req: Request, res: Response) => {
       },
     });
   } catch (err: any) {
-    console.error('❌ 登录失败:', err);
     res.status(500).json({ success: false, error: err.message || '登录失败，请稍后重试' });
   }
 };
@@ -155,10 +151,8 @@ export const currUser = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: '用户不存在' });
     }
 
-    console.log('✅ 获取用户信息成功:', user.username);
     res.json({ success: true, data: { user } });
   } catch (err: any) {
-    console.error('❌ 获取用户信息失败:', err);
     if (err.name === 'JsonWebTokenError') {
       return res.status(401).json({ success: false, error: 'Token 无效' });
     }
@@ -201,7 +195,6 @@ export const saveProfile = async (req: Request, res: Response) => {
       },
     });
 
-    console.log('✅ 用户信息更新成功:', updatedUser.username);
     res.json({
       success: true,
       data: {
@@ -216,7 +209,6 @@ export const saveProfile = async (req: Request, res: Response) => {
       },
     });
   } catch (err: any) {
-    console.error('❌ 更新用户信息失败:', err);
     res.status(500).json({ success: false, error: err.message || '更新用户信息失败' });
   }
 };

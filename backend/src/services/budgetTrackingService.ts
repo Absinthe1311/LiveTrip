@@ -1,4 +1,3 @@
-// AI辅助生成：GLM-5, 2026-04-24 21:31
 // 描述：预算追踪服务，提供预算变更记录、预算调整、预算历史查询等功能，支持预算功能的实时更新和追踪
 
 import prisma from '../lib/prisma';
@@ -94,7 +93,6 @@ class BudgetTrackingService {
         },
       });
 
-      console.log('✅ 预算变更记录已创建:', record.id);
 
       return {
         success: true,
@@ -107,7 +105,6 @@ class BudgetTrackingService {
         },
       };
     } catch (error) {
-      console.error('创建预算变更记录失败:', error);
       return { success: false, error: '创建记录失败' };
     }
   }
@@ -151,11 +148,9 @@ class BudgetTrackingService {
         description: reason || `将总预算从¥${previousBudget}调整为¥${newBudget}`,
       });
 
-      console.log(`✅ 总预算已调整: ¥${previousBudget} -> ¥${newBudget}`);
 
       return result;
     } catch (error) {
-      console.error('调整总预算失败:', error);
       return { success: false, error: '调整预算失败' };
     }
   }
@@ -201,11 +196,9 @@ class BudgetTrackingService {
         relatedItemName: itemName,
       });
 
-      console.log(`✅ 项目价格已更新: ${itemName} ¥${previousPrice} -> ¥${newPrice}`);
 
       return result;
     } catch (error) {
-      console.error('更新项目价格失败:', error);
       return { success: false, error: '更新价格失败' };
     }
   }
@@ -221,10 +214,8 @@ class BudgetTrackingService {
         take: limit,
       });
 
-      console.log(`✅ 获取预算变更历史: ${records.length}条记录`);
       return records;
     } catch (error) {
-      console.error('获取预算变更历史失败:', error);
       return [];
     }
   }
@@ -279,7 +270,6 @@ class BudgetTrackingService {
           : null,
       };
     } catch (error) {
-      console.error('获取实时预算状态失败:', error);
       return null;
     }
   }

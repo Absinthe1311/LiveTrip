@@ -9,10 +9,8 @@ export const askAgent = async (req: Request, res: Response) => {
     }
 
     const userId = req.headers['x-user-id'] as string;
-    console.log('\n🔍 [用户认证] 开始验证用户...');
 
     if (!userId) {
-      console.warn('   ⚠️  未提供 userId，拒绝访问');
       return res.status(401).json({
         success: false,
         error: '请先登录以使用 AI 助手',
@@ -29,7 +27,6 @@ export const askAgent = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      console.warn(`   ⚠️  用户不存在: ${userId}`);
       return res.status(401).json({
         success: false,
         error: '用户信息无效，请重新登录',
@@ -38,14 +35,12 @@ export const askAgent = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`   ✅ 用户验证成功: ${user.username} (${user.email || '无邮箱'})`);
 
     const response = await agentService.processRequest({
       question: question.trim(),
       userId,
     });
 
-    console.log('✅ Agent 回答完成');
 
     const confirmTool = response.toolCalls?.find((tc: any) => tc.result?.needsConfirmation);
     const moreInfoTool = response.toolCalls?.find((tc: any) => tc.result?.needsMoreInfo);
@@ -64,7 +59,6 @@ export const askAgent = async (req: Request, res: Response) => {
 
     res.json(resBody);
   } catch (err: any) {
-    console.error('❌ Agent 请求失败:', err);
     res.status(500).json({ success: false, error: 'AI 服务暂时不可用，请稍后重试' });
   }
 };

@@ -51,7 +51,6 @@ export const setupSocket = (server: HttpServer) => {
 
   // 连接事件
   io.on('connection', (socket: Socket) => {
-    console.log(`✅ 用户 ${socket.data.username} 已连接 (Socket ID: ${socket.id})`);
 
     // 保存用户Socket映射
     userSocketMap.set(socket.data.userId, socket.id);
@@ -94,9 +93,7 @@ export const setupSocket = (server: HttpServer) => {
           timestamp: new Date(),
         });
 
-        console.log(`👤 用户 ${socket.data.username} 加入了房间 ${roomId}`);
       } catch (error) {
-        console.error('❌ 加入房间失败:', error);
         socket.emit('error', { message: '加入房间失败' });
       }
     });
@@ -118,7 +115,6 @@ export const setupSocket = (server: HttpServer) => {
         timestamp: new Date(),
       });
 
-      console.log(`👋 用户 ${socket.data.username} 离开了房间 ${roomId}`);
     });
 
     // ==================== 光标相关事件 ====================
@@ -211,7 +207,6 @@ export const setupSocket = (server: HttpServer) => {
     // ==================== 断开连接 ====================
 
     socket.on('disconnect', () => {
-      console.log(`❌ 用户 ${socket.data.username} 已断开连接 (Socket ID: ${socket.id})`);
 
       // 清理映射
       userSocketMap.delete(socket.data.userId);

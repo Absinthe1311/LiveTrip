@@ -44,7 +44,6 @@ export class PackingService {
         data: packingItems,
       };
     } catch (error) {
-      console.error('获取打包清单失败:', error);
       throw error;
     }
   }
@@ -91,7 +90,6 @@ export class PackingService {
       // 返回完整的清单
       return this.getPack(tripId);
     } catch (error) {
-      console.error('初始化打包清单失败:', error);
       throw error;
     }
   }
@@ -118,7 +116,6 @@ export class PackingService {
         data: item,
       };
     } catch (error) {
-      console.error('添加打包物品失败:', error);
       throw error;
     }
   }
@@ -152,7 +149,6 @@ export class PackingService {
       // 返回完整的清单
       return this.getPack(tripId);
     } catch (error) {
-      console.error('批量保存打包清单失败:', error);
       throw error;
     }
   }
@@ -173,7 +169,6 @@ export class PackingService {
         data: item,
       };
     } catch (error) {
-      console.error('更新打包物品失败:', error);
       throw error;
     }
   }
@@ -193,7 +188,6 @@ export class PackingService {
         message: '删除成功',
       };
     } catch (error) {
-      console.error('删除打包物品失败:', error);
       throw error;
     }
   }
@@ -227,7 +221,6 @@ export class PackingService {
         _count: true,
       });
     } catch (error) {
-      console.error('获取打包进度失败:', error);
       throw error;
     }
   }

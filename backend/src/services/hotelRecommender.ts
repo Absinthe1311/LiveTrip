@@ -55,7 +55,6 @@ class HotelRecommender {
       let hotels: AmapAttraction[];
 
       if (cachedHotels && cachedHotels.length > 0) {
-        console.log(`✅ [数据库] 找到 ${cachedHotels.length} 个酒店`);
         hotels = cachedHotels.map((h) => ({
           name: h.name,
           location: h.location,
@@ -67,7 +66,6 @@ class HotelRecommender {
         }));
       } else {
         // 步骤4: 数据库没有，调用高德API
-        console.log(`📡 [高德API] 搜索酒店 - 中心点: ${centerPoint}`);
         hotels = await amapRateLimiter.exec(async () => {
           const amapServiceInstance = amapService();
           return await amapServiceInstance.searchAround(centerPoint, '酒店', '100101', 5000, 30);
@@ -77,7 +75,6 @@ class HotelRecommender {
           return [];
         }
 
-        console.log(`✅ [高德API] 找到 ${hotels.length} 个酒店`);
 
         // 步骤5: 保存到数据库
         const hotelCaches: HotelCache[] = hotels.map((h) => ({
@@ -92,7 +89,6 @@ class HotelRecommender {
         // 从景点中推断城市
         const city = this.guessCity(spots);
         await hotelCacheService.storeHotels(hotelCaches, city);
-        console.log(`💾 [数据库] 保存 ${hotels.length} 个酒店`);
       }
 
       // 步骤6: 根据档次过滤酒店
@@ -119,7 +115,6 @@ class HotelRecommender {
       // 步骤9: 返回5个推荐
       return sortedHotels.slice(0, Math.min(5, sortedHotels.length));
     } catch (error) {
-      console.error('❌ 酒店推荐失败:', error);
       throw error;
     }
   }
@@ -225,7 +220,6 @@ class HotelRecommender {
 
     // 如果过滤后没有结果，返回原始列表的前10个
     if (filtered.length === 0) {
-      console.log('⚠️  档次过滤后无结果，返回所有酒店');
       return hotels.slice(0, 10);
     }
 

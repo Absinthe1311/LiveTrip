@@ -40,7 +40,6 @@ export class BlogController {
         data: blog,
       });
     } catch (error: any) {
-      console.error('创建博客文章失败:', error);
       res.status(500).json({
         success: false,
         message: '创建博客文章失败',
@@ -86,7 +85,6 @@ export class BlogController {
         data: result,
       });
     } catch (error: any) {
-      console.error('获取博客文章列表失败:', error);
       res.status(500).json({
         success: false,
         message: '获取博客文章列表失败',
@@ -118,7 +116,6 @@ export class BlogController {
         data: blog,
       });
     } catch (error: any) {
-      console.error('获取博客文章详情失败:', error);
       res.status(500).json({
         success: false,
         message: '获取博客文章详情失败',
@@ -142,7 +139,6 @@ export class BlogController {
         message: '浏览量增加成功',
       });
     } catch (error: any) {
-      console.error('增加浏览量失败:', error);
       res.status(500).json({
         success: false,
         message: '增加浏览量失败',
@@ -192,7 +188,6 @@ export class BlogController {
         data: blog,
       });
     } catch (error: any) {
-      console.error('更新博客文章失败:', error);
       res.status(500).json({
         success: false,
         message: '更新博客文章失败',
@@ -232,7 +227,6 @@ export class BlogController {
         });
       }
     } catch (error: any) {
-      console.error('删除博客文章失败:', error);
       res.status(500).json({
         success: false,
         message: '删除博客文章失败',
@@ -266,7 +260,6 @@ export class BlogController {
         data: result,
       });
     } catch (error: any) {
-      console.error('点赞操作失败:', error);
       res.status(500).json({
         success: false,
         message: '点赞操作失败',
@@ -300,7 +293,6 @@ export class BlogController {
         data: comment,
       });
     } catch (error: any) {
-      console.error('添加评论失败:', error);
       res.status(500).json({
         success: false,
         message: '添加评论失败',
@@ -340,7 +332,6 @@ export class BlogController {
         });
       }
     } catch (error: any) {
-      console.error('删除评论失败:', error);
       res.status(500).json({
         success: false,
         message: '删除评论失败',
@@ -374,7 +365,6 @@ export class BlogController {
         data: result,
       });
     } catch (error: any) {
-      console.error('点赞操作失败:', error);
       res.status(500).json({
         success: false,
         message: '点赞操作失败',
@@ -398,7 +388,6 @@ export class BlogController {
         data: tags,
       });
     } catch (error: any) {
-      console.error('获取热门标签失败:', error);
       res.status(500).json({
         success: false,
         message: '获取热门标签失败',
